@@ -1,0 +1,84 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Recurso: Nuclear Shell
+
+ID = rafaeltessaro.bs_shell_nuke
+NameKey = "Resource/BSShellNuke"
+PluralNameKey = "Resource/BSShellNukePlural"
+DescriptionKey = "Resource/BSShellNukeDesc"
+BuyPrice = 300
+SellPrice = (&BuyPrice) / 2
+MaxPerNugget = 1
+MaxStackSize = 2
+FlexGridPriorityKey = "flex_grid_rafaeltessaro.bs_shell_nuke"
+FlexGridDefaultPriority = 1
+DropRates = &<./Data/resources/resources.rules>/AmmoDropRates
+Rarity = Ammunition
+Icon
+{
+	Texture
+	{
+		File = "icon.png"
+		MipLevels = max
+	}
+	Size = [64, 64]
+}
+Overlay
+{
+	Texture
+	{
+		File = "overlay.png"
+		SampleMode = Linear
+		MipLevels = max
+	}
+	Size = [1, 1]
+}
+DeathHitEffects
+[
+	{
+		Type = ExplosiveDamage
+		TotalDamage
+		{
+			BaseValue = 30000
+			EffectScaleExponent = 1
+		}
+		Radius = 6
+		Delay = 0.05
+		StatusType = cosmoteer.fire
+		StatusChancePerNDamage = 50%
+		StatusValue = 1
+		StatusValueType = Interpolated
+		NDamage = 1000
+		CrewKillChance = 10%
+		Filter
+		{
+			OperationalHealth = true
+			StructuralHealth = false
+			Friendlies = true
+		}
+	}
+]
+DeathMediaEffects = &/COMMON_EFFECTS/BigPartDestroyed
+NuggetSprites
+[
+	{
+		File = "nugget.png"
+		NormalsFile = "nugget_normals.png"
+		Size = [1, 1]
+		Offset = [0.25, 0]
+		UVRotation = 1
+	}
+]
+StackSprites
+[
+	{
+		File = "stack_1.png"
+		Size = [1, 1]
+	}
+	{
+		File = "stack_2.png"
+		Size = [1, 1]
+	}
+]
+StackReceiveMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
+StackPickupMediaEffects = &/COMMON_EFFECTS/AmmoPickup
+NuggetPickupMediaEffects = &/COMMON_EFFECTS/NuggetPickup

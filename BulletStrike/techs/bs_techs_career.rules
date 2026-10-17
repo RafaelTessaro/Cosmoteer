@@ -1,0 +1,326 @@
+// Techs do modo Carreira do Bullet Strike.
+// &~/OverclockIcon aponta para ESTE arquivo, por isso o OverclockIcon local no fim.
+
+Techs
+[
+	{
+		ID = rafaeltessaro.bs_tech_lmg
+		NameKey = &<../parts/bs_lmg/bs_lmg.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_lmg/bs_lmg.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_lmg/bs_lmg.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked = [&<../parts/bs_lmg/bs_lmg.rules>/Part/ID, &<../parts/bs_hmg/bs_hmg.rules>/Part/ID]
+		Cost = 1500
+	}
+	{
+		ID = rafaeltessaro.bs_tech_autocannon_20
+		NameKey = &<../parts/bs_autocannon_20/bs_autocannon_20.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_autocannon_20/bs_autocannon_20.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_autocannon_20/bs_autocannon_20.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked = [&<../parts/bs_autocannon_20/bs_autocannon_20.rules>/Part/ID]
+		Cost = 3000
+		Prerequisites = [rafaeltessaro.bs_tech_lmg]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_flak_light
+		NameKey = &<../parts/bs_flak_light/bs_flak_light.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_flak_light/bs_flak_light.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_flak_light/bs_flak_light.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked = [&<../parts/bs_flak_light/bs_flak_light.rules>/Part/ID]
+		Cost = 3500
+		Prerequisites = [rafaeltessaro.bs_tech_lmg]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_magazines
+		NameKey = &<../parts/bs_factory_mag_std/bs_factory_mag_std.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_factory_mag_std/bs_factory_mag_std.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_factory_mag_std/bs_factory_mag_std.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked = [&<../parts/bs_factory_mag_std/bs_factory_mag_std.rules>/Part/ID]
+		Cost = 5000
+		Prerequisites = [rafaeltessaro.bs_tech_autocannon_20, cosmoteer.factory_ammo]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_quad_hmg
+		NameKey = &<../parts/bs_quad_hmg/bs_quad_hmg.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_quad_hmg/bs_quad_hmg.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_quad_hmg/bs_quad_hmg.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked = [&<../parts/bs_quad_hmg/bs_quad_hmg.rules>/Part/ID]
+		Cost = 6000
+		Prerequisites = [rafaeltessaro.bs_tech_magazines]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_minigun
+		NameKey = &<../parts/bs_minigun/bs_minigun.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_minigun/bs_minigun.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_minigun/bs_minigun.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked = [&<../parts/bs_minigun/bs_minigun.rules>/Part/ID]
+		Cost = 9000
+		Prerequisites = [rafaeltessaro.bs_tech_magazines]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_naval_76
+		NameKey = &<../parts/bs_naval_76/bs_naval_76.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_naval_76/bs_naval_76.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_naval_76/bs_naval_76.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked = [&<../parts/bs_naval_76/bs_naval_76.rules>/Part/ID]
+		Cost = 12000
+		Prerequisites = [rafaeltessaro.bs_tech_magazines, cosmoteer.cannon_large]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_ciws
+		NameKey = &<../parts/bs_ciws/bs_ciws.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_ciws/bs_ciws.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_ciws/bs_ciws.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked = [&<../parts/bs_ciws/bs_ciws.rules>/Part/ID]
+		Cost = 10000
+		Prerequisites = [rafaeltessaro.bs_tech_flak_light, rafaeltessaro.bs_tech_magazines]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_ammo_ap
+		NameKey = &<../parts/bs_factory_mag_ap/bs_factory_mag_ap.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_factory_mag_ap/bs_factory_mag_ap.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_factory_mag_ap/bs_factory_mag_ap.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked = [&<../parts/bs_factory_mag_ap/bs_factory_mag_ap.rules>/Part/ID]
+		Cost = 7000
+		Prerequisites = [rafaeltessaro.bs_tech_magazines]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_ammo_aphe
+		NameKey = &<../parts/bs_factory_mag_aphe/bs_factory_mag_aphe.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_factory_mag_aphe/bs_factory_mag_aphe.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_factory_mag_aphe/bs_factory_mag_aphe.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked = [&<../parts/bs_factory_mag_aphe/bs_factory_mag_aphe.rules>/Part/ID]
+		Cost = 14000
+		Prerequisites = [rafaeltessaro.bs_tech_ammo_ap]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_ammo_emp
+		NameKey = &<../parts/bs_factory_mag_emp/bs_factory_mag_emp.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_factory_mag_emp/bs_factory_mag_emp.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_factory_mag_emp/bs_factory_mag_emp.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked = [&<../parts/bs_factory_mag_emp/bs_factory_mag_emp.rules>/Part/ID]
+		Cost = 14000
+		Prerequisites = [rafaeltessaro.bs_tech_magazines, cosmoteer.factory_emp]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_plasma
+		NameKey = &<../parts/bs_plasma_gatling/bs_plasma_gatling.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_plasma_gatling/bs_plasma_gatling.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_plasma_gatling/bs_plasma_gatling.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked
+		[
+			&<../parts/bs_plasma_gatling/bs_plasma_gatling.rules>/Part/ID
+			&<../parts/bs_factory_plasma/bs_factory_plasma.rules>/Part/ID
+		]
+		Cost = 18000
+		Prerequisites = [rafaeltessaro.bs_tech_minigun]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_oc_quad_hmg
+		Categories = [overclock]
+		NameKey = "Parts/BSQuadHmgOverclock"
+		DescriptionKey = "Parts/BSQuadHmgOverclockDesc"
+		Icon = &<../parts/bs_quad_hmg/bs_quad_hmg.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_quad_hmg; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 30000
+		Prerequisites = [rafaeltessaro.bs_tech_quad_hmg, cosmoteer.heat_management]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_oc_minigun
+		Categories = [overclock]
+		NameKey = "Parts/BSMinigunOverclock"
+		DescriptionKey = "Parts/BSMinigunOverclockDesc"
+		Icon = &<../parts/bs_minigun/bs_minigun.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_minigun; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 45000
+		Prerequisites = [rafaeltessaro.bs_tech_minigun, cosmoteer.heat_management]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_oc_naval_76
+		Categories = [overclock]
+		NameKey = "Parts/BSNaval76Overclock"
+		DescriptionKey = "Parts/BSNaval76OverclockDesc"
+		Icon = &<../parts/bs_naval_76/bs_naval_76.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_naval_76; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 50000
+		Prerequisites = [rafaeltessaro.bs_tech_naval_76, cosmoteer.heat_management]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_oc_plasma_gatling
+		Categories = [overclock]
+		NameKey = "Parts/BSPlasmaGatlingOverclock"
+		DescriptionKey = "Parts/BSPlasmaGatlingOverclockDesc"
+		Icon = &<../parts/bs_plasma_gatling/bs_plasma_gatling.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_plasma_gatling; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 55000
+		Prerequisites = [rafaeltessaro.bs_tech_plasma, cosmoteer.heat_management]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_oc_ciws
+		Categories = [overclock]
+		NameKey = "Parts/BSCiwsOverclock"
+		DescriptionKey = "Parts/BSCiwsOverclockDesc"
+		Icon = &<../parts/bs_ciws/bs_ciws.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_ciws; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 60000
+		Prerequisites = [rafaeltessaro.bs_tech_ciws, cosmoteer.heat_management]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_rotary_30
+		NameKey = &<../parts/bs_rotary_30/bs_rotary_30.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_rotary_30/bs_rotary_30.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_rotary_30/bs_rotary_30.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked = [&<../parts/bs_rotary_30/bs_rotary_30.rules>/Part/ID]
+		Cost = 40000
+		Prerequisites = [rafaeltessaro.bs_tech_minigun]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_naval_155
+		NameKey = &<../parts/bs_naval_155/bs_naval_155.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_naval_155/bs_naval_155.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_naval_155/bs_naval_155.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked = [&<../parts/bs_naval_155/bs_naval_155.rules>/Part/ID]
+		Cost = 45000
+		Prerequisites = [rafaeltessaro.bs_tech_naval_76, cosmoteer.cannon_deck]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_flak_heavy
+		NameKey = &<../parts/bs_flak_heavy/bs_flak_heavy.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_flak_heavy/bs_flak_heavy.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_flak_heavy/bs_flak_heavy.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked = [&<../parts/bs_flak_heavy/bs_flak_heavy.rules>/Part/ID]
+		Cost = 35000
+		Prerequisites = [rafaeltessaro.bs_tech_ciws, cosmoteer.flak_cannon_large]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_plasma_heavy
+		NameKey = &<../parts/bs_plasma_heavy/bs_plasma_heavy.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_plasma_heavy/bs_plasma_heavy.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_plasma_heavy/bs_plasma_heavy.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked = [&<../parts/bs_plasma_heavy/bs_plasma_heavy.rules>/Part/ID]
+		Cost = 65000
+		Prerequisites = [rafaeltessaro.bs_tech_plasma]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_nuke_howitzer
+		NameKey = &<../parts/bs_nuke_howitzer/bs_nuke_howitzer.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_nuke_howitzer/bs_nuke_howitzer.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_nuke_howitzer/bs_nuke_howitzer.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked
+		[
+			&<../parts/bs_nuke_howitzer/bs_nuke_howitzer.rules>/Part/ID
+			&<../parts/bs_factory_nuke_shell/bs_factory_nuke_shell.rules>/Part/ID
+		]
+		Cost = 130000
+		Prerequisites = [rafaeltessaro.bs_tech_naval_155, cosmoteer.factory_nuke]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_naval_406
+		NameKey = &<../parts/bs_naval_406/bs_naval_406.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_naval_406/bs_naval_406.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_naval_406/bs_naval_406.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked = [&<../parts/bs_naval_406/bs_naval_406.rules>/Part/ID]
+		Cost = 160000
+		Prerequisites = [rafaeltessaro.bs_tech_naval_155]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_oc_rotary_30
+		Categories = [overclock]
+		NameKey = "Parts/BSRotary30Overclock"
+		DescriptionKey = "Parts/BSRotary30OverclockDesc"
+		Icon = &<../parts/bs_rotary_30/bs_rotary_30.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_rotary_30; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 100000
+		Prerequisites = [rafaeltessaro.bs_tech_rotary_30, cosmoteer.heat_management]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_oc_naval_155
+		Categories = [overclock]
+		NameKey = "Parts/BSNaval155Overclock"
+		DescriptionKey = "Parts/BSNaval155OverclockDesc"
+		Icon = &<../parts/bs_naval_155/bs_naval_155.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_naval_155; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 110000
+		Prerequisites = [rafaeltessaro.bs_tech_naval_155, cosmoteer.heat_management]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_oc_plasma_heavy
+		Categories = [overclock]
+		NameKey = "Parts/BSPlasmaHeavyOverclock"
+		DescriptionKey = "Parts/BSPlasmaHeavyOverclockDesc"
+		Icon = &<../parts/bs_plasma_heavy/bs_plasma_heavy.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_plasma_heavy; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 120000
+		Prerequisites = [rafaeltessaro.bs_tech_plasma_heavy, cosmoteer.heat_management]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_oc_flak_heavy
+		Categories = [overclock]
+		NameKey = "Parts/BSFlakHeavyOverclock"
+		DescriptionKey = "Parts/BSFlakHeavyOverclockDesc"
+		Icon = &<../parts/bs_flak_heavy/bs_flak_heavy.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_flak_heavy; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 90000
+		Prerequisites = [rafaeltessaro.bs_tech_flak_heavy, cosmoteer.heat_management]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_oc_nuke_howitzer
+		Categories = [overclock]
+		NameKey = "Parts/BSNukeHowitzerOverclock"
+		DescriptionKey = "Parts/BSNukeHowitzerOverclockDesc"
+		Icon = &<../parts/bs_nuke_howitzer/bs_nuke_howitzer.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_nuke_howitzer; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 150000
+		Prerequisites = [rafaeltessaro.bs_tech_nuke_howitzer, cosmoteer.heat_management]
+	}
+	{
+		ID = rafaeltessaro.bs_tech_oc_naval_406
+		Categories = [overclock]
+		NameKey = "Parts/BSNaval406Overclock"
+		DescriptionKey = "Parts/BSNaval406OverclockDesc"
+		Icon = &<../parts/bs_naval_406/bs_naval_406.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_naval_406; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 150000
+		Prerequisites = [rafaeltessaro.bs_tech_naval_406, cosmoteer.heat_management]
+	}
+]
+OverclockIcon = &<./Data/modes/career/techs.rules>/OverclockIcon

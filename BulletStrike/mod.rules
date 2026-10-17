@@ -1,0 +1,105 @@
+// Bullet Strike - armas de convés movidas a munição para Cosmoteer
+// Gerado por tools/build_mod.py - edite os dados em tools/bs_data.py e rode o gerador de novo.
+// Alvo: Cosmoteer 0.30.4 (estavel) e 0.30.5 (RC). Compativel com Star Wars: A Cosmos Divided.
+// ATENCAO: este deve ser o UNICO arquivo chamado mod.rules / mod_*.rules no mod.
+
+ID = rafaeltessaro.bullet_strike
+Name = "Bullet Strike"
+Version = 1.0.0
+CompatibleGameVersions = ["0.30.4", "0.30.4a", "0.30.4b", "0.30.4c", "0.30.5"]
+UseThisFileIfNoVersionMatch = true
+ModifiesGameplay = true
+Author = "Rafael Tessaro"
+Logo = "logo.png"
+Description = "Deck-mounted, crew-operated weapons that run on AMMUNITION instead of power.\n\n- Early game: light machine guns and autocannons (1-2 tiles).\n- Mid game: minigun, naval automatic cannon, plasma gatling, CIWS (with overclock).\n- Late game: heavy naval guns, heavy rotary cannon, heavy plasma, nuclear howitzer (with overclock).\n- Flak/CIWS that shreds many missiles, mines, shells and laser bolts at once - but eats ammo.\n- Magazine logistics: factories pack ammo into magazines that crew carry to the guns.\n- Ammo selector: Standard, Armor-Piercing, AP-Explosive and EMP. Plus plasma cells and nuclear shells.\n\nCompatible with Star Wars: A Cosmos Divided.\n\nArmas de convés operadas por tripulação que usam MUNIÇÃO em vez de energia. Compatível com SW:ACD."
+StringsFolder = "strings"
+Actions
+[
+	{
+		Action = Overrides
+		OverrideIn = "<gui/game/designer/editor_groups.rules>"
+		Overrides
+		{
+			BulletStrike
+			{
+				NameKey = "EditorGroups/BulletStrike"
+				Icon
+				{
+					Texture
+					{
+						File = "gui/group_bullet_strike.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+				SortOrder = 250
+			}
+		}
+	}
+	{
+		Action = AddMany
+		AddTo = "<resources/resources.rules>/Resources"
+		ManyToAdd
+		[
+			&<resources/bs_mag_std/bs_mag_std.rules>
+			&<resources/bs_mag_ap/bs_mag_ap.rules>
+			&<resources/bs_mag_aphe/bs_mag_aphe.rules>
+			&<resources/bs_mag_emp/bs_mag_emp.rules>
+			&<resources/bs_plasma_cell/bs_plasma_cell.rules>
+			&<resources/bs_shell_nuke/bs_shell_nuke.rules>
+		]
+	}
+	{
+		Action = AddMany
+		AddTo = "<ships/terran/terran.rules>/Terran/Parts"
+		ManyToAdd
+		[
+			&<parts/bs_lmg/bs_lmg.rules>/Part
+			&<parts/bs_hmg/bs_hmg.rules>/Part
+			&<parts/bs_autocannon_20/bs_autocannon_20.rules>/Part
+			&<parts/bs_quad_hmg/bs_quad_hmg.rules>/Part
+			&<parts/bs_minigun/bs_minigun.rules>/Part
+			&<parts/bs_naval_76/bs_naval_76.rules>/Part
+			&<parts/bs_plasma_gatling/bs_plasma_gatling.rules>/Part
+			&<parts/bs_rotary_30/bs_rotary_30.rules>/Part
+			&<parts/bs_naval_155/bs_naval_155.rules>/Part
+			&<parts/bs_plasma_heavy/bs_plasma_heavy.rules>/Part
+			&<parts/bs_nuke_howitzer/bs_nuke_howitzer.rules>/Part
+			&<parts/bs_naval_406/bs_naval_406.rules>/Part
+			&<parts/bs_flak_light/bs_flak_light.rules>/Part
+			&<parts/bs_ciws/bs_ciws.rules>/Part
+			&<parts/bs_flak_heavy/bs_flak_heavy.rules>/Part
+			&<parts/bs_factory_mag_std/bs_factory_mag_std.rules>/Part
+			&<parts/bs_factory_mag_ap/bs_factory_mag_ap.rules>/Part
+			&<parts/bs_factory_mag_aphe/bs_factory_mag_aphe.rules>/Part
+			&<parts/bs_factory_mag_emp/bs_factory_mag_emp.rules>/Part
+			&<parts/bs_factory_plasma/bs_factory_plasma.rules>/Part
+			&<parts/bs_factory_nuke_shell/bs_factory_nuke_shell.rules>/Part
+		]
+	}
+	{
+		Action = AddMany
+		AddTo = "<gui/game/parts/part_stats.rules>/PartStats"
+		ManyToAdd = &<gui/bs_part_stats.rules>/PartStats
+	}
+	{
+		Action = AddMany
+		AddTo = "<gui/game/parts/part_toggles.rules>/PartToggles"
+		ManyToAdd = &<gui/bs_part_toggles.rules>/PartToggles
+	}
+	{
+		Action = AddMany
+		AddTo = "<modes/career/techs.rules>/Techs"
+		ManyToAdd = &<techs/bs_techs_career.rules>/Techs
+	}
+	{
+		Action = AddMany
+		AddTo = "<modes/pvp/pvp_buildbattle/techs_buildbattle.rules>/Techs"
+		ManyToAdd = &<techs/bs_techs_buildbattle.rules>/Techs
+	}
+	{
+		Action = AddMany
+		AddTo = "<modes/pvp/pvp_buildbattle/techs_buildbattle.rules>/PartsWhitelist"
+		ManyToAdd = &<techs/bs_techs_buildbattle.rules>/PartsWhitelist
+	}
+]

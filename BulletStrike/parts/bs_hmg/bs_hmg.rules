@@ -1,0 +1,469 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Arma: Heavy Deck MG / Metralhadora Pesada de Convés
+
+FIRE_INTERVAL = 0.2
+Part : <./Data/ships/terran/base_part_terran.rules>/Part
+{
+	NameKey = "Parts/BSHmg"
+	IconNameKey = "Parts/BSHmgIcon"
+	DescriptionKey = "Parts/BSHmgDesc"
+	ID = rafaeltessaro.bs_hmg
+	EditorGroups = ["BulletStrike", "WeaponsProjectile"]
+	Resources = [[steel, 28], [coil, 8]]
+	Size = [1, 2]
+	SelectionPriority = 1
+	MaxHealth = 5000
+	TypeCategories = [weapon, uses_ammo, is_crewed]
+	SignificanceToggle = ScorchedToggle
+	ReceivableBuffs : ^/0/ReceivableBuffs []
+	ProhibitedBy : ^/0/ProhibitedBy [tall]
+	AllowedDoorLocations = [[-1, 0], [-1, 1], [1, 0], [1, 1], [0, 2], [0, -1]]
+	EditorIcon
+	{
+		Texture
+		{
+			File = "icon.png"
+			SampleMode = Linear
+		}
+		Size = [21.33, 64]
+	}
+	Components : ^/0/Components
+	{
+		IsOperational
+		{
+			Type = MultiToggle
+			Toggles = [PowerToggle, PartCrew, ScorchedToggle]
+			Mode = All
+		}
+		CommandConsumptionToggle
+		{
+			Type = MultiToggle
+			Toggles = [PowerToggle, ScorchedToggle]
+			Mode = All
+		}
+		PowerToggle
+		{
+			Type = UIToggle
+			ToggleID = "on_off"
+			Default = 1
+			RequiresCommand = false
+		}
+		ScorchedToggle
+		{
+			Type = StatusToggle
+			StatusType = cosmoteer.scorched
+			MinStatusValue = 1
+			Invert = true
+		}
+		CommandConsumer
+		{
+			Type = CommandConsumer
+			OperationalToggle = CommandConsumptionToggle
+			CommandPoints = 1
+		}
+		FireModeToggle
+		{
+			Type = UIToggle
+			ToggleID = "fire_mode"
+			Default = 1
+			ToggledOnChoices = [0, 1, 2]
+		}
+		AutoTargetToggle
+		{
+			Type = ModeToggle
+			Mode = FireModeToggle
+			OnModes = [1, 2]
+		}
+		AutoFireToggle
+		{
+			Type = ModeToggle
+			Mode = FireModeToggle
+			OnMode = 2
+		}
+		// ---- municao (carregadores abertos em N tiros) ----
+		MagStorage_0
+		{
+			Type = ResourceStorage
+			ResourceType = bullet
+			MaxResources = 15
+			UITileRect = [0 + 7/64, 1 + 7/64, 1 - 14/64, 1 - 14/64]
+			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
+			DropResourcesWhenDestroyed = true
+		}
+		Splitter_0
+		{
+			Type = InlineResourceConverter
+			ResourceType = bullet
+			FromStorage = MagStorage_0
+			FromQuantity = 1
+			ToQuantity = 8
+		}
+		MagConsumer_0
+		{
+			Type = ResourceConsumer
+			ResourceType = bullet
+			Storage = MagStorage_0
+			DefaultPriority = &/PRIORITIES/Weapon_Supply
+			OperationalToggle = CommandConsumptionToggle
+			ConsumptionToggleButtonOffset = [0, -0.4]
+		}
+		AmmoPrereq
+		{
+			Type = MultiToggle
+			Toggles = [Splitter_0]
+			Mode = Any
+		}
+		// ---- torre ----
+		Turret
+		{
+			Type = TurretWeapon
+			Location = [0.5, 0.5]
+			Rotation = -90d
+			OperationalToggle = IsOperational
+			AutoFireToggle = AutoFireToggle
+			FirePermissionToggle = FireModeToggle
+			FireInterval = &~/FIRE_INTERVAL
+			FiringArc = 360d
+			RotateSpeed = 180d
+			FireThresholdAngle = 4d
+			AIFirepowerRating = &~/Part/StatsByCategory/0/Stats/DamagePerSecond
+			Emitter = TargetEmitterProxy
+			IgnoreFriendlyShipLowLOSChecks = true
+			AutoTargets
+			[
+				{
+					TargetType = ShipParts
+					Toggle = AutoTargetToggle
+				}
+			]
+			BlueprintArcSprite
+			{
+				Texture = &/INDICATORS/WeaponArc
+				Size = [0, 1.5]
+				Color = [255, 0, 0, 63]
+			}
+			BlueprintArcRadius = 10
+			BlueprintArcSpriteSegments = 64
+		}
+		TurretCollider
+		{
+			Type = CircleCollider
+			Location = &../Turret/Location
+			Radius = 0.46
+			IsHigh = true
+		}
+		ReloadProgressBar
+		{
+			Type = ProgressBar
+			OperationalToggle = IsOperational
+			ShowProgressFor = Turret
+		}
+		// ---- emissores: um bloco por tipo de municao (e por estado de overclock) ----
+		TargetEmitter
+		{
+			Type = BulletEmitter
+			ChainedTo = Turret
+			FireTrigger
+			GetTargetFrom = Turret
+			Location = [0.951, 0]
+			OperationalToggle = IsOperational
+			Bullet = &<../../shots/bs_shot_hmg_bullet/bs_shot_hmg_bullet.rules>
+			Spread = [-2.0d, 2.0d]
+			ResourceStorage = Splitter_0
+			ResourcesUsed = 1
+			Recoil = 3
+			AntiPhasingRaycastDistance = 2
+			AntiPhasingRaycastIgnoreLowCollisions = true
+		}
+		Emitter1 : TargetEmitter
+		{
+			Location = [0.951, 0]
+			FireTrigger = Turret
+		}
+		TargetEmitterProxy
+		{
+			Type = EmitterProxy
+			ComponentID = TargetEmitter
+			ChainedTo = Turret
+		}
+		Emitter1Proxy
+		{
+			Type = EmitterProxy
+			ComponentID = Emitter1
+			ChainedTo = Turret
+			Location = [0.951, 0]
+		}
+		FireEffect1
+		{
+			Type = TriggeredEffects
+			ChainedTo = Emitter1Proxy
+			Trigger = Emitter1Proxy
+			Location = [-0.3, 0]
+			MediaEffects
+			[
+				&<./Data/ships/terran/chaingun/particles/chaingun_shoot.rules>
+				&<./Data/ships/terran/chaingun/particles/chaingun_shoot_flash.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/ships/terran/chaingun/sounds/chain_gun_shot_01.wav"
+						"./Data/ships/terran/chaingun/sounds/chain_gun_shot_02.wav"
+						"./Data/ships/terran/chaingun/sounds/chain_gun_shot_03.wav"
+						"./Data/ships/terran/chaingun/sounds/chain_gun_shot_04.wav"
+						"./Data/ships/terran/chaingun/sounds/chain_gun_shot_05.wav"
+					]
+					Volume = 0.55
+					SpeedVariation = 0.15
+					MaxConcurrent = 40
+				}
+			]
+		}
+		// ---- tripulacao ----
+		CrewLocation1
+		{
+			Type = CrewLocation
+			Location = [0.5, 1.55]
+			Rotation = 0d
+		}
+		PartCrew
+		{
+			Type = PartCrew
+			Crew = 1
+			DefaultPriority = &/PRIORITIES/Weapon_Crew
+			PrerequisitesBeforeCrewing = [PowerToggle, ScorchedToggle]
+			HighPriorityPrerequisites = [AmmoPrereq]
+			CrewDestinations = [&../../CrewLocation1/Location]
+			CrewLocations = [CrewLocation1]
+		}
+		// ---- graficos ----
+		Graphics
+		{
+			Type = Graphics
+			Location = [0.5, 1]
+			OperationalToggle = IsOperational
+			Floor
+			{
+				Layer = "floors"
+				DamageLevels
+				[
+					{
+						File = "floor.png"
+						Size = [1, 2]
+					}
+				]
+			}
+			Walls
+			{
+				Layer = "walls"
+				DamageLevels
+				[
+					{
+						File = "walls.png"
+						Size = [1, 2]
+					}
+				]
+			}
+			Roof
+			{
+				Layer = "roofs"
+				DamageLevels
+				[
+					{
+						File = "roof.png"
+						NormalsFile = "roof_normals.png"
+						Size = [1, 2]
+					}
+				]
+			}
+		}
+		TurretGraphics
+		{
+			Type = Graphics
+			ChainedTo = Turret
+			Location = [0, 0]
+			Rotation = 90d
+			OperationalToggle = IsOperational
+			Floor
+			{
+				Layer = "doodads_high"
+				DamageLevels
+				[
+					{
+						File = "turret_shadow.png"
+						Size = [0.92, 0.92]
+					}
+				]
+			}
+			OperationalDoodad
+			{
+				Layer = "roof_turrets"
+				DamageLevels
+				[
+					{
+						File = "turret.png"
+						NormalsFile = "turret_normals.png"
+						Size = [0.92, 0.92]
+					}
+				]
+			}
+			NonOperationalDoodad
+			{
+				Layer = "roof_turrets"
+				DamageLevels
+				[
+					{
+						File = "turret_off.png"
+						NormalsFile = "turret_normals.png"
+						Size = [0.92, 0.92]
+					}
+				]
+			}
+		}
+		Barrel1Graphics
+		{
+			Type = Graphics
+			ChainedTo = Turret
+			Location = [0.681, 0]
+			Rotation = 90d
+			OperationalToggle = IsOperational
+			ResetAnimationTrigger = Emitter1Proxy
+			OperationalDoodad
+			{
+				Layer = "roof_turrets"
+				DamageLevels
+				[
+					{
+						AnimationFiles = ["barrel2.png", "barrel3.png", "barrel4.png", "barrel5.png", "barrel1.png"]
+						NormalsAnimationFiles
+						[
+							"barrel_normals1.png"
+							"barrel_normals1.png"
+							"barrel_normals1.png"
+							"barrel_normals1.png"
+							"barrel_normals1.png"
+						]
+						Size = [0.5, 0.7]
+						AnimationInterval = 0.06
+						AnimationStartTime = MinValue
+						ClampAnimation = true
+					}
+				]
+			}
+			NonOperationalDoodad
+			{
+				Layer = "roof_turrets"
+				DamageLevels
+				[
+					{
+						File = "barrel1.png"
+						NormalsFile = "barrel_normals1.png"
+						Size = [0.5, 0.7]
+					}
+				]
+			}
+		}
+		OperationEffects
+		{
+			Type = ToggleEffects
+			Location = [0.5, 1]
+			Toggle = IsOperational
+			ToggledOnMediaEffects = &/COMMON_EFFECTS/MachinesOn
+			ToggledOffMediaEffects = &/COMMON_EFFECTS/MachinesOff
+		}
+		ScorchedTrigger
+		{
+			Type = ToggleTrigger
+			Toggle = ScorchedToggle
+			TriggerWhenOn = false
+		}
+		ScorchedEffects
+		{
+			Type = TriggeredEffects
+			Trigger = ScorchedTrigger
+			Location = &../DestroyedEffects/Location
+			MediaEffects = &/COMMON_EFFECTS/SmallPartScorched
+		}
+		DestroyedEffects
+		{
+			Type = DeathEffects
+			MediaEffects = &/COMMON_EFFECTS/SmallPartDestroyed
+			Location = [0.5, 1]
+		}
+		Indicators
+		{
+			Type = IndicatorSprites
+			Location = [0.5, 1]
+			Indicators
+			[
+				{
+					Toggle = ScorchedToggle
+					AtlasSprite = &/INDICATORS/Scorched
+					HidesIndicators = [1, 2, 3]
+				}
+				{
+					Toggle = PowerToggle
+					AtlasSprite
+					{
+						File = &/INDICATORS/PowerOff
+						Size = [1, 1]
+					}
+					HidesIndicators = [2, 3]
+				}
+				{
+					Toggle = AmmoPrereq
+					Delay = &~/FIRE_INTERVAL
+					AtlasSprite
+					{
+						File = &/INDICATORS/NoAmmo
+						Size = [1, 1]
+					}
+				}
+				{
+					Toggle = PartCrew
+					AtlasSprite
+					{
+						File = &/INDICATORS/NoCrew
+						Size = [1, 1]
+					}
+				}
+			]
+		}
+		Blueprints
+		{
+			Type = BlueprintSprite
+			File = "blueprints.png"
+			Size = [1, 2]
+		}
+	}
+	Stats
+	{
+		CrewRequired = &~/Part/Components/PartCrew/Crew
+		AmmoCapacity = &~/Part/Components/MagStorage_0/MaxResources
+		BSShotsPerMag = &~/Part/Components/Splitter_0/ToQuantity
+	}
+	StatsByCategory
+	[
+		{
+			NameKey = "StatCategories/BSAmmo_bullet"
+			Stats
+			{
+				DamagePerShot = &~/Part/Components/TargetEmitter/Bullet/STAT_DAMAGE
+				ShotsPerSecond = 1 * 1 / (&~/Part/Components/Turret/FireInterval)
+				DamagePerSecond = (&DamagePerShot) * (&ShotsPerSecond)
+				Damage = [&../DamagePerShot, &../DamagePerSecond]
+				Penetration = &~/Part/Components/TargetEmitter/Bullet/STAT_PENETRATION
+				ROF = &ShotsPerSecond
+				Range = &~/Part/Components/TargetEmitter/Bullet/Range
+				Arc = deg(&~/Part/Components/Turret/FiringArc)
+				Spread = deg(&~/Part/Components/TargetEmitter/Spread/1)
+				TurretSpeed = deg(&~/Part/Components/Turret/RotateSpeed)
+				ShotSpeed = &~/Part/Components/TargetEmitter/Bullet/Speed
+				ShotHP = &~/Part/Components/TargetEmitter/Bullet/Components/Targetable/Health
+				AmmoPerShot = (&~/Part/Components/TargetEmitter/ResourcesUsed) / (&~/Part/Components/Splitter_0/ToQuantity)
+				AmmoPerSecond = (&AmmoPerShot) * (&ShotsPerSecond)
+				ShotAmmoUsage = [&../AmmoPerShot, &../AmmoPerSecond]
+			}
+		}
+	]
+}

@@ -1,0 +1,272 @@
+// Techs e pecas sempre liberadas no Build & Battle.
+
+Techs
+[
+	{
+		ID = rafaeltessaro.bs_bb_bs_quad_hmg
+		NameKey = &<../parts/bs_quad_hmg/bs_quad_hmg.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_quad_hmg/bs_quad_hmg.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_quad_hmg/bs_quad_hmg.rules>/Part/EditorIcon
+		Category = [weapons]
+		PartsUnlocked = [&<../parts/bs_quad_hmg/bs_quad_hmg.rules>/Part/ID]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 0
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_quad_hmg-overclock
+		NameKey = "Parts/BSQuadHmgOverclock"
+		DescriptionKey = "Parts/BSQuadHmgOverclockDesc"
+		Icon = &<../parts/bs_quad_hmg/bs_quad_hmg.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		Category = [overclocks]
+		PartsUnlocked = &<./Data/modes/pvp/pvp_buildbattle/techs_buildbattle.rules>/ThermalParts
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_quad_hmg; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 0
+		Prerequisites = [rafaeltessaro.bs_bb_bs_quad_hmg]
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_minigun
+		NameKey = &<../parts/bs_minigun/bs_minigun.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_minigun/bs_minigun.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_minigun/bs_minigun.rules>/Part/EditorIcon
+		Category = [weapons]
+		PartsUnlocked = [&<../parts/bs_minigun/bs_minigun.rules>/Part/ID]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 0
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_minigun-overclock
+		NameKey = "Parts/BSMinigunOverclock"
+		DescriptionKey = "Parts/BSMinigunOverclockDesc"
+		Icon = &<../parts/bs_minigun/bs_minigun.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		Category = [overclocks]
+		PartsUnlocked = &<./Data/modes/pvp/pvp_buildbattle/techs_buildbattle.rules>/ThermalParts
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_minigun; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 0
+		Prerequisites = [rafaeltessaro.bs_bb_bs_minigun]
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_naval_76
+		NameKey = &<../parts/bs_naval_76/bs_naval_76.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_naval_76/bs_naval_76.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_naval_76/bs_naval_76.rules>/Part/EditorIcon
+		Category = [weapons]
+		PartsUnlocked = [&<../parts/bs_naval_76/bs_naval_76.rules>/Part/ID]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 0
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_naval_76-overclock
+		NameKey = "Parts/BSNaval76Overclock"
+		DescriptionKey = "Parts/BSNaval76OverclockDesc"
+		Icon = &<../parts/bs_naval_76/bs_naval_76.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		Category = [overclocks]
+		PartsUnlocked = &<./Data/modes/pvp/pvp_buildbattle/techs_buildbattle.rules>/ThermalParts
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_naval_76; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 0
+		Prerequisites = [rafaeltessaro.bs_bb_bs_naval_76]
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_plasma_gatling
+		NameKey = &<../parts/bs_plasma_gatling/bs_plasma_gatling.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_plasma_gatling/bs_plasma_gatling.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_plasma_gatling/bs_plasma_gatling.rules>/Part/EditorIcon
+		Category = [weapons]
+		PartsUnlocked = [&<../parts/bs_plasma_gatling/bs_plasma_gatling.rules>/Part/ID]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 0
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_plasma_gatling-overclock
+		NameKey = "Parts/BSPlasmaGatlingOverclock"
+		DescriptionKey = "Parts/BSPlasmaGatlingOverclockDesc"
+		Icon = &<../parts/bs_plasma_gatling/bs_plasma_gatling.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		Category = [overclocks]
+		PartsUnlocked = &<./Data/modes/pvp/pvp_buildbattle/techs_buildbattle.rules>/ThermalParts
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_plasma_gatling; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 0
+		Prerequisites = [rafaeltessaro.bs_bb_bs_plasma_gatling]
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_rotary_30
+		NameKey = &<../parts/bs_rotary_30/bs_rotary_30.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_rotary_30/bs_rotary_30.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_rotary_30/bs_rotary_30.rules>/Part/EditorIcon
+		Category = [weapons]
+		PartsUnlocked = [&<../parts/bs_rotary_30/bs_rotary_30.rules>/Part/ID]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 200000
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_rotary_30-overclock
+		NameKey = "Parts/BSRotary30Overclock"
+		DescriptionKey = "Parts/BSRotary30OverclockDesc"
+		Icon = &<../parts/bs_rotary_30/bs_rotary_30.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		Category = [overclocks]
+		PartsUnlocked = &<./Data/modes/pvp/pvp_buildbattle/techs_buildbattle.rules>/ThermalParts
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_rotary_30; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 200000
+		Prerequisites = [rafaeltessaro.bs_bb_bs_rotary_30]
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_naval_155
+		NameKey = &<../parts/bs_naval_155/bs_naval_155.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_naval_155/bs_naval_155.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_naval_155/bs_naval_155.rules>/Part/EditorIcon
+		Category = [weapons]
+		PartsUnlocked = [&<../parts/bs_naval_155/bs_naval_155.rules>/Part/ID]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 200000
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_naval_155-overclock
+		NameKey = "Parts/BSNaval155Overclock"
+		DescriptionKey = "Parts/BSNaval155OverclockDesc"
+		Icon = &<../parts/bs_naval_155/bs_naval_155.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		Category = [overclocks]
+		PartsUnlocked = &<./Data/modes/pvp/pvp_buildbattle/techs_buildbattle.rules>/ThermalParts
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_naval_155; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 200000
+		Prerequisites = [rafaeltessaro.bs_bb_bs_naval_155]
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_plasma_heavy
+		NameKey = &<../parts/bs_plasma_heavy/bs_plasma_heavy.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_plasma_heavy/bs_plasma_heavy.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_plasma_heavy/bs_plasma_heavy.rules>/Part/EditorIcon
+		Category = [weapons]
+		PartsUnlocked = [&<../parts/bs_plasma_heavy/bs_plasma_heavy.rules>/Part/ID]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 200000
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_plasma_heavy-overclock
+		NameKey = "Parts/BSPlasmaHeavyOverclock"
+		DescriptionKey = "Parts/BSPlasmaHeavyOverclockDesc"
+		Icon = &<../parts/bs_plasma_heavy/bs_plasma_heavy.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		Category = [overclocks]
+		PartsUnlocked = &<./Data/modes/pvp/pvp_buildbattle/techs_buildbattle.rules>/ThermalParts
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_plasma_heavy; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 200000
+		Prerequisites = [rafaeltessaro.bs_bb_bs_plasma_heavy]
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_nuke_howitzer
+		NameKey = &<../parts/bs_nuke_howitzer/bs_nuke_howitzer.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_nuke_howitzer/bs_nuke_howitzer.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_nuke_howitzer/bs_nuke_howitzer.rules>/Part/EditorIcon
+		Category = [weapons]
+		PartsUnlocked = [&<../parts/bs_nuke_howitzer/bs_nuke_howitzer.rules>/Part/ID]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 200000
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_nuke_howitzer-overclock
+		NameKey = "Parts/BSNukeHowitzerOverclock"
+		DescriptionKey = "Parts/BSNukeHowitzerOverclockDesc"
+		Icon = &<../parts/bs_nuke_howitzer/bs_nuke_howitzer.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		Category = [overclocks]
+		PartsUnlocked = &<./Data/modes/pvp/pvp_buildbattle/techs_buildbattle.rules>/ThermalParts
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_nuke_howitzer; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 200000
+		Prerequisites = [rafaeltessaro.bs_bb_bs_nuke_howitzer]
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_naval_406
+		NameKey = &<../parts/bs_naval_406/bs_naval_406.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_naval_406/bs_naval_406.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_naval_406/bs_naval_406.rules>/Part/EditorIcon
+		Category = [weapons]
+		PartsUnlocked = [&<../parts/bs_naval_406/bs_naval_406.rules>/Part/ID]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 200000
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_naval_406-overclock
+		NameKey = "Parts/BSNaval406Overclock"
+		DescriptionKey = "Parts/BSNaval406OverclockDesc"
+		Icon = &<../parts/bs_naval_406/bs_naval_406.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		Category = [overclocks]
+		PartsUnlocked = &<./Data/modes/pvp/pvp_buildbattle/techs_buildbattle.rules>/ThermalParts
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_naval_406; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 200000
+		Prerequisites = [rafaeltessaro.bs_bb_bs_naval_406]
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_ciws
+		NameKey = &<../parts/bs_ciws/bs_ciws.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_ciws/bs_ciws.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_ciws/bs_ciws.rules>/Part/EditorIcon
+		Category = [defenses]
+		PartsUnlocked = [&<../parts/bs_ciws/bs_ciws.rules>/Part/ID]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 0
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_ciws-overclock
+		NameKey = "Parts/BSCiwsOverclock"
+		DescriptionKey = "Parts/BSCiwsOverclockDesc"
+		Icon = &<../parts/bs_ciws/bs_ciws.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		Category = [overclocks]
+		PartsUnlocked = &<./Data/modes/pvp/pvp_buildbattle/techs_buildbattle.rules>/ThermalParts
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_ciws; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 0
+		Prerequisites = [rafaeltessaro.bs_bb_bs_ciws]
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_flak_heavy
+		NameKey = &<../parts/bs_flak_heavy/bs_flak_heavy.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_flak_heavy/bs_flak_heavy.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_flak_heavy/bs_flak_heavy.rules>/Part/EditorIcon
+		Category = [defenses]
+		PartsUnlocked = [&<../parts/bs_flak_heavy/bs_flak_heavy.rules>/Part/ID]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 200000
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_flak_heavy-overclock
+		NameKey = "Parts/BSFlakHeavyOverclock"
+		DescriptionKey = "Parts/BSFlakHeavyOverclockDesc"
+		Icon = &<../parts/bs_flak_heavy/bs_flak_heavy.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		Category = [overclocks]
+		PartsUnlocked = &<./Data/modes/pvp/pvp_buildbattle/techs_buildbattle.rules>/ThermalParts
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_flak_heavy; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 200000
+		Prerequisites = [rafaeltessaro.bs_bb_bs_flak_heavy]
+	}
+]
+PartsWhitelist
+[
+	rafaeltessaro.bs_lmg
+	rafaeltessaro.bs_hmg
+	rafaeltessaro.bs_autocannon_20
+	rafaeltessaro.bs_flak_light
+	rafaeltessaro.bs_factory_mag_std
+	rafaeltessaro.bs_factory_mag_ap
+	rafaeltessaro.bs_factory_mag_aphe
+	rafaeltessaro.bs_factory_mag_emp
+	rafaeltessaro.bs_factory_plasma
+	rafaeltessaro.bs_factory_nuke_shell
+]
+OverclockIcon = &<./Data/modes/career/techs.rules>/OverclockIcon

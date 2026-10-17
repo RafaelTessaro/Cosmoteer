@@ -1,0 +1,13 @@
+// Linhas de estatistica do Bullet Strike (adicionadas com AddMany).
+
+PartStats
+[
+	{
+		ID = BSShotsPerMag
+		FormatKey = "Stats/BSShotsPerMagFmt"
+	}
+	{
+		ID = BSFactoryOutput
+		FormatKey = "Stats/BSFactoryOutputFmt"
+	}
+]

@@ -1,0 +1,254 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Projetil: Deck Minigun - emp (overclock)
+
+STAT_DAMAGE = 65
+STAT_PENETRATION = 1
+ID = "rafaeltessaro.bs_shot_minigun_emp_oc"
+Range = 310
+IdealRange = [93, &~/Range]
+IdealRadius = [5, 50]
+Speed = 330
+Components
+{
+	Physics
+	{
+		Type = CirclePhysics
+		Radius = 0.1
+		Density = 0.0001
+	}
+	Death
+	{
+		Type = DeathByLifetime
+	}
+	Targetable
+	{
+		Type = Targetable
+		Health = 80
+		TargetCategory = "bullet"
+		OnDeath
+		{
+			MediaEffects = &~/Components/Hit/HitOperational/MediaEffects
+		}
+	}
+	Hit
+	{
+		Type = PenetratingHit
+		Penetration = 1
+		PenetrationSpeed = 25
+		FriendlyShipLowCollisions = false
+		CrewCollisions = {Enemies=true; Junk=true}
+		PenetratesCrew = true
+		HitCrew = &HitOperational
+		HitShield
+		{
+			ReduceEffectsByPenetration = true
+			Offset = [-0.15, 0]
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
+					{
+						BaseValue = 65
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 5
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = ResourceDrain
+					ResourceType = battery
+					Amount
+					{
+						BaseValue = 36
+						EffectScaleExponent = 1
+					}
+					TreatShieldAsPart = true
+					MediaEffectsOnDrain
+					[
+						&<./Data/shots/disruptor_bolt/particles/ship_drain.rules>
+						&<./Data/shots/disruptor_bolt/particles/disruptor_bolt_hit_sizzle.rules>
+					]
+				}
+			]
+			MediaEffects = &../HitOperational/MediaEffects
+		}
+		HitOperational
+		{
+			ReduceEffectsByPenetration = true
+			Offset = [-0.15, 0]
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
+					{
+						BaseValue = 65
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 5
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = ResourceDrain
+					ResourceType = battery
+					Amount
+					{
+						BaseValue = 22
+						EffectScaleExponent = 1
+					}
+					MediaEffectsOnDrain
+					[
+						&<./Data/shots/disruptor_bolt/particles/ship_drain.rules>
+						&<./Data/shots/disruptor_bolt/particles/disruptor_bolt_hit_sizzle.rules>
+					]
+				}
+			]
+			MediaEffects
+			[
+				&<./Data/shots/disruptor_bolt/particles/disruptor_bolt_hit_orb.rules>
+				&<./Data/shots/disruptor_bolt/particles/disruptor_bolt_hit_bolts.rules>
+				&<./Data/shots/disruptor_bolt/particles/disruptor_bolt_flash.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_01.wav"
+						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_02.wav"
+						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_03.wav"
+						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_04.wav"
+					]
+					Volume = 0.5
+					SpeedVariation = 0.2
+					MaxConcurrent = 30
+				}
+			]
+		}
+		HitStructural
+		{
+			ReduceEffectsByPenetration = true
+			Offset = [0.15, 0]
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
+					{
+						BaseValue = 16
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 2.5
+						EffectScaleExponent = 1
+					}
+				}
+			]
+			MediaEffects
+			[
+				&<./Data/shots/disruptor_bolt/particles/disruptor_bolt_hit_orb.rules>
+				&<./Data/shots/disruptor_bolt/particles/disruptor_bolt_hit_bolts.rules>
+				&<./Data/shots/disruptor_bolt/particles/disruptor_bolt_flash.rules>
+			]
+		}
+		PenetratingOperational
+		{
+			ReduceEffectsByPenetration = true
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
+					{
+						BaseValue = 65
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = StatusApplication
+					StatusType = cosmoteer.fire
+					StatusChance
+					{
+						BaseValue = 0
+						EffectScaleExponent = 1
+					}
+					ValueType = Interpolated
+				}
+				{
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 5
+						EffectScaleExponent = 1
+					}
+				}
+			]
+			MediaEffects = &../HitOperational/MediaEffects
+		}
+		PenetratingStructural : &HitStructural
+		{
+			StructuralDamageRetentionPerHit = 50%
+			MinStructuralDamageScale = 3%
+		}
+		FinishedPenetratingOperational = &PenetratingOperational
+		FinishedPenetratingStructural = &PenetratingStructural
+	}
+	Sprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper3
+		ReduceScaleWith = Hit
+		ReduceScaleExponent = 0.5
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/shots/bullet_med/bullet_med.png"
+				SampleMode = Linear
+				MipLevels = max
+			}
+			Size = [0.18, 0.18]
+		}
+	}
+	GlowSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Z = 0
+		IsLight = true
+		Offset = [-0.375, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [3, 1.5]
+			VertexColor = [80, 150, 255]
+			TargetBlendMode = Add
+			Shader = "./Data/common_effects/fancy_light.shader"
+			_z = 1
+			_nrmlStrengthLimit = 1
+			_litReflectiveStrength = 24
+			_litAdditiveStrength = 0.05
+			_unlitAdditiveStrength = 0.125
+		}
+	}
+}

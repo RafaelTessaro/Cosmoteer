@@ -1,0 +1,225 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Projetil: 20mm Deck Autocannon - bullet
+
+STAT_DAMAGE = 340
+STAT_PENETRATION = 4
+ID = "rafaeltessaro.bs_shot_autocannon_20_bullet"
+Range = 250
+IdealRange = [75, &~/Range]
+IdealRadius = [5, 50]
+Speed = 260
+Components
+{
+	Physics
+	{
+		Type = CirclePhysics
+		Radius = 0.15
+		Density = 0.0001
+	}
+	Death
+	{
+		Type = DeathByLifetime
+	}
+	Targetable
+	{
+		Type = Targetable
+		Health = 150
+		TargetCategory = "bullet"
+		OnDeath
+		{
+			MediaEffects = &~/Components/Hit/HitOperational/MediaEffects
+		}
+	}
+	Hit
+	{
+		Type = PenetratingHit
+		Penetration = 4
+		PenetrationSpeed = 25
+		FriendlyShipLowCollisions = false
+		CrewCollisions = {Enemies=true; Junk=true}
+		PenetratesCrew = true
+		HitCrew = &HitOperational
+		HitShield
+		{
+			ReduceEffectsByPenetration = true
+			Offset = [-0.15, 0]
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
+					{
+						BaseValue = 420
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 5
+						EffectScaleExponent = 1
+					}
+				}
+			]
+			MediaEffects = &../HitOperational/MediaEffects
+		}
+		HitOperational
+		{
+			ReduceEffectsByPenetration = true
+			Offset = [-0.15, 0]
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
+					{
+						BaseValue = 340
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 5
+						EffectScaleExponent = 1
+					}
+				}
+			]
+			MediaEffects
+			[
+				&<./Data/shots/bullet_med/particles/bullet_hit_med.rules>
+				&<./Data/shots/bullet_med/particles/bullet_hit_med_sparks.rules>
+				&<./Data/shots/bullet_med/particles/bullet_smoke_med.rules>
+				&<./Data/shots/bullet_med/particles/bullet_flash_med.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/bullet_med/sounds/cannon_impact_01.wav"
+						"./Data/shots/bullet_med/sounds/cannon_impact_02.wav"
+						"./Data/shots/bullet_med/sounds/cannon_impact_03.wav"
+						"./Data/shots/bullet_med/sounds/cannon_impact_04.wav"
+					]
+					Volume = 0.6
+					SpeedVariation = 0.2
+					MaxConcurrent = 20
+				}
+			]
+		}
+		HitStructural
+		{
+			ReduceEffectsByPenetration = true
+			Offset = [0.15, 0]
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
+					{
+						BaseValue = 85
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 2.5
+						EffectScaleExponent = 1
+					}
+				}
+			]
+			MediaEffects
+			[
+				&<./Data/shots/bullet_med/particles/bullet_hit_med_struct.rules>
+				&<./Data/shots/bullet_med/particles/bullet_flash_med_struct.rules>
+			]
+		}
+		PenetratingOperational
+		{
+			ReduceEffectsByPenetration = true
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
+					{
+						BaseValue = 340
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = StatusApplication
+					StatusType = cosmoteer.fire
+					StatusChance
+					{
+						BaseValue = 0.08
+						EffectScaleExponent = 1
+					}
+					ValueType = Interpolated
+				}
+				{
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 5
+						EffectScaleExponent = 1
+					}
+				}
+			]
+			MediaEffects = &../HitOperational/MediaEffects
+		}
+		PenetratingStructural : &HitStructural
+		{
+			StructuralDamageRetentionPerHit = 50%
+			MinStructuralDamageScale = 3%
+		}
+		FinishedPenetratingOperational = &PenetratingOperational
+		FinishedPenetratingStructural = &PenetratingStructural
+	}
+	Sprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper3
+		ReduceScaleWith = Hit
+		ReduceScaleExponent = 0.5
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/shots/bullet_med/bullet_med.png"
+				SampleMode = Linear
+				MipLevels = max
+			}
+			Size = [0.32, 0.32]
+		}
+	}
+	GlowSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Z = 0
+		IsLight = true
+		Offset = [-0.625, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [5, 2.5]
+			VertexColor = [255, 140, 40]
+			TargetBlendMode = Add
+			Shader = "./Data/common_effects/fancy_light.shader"
+			_z = 1
+			_nrmlStrengthLimit = 1
+			_litReflectiveStrength = 24
+			_litAdditiveStrength = 0.05
+			_unlitAdditiveStrength = 0.125
+		}
+	}
+}

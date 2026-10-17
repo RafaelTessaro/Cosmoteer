@@ -1,0 +1,25 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Projetil: bs_flak_flak_heavy_oc
+
+BASE = &<bs_flak_flak_heavy.rules>
+CLOUD = &<bs_cloud_flak_heavy.rules>
+Beam : BASE
+{
+	STAT_CLOUD_RADIUS = 4.5
+	STAT_CLOUD_POOL = 2000
+	STAT_CLOUD_LIFETIME = 3
+	HitNothing : ^/0/HitNothing
+	{
+		HitEffects : ^/0/HitEffects
+		[
+			{
+				Type = SpawnBullets
+				Bullet = &~/CLOUD
+				Count = 1
+			}
+		]
+	}
+	HitShield = &HitNothing
+	HitOperational = &HitNothing
+	HitStructural = &HitNothing
+}

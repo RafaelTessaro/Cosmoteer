@@ -1,0 +1,2272 @@
+{
+ "design_name": "Bullet Strike - Parity",
+ "philosophy": "A - Parity: every Bullet Strike gun lives inside the vanilla/SW DPS-per-tile envelope (early 200-280, mid 300-400, late 300-380) and buys its edge with RANGE (220-250 / 300-340 / 500-600 m vs vanilla 190-260) plus deck mounting and immunity to power drain. The price is crew (1 to 8 per gun), command points and a moderate, consistent ammo economy (~750-900 hull damage per vanilla-bullet equivalent, the vanilla cannon anchor) built on one Magazine Press per ~1 mag/s. Defensive flak/CIWS are strong but deliberately ammo-hungry (2000 anti-shot pool per bullet vs vanilla flak 3000). Overclock gives +35-53% for heat; endgame power comes from stacking logistics and crew, never from out-of-band stats.",
+ "ammo_types": [
+  {
+   "id": "bullet",
+   "name_en": "Loose Ammo (vanilla bullet)",
+   "name_ptbr": "Munição Avulsa (bala vanilla)",
+   "role": "Early-game feed: crew carry vanilla Cannon Ammo straight into small guns; no magazines needed.",
+   "damage_mult_hull": 1.0,
+   "damage_mult_shield": 1.0,
+   "penetration_rule": "PenetratingHit pen 2-4 (always <= 4 so SW small bubbles, resist 4, stop it); structure costs 0, parts 1/0.5, armor 7.",
+   "special": "Split 1 bullet -> N shots with an InlineResourceConverter (LMG 20, HMG 8, 20 mm 2, light flak 1 burst)."
+  },
+  {
+   "id": "std",
+   "name_en": "Standard (HE/ball)",
+   "name_ptbr": "Padrão",
+   "role": "Default all-rounder for every magazine gun (bs_ammo_type mode 0, free).",
+   "damage_mult_hull": 1.0,
+   "damage_mult_shield": 1.0,
+   "penetration_rule": "MG-class pen 2, 30 mm 4, 76 mm 5, 155 mm 8, 406 mm 12; HE shells detonate on the first part/armor/shield.",
+   "special": "Shell guns add an ExplosiveDamage pool (counted at 50% in DPS); fire chance in PenetratingOperational."
+  },
+  {
+   "id": "ap",
+   "name_en": "Armor-Piercing",
+   "name_ptbr": "Perfurante",
+   "role": "Anti-armor: drills through armor belts and SW durasteel/doonium to hit internals.",
+   "damage_mult_hull": 0.85,
+   "damage_mult_shield": 0.6,
+   "penetration_rule": "Pen 8 (MG) / 14 (76 mm) / 16 (30 mm) / 22 (155 mm) / 30 (406 mm), PartCategoryPenetrationFactors {armor = 50%}; never >= 64 (SW large / vanilla large shields stop it); mid AP < 25 (vanilla small shield stops it).",
+   "special": "No explosive; damage applies per penetrated part, so vs deep targets total damage exceeds std; fire chance x0.25."
+  },
+  {
+   "id": "aphe",
+   "name_en": "Armor-Piercing High-Explosive",
+   "name_ptbr": "Perfurante-Explosiva",
+   "role": "Penetrate 1-2 armor tiles then explode inside (best vs armored hulls).",
+   "damage_mult_hull": 0.8,
+   "damage_mult_shield": 0.8,
+   "penetration_rule": "Pen ~1.75x std (5 / 9 / 9 / 14 / 20) with armor factor 75%; blast only in FinishedPenetrating* (where the round stops) and on shields.",
+   "special": "Delayed blast = std blast + 40% of direct damage, radius x0.75; lands behind armor (no armor ExplosiveDamageAbsorption); fire chance x1.5."
+  },
+  {
+   "id": "emp",
+   "name_en": "EMP",
+   "name_ptbr": "EMP",
+   "role": "Support: drains shields and battery-powered weapons (all SW turbolasers/shields); weak vs hull.",
+   "damage_mult_hull": 0.6,
+   "damage_mult_shield": 1.6,
+   "penetration_rule": "Penetration 1 (stops in the first part); shields stop it (no pass-through).",
+   "special": "ResourceDrain battery on hit shield (TreatShieldAsPart) = (1.6 x std effective - 0.6 x direct) / 2.5 per hit, and 60% of that on a hit part with battery; ammo-fed parts immune; respects no OC drain factor (SW bubbles have no DrainResistance)."
+  },
+  {
+   "id": "plasma",
+   "name_en": "Plasma",
+   "name_ptbr": "Plasma",
+   "role": "Shield breaker (dedicated Plasma Gatling / Heavy Plasma Cannon, plasma cells).",
+   "damage_mult_hull": 0.7,
+   "damage_mult_shield": 1.85,
+   "penetration_rule": "SimpleHit (no penetration): the bolt spends itself on the first shield or part; separate HitShield block uses Damage (so shield OC/overload still apply).",
+   "special": "TargetCategory laser (vanilla PD cannot hit it, flak/CIWS/SW PD can); applies cosmoteer.heat; shield DPS capped <= 650/tile base, <= 900/tile overclocked."
+  },
+  {
+   "id": "nuclear",
+   "name_en": "Nuclear",
+   "name_ptbr": "Nuclear",
+   "role": "Late alpha strike (Nuclear Howitzer only); one shell erases a ship section.",
+   "damage_mult_hull": 1.0,
+   "damage_mult_shield": 1.0,
+   "penetration_rule": "SimpleHit; contact fuse; expanding ExplosiveDamage 150000 r8 (operational) + 40000 r6 (structural).",
+   "special": "Slow (80 m/s), interceptable (HP 7000, category bullet), shot down = fizzle; hurts friendlies in radius; CategoryLimit bs_limit_nuke max 2 per ship."
+  }
+ ],
+ "resources": [
+  {
+   "id": "rafaeltessaro.bs_mag_std",
+   "name_en": "Standard Magazine",
+   "name_ptbr": "Carregador Padrão",
+   "max_stack_size": 4,
+   "max_per_nugget": 1,
+   "buy_price": 30,
+   "shots_note": "1 magazine = 50 MG-round units (packed from 6 vanilla bullets). Minigun/Quad HMG: 50 shots; 30 mm rotary: 15 shots; 76 mm: 2 shells; 155 mm: 1 shell; 406 mm: 2 magazines per shell; Deck CIWS: 8 bursts; Heavy Flak: 3 bursts. Stack 4 = max 4 per crew trip, 16 per 2x2 storage bay."
+  },
+  {
+   "id": "rafaeltessaro.bs_mag_ap",
+   "name_en": "AP Magazine",
+   "name_ptbr": "Carregador Perfurante",
+   "max_stack_size": 4,
+   "max_per_nugget": 1,
+   "buy_price": 40,
+   "shots_note": "Same shot count per magazine as the standard magazine for each gun (mode 1 of the bs_ammo_type toggle). Recipe value 8.5 bullet-eq."
+  },
+  {
+   "id": "rafaeltessaro.bs_mag_aphe",
+   "name_en": "APHE Magazine",
+   "name_ptbr": "Carregador Perfurante-Explosivo",
+   "max_stack_size": 4,
+   "max_per_nugget": 1,
+   "buy_price": 50,
+   "shots_note": "Same shot count per magazine as standard (mode 2). Recipe value 11 bullet-eq."
+  },
+  {
+   "id": "rafaeltessaro.bs_mag_emp",
+   "name_en": "EMP Magazine",
+   "name_ptbr": "Carregador EMP",
+   "max_stack_size": 4,
+   "max_per_nugget": 1,
+   "buy_price": 56,
+   "shots_note": "Same shot count per magazine as standard (mode 3). Recipe value 12.67 bullet-eq + 200 battery of factory power."
+  },
+  {
+   "id": "rafaeltessaro.bs_plasma_cell",
+   "name_en": "Plasma Cell",
+   "name_ptbr": "Célula de Plasma",
+   "max_stack_size": 6,
+   "max_per_nugget": 1,
+   "buy_price": 24,
+   "shots_note": "Plasma Gatling: 1 cell = 20 bolts; Heavy Plasma Cannon: 1 cell = 1 bolt. Recipe value 5 bullet-eq + 300 battery. 6 per crew trip."
+  },
+  {
+   "id": "rafaeltessaro.bs_shell_nuke",
+   "name_en": "Nuclear Shell",
+   "name_ptbr": "Projétil Nuclear",
+   "max_stack_size": 2,
+   "max_per_nugget": 1,
+   "buy_price": 300,
+   "shots_note": "Nuclear Howitzer: 1 shell = 1 shot. Recipe value 67.5 bullet-eq (1/8 enriched uranium + 5 bullets). 2 per crew trip; cooks off violently when the holder is destroyed."
+  }
+ ],
+ "factories": [
+  {
+   "id": "rafaeltessaro.bs_factory_mag_std",
+   "name_en": "Magazine Press",
+   "name_ptbr": "Prensa de Carregadores",
+   "size": [
+    2,
+    2
+   ],
+   "crew": 0,
+   "power_per_cycle_battery": 0,
+   "inputs": [
+    [
+     "bullet",
+     6
+    ]
+   ],
+   "output": [
+    "rafaeltessaro.bs_mag_std",
+    1
+   ],
+   "interval_s": 1.0,
+   "build_cost": [
+    [
+     "steel",
+     32
+    ],
+    [
+     "coil",
+     12
+    ]
+   ],
+   "max_health": 4000,
+   "tier": "mid"
+  },
+  {
+   "id": "rafaeltessaro.bs_factory_mag_ap",
+   "name_en": "AP Magazine Line",
+   "name_ptbr": "Linha de Carregadores Perfurantes",
+   "size": [
+    3,
+    3
+   ],
+   "crew": 0,
+   "power_per_cycle_battery": 150,
+   "inputs": [
+    [
+     "bullet",
+     12
+    ],
+    [
+     "iron",
+     1
+    ]
+   ],
+   "output": [
+    "rafaeltessaro.bs_mag_ap",
+    2
+   ],
+   "interval_s": 2.0,
+   "build_cost": [
+    [
+     "steel",
+     76
+    ],
+    [
+     "coil2",
+     20
+    ],
+    [
+     "tristeel",
+     4
+    ]
+   ],
+   "max_health": 9000,
+   "tier": "mid"
+  },
+  {
+   "id": "rafaeltessaro.bs_factory_mag_aphe",
+   "name_en": "APHE Magazine Line",
+   "name_ptbr": "Linha de Carregadores Perfurante-Explosivos",
+   "size": [
+    3,
+    3
+   ],
+   "crew": 0,
+   "power_per_cycle_battery": 200,
+   "inputs": [
+    [
+     "bullet",
+     12
+    ],
+    [
+     "iron",
+     1
+    ],
+    [
+     "sulfur",
+     1
+    ]
+   ],
+   "output": [
+    "rafaeltessaro.bs_mag_aphe",
+    2
+   ],
+   "interval_s": 2.0,
+   "build_cost": [
+    [
+     "steel",
+     80
+    ],
+    [
+     "coil2",
+     24
+    ],
+    [
+     "tristeel",
+     6
+    ]
+   ],
+   "max_health": 9000,
+   "tier": "mid"
+  },
+  {
+   "id": "rafaeltessaro.bs_factory_mag_emp",
+   "name_en": "EMP Magazine Line",
+   "name_ptbr": "Linha de Carregadores EMP",
+   "size": [
+    3,
+    3
+   ],
+   "crew": 0,
+   "power_per_cycle_battery": 600,
+   "inputs": [
+    [
+     "bullet",
+     18
+    ],
+    [
+     "copper",
+     1
+    ]
+   ],
+   "output": [
+    "rafaeltessaro.bs_mag_emp",
+    3
+   ],
+   "interval_s": 3.0,
+   "build_cost": [
+    [
+     "steel",
+     90
+    ],
+    [
+     "coil2",
+     30
+    ],
+    [
+     "processor",
+     1
+    ]
+   ],
+   "max_health": 12000,
+   "tier": "mid"
+  },
+  {
+   "id": "rafaeltessaro.bs_factory_plasma",
+   "name_en": "Plasma Cell Condenser",
+   "name_ptbr": "Condensador de Células de Plasma",
+   "size": [
+    3,
+    3
+   ],
+   "crew": 0,
+   "power_per_cycle_battery": 1500,
+   "inputs": [
+    [
+     "sulfur",
+     1
+    ],
+    [
+     "copper",
+     1
+    ]
+   ],
+   "output": [
+    "rafaeltessaro.bs_plasma_cell",
+    5
+   ],
+   "interval_s": 5.0,
+   "build_cost": [
+    [
+     "steel",
+     76
+    ],
+    [
+     "coil2",
+     27
+    ],
+    [
+     "processor",
+     2
+    ]
+   ],
+   "max_health": 9000,
+   "tier": "mid"
+  },
+  {
+   "id": "rafaeltessaro.bs_factory_nuke_shell",
+   "name_en": "Nuclear Shell Foundry",
+   "name_ptbr": "Fundição de Projéteis Nucleares",
+   "size": [
+    4,
+    4
+   ],
+   "crew": 0,
+   "power_per_cycle_battery": 2000,
+   "inputs": [
+    [
+     "enriched_uranium",
+     1
+    ],
+    [
+     "bullet",
+     40
+    ]
+   ],
+   "output": [
+    "rafaeltessaro.bs_shell_nuke",
+    8
+   ],
+   "interval_s": 16.0,
+   "build_cost": [
+    [
+     "steel",
+     120
+    ],
+    [
+     "coil2",
+     60
+    ],
+    [
+     "enriched_uranium",
+     2
+    ]
+   ],
+   "max_health": 16000,
+   "tier": "late"
+  }
+ ],
+ "weapons": [
+  {
+   "id": "rafaeltessaro.bs_lmg",
+   "name_en": "Light Deck MG",
+   "name_ptbr": "Metralhadora Leve de Convés",
+   "codename": "Wasp",
+   "tier": "early",
+   "role": "attack",
+   "size": [
+    1,
+    1
+   ],
+   "crew": 1,
+   "command_points": 1,
+   "max_health": 3000,
+   "build_cost": [
+    [
+     "steel",
+     16
+    ],
+    [
+     "coil",
+     4
+    ]
+   ],
+   "ammo_resource": "bullet",
+   "ammo_selector": [],
+   "shots_per_resource_unit": 20,
+   "resource_units_per_shot": 1,
+   "internal_storage_units": 10,
+   "loader_strip_tiles": 0,
+   "fire_rate_shots_per_s": 6.5,
+   "spinup": null,
+   "barrels": 1,
+   "burst": 1,
+   "range_m": 220,
+   "shot_speed_mps": 260,
+   "damage_per_hit_std": 40,
+   "penetration_std": 2,
+   "explosive_radius_m": 0,
+   "explosive_damage": 0,
+   "fire_chance": 0.03,
+   "spread_deg_half": 2.5,
+   "firing_arc_deg": 360,
+   "rotate_speed_deg_s": 240,
+   "targets": [
+    "ships"
+   ],
+   "anti_projectile": null,
+   "crew_stun": null,
+   "prohibit_ring_tiles": 0,
+   "shot_hp": 50,
+   "overclock": null,
+   "computed": {
+    "dps_hull_std": 260.0,
+    "dps_per_tile": 260.0,
+    "dps_per_crew": 260.0,
+    "ammo_units_per_s": 0.325,
+    "bullet_equivalent_per_s": 0.325,
+    "factories_needed_sustained": 0.163
+   },
+   "visual_concept": "Pintle-mounted air-cooled MG on a 1x1 armored ring; short perforated barrel jacket, ammo can on the side, yellow tracer every 3rd round, tiny muzzle star, brass casings spilling onto the roof."
+  },
+  {
+   "id": "rafaeltessaro.bs_hmg",
+   "name_en": "Heavy Deck MG",
+   "name_ptbr": "Metralhadora Pesada de Convés",
+   "codename": "Hornet",
+   "tier": "early",
+   "role": "attack",
+   "size": [
+    1,
+    2
+   ],
+   "crew": 1,
+   "command_points": 1,
+   "max_health": 5000,
+   "build_cost": [
+    [
+     "steel",
+     28
+    ],
+    [
+     "coil",
+     8
+    ]
+   ],
+   "ammo_resource": "bullet",
+   "ammo_selector": [],
+   "shots_per_resource_unit": 8,
+   "resource_units_per_shot": 1,
+   "internal_storage_units": 15,
+   "loader_strip_tiles": 0,
+   "fire_rate_shots_per_s": 5.0,
+   "spinup": null,
+   "barrels": 1,
+   "burst": 1,
+   "range_m": 240,
+   "shot_speed_mps": 280,
+   "damage_per_hit_std": 104,
+   "penetration_std": 3,
+   "explosive_radius_m": 0,
+   "explosive_damage": 0,
+   "fire_chance": 0.04,
+   "spread_deg_half": 2.0,
+   "firing_arc_deg": 360,
+   "rotate_speed_deg_s": 180,
+   "targets": [
+    "ships"
+   ],
+   "anti_projectile": null,
+   "crew_stun": null,
+   "prohibit_ring_tiles": 0,
+   "shot_hp": 90,
+   "overclock": null,
+   "computed": {
+    "dps_hull_std": 520.0,
+    "dps_per_tile": 260.0,
+    "dps_per_crew": 520.0,
+    "ammo_units_per_s": 0.625,
+    "bullet_equivalent_per_s": 0.625,
+    "factories_needed_sustained": 0.312
+   },
+   "visual_concept": "12.7 mm-style heavy MG on the front tile with a gunner shield; belt box on the rear tile feeding a visible ammo belt; thick orange tracers and a big 3-prong muzzle flash."
+  },
+  {
+   "id": "rafaeltessaro.bs_autocannon_20",
+   "name_en": "20mm Deck Autocannon",
+   "name_ptbr": "Canhão Automático de Convés 20 mm",
+   "codename": "Stinger",
+   "tier": "early",
+   "role": "attack",
+   "size": [
+    2,
+    2
+   ],
+   "crew": 1,
+   "command_points": 2,
+   "max_health": 10000,
+   "build_cost": [
+    [
+     "steel",
+     48
+    ],
+    [
+     "coil",
+     10
+    ]
+   ],
+   "ammo_resource": "bullet",
+   "ammo_selector": [],
+   "shots_per_resource_unit": 2,
+   "resource_units_per_shot": 1,
+   "internal_storage_units": 20,
+   "loader_strip_tiles": 0,
+   "fire_rate_shots_per_s": 2.5,
+   "spinup": null,
+   "barrels": 2,
+   "burst": 1,
+   "range_m": 250,
+   "shot_speed_mps": 260,
+   "damage_per_hit_std": 340,
+   "penetration_std": 4,
+   "explosive_radius_m": 1.0,
+   "explosive_damage": 160,
+   "fire_chance": 0.08,
+   "spread_deg_half": 1.5,
+   "firing_arc_deg": 300,
+   "rotate_speed_deg_s": 90,
+   "targets": [
+    "ships"
+   ],
+   "anti_projectile": null,
+   "crew_stun": null,
+   "prohibit_ring_tiles": 1,
+   "shot_hp": 150,
+   "overclock": null,
+   "computed": {
+    "dps_hull_std": 1050.0,
+    "dps_per_tile": 262.5,
+    "dps_per_crew": 1050.0,
+    "ammo_units_per_s": 1.25,
+    "bullet_equivalent_per_s": 1.25,
+    "factories_needed_sustained": 0.625
+   },
+   "visual_concept": "Twin 20 mm barrels alternating on a low round turret; drum magazines on both sides; small HE puffs on impact; recoil animation per barrel."
+  },
+  {
+   "id": "rafaeltessaro.bs_flak_light",
+   "name_en": "Light Deck Flak",
+   "name_ptbr": "Flak Leve de Convés",
+   "codename": "Umbrella",
+   "tier": "early",
+   "role": "defense",
+   "size": [
+    2,
+    2
+   ],
+   "crew": 1,
+   "command_points": 2,
+   "max_health": 8000,
+   "build_cost": [
+    [
+     "steel",
+     40
+    ],
+    [
+     "coil",
+     12
+    ]
+   ],
+   "ammo_resource": "bullet",
+   "ammo_selector": [],
+   "shots_per_resource_unit": 1,
+   "resource_units_per_shot": 1,
+   "internal_storage_units": 20,
+   "loader_strip_tiles": 0,
+   "fire_rate_shots_per_s": 3.0,
+   "spinup": null,
+   "barrels": 2,
+   "burst": 1,
+   "range_m": 180,
+   "shot_speed_mps": 0,
+   "damage_per_hit_std": 0,
+   "penetration_std": 0,
+   "explosive_radius_m": 3.0,
+   "explosive_damage": 300,
+   "fire_chance": 0.0,
+   "spread_deg_half": 0,
+   "firing_arc_deg": 360,
+   "rotate_speed_deg_s": 240,
+   "targets": [
+    "missile",
+    "mine",
+    "bullet",
+    "laser",
+    "ion_shot",
+    "ships"
+   ],
+   "anti_projectile": {
+    "blast_radius_m": 3.0,
+    "damage_vs_shots": 1000
+   },
+   "crew_stun": null,
+   "prohibit_ring_tiles": 1,
+   "shot_hp": 0,
+   "overclock": null,
+   "computed": {
+    "dps_hull_std": 450.0,
+    "dps_per_tile": 112.5,
+    "dps_per_crew": 450.0,
+    "ammo_units_per_s": 3.0,
+    "bullet_equivalent_per_s": 3.0,
+    "factories_needed_sustained": 1.5
+   },
+   "visual_concept": "Twin short-barrel 37 mm-style pom-pom with flash hiders; hitscan airburst (ClipRangeToTarget beam) with black flak puffs and sparks; FirePref toggle Attack/Defend/Both, default Defend."
+  },
+  {
+   "id": "rafaeltessaro.bs_quad_hmg",
+   "name_en": "Quad Heavy MG",
+   "name_ptbr": "Metralhadora Pesada Quádrupla",
+   "codename": "Quadra",
+   "tier": "mid",
+   "role": "hybrid",
+   "size": [
+    2,
+    2
+   ],
+   "crew": 2,
+   "command_points": 2,
+   "max_health": 8000,
+   "build_cost": [
+    [
+     "steel",
+     56
+    ],
+    [
+     "coil",
+     12
+    ],
+    [
+     "coil2",
+     4
+    ]
+   ],
+   "ammo_resource": "rafaeltessaro.bs_mag_std",
+   "ammo_selector": [
+    "std",
+    "ap",
+    "aphe",
+    "emp"
+   ],
+   "shots_per_resource_unit": 50,
+   "resource_units_per_shot": 1,
+   "internal_storage_units": 6,
+   "loader_strip_tiles": 0,
+   "fire_rate_shots_per_s": 16.0,
+   "spinup": null,
+   "barrels": 4,
+   "burst": 1,
+   "range_m": 300,
+   "shot_speed_mps": 300,
+   "damage_per_hit_std": 95,
+   "penetration_std": 2,
+   "explosive_radius_m": 0,
+   "explosive_damage": 0,
+   "fire_chance": 0.04,
+   "spread_deg_half": 2.0,
+   "firing_arc_deg": 360,
+   "rotate_speed_deg_s": 150,
+   "targets": [
+    "missile",
+    "mine",
+    "ships"
+   ],
+   "anti_projectile": {
+    "blast_radius_m": 0,
+    "damage_vs_shots": 95
+   },
+   "crew_stun": null,
+   "prohibit_ring_tiles": 1,
+   "shot_hp": 90,
+   "overclock": {
+    "description": "Overpressure: all four barrels hammer at once, louder and wilder.",
+    "fire_rate_factor": 1.35,
+    "damage_factor": 1.1,
+    "range_factor": 1.0,
+    "other": "spread +-2.0 -> +-2.8 deg; anti-missile damage also x1.1; recoil x2",
+    "heat_per_shot": 40,
+    "heat_per_second": 40
+   },
+   "computed": {
+    "dps_hull_std": 1520.0,
+    "dps_per_tile": 380.0,
+    "dps_per_crew": 760.0,
+    "ammo_units_per_s": 0.32,
+    "bullet_equivalent_per_s": 1.92,
+    "factories_needed_sustained": 0.32
+   },
+   "visual_concept": "Four stacked HMG barrels on an open cradle with ammo cans each side (M45 Maxson-like silhouette, generic); dense tracer stream; rounds collide with missiles/mines (PD-style BulletCollisions) in Defend/Both mode."
+  },
+  {
+   "id": "rafaeltessaro.bs_minigun",
+   "name_en": "Deck Minigun",
+   "name_ptbr": "Minigun de Convés",
+   "codename": "Buzzsaw",
+   "tier": "mid",
+   "role": "attack",
+   "size": [
+    2,
+    3
+   ],
+   "crew": 2,
+   "command_points": 4,
+   "max_health": 12000,
+   "build_cost": [
+    [
+     "steel",
+     90
+    ],
+    [
+     "coil2",
+     16
+    ],
+    [
+     "tristeel",
+     10
+    ]
+   ],
+   "ammo_resource": "rafaeltessaro.bs_mag_std",
+   "ammo_selector": [
+    "std",
+    "ap",
+    "aphe",
+    "emp"
+   ],
+   "shots_per_resource_unit": 50,
+   "resource_units_per_shot": 1,
+   "internal_storage_units": 8,
+   "loader_strip_tiles": 2,
+   "fire_rate_shots_per_s": 24.0,
+   "spinup": {
+    "min_rate": 4.0,
+    "max_rate": 24.0,
+    "seconds_to_max": 4.0
+   },
+   "barrels": 6,
+   "burst": 1,
+   "range_m": 310,
+   "shot_speed_mps": 330,
+   "damage_per_hit_std": 90,
+   "penetration_std": 2,
+   "explosive_radius_m": 0,
+   "explosive_damage": 0,
+   "fire_chance": 0.04,
+   "spread_deg_half": 1.8,
+   "firing_arc_deg": 300,
+   "rotate_speed_deg_s": 90,
+   "targets": [
+    "ships"
+   ],
+   "anti_projectile": null,
+   "crew_stun": null,
+   "prohibit_ring_tiles": 1,
+   "shot_hp": 80,
+   "overclock": {
+    "description": "Dragon's Breath: barrels glow red, incendiary tracers, insane rate.",
+    "fire_rate_factor": 1.25,
+    "damage_factor": 1.2,
+    "range_factor": 1.0,
+    "other": "max spin 24 -> 30 shots/s; spin-up 4 -> 3 s; spread +-1.8 -> +-2.6 deg; fire chance 4% -> 12%",
+    "heat_per_shot": 28,
+    "heat_per_second": 60
+   },
+   "computed": {
+    "dps_hull_std": 2160.0,
+    "dps_per_tile": 360.0,
+    "dps_per_crew": 1080.0,
+    "ammo_units_per_s": 0.48,
+    "bullet_equivalent_per_s": 2.88,
+    "factories_needed_sustained": 0.48
+   },
+   "visual_concept": "Six-barrel rotary on a 2x2 turret, 1-row magazine strip behind (2 grid tiles, 4 magazines each); barrels animate with rate (chaingun pattern), belt chute, solid tracer laser-line, casing fountain, red-hot barrels when OC."
+  },
+  {
+   "id": "rafaeltessaro.bs_naval_76",
+   "name_en": "76mm Naval Automatic Cannon",
+   "name_ptbr": "Canhão Naval Automático 76 mm",
+   "codename": "Thumper",
+   "tier": "mid",
+   "role": "attack",
+   "size": [
+    3,
+    4
+   ],
+   "crew": 3,
+   "command_points": 5,
+   "max_health": 18000,
+   "build_cost": [
+    [
+     "steel",
+     140
+    ],
+    [
+     "coil2",
+     20
+    ],
+    [
+     "tristeel",
+     12
+    ]
+   ],
+   "ammo_resource": "rafaeltessaro.bs_mag_std",
+   "ammo_selector": [
+    "std",
+    "ap",
+    "aphe",
+    "emp"
+   ],
+   "shots_per_resource_unit": 2,
+   "resource_units_per_shot": 1,
+   "internal_storage_units": 12,
+   "loader_strip_tiles": 3,
+   "fire_rate_shots_per_s": 1.5,
+   "spinup": null,
+   "barrels": 1,
+   "burst": 1,
+   "range_m": 340,
+   "shot_speed_mps": 170,
+   "damage_per_hit_std": 1800,
+   "penetration_std": 5,
+   "explosive_radius_m": 2.0,
+   "explosive_damage": 1600,
+   "fire_chance": 0.25,
+   "spread_deg_half": 1.0,
+   "firing_arc_deg": 300,
+   "rotate_speed_deg_s": 45,
+   "targets": [
+    "ships"
+   ],
+   "anti_projectile": null,
+   "crew_stun": null,
+   "prohibit_ring_tiles": 2,
+   "shot_hp": 1200,
+   "overclock": {
+    "description": "Rapid Salvo: the 'tum, tum, tum' becomes 'TUMTUMTUM'.",
+    "fire_rate_factor": 1.5,
+    "damage_factor": 1.0,
+    "range_factor": 1.0,
+    "other": "spread +-1.0 -> +-1.6 deg; recoil x2; muzzle flash and shake x1.5",
+    "heat_per_shot": 400,
+    "heat_per_second": 60
+   },
+   "computed": {
+    "dps_hull_std": 3900.0,
+    "dps_per_tile": 325.0,
+    "dps_per_crew": 1300.0,
+    "ammo_units_per_s": 0.75,
+    "bullet_equivalent_per_s": 4.5,
+    "factories_needed_sustained": 0.75
+   },
+   "visual_concept": "Stealthy faceted naval gun house (generic, OTO-style shape) with one long barrel and muzzle brake; 1-row magazine strip with loader door animation; slow heavy 'thump' with big flash, smoke ring and visible shell tracer; orange HE bursts on impact."
+  },
+  {
+   "id": "rafaeltessaro.bs_plasma_gatling",
+   "name_en": "Plasma Gatling",
+   "name_ptbr": "Gatling de Plasma",
+   "codename": "Sunspray",
+   "tier": "mid",
+   "role": "attack",
+   "size": [
+    3,
+    3
+   ],
+   "crew": 2,
+   "command_points": 5,
+   "max_health": 13500,
+   "build_cost": [
+    [
+     "steel",
+     100
+    ],
+    [
+     "coil2",
+     24
+    ],
+    [
+     "tristeel",
+     10
+    ],
+    [
+     "processor",
+     1
+    ]
+   ],
+   "ammo_resource": "rafaeltessaro.bs_plasma_cell",
+   "ammo_selector": [],
+   "shots_per_resource_unit": 20,
+   "resource_units_per_shot": 1,
+   "internal_storage_units": 8,
+   "loader_strip_tiles": 0,
+   "fire_rate_shots_per_s": 10.0,
+   "spinup": {
+    "min_rate": 5.0,
+    "max_rate": 10.0,
+    "seconds_to_max": 2.0
+   },
+   "barrels": 4,
+   "burst": 1,
+   "range_m": 320,
+   "shot_speed_mps": 280,
+   "damage_per_hit_std": 225,
+   "penetration_std": 0,
+   "explosive_radius_m": 0,
+   "explosive_damage": 0,
+   "fire_chance": 0.1,
+   "spread_deg_half": 1.5,
+   "firing_arc_deg": 300,
+   "rotate_speed_deg_s": 75,
+   "targets": [
+    "ships"
+   ],
+   "anti_projectile": null,
+   "crew_stun": null,
+   "prohibit_ring_tiles": 1,
+   "shot_hp": 150,
+   "overclock": {
+    "description": "Superheated: white-hot bolts, double target heating.",
+    "fire_rate_factor": 1.15,
+    "damage_factor": 1.25,
+    "range_factor": 1.0,
+    "other": "shield damage factor x1.15 only (OC shield DPS 7737 = 860/tile, under the 900/tile cap); target heat 80 -> 160 per hit",
+    "heat_per_shot": 70,
+    "heat_per_second": 50
+   },
+   "computed": {
+    "dps_hull_std": 2250.0,
+    "dps_per_tile": 250.0,
+    "dps_per_crew": 1125.0,
+    "ammo_units_per_s": 0.5,
+    "bullet_equivalent_per_s": 2.5,
+    "factories_needed_sustained": 0.5
+   },
+   "visual_concept": "Four-barrel rotary with glowing cyan coil rings and venting cells; magnetic bottle cell rack on the turret; cyan bolt sprite + additive glow (TargetCategory laser), blue-white shield splash, scorch/heat shimmer on hull hits."
+  },
+  {
+   "id": "rafaeltessaro.bs_ciws",
+   "name_en": "Deck CIWS",
+   "name_ptbr": "CIWS de Convés",
+   "codename": "Bastion",
+   "tier": "mid",
+   "role": "defense",
+   "size": [
+    3,
+    3
+   ],
+   "crew": 2,
+   "command_points": 4,
+   "max_health": 13500,
+   "build_cost": [
+    [
+     "steel",
+     110
+    ],
+    [
+     "coil2",
+     20
+    ],
+    [
+     "tristeel",
+     8
+    ]
+   ],
+   "ammo_resource": "rafaeltessaro.bs_mag_std",
+   "ammo_selector": [],
+   "shots_per_resource_unit": 8,
+   "resource_units_per_shot": 1,
+   "internal_storage_units": 8,
+   "loader_strip_tiles": 0,
+   "fire_rate_shots_per_s": 6.0,
+   "spinup": null,
+   "barrels": 6,
+   "burst": 1,
+   "range_m": 240,
+   "shot_speed_mps": 0,
+   "damage_per_hit_std": 0,
+   "penetration_std": 0,
+   "explosive_radius_m": 3.0,
+   "explosive_damage": 300,
+   "fire_chance": 0.0,
+   "spread_deg_half": 0,
+   "firing_arc_deg": 360,
+   "rotate_speed_deg_s": 360,
+   "targets": [
+    "missile",
+    "mine",
+    "bullet",
+    "laser",
+    "ion_shot",
+    "ships"
+   ],
+   "anti_projectile": {
+    "blast_radius_m": 4.0,
+    "damage_vs_shots": 1500
+   },
+   "crew_stun": null,
+   "prohibit_ring_tiles": 1,
+   "shot_hp": 0,
+   "overclock": {
+    "description": "Shrapnel Curtain: each burst leaves a lingering shrapnel cloud.",
+    "fire_rate_factor": 1.25,
+    "damage_factor": 1.0,
+    "range_factor": 1.0,
+    "other": "each burst SpawnBullets a 3 s field (radius 4 m, 400 damage pool, max 50 per pass, attenuates beams with AttenuationLimit); ammo per burst unchanged",
+    "heat_per_shot": 110,
+    "heat_per_second": 40
+   },
+   "computed": {
+    "dps_hull_std": 900.0,
+    "dps_per_tile": 100.0,
+    "dps_per_crew": 450.0,
+    "ammo_units_per_s": 0.75,
+    "bullet_equivalent_per_s": 4.5,
+    "factories_needed_sustained": 0.75
+   },
+   "visual_concept": "White radome dome over a 6-barrel rotary (generic Phalanx-like silhouette), 360 deg, very fast slew; hitscan airburst beam (RandomOffsetRadius [0.5, 3]) with bright flak sparks; FirePref default Defend."
+  },
+  {
+   "id": "rafaeltessaro.bs_rotary_30",
+   "name_en": "30mm Heavy Rotary Cannon",
+   "name_ptbr": "Canhão Rotativo Pesado 30 mm",
+   "codename": "Thunderclap",
+   "tier": "late",
+   "role": "attack",
+   "size": [
+    4,
+    4
+   ],
+   "crew": 4,
+   "command_points": 8,
+   "max_health": 20000,
+   "build_cost": [
+    [
+     "steel",
+     200
+    ],
+    [
+     "coil2",
+     36
+    ],
+    [
+     "tristeel",
+     40
+    ]
+   ],
+   "ammo_resource": "rafaeltessaro.bs_mag_std",
+   "ammo_selector": [
+    "std",
+    "ap",
+    "aphe",
+    "emp"
+   ],
+   "shots_per_resource_unit": 15,
+   "resource_units_per_shot": 1,
+   "internal_storage_units": 12,
+   "loader_strip_tiles": 0,
+   "fire_rate_shots_per_s": 16.0,
+   "spinup": {
+    "min_rate": 4.0,
+    "max_rate": 16.0,
+    "seconds_to_max": 5.0
+   },
+   "barrels": 7,
+   "burst": 1,
+   "range_m": 500,
+   "shot_speed_mps": 400,
+   "damage_per_hit_std": 260,
+   "penetration_std": 4,
+   "explosive_radius_m": 1.0,
+   "explosive_damage": 120,
+   "fire_chance": 0.06,
+   "spread_deg_half": 0.8,
+   "firing_arc_deg": 270,
+   "rotate_speed_deg_s": 40,
+   "targets": [
+    "ships"
+   ],
+   "anti_projectile": null,
+   "crew_stun": null,
+   "prohibit_ring_tiles": 2,
+   "shot_hp": 250,
+   "overclock": {
+    "description": "BRRRT: full-auto roar, the turret shakes the deck.",
+    "fire_rate_factor": 1.375,
+    "damage_factor": 1.0,
+    "range_factor": 1.0,
+    "other": "max spin 16 -> 22 shots/s; spin-up 5 -> 4 s; spread +-0.8 -> +-1.2 deg; screen shake",
+    "heat_per_shot": 90,
+    "heat_per_second": 100
+   },
+   "computed": {
+    "dps_hull_std": 5120.0,
+    "dps_per_tile": 320.0,
+    "dps_per_crew": 1280.0,
+    "ammo_units_per_s": 1.0667,
+    "bullet_equivalent_per_s": 6.4,
+    "factories_needed_sustained": 1.067
+   },
+   "visual_concept": "Huge seven-barrel rotary cannon in an armored 4x4 mount with twin drum feeders; continuous growl; dense HEI sparkle-chain of small explosions on the target; smoke trail from the muzzle cluster."
+  },
+  {
+   "id": "rafaeltessaro.bs_naval_155",
+   "name_en": "155mm Twin Naval Gun",
+   "name_ptbr": "Canhão Naval Duplo 155 mm",
+   "codename": "Hammerfall",
+   "tier": "late",
+   "role": "attack",
+   "size": [
+    4,
+    5
+   ],
+   "crew": 5,
+   "command_points": 8,
+   "max_health": 26000,
+   "build_cost": [
+    [
+     "steel",
+     260
+    ],
+    [
+     "coil2",
+     40
+    ],
+    [
+     "tristeel",
+     50
+    ]
+   ],
+   "ammo_resource": "rafaeltessaro.bs_mag_std",
+   "ammo_selector": [
+    "std",
+    "ap",
+    "aphe",
+    "emp"
+   ],
+   "shots_per_resource_unit": 1,
+   "resource_units_per_shot": 1,
+   "internal_storage_units": 16,
+   "loader_strip_tiles": 4,
+   "fire_rate_shots_per_s": 1.3333,
+   "spinup": null,
+   "barrels": 2,
+   "burst": 1,
+   "range_m": 520,
+   "shot_speed_mps": 230,
+   "damage_per_hit_std": 3400,
+   "penetration_std": 8,
+   "explosive_radius_m": 2.5,
+   "explosive_damage": 2800,
+   "fire_chance": 0.35,
+   "spread_deg_half": 0.6,
+   "firing_arc_deg": 270,
+   "rotate_speed_deg_s": 22,
+   "targets": [
+    "ships"
+   ],
+   "anti_projectile": null,
+   "crew_stun": {
+    "radius_m": 6,
+    "seconds": 0.5
+   },
+   "prohibit_ring_tiles": 2,
+   "shot_hp": 3000,
+   "overclock": {
+    "description": "Supercharge: super-heavy charges, flatter and longer shots.",
+    "fire_rate_factor": 1.0,
+    "damage_factor": 1.35,
+    "range_factor": 1.15,
+    "other": "range 520 -> 598 m (cap 600); shell speed 230 -> 345 m/s; penetration +50% (std 8 -> 12, AP 22 -> 33); recoil x2.5; crew stun 6 m/0.5 s -> 9 m/1.2 s",
+    "heat_per_shot": 2200,
+    "heat_per_second": 120
+   },
+   "computed": {
+    "dps_hull_std": 6400.0,
+    "dps_per_tile": 320.0,
+    "dps_per_crew": 1280.0,
+    "ammo_units_per_s": 1.3333,
+    "bullet_equivalent_per_s": 8.0,
+    "factories_needed_sustained": 1.333
+   },
+   "visual_concept": "Battleship-style twin turret (4x4 gun house) with long barrels alternating every 0.75 s, deck-cannon-like 1-row loader strip with 4 magazine tiles and loader doors; huge flash, shock ring, screen shake, big shell tracer, fireball on impact."
+  },
+  {
+   "id": "rafaeltessaro.bs_plasma_heavy",
+   "name_en": "Heavy Plasma Cannon",
+   "name_ptbr": "Canhão de Plasma Pesado",
+   "codename": "Sunhammer",
+   "tier": "late",
+   "role": "attack",
+   "size": [
+    4,
+    5
+   ],
+   "crew": 4,
+   "command_points": 8,
+   "max_health": 24000,
+   "build_cost": [
+    [
+     "steel",
+     240
+    ],
+    [
+     "coil2",
+     50
+    ],
+    [
+     "tristeel",
+     40
+    ],
+    [
+     "processor",
+     2
+    ]
+   ],
+   "ammo_resource": "rafaeltessaro.bs_plasma_cell",
+   "ammo_selector": [],
+   "shots_per_resource_unit": 1,
+   "resource_units_per_shot": 1,
+   "internal_storage_units": 24,
+   "loader_strip_tiles": 4,
+   "fire_rate_shots_per_s": 1.2,
+   "spinup": null,
+   "barrels": 2,
+   "burst": 1,
+   "range_m": 550,
+   "shot_speed_mps": 200,
+   "damage_per_hit_std": 3200,
+   "penetration_std": 0,
+   "explosive_radius_m": 2.0,
+   "explosive_damage": 1600,
+   "fire_chance": 0.3,
+   "spread_deg_half": 0.5,
+   "firing_arc_deg": 270,
+   "rotate_speed_deg_s": 25,
+   "targets": [
+    "ships"
+   ],
+   "anti_projectile": null,
+   "crew_stun": null,
+   "prohibit_ring_tiles": 2,
+   "shot_hp": 3000,
+   "overclock": {
+    "description": "Star-core: bolts become miniature suns.",
+    "fire_rate_factor": 1.0,
+    "damage_factor": 1.35,
+    "range_factor": 1.0909,
+    "other": "range 550 -> 600 m; shield damage factor x1.25 only (OC shield DPS 16200 = 810/tile); splash radius 2 -> 3 m; target heat x2",
+    "heat_per_shot": 2400,
+    "heat_per_second": 120
+   },
+   "computed": {
+    "dps_hull_std": 4800.0,
+    "dps_per_tile": 240.0,
+    "dps_per_crew": 1200.0,
+    "ammo_units_per_s": 1.2,
+    "bullet_equivalent_per_s": 6.0,
+    "factories_needed_sustained": 1.2
+   },
+   "visual_concept": "Twin magnetic-rail plasma projectors with glowing containment rings; cell strip behind (4 tiles x 6 cells) with cell-swap animation; large cyan-white plasma ball with additive glow, bright shield flare, burning splash."
+  },
+  {
+   "id": "rafaeltessaro.bs_flak_heavy",
+   "name_en": "Heavy Flak Battery",
+   "name_ptbr": "Bateria Flak Pesada",
+   "codename": "Skywall",
+   "tier": "late",
+   "role": "defense",
+   "size": [
+    4,
+    4
+   ],
+   "crew": 4,
+   "command_points": 6,
+   "max_health": 21000,
+   "build_cost": [
+    [
+     "steel",
+     200
+    ],
+    [
+     "coil2",
+     36
+    ],
+    [
+     "tristeel",
+     30
+    ]
+   ],
+   "ammo_resource": "rafaeltessaro.bs_mag_std",
+   "ammo_selector": [],
+   "shots_per_resource_unit": 3,
+   "resource_units_per_shot": 1,
+   "internal_storage_units": 16,
+   "loader_strip_tiles": 0,
+   "fire_rate_shots_per_s": 3.0,
+   "spinup": null,
+   "barrels": 4,
+   "burst": 1,
+   "range_m": 320,
+   "shot_speed_mps": 0,
+   "damage_per_hit_std": 0,
+   "penetration_std": 0,
+   "explosive_radius_m": 5.0,
+   "explosive_damage": 2000,
+   "fire_chance": 0.0,
+   "spread_deg_half": 0,
+   "firing_arc_deg": 360,
+   "rotate_speed_deg_s": 120,
+   "targets": [
+    "missile",
+    "mine",
+    "bullet",
+    "laser",
+    "ion_shot",
+    "ships"
+   ],
+   "anti_projectile": {
+    "blast_radius_m": 6.0,
+    "damage_vs_shots": 4000
+   },
+   "crew_stun": null,
+   "prohibit_ring_tiles": 2,
+   "shot_hp": 0,
+   "overclock": {
+    "description": "Flak Wall: every burst leaves a 4 s wall of shrapnel.",
+    "fire_rate_factor": 1.0,
+    "damage_factor": 1.0,
+    "range_factor": 1.0,
+    "other": "each burst SpawnBullets a 4 s field (radius 6 m, 1000 damage pool, attenuates beams with AttenuationLimit); ship blast pool +25% (2000 -> 2500)",
+    "heat_per_shot": 300,
+    "heat_per_second": 60
+   },
+   "computed": {
+    "dps_hull_std": 3000.0,
+    "dps_per_tile": 187.5,
+    "dps_per_crew": 750.0,
+    "ammo_units_per_s": 1.0,
+    "bullet_equivalent_per_s": 6.0,
+    "factories_needed_sustained": 1.0
+   },
+   "visual_concept": "Four-barrel heavy AA mount (88 mm-class, generic) with ready racks; hitscan airburst beam (RandomOffsetRadius [1, 8]); large black flak bursts with red cores; FirePref default Both."
+  },
+  {
+   "id": "rafaeltessaro.bs_nuke_howitzer",
+   "name_en": "Nuclear Howitzer",
+   "name_ptbr": "Obuseiro Nuclear",
+   "codename": "Judgement",
+   "tier": "late",
+   "role": "attack",
+   "size": [
+    5,
+    6
+   ],
+   "crew": 5,
+   "command_points": 10,
+   "max_health": 30000,
+   "build_cost": [
+    [
+     "steel",
+     360
+    ],
+    [
+     "coil2",
+     60
+    ],
+    [
+     "tristeel",
+     60
+    ],
+    [
+     "enriched_uranium",
+     2
+    ]
+   ],
+   "ammo_resource": "rafaeltessaro.bs_shell_nuke",
+   "ammo_selector": [],
+   "shots_per_resource_unit": 1,
+   "resource_units_per_shot": 1,
+   "internal_storage_units": 10,
+   "loader_strip_tiles": 5,
+   "fire_rate_shots_per_s": 0.1,
+   "spinup": null,
+   "barrels": 1,
+   "burst": 1,
+   "range_m": 600,
+   "shot_speed_mps": 80,
+   "damage_per_hit_std": 2000,
+   "penetration_std": 0,
+   "explosive_radius_m": 8.0,
+   "explosive_damage": 150000,
+   "fire_chance": 0.6,
+   "spread_deg_half": 0.8,
+   "firing_arc_deg": 240,
+   "rotate_speed_deg_s": 12,
+   "targets": [
+    "ships"
+   ],
+   "anti_projectile": null,
+   "crew_stun": {
+    "radius_m": 7,
+    "seconds": 0.8
+   },
+   "prohibit_ring_tiles": 2,
+   "shot_hp": 7000,
+   "overclock": {
+    "description": "Rapid Breech: forced loading cycle, the ground (deck) trembles.",
+    "fire_rate_factor": 1.4,
+    "damage_factor": 1.0,
+    "range_factor": 1.0,
+    "other": "reload 10 -> 7.14 s; shell speed 80 -> 100 m/s; recoil x2; crew stun 7 m/0.8 s -> 10 m/1.5 s",
+    "heat_per_shot": 12000,
+    "heat_per_second": 200
+   },
+   "computed": {
+    "dps_hull_std": 7700.0,
+    "dps_per_tile": 256.7,
+    "dps_per_crew": 1540.0,
+    "ammo_units_per_s": 0.1,
+    "bullet_equivalent_per_s": 6.75,
+    "factories_needed_sustained": 0.2
+   },
+   "visual_concept": "Massive short howitzer on a 5x5 armored mount with radiation hazard stripes; slow elevation-style recoil; shell rack strip (5 tiles x 2 shells) with crane loader; slow glowing shell (interceptable, bullet category), expanding nuclear fireball (ExpandDuration .8) with shock ring. Limit: CategoryLimit bs_limit_nuke = 2 per ship."
+  },
+  {
+   "id": "rafaeltessaro.bs_naval_406",
+   "name_en": "406mm Triple Naval Turret",
+   "name_ptbr": "Torre Naval Tripla 406 mm",
+   "codename": "Leviathan",
+   "tier": "late",
+   "role": "attack",
+   "size": [
+    6,
+    7
+   ],
+   "crew": 8,
+   "command_points": 16,
+   "max_health": 54000,
+   "build_cost": [
+    [
+     "steel",
+     600
+    ],
+    [
+     "coil2",
+     100
+    ],
+    [
+     "tristeel",
+     120
+    ],
+    [
+     "processor",
+     4
+    ]
+   ],
+   "ammo_resource": "rafaeltessaro.bs_mag_std",
+   "ammo_selector": [
+    "std",
+    "ap",
+    "aphe",
+    "emp"
+   ],
+   "shots_per_resource_unit": 1,
+   "resource_units_per_shot": 2,
+   "internal_storage_units": 30,
+   "loader_strip_tiles": 6,
+   "fire_rate_shots_per_s": 1.3043,
+   "spinup": null,
+   "barrels": 3,
+   "burst": 3,
+   "range_m": 600,
+   "shot_speed_mps": 220,
+   "damage_per_hit_std": 7000,
+   "penetration_std": 12,
+   "explosive_radius_m": 3.5,
+   "explosive_damage": 6000,
+   "fire_chance": 0.4,
+   "spread_deg_half": 0.5,
+   "firing_arc_deg": 270,
+   "rotate_speed_deg_s": 15,
+   "targets": [
+    "ships"
+   ],
+   "anti_projectile": null,
+   "crew_stun": {
+    "radius_m": 9,
+    "seconds": 0.8
+   },
+   "prohibit_ring_tiles": 3,
+   "shot_hp": 5000,
+   "overclock": {
+    "description": "Full Broadside: faster ramming cycle, heavier charges, the whole ship rocks.",
+    "fire_rate_factor": 1.33,
+    "damage_factor": 1.15,
+    "range_factor": 1.0,
+    "other": "salvo every 2.3 -> 1.73 s; penetration +4; recoil x2; crew stun 9 m/0.8 s -> 12 m/1.5 s; range stays 600 (cap)",
+    "heat_per_shot": 2800,
+    "heat_per_second": 150
+   },
+   "computed": {
+    "dps_hull_std": 13043.5,
+    "dps_per_tile": 310.6,
+    "dps_per_crew": 1630.4,
+    "ammo_units_per_s": 2.6087,
+    "bullet_equivalent_per_s": 15.652,
+    "factories_needed_sustained": 2.609
+   },
+   "visual_concept": "Flagship battleship triple turret (6x6 gun house) with three long barrels firing a 3-shell salvo (BurstDelay 0.12 s), rear 6-tile magazine strip + 6-magazine ready rack; giant muzzle blast, smoke cloud, heavy screen shake, three big shell tracers, massive fireballs on impact."
+  }
+ ],
+ "ammo_type_tables": {
+  "rafaeltessaro.bs_lmg": {
+   "bullet": {
+    "damage": 40,
+    "penetration": 2,
+    "shield_damage": 40,
+    "explosive_radius_m": 0,
+    "explosive_damage": 0,
+    "emp_drain": 0,
+    "fire_chance": 0.03,
+    "notes": "Loose vanilla bullet split 20:1 by an InlineResourceConverter; pen <= 4 so SW small bubbles (4) stop it."
+   }
+  },
+  "rafaeltessaro.bs_hmg": {
+   "bullet": {
+    "damage": 104,
+    "penetration": 3,
+    "shield_damage": 104,
+    "explosive_radius_m": 0,
+    "explosive_damage": 0,
+    "emp_drain": 0,
+    "fire_chance": 0.04,
+    "notes": "Loose vanilla bullet split 8:1 by an InlineResourceConverter; pen <= 4 so SW small bubbles (4) stop it."
+   }
+  },
+  "rafaeltessaro.bs_autocannon_20": {
+   "bullet": {
+    "damage": 340,
+    "penetration": 4,
+    "shield_damage": 420,
+    "explosive_radius_m": 1.0,
+    "explosive_damage": 160,
+    "emp_drain": 0,
+    "fire_chance": 0.08,
+    "notes": "Loose vanilla bullet split 2:1 by an InlineResourceConverter; pen <= 4 so SW small bubbles (4) stop it."
+   }
+  },
+  "rafaeltessaro.bs_flak_light": {
+   "bullet": {
+    "damage": 0,
+    "penetration": 0,
+    "shield_damage": 300,
+    "explosive_radius_m": 3.0,
+    "explosive_damage": 300,
+    "emp_drain": 0,
+    "fire_chance": 0.0,
+    "notes": "Beam airburst: anti-shot ExplosiveDamage 1000, radius 3, Slices 1, filter Bullets/OnlyBulletCategories [missile, mine, bullet, laser, ion_shot]; second blast 300 r3 vs ships+shields; RandomOffsetRadius [1, 4]; 1 bullet per burst."
+   }
+  },
+  "rafaeltessaro.bs_quad_hmg": {
+   "std": {
+    "damage": 95,
+    "penetration": 2,
+    "shield_damage": 95,
+    "explosive_radius_m": 0,
+    "explosive_damage": 0,
+    "emp_drain": 0,
+    "fire_chance": 0.04,
+    "notes": "Standard (Padrao): ball/tracer round; same damage vs hull and shield."
+   },
+   "ap": {
+    "damage": 81,
+    "penetration": 8,
+    "shield_damage": 57,
+    "explosive_radius_m": 0,
+    "explosive_damage": 0,
+    "emp_drain": 0,
+    "fire_chance": 0.01,
+    "notes": "AP (Perfurante): PenetratingHit, PartCategoryPenetrationFactors {armor = 50%} (armor costs 3.5/tile); damage applies to every part penetrated; poor vs shields; pen < 64 so SW large/vanilla large shields always stop it."
+   },
+   "aphe": {
+    "damage": 57,
+    "penetration": 5,
+    "shield_damage": 86,
+    "explosive_radius_m": 0.75,
+    "explosive_damage": 57,
+    "emp_drain": 0,
+    "fire_chance": 0.06,
+    "notes": "APHE (Perfurante-Explosiva): armor factor 75%; explosion only in FinishedPenetratingOperational/Structural (inside the hull, behind armor) and on shields."
+   },
+   "emp": {
+    "damage": 57,
+    "penetration": 1,
+    "shield_damage": 57,
+    "explosive_radius_m": 0,
+    "explosive_damage": 0,
+    "emp_drain": 38,
+    "fire_chance": 0.0,
+    "notes": "EMP: ResourceDrain battery 38 on a hit shield (TreatShieldAsPart; = 95 shield-HP) and 23 on a hit part that stores battery; shield-effective per hit = 152 (1.6x std). BS guns/ammo parts are immune (no battery)."
+   }
+  },
+  "rafaeltessaro.bs_minigun": {
+   "std": {
+    "damage": 90,
+    "penetration": 2,
+    "shield_damage": 90,
+    "explosive_radius_m": 0,
+    "explosive_damage": 0,
+    "emp_drain": 0,
+    "fire_chance": 0.04,
+    "notes": "Standard (Padrao): ball/tracer round; same damage vs hull and shield."
+   },
+   "ap": {
+    "damage": 76,
+    "penetration": 8,
+    "shield_damage": 54,
+    "explosive_radius_m": 0,
+    "explosive_damage": 0,
+    "emp_drain": 0,
+    "fire_chance": 0.01,
+    "notes": "AP (Perfurante): PenetratingHit, PartCategoryPenetrationFactors {armor = 50%} (armor costs 3.5/tile); damage applies to every part penetrated; poor vs shields; pen < 64 so SW large/vanilla large shields always stop it."
+   },
+   "aphe": {
+    "damage": 54,
+    "penetration": 5,
+    "shield_damage": 81,
+    "explosive_radius_m": 0.75,
+    "explosive_damage": 54,
+    "emp_drain": 0,
+    "fire_chance": 0.06,
+    "notes": "APHE (Perfurante-Explosiva): armor factor 75%; explosion only in FinishedPenetratingOperational/Structural (inside the hull, behind armor) and on shields."
+   },
+   "emp": {
+    "damage": 54,
+    "penetration": 1,
+    "shield_damage": 54,
+    "explosive_radius_m": 0,
+    "explosive_damage": 0,
+    "emp_drain": 36,
+    "fire_chance": 0.0,
+    "notes": "EMP: ResourceDrain battery 36 on a hit shield (TreatShieldAsPart; = 90 shield-HP) and 22 on a hit part that stores battery; shield-effective per hit = 144 (1.6x std). BS guns/ammo parts are immune (no battery)."
+   }
+  },
+  "rafaeltessaro.bs_naval_76": {
+   "std": {
+    "damage": 1800,
+    "penetration": 5,
+    "shield_damage": 2600,
+    "explosive_radius_m": 2.0,
+    "explosive_damage": 1600,
+    "emp_drain": 0,
+    "fire_chance": 0.25,
+    "notes": "Standard (Padrao): HE shell, detonates on first part/armor/shield; shield takes direct + 50% blast."
+   },
+   "ap": {
+    "damage": 1530,
+    "penetration": 14,
+    "shield_damage": 1080,
+    "explosive_radius_m": 0,
+    "explosive_damage": 0,
+    "emp_drain": 0,
+    "fire_chance": 0.062,
+    "notes": "AP (Perfurante): PenetratingHit, PartCategoryPenetrationFactors {armor = 50%} (armor costs 3.5/tile); damage applies to every part penetrated; poor vs shields; pen < 64 so SW large/vanilla large shields always stop it."
+   },
+   "aphe": {
+    "damage": 1080,
+    "penetration": 9,
+    "shield_damage": 2240,
+    "explosive_radius_m": 1.5,
+    "explosive_damage": 2320,
+    "emp_drain": 0,
+    "fire_chance": 0.375,
+    "notes": "APHE (Perfurante-Explosiva): armor factor 75%; explosion only in FinishedPenetratingOperational/Structural (inside the hull, behind armor) and on shields."
+   },
+   "emp": {
+    "damage": 1080,
+    "penetration": 1,
+    "shield_damage": 1080,
+    "explosive_radius_m": 0,
+    "explosive_damage": 0,
+    "emp_drain": 1232,
+    "fire_chance": 0.0,
+    "notes": "EMP: ResourceDrain battery 1232 on a hit shield (TreatShieldAsPart; = 3080 shield-HP) and 739 on a hit part that stores battery; shield-effective per hit = 4160 (1.6x std). BS guns/ammo parts are immune (no battery)."
+   }
+  },
+  "rafaeltessaro.bs_plasma_gatling": {
+   "plasma": {
+    "damage": 225,
+    "penetration": 0,
+    "shield_damage": 585,
+    "explosive_radius_m": 0,
+    "explosive_damage": 0,
+    "emp_drain": 0,
+    "fire_chance": 0.1,
+    "notes": "SimpleHit plasma bolt, TargetCategory laser (vanilla PD ignores, flak/CIWS hit it), shot HP 150; separate HitShield 585 (2.6x hull); StatusApplication cosmoteer.heat 80 per hit on parts."
+   }
+  },
+  "rafaeltessaro.bs_ciws": {
+   "std": {
+    "damage": 0,
+    "penetration": 0,
+    "shield_damage": 300,
+    "explosive_radius_m": 3.0,
+    "explosive_damage": 300,
+    "emp_drain": 0,
+    "fire_chance": 0.0,
+    "notes": "Beam airburst: anti-shot ExplosiveDamage 1500, radius 4.0, Slices 1, filter OnlyBulletCategories [missile, mine, bullet, laser, ion_shot]; ship/shield blast 300 r3.0; RandomOffsetRadius [0.5, 3]; 1 std magazine = 8 bursts."
+   }
+  },
+  "rafaeltessaro.bs_rotary_30": {
+   "std": {
+    "damage": 260,
+    "penetration": 4,
+    "shield_damage": 320,
+    "explosive_radius_m": 1.0,
+    "explosive_damage": 120,
+    "emp_drain": 0,
+    "fire_chance": 0.06,
+    "notes": "Standard (Padrao): HE shell, detonates on first part/armor/shield; shield takes direct + 50% blast."
+   },
+   "ap": {
+    "damage": 221,
+    "penetration": 16,
+    "shield_damage": 156,
+    "explosive_radius_m": 0,
+    "explosive_damage": 0,
+    "emp_drain": 0,
+    "fire_chance": 0.015,
+    "notes": "AP (Perfurante): PenetratingHit, PartCategoryPenetrationFactors {armor = 50%} (armor costs 3.5/tile); damage applies to every part penetrated; poor vs shields; pen < 64 so SW large/vanilla large shields always stop it."
+   },
+   "aphe": {
+    "damage": 156,
+    "penetration": 9,
+    "shield_damage": 268,
+    "explosive_radius_m": 0.75,
+    "explosive_damage": 224,
+    "emp_drain": 0,
+    "fire_chance": 0.09,
+    "notes": "APHE (Perfurante-Explosiva): armor factor 75%; explosion only in FinishedPenetratingOperational/Structural (inside the hull, behind armor) and on shields."
+   },
+   "emp": {
+    "damage": 156,
+    "penetration": 1,
+    "shield_damage": 156,
+    "explosive_radius_m": 0,
+    "explosive_damage": 0,
+    "emp_drain": 142,
+    "fire_chance": 0.0,
+    "notes": "EMP: ResourceDrain battery 142 on a hit shield (TreatShieldAsPart; = 355 shield-HP) and 85 on a hit part that stores battery; shield-effective per hit = 511 (1.6x std). BS guns/ammo parts are immune (no battery)."
+   }
+  },
+  "rafaeltessaro.bs_naval_155": {
+   "std": {
+    "damage": 3400,
+    "penetration": 8,
+    "shield_damage": 4800,
+    "explosive_radius_m": 2.5,
+    "explosive_damage": 2800,
+    "emp_drain": 0,
+    "fire_chance": 0.35,
+    "notes": "Standard (Padrao): HE shell, detonates on first part/armor/shield; shield takes direct + 50% blast."
+   },
+   "ap": {
+    "damage": 2890,
+    "penetration": 22,
+    "shield_damage": 2040,
+    "explosive_radius_m": 0,
+    "explosive_damage": 0,
+    "emp_drain": 0,
+    "fire_chance": 0.087,
+    "notes": "AP (Perfurante): PenetratingHit, PartCategoryPenetrationFactors {armor = 50%} (armor costs 3.5/tile); damage applies to every part penetrated; poor vs shields; pen < 64 so SW large/vanilla large shields always stop it."
+   },
+   "aphe": {
+    "damage": 2040,
+    "penetration": 14,
+    "shield_damage": 4120,
+    "explosive_radius_m": 1.88,
+    "explosive_damage": 4160,
+    "emp_drain": 0,
+    "fire_chance": 0.525,
+    "notes": "APHE (Perfurante-Explosiva): armor factor 75%; explosion only in FinishedPenetratingOperational/Structural (inside the hull, behind armor) and on shields."
+   },
+   "emp": {
+    "damage": 2040,
+    "penetration": 1,
+    "shield_damage": 2040,
+    "explosive_radius_m": 0,
+    "explosive_damage": 0,
+    "emp_drain": 2256,
+    "fire_chance": 0.0,
+    "notes": "EMP: ResourceDrain battery 2256 on a hit shield (TreatShieldAsPart; = 5640 shield-HP) and 1354 on a hit part that stores battery; shield-effective per hit = 7680 (1.6x std). BS guns/ammo parts are immune (no battery)."
+   }
+  },
+  "rafaeltessaro.bs_plasma_heavy": {
+   "plasma": {
+    "damage": 3200,
+    "penetration": 0,
+    "shield_damage": 10800,
+    "explosive_radius_m": 2.0,
+    "explosive_damage": 1600,
+    "emp_drain": 0,
+    "fire_chance": 0.3,
+    "notes": "SimpleHit plasma ball, TargetCategory laser, shot HP 3000; HitShield Damage 10800 (2.7x hull-effective 4000); splash ExplosiveDamage 1600 r2 vs parts; heat 600 per hit."
+   }
+  },
+  "rafaeltessaro.bs_flak_heavy": {
+   "std": {
+    "damage": 0,
+    "penetration": 0,
+    "shield_damage": 2000,
+    "explosive_radius_m": 5.0,
+    "explosive_damage": 2000,
+    "emp_drain": 0,
+    "fire_chance": 0.0,
+    "notes": "Beam airburst: anti-shot ExplosiveDamage 4000, radius 6.0, Slices 1, filter OnlyBulletCategories [missile, mine, bullet, laser, ion_shot]; ship/shield blast 2000 r5.0; RandomOffsetRadius [1, 8]; 1 std magazine = 3 bursts."
+   }
+  },
+  "rafaeltessaro.bs_nuke_howitzer": {
+   "nuclear": {
+    "damage": 2000,
+    "penetration": 0,
+    "shield_damage": 40000,
+    "explosive_radius_m": 8.0,
+    "explosive_damage": 150000,
+    "emp_drain": 0,
+    "fire_chance": 0.6,
+    "notes": "SimpleHit; on contact: Damage 2000 + ExplosiveDamage 150000 r8 (ExpandDuration .8, ExpandStartRadius 2, OperationalHealth only, Friendlies = true) + structural ExplosiveDamage 40000 r6; on a shield the blast is filtered to Shields = true and deals 40000 then stops. Shot down (HP 7000, category bullet) = fizzle, no blast."
+   }
+  },
+  "rafaeltessaro.bs_naval_406": {
+   "std": {
+    "damage": 7000,
+    "penetration": 12,
+    "shield_damage": 10000,
+    "explosive_radius_m": 3.5,
+    "explosive_damage": 6000,
+    "emp_drain": 0,
+    "fire_chance": 0.4,
+    "notes": "Standard (Padrao): HE shell, detonates on first part/armor/shield; shield takes direct + 50% blast."
+   },
+   "ap": {
+    "damage": 5950,
+    "penetration": 30,
+    "shield_damage": 4200,
+    "explosive_radius_m": 0,
+    "explosive_damage": 0,
+    "emp_drain": 0,
+    "fire_chance": 0.1,
+    "notes": "AP (Perfurante): PenetratingHit, PartCategoryPenetrationFactors {armor = 50%} (armor costs 3.5/tile); damage applies to every part penetrated; poor vs shields; pen < 64 so SW large/vanilla large shields always stop it."
+   },
+   "aphe": {
+    "damage": 4200,
+    "penetration": 20,
+    "shield_damage": 8600,
+    "explosive_radius_m": 2.62,
+    "explosive_damage": 8800,
+    "emp_drain": 0,
+    "fire_chance": 0.6,
+    "notes": "APHE (Perfurante-Explosiva): armor factor 75%; explosion only in FinishedPenetratingOperational/Structural (inside the hull, behind armor) and on shields."
+   },
+   "emp": {
+    "damage": 4200,
+    "penetration": 1,
+    "shield_damage": 4200,
+    "explosive_radius_m": 0,
+    "explosive_damage": 0,
+    "emp_drain": 4720,
+    "fire_chance": 0.0,
+    "notes": "EMP: ResourceDrain battery 4720 on a hit shield (TreatShieldAsPart; = 11800 shield-HP) and 2832 on a hit part that stores battery; shield-effective per hit = 16000 (1.6x std). BS guns/ammo parts are immune (no battery)."
+   }
+  }
+ },
+ "career_techs": [
+  {
+   "id": "rafaeltessaro.bs_tech_lmg",
+   "tier": 1,
+   "unlocks": [
+    "rafaeltessaro.bs_lmg",
+    "rafaeltessaro.bs_hmg"
+   ],
+   "cost_credits": 1500,
+   "prerequisites": []
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_autocannon_20",
+   "tier": 1,
+   "unlocks": [
+    "rafaeltessaro.bs_autocannon_20"
+   ],
+   "cost_credits": 3000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_lmg"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_flak_light",
+   "tier": 1,
+   "unlocks": [
+    "rafaeltessaro.bs_flak_light"
+   ],
+   "cost_credits": 3500,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_lmg"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_magazines",
+   "tier": 2,
+   "unlocks": [
+    "rafaeltessaro.bs_factory_mag_std",
+    "ammo:std"
+   ],
+   "cost_credits": 5000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_autocannon_20",
+    "cosmoteer.factory_ammo"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_quad_hmg",
+   "tier": 2,
+   "unlocks": [
+    "rafaeltessaro.bs_quad_hmg"
+   ],
+   "cost_credits": 6000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_magazines"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_minigun",
+   "tier": 2,
+   "unlocks": [
+    "rafaeltessaro.bs_minigun"
+   ],
+   "cost_credits": 9000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_magazines"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_naval_76",
+   "tier": 2,
+   "unlocks": [
+    "rafaeltessaro.bs_naval_76"
+   ],
+   "cost_credits": 12000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_magazines",
+    "cosmoteer.cannon_large"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_ciws",
+   "tier": 2,
+   "unlocks": [
+    "rafaeltessaro.bs_ciws"
+   ],
+   "cost_credits": 10000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_flak_light",
+    "rafaeltessaro.bs_tech_magazines"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_ammo_ap",
+   "tier": 2,
+   "unlocks": [
+    "ammo:ap",
+    "rafaeltessaro.bs_factory_mag_ap"
+   ],
+   "cost_credits": 7000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_magazines"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_ammo_aphe",
+   "tier": 3,
+   "unlocks": [
+    "ammo:aphe",
+    "rafaeltessaro.bs_factory_mag_aphe"
+   ],
+   "cost_credits": 14000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_ammo_ap"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_ammo_emp",
+   "tier": 3,
+   "unlocks": [
+    "ammo:emp",
+    "rafaeltessaro.bs_factory_mag_emp"
+   ],
+   "cost_credits": 14000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_magazines",
+    "cosmoteer.factory_emp"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_plasma",
+   "tier": 3,
+   "unlocks": [
+    "rafaeltessaro.bs_plasma_gatling",
+    "rafaeltessaro.bs_factory_plasma"
+   ],
+   "cost_credits": 18000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_minigun"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_oc_quad_hmg",
+   "tier": 3,
+   "unlocks": [
+    "overclock:rafaeltessaro.bs_quad_hmg"
+   ],
+   "cost_credits": 30000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_quad_hmg",
+    "cosmoteer.heat_management"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_oc_minigun",
+   "tier": 3,
+   "unlocks": [
+    "overclock:rafaeltessaro.bs_minigun"
+   ],
+   "cost_credits": 45000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_minigun",
+    "cosmoteer.heat_management"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_oc_naval_76",
+   "tier": 3,
+   "unlocks": [
+    "overclock:rafaeltessaro.bs_naval_76"
+   ],
+   "cost_credits": 50000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_naval_76",
+    "cosmoteer.heat_management"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_oc_plasma_gatling",
+   "tier": 3,
+   "unlocks": [
+    "overclock:rafaeltessaro.bs_plasma_gatling"
+   ],
+   "cost_credits": 55000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_plasma",
+    "cosmoteer.heat_management"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_oc_ciws",
+   "tier": 3,
+   "unlocks": [
+    "overclock:rafaeltessaro.bs_ciws"
+   ],
+   "cost_credits": 60000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_ciws",
+    "cosmoteer.heat_management"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_rotary_30",
+   "tier": 4,
+   "unlocks": [
+    "rafaeltessaro.bs_rotary_30"
+   ],
+   "cost_credits": 40000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_minigun"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_naval_155",
+   "tier": 4,
+   "unlocks": [
+    "rafaeltessaro.bs_naval_155"
+   ],
+   "cost_credits": 45000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_naval_76",
+    "cosmoteer.cannon_deck"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_flak_heavy",
+   "tier": 4,
+   "unlocks": [
+    "rafaeltessaro.bs_flak_heavy"
+   ],
+   "cost_credits": 35000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_ciws",
+    "cosmoteer.flak_cannon_large"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_plasma_heavy",
+   "tier": 4,
+   "unlocks": [
+    "rafaeltessaro.bs_plasma_heavy"
+   ],
+   "cost_credits": 65000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_plasma"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_nuke_howitzer",
+   "tier": 5,
+   "unlocks": [
+    "rafaeltessaro.bs_nuke_howitzer",
+    "rafaeltessaro.bs_factory_nuke_shell"
+   ],
+   "cost_credits": 130000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_naval_155",
+    "cosmoteer.factory_nuke"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_naval_406",
+   "tier": 5,
+   "unlocks": [
+    "rafaeltessaro.bs_naval_406"
+   ],
+   "cost_credits": 160000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_naval_155"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_oc_rotary_30",
+   "tier": 5,
+   "unlocks": [
+    "overclock:rafaeltessaro.bs_rotary_30"
+   ],
+   "cost_credits": 100000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_rotary_30",
+    "cosmoteer.heat_management"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_oc_naval_155",
+   "tier": 5,
+   "unlocks": [
+    "overclock:rafaeltessaro.bs_naval_155"
+   ],
+   "cost_credits": 110000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_naval_155",
+    "cosmoteer.heat_management"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_oc_plasma_heavy",
+   "tier": 5,
+   "unlocks": [
+    "overclock:rafaeltessaro.bs_plasma_heavy"
+   ],
+   "cost_credits": 120000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_plasma_heavy",
+    "cosmoteer.heat_management"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_oc_flak_heavy",
+   "tier": 5,
+   "unlocks": [
+    "overclock:rafaeltessaro.bs_flak_heavy"
+   ],
+   "cost_credits": 90000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_flak_heavy",
+    "cosmoteer.heat_management"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_oc_nuke_howitzer",
+   "tier": 5,
+   "unlocks": [
+    "overclock:rafaeltessaro.bs_nuke_howitzer"
+   ],
+   "cost_credits": 150000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_nuke_howitzer",
+    "cosmoteer.heat_management"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_tech_oc_naval_406",
+   "tier": 5,
+   "unlocks": [
+    "overclock:rafaeltessaro.bs_naval_406"
+   ],
+   "cost_credits": 150000,
+   "prerequisites": [
+    "rafaeltessaro.bs_tech_naval_406",
+    "cosmoteer.heat_management"
+   ]
+  }
+ ],
+ "balance_checks": [
+  "CONVENTIONS: fire_rate_shots_per_s = total sustained shells/s of the whole weapon (all barrels, at max spin for spin-up guns). dps_hull_std = rate x (direct + 0.5 x explosive pool) (explosive at 50% because armor resists 50% explosive and absorbs it). ammo_units_per_s = rate x resource_units_per_shot / shots_per_resource_unit. bullet_equivalent = recipe credit cost / 4 cr (std mag 6, AP 8.5, APHE 11, EMP 12.67, plasma cell 5, nuke shell 67.5, loose bullet 1). factories_needed_sustained = ammo_units_per_s / output rate of the gun's DIRECT factory (Magazine Press 1 mag/s, Plasma Condenser 1 cell/s, Nuke Foundry 0.5 shell/s, vanilla Cannon Ammo Factory 2 bullets/s for loose-bullet guns).",
+  "DPS/TILE EARLY band 200-280: bs_lmg 260 DPS / 1 t = 260.0/tile; bs_hmg 520 DPS / 2 t = 260.0/tile; bs_autocannon_20 1050 DPS / 4 t = 262.5/tile; bs_flak_light 450 DPS / 4 t = 112.5/tile [defense: anti-ship only]",
+  "DPS/TILE MID band 300-400: bs_quad_hmg 1520 DPS / 4 t = 380.0/tile; bs_minigun 2160 DPS / 6 t = 360.0/tile; bs_naval_76 3900 DPS / 12 t = 325.0/tile; bs_plasma_gatling 2250 DPS / 9 t = 250.0/tile [plasma: hull 0.7x band by design]; bs_ciws 900 DPS / 9 t = 100.0/tile [defense: anti-ship only]",
+  "DPS/TILE LATE band 300-380: bs_rotary_30 5120 DPS / 16 t = 320.0/tile; bs_naval_155 6400 DPS / 20 t = 320.0/tile; bs_plasma_heavy 4800 DPS / 20 t = 240.0/tile [plasma: hull 0.7x band by design]; bs_flak_heavy 3000 DPS / 16 t = 187.5/tile [defense: anti-ship only]; bs_nuke_howitzer 7700 DPS / 30 t = 256.7/tile [alpha weapon: 77000 effective per shell]; bs_naval_406 13044 DPS / 42 t = 310.6/tile",
+  "EARLY vs VANILLA: cannon_med 2x2 833 DPS (208/tile) 190 m, 1 crew, 2000 cr. BS 20mm 2x2 = 1050 DPS (262.5/tile) at 250 m, 1 crew, 2200 cr: +26% DPS/tile and +60 m, paid by 1.25 bullets/s (vs 1.11) and 1 crew per 4 tiles. LMG 1x1 = 260 DPS per crew (cannon_med 833/crew): counting ~1 tile of crew quarters per crew, LMG effective density ~130/tile vs cannon_med ~167/tile -> small BS guns trade crew for range, they do not obsolete the cannon.",
+  "MID vs VANILLA: 76mm 3x4 3900 DPS (325/tile, 1300/crew) at 340 m vs cannon_large 1778 DPS (198/tile, 889/crew) at 190 m and vs deck cannon 300/tile at 190 m. Minigun 2160 DPS max (360/tile, 1080/crew) at 310 m vs vanilla chaingun 18000 (1000/tile) at 240 m: BS minigun is 36% of chaingun per tile but has +70 m, deck mounting and a 4 s (not 10 s) spin-up; average over its first 4 s = 14 shots/s = 1260 DPS.",
+  "LATE vs VANILLA: 155mm 6400 DPS (320/tile, 1280/crew) at 520 m vs deck cannon 6000 DPS (300/tile, 1500/crew) at 190 m: +7% per tile, 2.7x range, but crew 5 vs 4, cost 28500 cr vs 20000 cr, turret 22 deg/s (deck 20), no infinite-penetration OC; shells take 2.3 s to reach 520 m so moving targets dodge. 406mm 13044 DPS (310.6/tile, 1630/crew) at 600 m costs 79000 cr, 8 crew, 16 CP and 15.7 bullets/s.",
+  "vs SW:ACD: SW 2x2 turbolasers 263-455/tile at 400 m (crew 2, power); SW faction 4x4 TLs 310-545/tile at 500 m (Bridge-locked). BS mid 325-380/tile at 300-340 m and late 310-320/tile at 500-600 m sit inside the SW envelope (below SW peaks, above SW heavy 4x4 family 69-111/tile). SW crewless 1x1 lasers (625/tile, 400 m) stay stronger than BS early guns (260/tile, 220-250 m).",
+  "RANGES: early 220/240/250 m; mid 300/310/320/340 m; late 500/520/550/600/600 m; defense 180 (light flak), 240 (CIWS), 320 (heavy flak), quad HMG 300. Overclocked maxima: 155mm 520x1.15 = 598 m, Heavy Plasma 550x1.0909 = 600 m; no base or OC range exceeds 600 m.",
+  "AMMO EFFICIENCY (hull damage per bullet-equivalent, anchor 700-1000; vanilla cannons 600-750, chaingun 2400): bs_lmg 800; bs_hmg 832; bs_autocannon_20 840; bs_quad_hmg 792; bs_minigun 750; bs_naval_76 867; bs_plasma_gatling 900; bs_rotary_30 800; bs_naval_155 800; bs_plasma_heavy 800; bs_nuke_howitzer 1141; bs_naval_406 833. Nuke howitzer is the only premium (77000 effective per 67.5 bullet-eq shell) and is gated by enriched uranium, CategoryLimit 2 and interception.",
+  "CREW HAUL (trips/s at full fire = ammo units/s / MaxStackSize; bullet 20, magazine 4, plasma cell 6, nuke shell 2): bs_lmg 0.016; bs_hmg 0.031; bs_autocannon_20 0.062; bs_flak_light 0.150; bs_quad_hmg 0.080; bs_minigun 0.120; bs_naval_76 0.188; bs_plasma_gatling 0.083; bs_ciws 0.188; bs_rotary_30 0.267; bs_naval_155 0.333; bs_plasma_heavy 0.200; bs_flak_heavy 0.250; bs_nuke_howitzer 0.050; bs_naval_406 0.652. Vanilla deck cannon 0.40, chaingun 0.375, flak 0.20. Only the 406mm exceeds vanilla (0.652 trips/s ~ 6-7 dedicated haulers at ~10 s round trips) - that is its intended logistics price.",
+  "SUSTAINED ECONOMY (upstream vanilla ammo factories = bullets/s / 2): minigun 1.44, 76mm 2.25, 30mm 3.20, 155mm 4.00, 406mm 7.83, CIWS 2.25, heavy flak 3.00. Vanilla deck cannon needs 4.0 (8 bullets/s). Internal buffers (CIWS 10.7 s, heavy flak 16 s, 406mm 11.5 s of continuous fire) cover burst fights; sustained numbers are worst case.",
+  "ANTI-PROJECTILE: light flak 1000 pool x 3/s = 3000/s (750/tile, 1 bullet per burst = 1000 pool per bullet); CIWS 1500 x 6/s = 9000/s (1000/tile, 2000 pool per bullet-eq); heavy flak 4000 x 3/s = 12000/s (750/tile, 2000 per bullet-eq). Benchmarks: vanilla flak 12000/s (667/tile, 3000 pool per bullet), vanilla PD 2700/s single target (1350/tile, power), SW blaster PD 18750/s (9375/tile), SW flak 66000/s. All BS defenses <= 1000/tile (cap 1500) and less ammo-efficient than vanilla flak = 'eats a lot of ammo'.",
+  "CIWS vs SW threats: light TL bolt 1000 HP = 1 burst; heavy/faction bolt 4000 = 3 bursts (0.5 s); SW ion 2000-4000 = 2-3 bursts; SW missiles 8000-9800 = 6-7 bursts (~1.1 s); vanilla bullet_med 175 = 8 per burst within 4 m; laser_small 125 = 12. Heavy flak: heavy TL bolt 1 burst, SW missile 2-3 bursts. Beams (ion beam/prism, chaingun, SW mining) cannot be hit; OC fields attenuate only beams with AttenuationLimit.",
+  "SHIELDS: plasma gatling shield DPS 10 x 585 = 5850 (650/tile), heavy plasma 1.2 x 10800 = 12960 (648/tile) - below SW ion specialists (938-1312/tile) and under the 700-900/tile cap; OC 860 / 810 per tile. SW medium bubble 20000 falls to one plasma gatling in 3.4 s, SW large 80000 to one heavy plasma in 6.2 s. EMP minigun: 24 x (54 + 2.5 x 36) = 3456 shield-HP/s (1.6x std 2160) vs 20000 bubble = 5.8 s; std minigun 9.3 s.",
+  "PENETRATION vs SHIELDS (pass if pen > resist: SW 4/16/64/256, vanilla 25/75): all loose-bullet rounds and std 30mm (pen 4) are stopped by every shield; std 76mm 5 / 155mm 8 / 406mm 12 pass only SW small bubbles; AP 8/14/16 pass SW small only, AP 22 (155) and 30 (406) also pass SW medium (16), AP 30 also vanilla small (25); nothing reaches 64 so SW large/giga and vanilla large always stop BS shells.",
+  "INTERCEPTION (shot HP): LMG 50, HMG 90, 20mm 150, quad 90, minigun 80, 30mm 250, 76mm 1200, 155mm 3000, 406mm 5000, nuke 7000 (bullet category); plasma 150 / 3000 (laser category). Vanilla PD (180/hit) one-shots all small rounds; a vanilla flak burst (3000) kills a 155 shell, 0.6 of a 406 shell; SW blaster PD (1250/hit) one-shots everything up to the 76mm shell. Flak beams are not shootable.",
+  "OVERCLOCK (mid/late only, early has none): DPS x quad 1.485, minigun 1.5, 76mm 1.5, plasma gatling 1.4375 (shield 1.32), rotary 1.375, 155mm 1.35 + range x1.15, heavy plasma 1.35 + range x1.09, nuke 1.4, 406mm 1.53, CIWS 1.25 rate + 3 s fields, heavy flak + 4 s fields. Target band +40-60% DPS or +25% range. Peak OC heat/s (heat_per_shot x OC rate + heat_per_second): quad 904, minigun 900, 76mm 960, plasma gatling 855, CIWS 865, heavy flak 960, rotary 2080, 155mm 3053, heavy plasma 3000, nuke 1880, 406mm 5007; vanilla refs: cannon_med ~617, cannon_large ~741, flak 800, deck cannon ~1520.",
+  "COST / DPS (credits from steel 25, coil 100, coil2 300, tristeel 200, processor 2500, EU 2000): bs_lmg 800 cr (3.08 cr/DPS); bs_hmg 1500 cr (2.88 cr/DPS); bs_autocannon_20 2200 cr (2.10 cr/DPS); bs_quad_hmg 3800 cr (2.50 cr/DPS); bs_minigun 9050 cr (4.19 cr/DPS); bs_naval_76 11900 cr (3.05 cr/DPS); bs_plasma_gatling 14200 cr (6.31 cr/DPS); bs_rotary_30 23800 cr (4.65 cr/DPS); bs_naval_155 28500 cr (4.45 cr/DPS); bs_plasma_heavy 34000 cr (7.08 cr/DPS); bs_nuke_howitzer 43000 cr (5.58 cr/DPS); bs_naval_406 79000 cr (6.06 cr/DPS). Vanilla: cannon_med 2.40, cannon_large 2.98, deck 3.33, chaingun 1.33 cr/DPS.",
+  "CREW: DPS/crew early 260-1050, mid 1080-1300 (plasma 1125, quad 760), late 1200-1630 (406mm 8 crew = 1630; nuke 1540) - inside vanilla 670-1500 except the two flagship-class late guns, which pay with 8 crew/16 CP (406) or CategoryLimit + uranium (nuke). Defense guns: light flak 1 crew, CIWS 2, heavy flak 4.",
+  "DECK / PLACEMENT: every weapon is ProhibitedBy [tall] with a tall-layer ProhibitRects ring (0 for 1x1/1x2 so MGs pack edge to edge; 1 for 2x2-3x3; 2 for 76mm/4x4/4x5/5x6; 3 for the 406mm), no ProhibitAbove (can be surrounded by armor), IsHigh turret collider, IgnoreFriendlyShipLowLOSChecks, shots FriendlyShipLowCollisions = false; all uses_ammo + is_crewed, no battery storage (immune to ion/disruptor/EMP drains).",
+  "VERSION SAFETY: no always_crew_part toggle, no STRUCTURAL_DAMAGE_RETENTION globals (literals only), no CoverageSectorArc dependence, own literal shot speeds; ammo selector uses our own PartToggle 'bs_ammo_type' (modes 0 std, 1 ap, 2 aphe, 3 emp) added via AddMany; nuke limit via SW-style two-step CategoryLimits Add (OnlyIfNotExisting) + AddMany with category bs_limit_nuke."
+ ]
+}

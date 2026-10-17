@@ -1,0 +1,281 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Projetil: 76mm Naval Automatic Cannon - std
+
+STAT_DAMAGE = 1800
+STAT_PENETRATION = 5
+ID = "rafaeltessaro.bs_shot_naval_76_std"
+Range = 340
+IdealRange = [102, &~/Range]
+IdealRadius = [5, 50]
+Speed = 170
+Components
+{
+	Physics
+	{
+		Type = CirclePhysics
+		Radius = 0.3
+		Density = 0.0001
+	}
+	Death
+	{
+		Type = DeathByLifetime
+	}
+	Targetable
+	{
+		Type = Targetable
+		Health = 1200
+		TargetCategory = "bullet"
+		OnDeath
+		{
+			MediaEffects = &~/Components/Hit/HitOperational/MediaEffects
+		}
+	}
+	Hit
+	{
+		Type = PenetratingHit
+		Penetration = 5
+		PenetrationSpeed = 25
+		FriendlyShipLowCollisions = false
+		CrewCollisions = {Enemies=true; Junk=true}
+		PenetratesCrew = true
+		HitCrew = &HitOperational
+		HitShield
+		{
+			ReduceEffectsByPenetration = true
+			Offset = [-0.15, 0]
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
+					{
+						BaseValue = 2600
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 5
+						EffectScaleExponent = 1
+					}
+				}
+			]
+			MediaEffects = &../HitOperational/MediaEffects
+		}
+		HitOperational
+		{
+			ReduceEffectsByPenetration = true
+			Offset = [-0.15, 0]
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
+					{
+						BaseValue = 1800
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 5
+						EffectScaleExponent = 1
+					}
+				}
+			]
+			MediaEffects
+			[
+				&<./Data/shots/bullet_large/particles/bullet_hit_large.rules>
+				&<./Data/shots/bullet_large/particles/bullet_hit_large_sparks.rules>
+				&<./Data/shots/bullet_large/particles/bullet_smoke_large.rules>
+				&<./Data/shots/bullet_large/particles/bullet_flash_large.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/bullet_large/sounds/large_cannon_impact_01.wav"
+						"./Data/shots/bullet_large/sounds/large_cannon_impact_02.wav"
+						"./Data/shots/bullet_large/sounds/large_cannon_impact_03.wav"
+					]
+					Volume = 0.8
+					SpeedVariation = 0.2
+					MaxConcurrent = 12
+				}
+				: /BASE_SHAKE
+				{
+					ShakeAmount = 0.04
+					Duration = 0.5
+				}
+			]
+		}
+		HitStructural
+		{
+			ReduceEffectsByPenetration = true
+			Offset = [0.15, 0]
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
+					{
+						BaseValue = 450
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 2.5
+						EffectScaleExponent = 1
+					}
+				}
+			]
+			MediaEffects
+			[
+				&<./Data/shots/bullet_large/particles/bullet_hit_large_sparks.rules>
+				&<./Data/shots/bullet_large/particles/bullet_flash_large_struct.rules>
+			]
+		}
+		PenetratingOperational
+		{
+			ReduceEffectsByPenetration = true
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
+					{
+						BaseValue = 1800
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = StatusApplication
+					StatusType = cosmoteer.fire
+					StatusChance
+					{
+						BaseValue = 0.25
+						EffectScaleExponent = 1
+					}
+					ValueType = Interpolated
+				}
+				{
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 5
+						EffectScaleExponent = 1
+					}
+				}
+			]
+			MediaEffects = &../HitOperational/MediaEffects
+		}
+		PenetratingStructural : &HitStructural
+		{
+			StructuralDamageRetentionPerHit = 50%
+			MinStructuralDamageScale = 3%
+		}
+		FinishedPenetratingOperational
+		{
+			HitEffects
+			[
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 1600
+						EffectScaleExponent = 1
+					}
+					Radius = 2
+				}
+			]
+			MediaEffects
+			[
+				&<./Data/shots/missile_he/particles/missile_he_hit.rules>
+				&<./Data/shots/missile_he/particles/missile_he_flash.rules>
+				&<./Data/shots/missile_he/particles/missile_he_smoke.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_01.wav"
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_02.wav"
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_03.wav"
+					]
+					Volume = 0.5
+					SpeedVariation = 0.2
+					MaxConcurrent = 20
+				}
+				: /BASE_SHAKE
+				{
+					ShakeAmount = 0.04
+					Duration = 0.5
+				}
+			]
+		}
+		FinishedPenetratingStructural = &PenetratingStructural
+	}
+	Sprite
+	{
+		Type = AnimatedSprite
+		RenderBucket = BulletUpper3
+		ReduceScaleWith = Hit
+		ReduceScaleExponent = 0.5
+		Animation
+		{
+			AtlasSprite
+			{
+				Texture
+				{
+					File = "./Data/shots/bullet_large/bullet_large.png"
+					SampleMode = Linear
+					MipLevels = max
+				}
+				Size = [0.7, 0.7]
+			}
+			FrameCount = 16
+			FrameSize = [256, 256]
+			FramesPerRow = 4
+			FramesPerSecond = 120
+		}
+		NormalsTexture = &Animation/AtlasSprite/Texture
+		DiffuseShader = "./Data/default.shader"
+		NormalsShader = "./Data/no_normals.shader"
+	}
+	GlowSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Z = 0
+		IsLight = true
+		Offset = [-1.25, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [10, 5]
+			VertexColor = [255, 120, 30]
+			TargetBlendMode = Add
+			Shader = "./Data/common_effects/fancy_light.shader"
+			_z = 1
+			_nrmlStrengthLimit = 1
+			_litReflectiveStrength = 24
+			_litAdditiveStrength = 0.05
+			_unlitAdditiveStrength = 0.125
+		}
+	}
+	Trail
+	{
+		Type = MediaEffects
+		MediaEffects = [&<./Data/shots/bullet_large/particles/bullet_trail_large.rules>]
+	}
+}

@@ -1,0 +1,72 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Projetil: bs_flak_flak_heavy
+
+STAT_DAMAGE = 4000
+STAT_SHIP_DAMAGE = 0
+STAT_RADIUS = 6
+Range = 320
+IdealRange = 288
+ClipRangeToTarget = true
+RandomOffsetRadius = [0.5, 5.333333]
+FriendlyShipLowCollisions = false
+HitNothing
+{
+	HitEffects
+	[
+		{
+			Type = ExplosiveDamage
+			TotalDamage
+			{
+				BaseValue = 4000
+				EffectScaleExponent = 1
+			}
+			Radius = 6
+			Slices = 1
+			Filter
+			{
+				Ships = false
+				Shields = false
+				Bullets = true
+				OnlyBulletCategories = [missile, mine, bullet, laser, ion_shot]
+				Crew = true
+			}
+		}
+		{
+			Type = ExplosiveDamage
+			TotalDamage
+			{
+				BaseValue = 0
+				EffectScaleExponent = 1
+			}
+			Radius = 3.6
+			Filter
+			{
+				Ships = true
+				Shields = true
+				Bullets = false
+				Crew = false
+			}
+		}
+	]
+	MediaEffects
+	[
+		&<./Data/shots/flak_large/particles/flak_large_shrapnel.rules>
+		&<./Data/shots/flak_large/particles/flak_large_flash.rules>
+		: /BASE_SOUNDS/AudioExterior
+		{
+			RandomSounds
+			[
+				"./Data/shots/flak_large/sounds/flak_cannon_impact_01.wav"
+				"./Data/shots/flak_large/sounds/flak_cannon_impact_02.wav"
+				"./Data/shots/flak_large/sounds/flak_cannon_impact_03.wav"
+				"./Data/shots/flak_large/sounds/flak_cannon_impact_04.wav"
+			]
+			Volume = 0.3
+			SpeedVariation = 0.25
+			MaxConcurrent = 12
+		}
+	]
+}
+HitShield = &HitNothing
+HitOperational = &HitNothing
+HitStructural = &HitNothing

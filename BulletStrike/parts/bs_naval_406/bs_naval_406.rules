@@ -1,0 +1,1643 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Arma: 406mm Triple Naval Turret / Torre Naval Tripla 406 mm
+
+OVERCLOCK
+{
+	FIRE_INTERVAL_FACTOR = 0.7519
+	HALF_SPREAD = 0.625d
+	RECOIL_FACTOR = 160%
+	HEAT_PER_SHOT = 2800
+	HEAT_PER_SECOND = 150
+	CREW_STUN_DURATION = 1.2
+	CREW_STUN_RADIUS = 11.7
+}
+HEAT_TO_RESOURCE = &<./Data/statuses/heat/heat.rules>/STATUS_TO_RESOURCE_RATIO
+FIRE_INTERVAL = 2.3001
+Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
+{
+	NameKey = "Parts/BSNaval406"
+	IconNameKey = "Parts/BSNaval406Icon"
+	DescriptionKey = "Parts/BSNaval406Desc"
+	ID = rafaeltessaro.bs_naval_406
+	EditorGroups = ["BulletStrike", "WeaponsProjectile"]
+	Resources = [[steel, 600], [coil2, 100], [tristeel, 120], [processor, 4]]
+	Size = [6, 7]
+	SelectionPriority = 1
+	MaxHealth = 54000
+	TypeCategories = [weapon, uses_ammo, is_crewed]
+	SignificanceToggle = ScorchedToggle
+	ReceivableBuffs : ^/0/ReceivableBuffs []
+	ProhibitedBy : ^/0/ProhibitedBy [tall]
+	ProhibitRects
+	[
+		[tall, [-3, -3, 12, 3]]
+		[tall, [-3, 0, 3, 7]]
+		[tall, [6, 0, 3, 7]]
+	]
+	AllowedDoorLocations
+	[
+		[-1, 0]
+		[-1, 1]
+		[-1, 2]
+		[-1, 3]
+		[-1, 4]
+		[-1, 5]
+		[-1, 6]
+		[6, 0]
+		[6, 1]
+		[6, 2]
+		[6, 3]
+		[6, 4]
+		[6, 5]
+		[6, 6]
+		[0, 7]
+		[1, 7]
+		[2, 7]
+		[3, 7]
+		[4, 7]
+		[5, 7]
+		[0, -1]
+		[1, -1]
+		[2, -1]
+		[3, -1]
+		[4, -1]
+		[5, -1]
+	]
+	EditorIcon
+	{
+		Texture
+		{
+			File = "icon.png"
+			SampleMode = Linear
+		}
+		Size = [50.18, 92]
+	}
+	Components : ^/0/Components
+	{
+		IsOperational
+		{
+			Type = MultiToggle
+			Toggles = [PowerToggle, PartCrew, ScorchedToggle, &~/Part/^/0/OVERCLOCK_OPERATIONAL]
+			Mode = All
+		}
+		CommandConsumptionToggle
+		{
+			Type = MultiToggle
+			Toggles = [PowerToggle, ScorchedToggle]
+			Mode = All
+		}
+		PowerToggle
+		{
+			Type = UIToggle
+			ToggleID = "on_off"
+			Default = 1
+			RequiresCommand = false
+		}
+		ScorchedToggle
+		{
+			Type = StatusToggle
+			StatusType = cosmoteer.scorched
+			MinStatusValue = 1
+			Invert = true
+		}
+		CommandConsumer
+		{
+			Type = CommandConsumer
+			OperationalToggle = CommandConsumptionToggle
+			CommandPoints = 16
+		}
+		FireModeToggle
+		{
+			Type = UIToggle
+			ToggleID = "fire_mode"
+			Default = 1
+			ToggledOnChoices = [0, 1, 2]
+		}
+		AutoTargetToggle
+		{
+			Type = ModeToggle
+			Mode = FireModeToggle
+			OnModes = [1, 2]
+		}
+		AutoFireToggle
+		{
+			Type = ModeToggle
+			Mode = FireModeToggle
+			OnMode = 2
+		}
+		IsOperationalNonOverclocked
+		{
+			Type = MultiToggle
+			Toggles = [IsOperational, { Toggle=IsOverclocked; Invert=true }]
+			Mode = All
+		}
+		// ---- municao (carregadores abertos em N tiros) ----
+		AmmoTypeToggle
+		{
+			Type = UIToggle
+			ToggleID = "bs_ammo_type"
+			Default = 0
+			AlwaysAllowInBuildMode = true
+		}
+		ModeToggle_0
+		{
+			Type = ModeToggle
+			Mode = AmmoTypeToggle
+			OnMode = 0
+		}
+		ConsumeToggle_0
+		{
+			Type = MultiToggle
+			Toggles = [CommandConsumptionToggle, ModeToggle_0]
+			Mode = All
+		}
+		MagStorage_0
+		{
+			Type = ResourceStorage
+			ResourceType = rafaeltessaro.bs_mag_std
+			MaxResources = 30
+			UITileRect = [0 + 7/64, 6 + 7/64, 1 - 14/64, 1 - 14/64]
+			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
+			DropResourcesWhenDestroyed = true
+		}
+		Splitter_0
+		{
+			Type = InlineResourceConverter
+			ResourceType = rafaeltessaro.bs_mag_std
+			FromStorage = MagStorage_0
+			FromQuantity = 1
+			ToQuantity = 1
+		}
+		MagConsumer_0
+		{
+			Type = ResourceConsumer
+			ResourceType = rafaeltessaro.bs_mag_std
+			Storage = MagStorage_0
+			DefaultPriority = &/PRIORITIES/Weapon_Supply
+			OperationalToggle = ConsumeToggle_0
+			ConsumptionToggleButtonOffset = [0, -0.4]
+		}
+		HasAmmo_0
+		{
+			Type = MultiToggle
+			Toggles = [ModeToggle_0, Splitter_0]
+			Mode = All
+		}
+		ModeToggle_1
+		{
+			Type = ModeToggle
+			Mode = AmmoTypeToggle
+			OnMode = 1
+		}
+		ConsumeToggle_1
+		{
+			Type = MultiToggle
+			Toggles = [CommandConsumptionToggle, ModeToggle_1]
+			Mode = All
+		}
+		MagStorage_1
+		{
+			Type = ResourceStorage
+			ResourceType = rafaeltessaro.bs_mag_ap
+			MaxResources = 30
+			UITileRect = [1 + 7/64, 6 + 7/64, 1 - 14/64, 1 - 14/64]
+			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
+			DropResourcesWhenDestroyed = true
+		}
+		Splitter_1
+		{
+			Type = InlineResourceConverter
+			ResourceType = rafaeltessaro.bs_mag_ap
+			FromStorage = MagStorage_1
+			FromQuantity = 1
+			ToQuantity = 1
+		}
+		MagConsumer_1
+		{
+			Type = ResourceConsumer
+			ResourceType = rafaeltessaro.bs_mag_ap
+			Storage = MagStorage_1
+			DefaultPriority = &/PRIORITIES/Weapon_Supply
+			OperationalToggle = ConsumeToggle_1
+			ConsumptionToggleButtonOffset = [0, -0.15]
+		}
+		HasAmmo_1
+		{
+			Type = MultiToggle
+			Toggles = [ModeToggle_1, Splitter_1]
+			Mode = All
+		}
+		ModeToggle_2
+		{
+			Type = ModeToggle
+			Mode = AmmoTypeToggle
+			OnMode = 2
+		}
+		ConsumeToggle_2
+		{
+			Type = MultiToggle
+			Toggles = [CommandConsumptionToggle, ModeToggle_2]
+			Mode = All
+		}
+		MagStorage_2
+		{
+			Type = ResourceStorage
+			ResourceType = rafaeltessaro.bs_mag_aphe
+			MaxResources = 30
+			UITileRect = [2 + 7/64, 6 + 7/64, 1 - 14/64, 1 - 14/64]
+			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
+			DropResourcesWhenDestroyed = true
+		}
+		Splitter_2
+		{
+			Type = InlineResourceConverter
+			ResourceType = rafaeltessaro.bs_mag_aphe
+			FromStorage = MagStorage_2
+			FromQuantity = 1
+			ToQuantity = 1
+		}
+		MagConsumer_2
+		{
+			Type = ResourceConsumer
+			ResourceType = rafaeltessaro.bs_mag_aphe
+			Storage = MagStorage_2
+			DefaultPriority = &/PRIORITIES/Weapon_Supply
+			OperationalToggle = ConsumeToggle_2
+			ConsumptionToggleButtonOffset = [0, 0.1]
+		}
+		HasAmmo_2
+		{
+			Type = MultiToggle
+			Toggles = [ModeToggle_2, Splitter_2]
+			Mode = All
+		}
+		ModeToggle_3
+		{
+			Type = ModeToggle
+			Mode = AmmoTypeToggle
+			OnMode = 3
+		}
+		ConsumeToggle_3
+		{
+			Type = MultiToggle
+			Toggles = [CommandConsumptionToggle, ModeToggle_3]
+			Mode = All
+		}
+		MagStorage_3
+		{
+			Type = ResourceStorage
+			ResourceType = rafaeltessaro.bs_mag_emp
+			MaxResources = 30
+			UITileRect = [3 + 7/64, 6 + 7/64, 1 - 14/64, 1 - 14/64]
+			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
+			DropResourcesWhenDestroyed = true
+		}
+		Splitter_3
+		{
+			Type = InlineResourceConverter
+			ResourceType = rafaeltessaro.bs_mag_emp
+			FromStorage = MagStorage_3
+			FromQuantity = 1
+			ToQuantity = 1
+		}
+		MagConsumer_3
+		{
+			Type = ResourceConsumer
+			ResourceType = rafaeltessaro.bs_mag_emp
+			Storage = MagStorage_3
+			DefaultPriority = &/PRIORITIES/Weapon_Supply
+			OperationalToggle = ConsumeToggle_3
+			ConsumptionToggleButtonOffset = [0, 0.35]
+		}
+		HasAmmo_3
+		{
+			Type = MultiToggle
+			Toggles = [ModeToggle_3, Splitter_3]
+			Mode = All
+		}
+		AmmoPrereq
+		{
+			Type = MultiToggle
+			Toggles = [HasAmmo_0, HasAmmo_1, HasAmmo_2, HasAmmo_3]
+			Mode = Any
+		}
+		FireToggle_0_N
+		{
+			Type = MultiToggle
+			Toggles = [ModeToggle_0, { Toggle=IsOverclocked; Invert=true }]
+			Mode = All
+		}
+		FireToggle_0_OC
+		{
+			Type = MultiToggle
+			Toggles = [ModeToggle_0, IsOverclocked]
+			Mode = All
+		}
+		FireToggle_1_N
+		{
+			Type = MultiToggle
+			Toggles = [ModeToggle_1, { Toggle=IsOverclocked; Invert=true }]
+			Mode = All
+		}
+		FireToggle_1_OC
+		{
+			Type = MultiToggle
+			Toggles = [ModeToggle_1, IsOverclocked]
+			Mode = All
+		}
+		FireToggle_2_N
+		{
+			Type = MultiToggle
+			Toggles = [ModeToggle_2, { Toggle=IsOverclocked; Invert=true }]
+			Mode = All
+		}
+		FireToggle_2_OC
+		{
+			Type = MultiToggle
+			Toggles = [ModeToggle_2, IsOverclocked]
+			Mode = All
+		}
+		FireToggle_3_N
+		{
+			Type = MultiToggle
+			Toggles = [ModeToggle_3, { Toggle=IsOverclocked; Invert=true }]
+			Mode = All
+		}
+		FireToggle_3_OC
+		{
+			Type = MultiToggle
+			Toggles = [ModeToggle_3, IsOverclocked]
+			Mode = All
+		}
+		// ---- torre ----
+		Turret
+		{
+			Type = TurretWeapon
+			Location = [3, 3.15]
+			Rotation = -90d
+			OperationalToggle = IsOperational
+			AutoFireToggle = AutoFireToggle
+			FirePermissionToggle = FireModeToggle
+			FireInterval
+			{
+				BaseValue = &~/FIRE_INTERVAL
+				Modifiers
+				[
+					{
+						Type = BuffRemap
+						BuffType = Overclock
+						ModificationMode = Multiply
+						RemapFrom = [0, 1]
+						RemapTo = [1, (&~/OVERCLOCK/FIRE_INTERVAL_FACTOR)]
+					}
+				]
+			}
+			FiringArc = 270d
+			RotateSpeed = 15d
+			FireThresholdAngle = 2d
+			AIFirepowerRating = &~/Part/StatsByCategory/0/Stats/DamagePerSecond
+			Emitter = TargetEmitterProxy
+			IgnoreFriendlyShipLowLOSChecks = true
+			AutoTargets
+			[
+				{
+					TargetType = ShipParts
+					Toggle = AutoTargetToggle
+				}
+			]
+			BlueprintArcSprite
+			{
+				Texture = &/INDICATORS/WeaponArc
+				Size = [0, 1.5]
+				Color = [255, 0, 0, 63]
+			}
+			BlueprintArcRadius = 10
+			BlueprintArcSpriteSegments = 64
+		}
+		TurretCollider
+		{
+			Type = CircleCollider
+			Location = &../Turret/Location
+			Radius = 2.76
+			IsHigh = true
+		}
+		ReloadProgressBar
+		{
+			Type = ProgressBar
+			OperationalToggle = IsOperational
+			ShowProgressFor = Turret
+		}
+		// ---- emissores: um bloco por tipo de municao (e por estado de overclock) ----
+		Fire_0_N
+		{
+			Type = ToggledComponents
+			Toggle = FireToggle_0_N
+			IncludeInBlueprints = true
+			Components
+			{
+				TargetEmitter
+				{
+					Type = BulletEmitter
+					ChainedTo = Turret
+					FireTrigger
+					GetTargetFrom = Turret
+					Location = [6.507, 0]
+					OperationalToggle = IsOperational
+					Bullet = &<../../shots/bs_shot_naval_406_std/bs_shot_naval_406_std.rules>
+					Spread = [-0.5d, 0.5d]
+					ResourceStorage = Splitter_0
+					ResourcesUsed = 2
+					Recoil = 325
+					AntiPhasingRaycastDistance = 2
+					AntiPhasingRaycastIgnoreLowCollisions = true
+				}
+				Emitter1 : TargetEmitter
+				{
+					Location = [6.507, -0.989]
+					FireTrigger = Turret
+				}
+				Emitter2 : TargetEmitter
+				{
+					Location = [6.507, 0]
+					FireTrigger = Turret
+				}
+				Emitter3 : TargetEmitter
+				{
+					Location = [6.507, 0.989]
+					FireTrigger = Turret
+				}
+			}
+		}
+		Fire_0_OC
+		{
+			Type = ToggledComponents
+			Toggle = FireToggle_0_OC
+			IncludeInBlueprints = false
+			Components
+			{
+				TargetEmitter
+				{
+					Type = BulletEmitter
+					ChainedTo = Turret
+					FireTrigger
+					GetTargetFrom = Turret
+					Location = [6.507, 0]
+					OperationalToggle = IsOperational
+					Bullet = &<../../shots/bs_shot_naval_406_std_oc/bs_shot_naval_406_std_oc.rules>
+					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
+					ResourceStorage = Splitter_0
+					ResourcesUsed = 2
+					Recoil = 325 * (&~/OVERCLOCK/RECOIL_FACTOR)
+					AntiPhasingRaycastDistance = 2
+					AntiPhasingRaycastIgnoreLowCollisions = true
+				}
+				Emitter1 : TargetEmitter
+				{
+					Location = [6.507, -0.989]
+					FireTrigger = Turret
+				}
+				Emitter2 : TargetEmitter
+				{
+					Location = [6.507, 0]
+					FireTrigger = Turret
+				}
+				Emitter3 : TargetEmitter
+				{
+					Location = [6.507, 0.989]
+					FireTrigger = Turret
+				}
+			}
+		}
+		Fire_1_N
+		{
+			Type = ToggledComponents
+			Toggle = FireToggle_1_N
+			IncludeInBlueprints = true
+			Components
+			{
+				TargetEmitter
+				{
+					Type = BulletEmitter
+					ChainedTo = Turret
+					FireTrigger
+					GetTargetFrom = Turret
+					Location = [6.507, 0]
+					OperationalToggle = IsOperational
+					Bullet = &<../../shots/bs_shot_naval_406_ap/bs_shot_naval_406_ap.rules>
+					Spread = [-0.5d, 0.5d]
+					ResourceStorage = Splitter_1
+					ResourcesUsed = 2
+					Recoil = 325
+					AntiPhasingRaycastDistance = 2
+					AntiPhasingRaycastIgnoreLowCollisions = true
+				}
+				Emitter1 : TargetEmitter
+				{
+					Location = [6.507, -0.989]
+					FireTrigger = Turret
+				}
+				Emitter2 : TargetEmitter
+				{
+					Location = [6.507, 0]
+					FireTrigger = Turret
+				}
+				Emitter3 : TargetEmitter
+				{
+					Location = [6.507, 0.989]
+					FireTrigger = Turret
+				}
+			}
+		}
+		Fire_1_OC
+		{
+			Type = ToggledComponents
+			Toggle = FireToggle_1_OC
+			IncludeInBlueprints = false
+			Components
+			{
+				TargetEmitter
+				{
+					Type = BulletEmitter
+					ChainedTo = Turret
+					FireTrigger
+					GetTargetFrom = Turret
+					Location = [6.507, 0]
+					OperationalToggle = IsOperational
+					Bullet = &<../../shots/bs_shot_naval_406_ap_oc/bs_shot_naval_406_ap_oc.rules>
+					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
+					ResourceStorage = Splitter_1
+					ResourcesUsed = 2
+					Recoil = 325 * (&~/OVERCLOCK/RECOIL_FACTOR)
+					AntiPhasingRaycastDistance = 2
+					AntiPhasingRaycastIgnoreLowCollisions = true
+				}
+				Emitter1 : TargetEmitter
+				{
+					Location = [6.507, -0.989]
+					FireTrigger = Turret
+				}
+				Emitter2 : TargetEmitter
+				{
+					Location = [6.507, 0]
+					FireTrigger = Turret
+				}
+				Emitter3 : TargetEmitter
+				{
+					Location = [6.507, 0.989]
+					FireTrigger = Turret
+				}
+			}
+		}
+		Fire_2_N
+		{
+			Type = ToggledComponents
+			Toggle = FireToggle_2_N
+			IncludeInBlueprints = true
+			Components
+			{
+				TargetEmitter
+				{
+					Type = BulletEmitter
+					ChainedTo = Turret
+					FireTrigger
+					GetTargetFrom = Turret
+					Location = [6.507, 0]
+					OperationalToggle = IsOperational
+					Bullet = &<../../shots/bs_shot_naval_406_aphe/bs_shot_naval_406_aphe.rules>
+					Spread = [-0.5d, 0.5d]
+					ResourceStorage = Splitter_2
+					ResourcesUsed = 2
+					Recoil = 325
+					AntiPhasingRaycastDistance = 2
+					AntiPhasingRaycastIgnoreLowCollisions = true
+				}
+				Emitter1 : TargetEmitter
+				{
+					Location = [6.507, -0.989]
+					FireTrigger = Turret
+				}
+				Emitter2 : TargetEmitter
+				{
+					Location = [6.507, 0]
+					FireTrigger = Turret
+				}
+				Emitter3 : TargetEmitter
+				{
+					Location = [6.507, 0.989]
+					FireTrigger = Turret
+				}
+			}
+		}
+		Fire_2_OC
+		{
+			Type = ToggledComponents
+			Toggle = FireToggle_2_OC
+			IncludeInBlueprints = false
+			Components
+			{
+				TargetEmitter
+				{
+					Type = BulletEmitter
+					ChainedTo = Turret
+					FireTrigger
+					GetTargetFrom = Turret
+					Location = [6.507, 0]
+					OperationalToggle = IsOperational
+					Bullet = &<../../shots/bs_shot_naval_406_aphe_oc/bs_shot_naval_406_aphe_oc.rules>
+					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
+					ResourceStorage = Splitter_2
+					ResourcesUsed = 2
+					Recoil = 325 * (&~/OVERCLOCK/RECOIL_FACTOR)
+					AntiPhasingRaycastDistance = 2
+					AntiPhasingRaycastIgnoreLowCollisions = true
+				}
+				Emitter1 : TargetEmitter
+				{
+					Location = [6.507, -0.989]
+					FireTrigger = Turret
+				}
+				Emitter2 : TargetEmitter
+				{
+					Location = [6.507, 0]
+					FireTrigger = Turret
+				}
+				Emitter3 : TargetEmitter
+				{
+					Location = [6.507, 0.989]
+					FireTrigger = Turret
+				}
+			}
+		}
+		Fire_3_N
+		{
+			Type = ToggledComponents
+			Toggle = FireToggle_3_N
+			IncludeInBlueprints = true
+			Components
+			{
+				TargetEmitter
+				{
+					Type = BulletEmitter
+					ChainedTo = Turret
+					FireTrigger
+					GetTargetFrom = Turret
+					Location = [6.507, 0]
+					OperationalToggle = IsOperational
+					Bullet = &<../../shots/bs_shot_naval_406_emp/bs_shot_naval_406_emp.rules>
+					Spread = [-0.5d, 0.5d]
+					ResourceStorage = Splitter_3
+					ResourcesUsed = 2
+					Recoil = 325
+					AntiPhasingRaycastDistance = 2
+					AntiPhasingRaycastIgnoreLowCollisions = true
+				}
+				Emitter1 : TargetEmitter
+				{
+					Location = [6.507, -0.989]
+					FireTrigger = Turret
+				}
+				Emitter2 : TargetEmitter
+				{
+					Location = [6.507, 0]
+					FireTrigger = Turret
+				}
+				Emitter3 : TargetEmitter
+				{
+					Location = [6.507, 0.989]
+					FireTrigger = Turret
+				}
+			}
+		}
+		Fire_3_OC
+		{
+			Type = ToggledComponents
+			Toggle = FireToggle_3_OC
+			IncludeInBlueprints = false
+			Components
+			{
+				TargetEmitter
+				{
+					Type = BulletEmitter
+					ChainedTo = Turret
+					FireTrigger
+					GetTargetFrom = Turret
+					Location = [6.507, 0]
+					OperationalToggle = IsOperational
+					Bullet = &<../../shots/bs_shot_naval_406_emp_oc/bs_shot_naval_406_emp_oc.rules>
+					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
+					ResourceStorage = Splitter_3
+					ResourcesUsed = 2
+					Recoil = 325 * (&~/OVERCLOCK/RECOIL_FACTOR)
+					AntiPhasingRaycastDistance = 2
+					AntiPhasingRaycastIgnoreLowCollisions = true
+				}
+				Emitter1 : TargetEmitter
+				{
+					Location = [6.507, -0.989]
+					FireTrigger = Turret
+				}
+				Emitter2 : TargetEmitter
+				{
+					Location = [6.507, 0]
+					FireTrigger = Turret
+				}
+				Emitter3 : TargetEmitter
+				{
+					Location = [6.507, 0.989]
+					FireTrigger = Turret
+				}
+			}
+		}
+		TargetEmitterProxy
+		{
+			Type = EmitterProxy
+			ComponentID = TargetEmitter
+			ChainedTo = Turret
+		}
+		Emitter1Proxy
+		{
+			Type = EmitterProxy
+			ComponentID = Emitter1
+			ChainedTo = Turret
+			Location = [6.507, -0.989]
+		}
+		Emitter1Proxy_OC : Emitter1Proxy
+		{
+			ProxyToggle = IsOverclocked
+		}
+		Emitter1Proxy_N : Emitter1Proxy_OC
+		{
+			InvertProxyToggle = true
+		}
+		Emitter2Proxy
+		{
+			Type = EmitterProxy
+			ComponentID = Emitter2
+			ChainedTo = Turret
+			Location = [6.507, 0]
+		}
+		Emitter2Proxy_OC : Emitter2Proxy
+		{
+			ProxyToggle = IsOverclocked
+		}
+		Emitter2Proxy_N : Emitter2Proxy_OC
+		{
+			InvertProxyToggle = true
+		}
+		Emitter3Proxy
+		{
+			Type = EmitterProxy
+			ComponentID = Emitter3
+			ChainedTo = Turret
+			Location = [6.507, 0.989]
+		}
+		Emitter3Proxy_OC : Emitter3Proxy
+		{
+			ProxyToggle = IsOverclocked
+		}
+		Emitter3Proxy_N : Emitter3Proxy_OC
+		{
+			InvertProxyToggle = true
+		}
+		FireEffect1
+		{
+			Type = TriggeredEffects
+			ChainedTo = Emitter1Proxy_N
+			Trigger = Emitter1Proxy_N
+			Location = [-0.5, 0]
+			MediaEffects
+			[
+				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck.rules>
+				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flash.rules>
+				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flare.rules>
+				&<./Data/ships/terran/cannon_deck/particles/cannon_smoke_deck.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					Sound = "./Data/ships/terran/cannon_deck/sounds/deck_cannon_overclocked_shot.wav"
+					Volume = 1
+					SpeedVariation = 0.15
+				}
+				: /BASE_SHAKE
+				{
+					ShakeAmount = 0.16
+					Duration = 0.9
+				}
+			]
+		}
+		FireEffect2
+		{
+			Type = TriggeredEffects
+			ChainedTo = Emitter2Proxy_N
+			Trigger = Emitter2Proxy_N
+			Location = [-0.5, 0]
+			MediaEffects
+			[
+				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck.rules>
+				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flash.rules>
+				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flare.rules>
+				&<./Data/ships/terran/cannon_deck/particles/cannon_smoke_deck.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					Sound = "./Data/ships/terran/cannon_deck/sounds/deck_cannon_overclocked_shot.wav"
+					Volume = 1
+					SpeedVariation = 0.15
+				}
+				: /BASE_SHAKE
+				{
+					ShakeAmount = 0.16
+					Duration = 0.9
+				}
+			]
+		}
+		FireEffect3
+		{
+			Type = TriggeredEffects
+			ChainedTo = Emitter3Proxy_N
+			Trigger = Emitter3Proxy_N
+			Location = [-0.5, 0]
+			MediaEffects
+			[
+				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck.rules>
+				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flash.rules>
+				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flare.rules>
+				&<./Data/ships/terran/cannon_deck/particles/cannon_smoke_deck.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					Sound = "./Data/ships/terran/cannon_deck/sounds/deck_cannon_overclocked_shot.wav"
+					Volume = 1
+					SpeedVariation = 0.15
+				}
+				: /BASE_SHAKE
+				{
+					ShakeAmount = 0.16
+					Duration = 0.9
+				}
+			]
+		}
+		Overclock_FireEffect1
+		{
+			Type = TriggeredEffects
+			ChainedTo = Emitter1Proxy_OC
+			Trigger = Emitter1Proxy_OC
+			Location = [-0.5, 0]
+			MediaEffects
+			[
+				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck.rules>
+				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flash.rules>
+				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flare.rules>
+				&<./Data/ships/terran/cannon_deck/particles/cannon_smoke_deck.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					Sound = "./Data/ships/terran/cannon_deck/sounds/deck_cannon_overclocked_shot.wav"
+					Volume = 1
+					SpeedVariation = 0.15
+				}
+				: /BASE_SHAKE
+				{
+					ShakeAmount = 0.16
+					Duration = 0.9
+				}
+			]
+		}
+		Overclock_FireEffect2
+		{
+			Type = TriggeredEffects
+			ChainedTo = Emitter2Proxy_OC
+			Trigger = Emitter2Proxy_OC
+			Location = [-0.5, 0]
+			MediaEffects
+			[
+				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck.rules>
+				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flash.rules>
+				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flare.rules>
+				&<./Data/ships/terran/cannon_deck/particles/cannon_smoke_deck.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					Sound = "./Data/ships/terran/cannon_deck/sounds/deck_cannon_overclocked_shot.wav"
+					Volume = 1
+					SpeedVariation = 0.15
+				}
+				: /BASE_SHAKE
+				{
+					ShakeAmount = 0.16
+					Duration = 0.9
+				}
+			]
+		}
+		Overclock_FireEffect3
+		{
+			Type = TriggeredEffects
+			ChainedTo = Emitter3Proxy_OC
+			Trigger = Emitter3Proxy_OC
+			Location = [-0.5, 0]
+			MediaEffects
+			[
+				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck.rules>
+				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flash.rules>
+				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flare.rules>
+				&<./Data/ships/terran/cannon_deck/particles/cannon_smoke_deck.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					Sound = "./Data/ships/terran/cannon_deck/sounds/deck_cannon_overclocked_shot.wav"
+					Volume = 1
+					SpeedVariation = 0.15
+				}
+				: /BASE_SHAKE
+				{
+					ShakeAmount = 0.16
+					Duration = 0.9
+				}
+			]
+		}
+		StunTrigger
+		{
+			Type = MultiTrigger
+			Triggers = [Emitter1Proxy, Emitter2Proxy, Emitter3Proxy]
+		}
+		StunEffect
+		{
+			Type = TriggeredEffects
+			Location = [3, 3.15]
+			Trigger = StunTrigger
+			HitEffects
+			[
+				{
+					Type = AreaCrewStun
+					Duration
+					{
+						BaseValue = 0.8
+						BuffType = Overclock
+						BuffMode = Lerp
+						MinValue = &BaseValue
+						MaxValue = &~/OVERCLOCK/CREW_STUN_DURATION
+					}
+					Falloff = 1
+					Radius
+					{
+						BaseValue = 9
+						BuffType = Overclock
+						BuffMode = Lerp
+						MinValue = &BaseValue
+						MaxValue = &~/OVERCLOCK/CREW_STUN_RADIUS
+					}
+					Filter
+					{
+						Friendlies = true
+						IgnoreInvulnerability = true
+					}
+					Cumulative = true
+					HitShipOnly = true
+				}
+			]
+		}
+		// ---- tripulacao ----
+		CrewLocation1
+		{
+			Type = CrewLocation
+			Location = [0.375, 6.55]
+			Rotation = 0d
+		}
+		CrewLocation2
+		{
+			Type = CrewLocation
+			Location = [1.125, 6.55]
+			Rotation = 0d
+		}
+		CrewLocation3
+		{
+			Type = CrewLocation
+			Location = [1.875, 6.55]
+			Rotation = 0d
+		}
+		CrewLocation4
+		{
+			Type = CrewLocation
+			Location = [2.625, 6.55]
+			Rotation = 0d
+		}
+		CrewLocation5
+		{
+			Type = CrewLocation
+			Location = [3.375, 6.55]
+			Rotation = 0d
+		}
+		CrewLocation6
+		{
+			Type = CrewLocation
+			Location = [4.125, 6.55]
+			Rotation = 0d
+		}
+		CrewLocation7
+		{
+			Type = CrewLocation
+			Location = [4.875, 6.55]
+			Rotation = 0d
+		}
+		CrewLocation8
+		{
+			Type = CrewLocation
+			Location = [5.625, 6.55]
+			Rotation = 0d
+		}
+		PartCrew
+		{
+			Type = PartCrew
+			Crew = 8
+			DefaultPriority = &/PRIORITIES/Weapon_Crew
+			PrerequisitesBeforeCrewing = [PowerToggle, ScorchedToggle]
+			HighPriorityPrerequisites = [AmmoPrereq]
+			CrewDestinations
+			[
+				&../../CrewLocation1/Location
+				&../../CrewLocation2/Location
+				&../../CrewLocation3/Location
+				&../../CrewLocation4/Location
+				&../../CrewLocation5/Location
+				&../../CrewLocation6/Location
+				&../../CrewLocation7/Location
+				&../../CrewLocation8/Location
+			]
+			CrewLocations
+			[
+				CrewLocation1
+				CrewLocation2
+				CrewLocation3
+				CrewLocation4
+				CrewLocation5
+				CrewLocation6
+				CrewLocation7
+				CrewLocation8
+			]
+		}
+		// ---- overclock (base_part_overclock.rules + cannon_deck.rules l.323-413) ----
+		OverclockStateValue
+		{
+			Type = ToggleValueSelector
+			Toggle = OverclockModeToggle
+			ToggleOffValue = Zero
+			ToggleOnValue = One
+		}
+		Zero
+		{
+			Type = StaticValue
+			Value = 0
+		}
+		One
+		{
+			Type = StaticValue
+			Value = 1
+		}
+		OverheatEffects : ^/0/OverheatEffects
+		{
+			Location = [3, 3.5]
+		}
+		Overclock_EmissionTriggered
+		{
+			Type = MultiTrigger
+			OperationalToggle = IsOverclocked
+			Triggers = [Emitter1Proxy, Emitter2Proxy, Emitter3Proxy]
+		}
+		Overclock_ShotHeatProducer
+		{
+			Type = ResourceChange
+			ResourceStorage = &~/Part/^/0/HEAT_TARGET_STORAGE
+			Trigger = Overclock_EmissionTriggered
+			Amount = (&~/OVERCLOCK/HEAT_PER_SHOT) * (&~/HEAT_TO_RESOURCE)
+		}
+		Overclock_ConstantHeatProducer
+		{
+			Type = ResourceConverter
+			OperationalToggle = IsOperationalOverclocked
+			HEAT_PER_INTERVAL = ceil((&~/OVERCLOCK/HEAT_PER_SECOND) * (&Interval))
+			ToQuantity = (&HEAT_PER_INTERVAL) * (&~/HEAT_TO_RESOURCE)
+			ToStorage = &~/Part/^/0/HEAT_TARGET_STORAGE
+			Interval = 0.5
+		}
+		Port_Thermal_L0 : ~/Part/^/0/BASE_THERMAL_PORT
+		{
+			Location = [0, 0]
+			Direction = Left
+		}
+		Port_Thermal_L1 : Port_Thermal_L0
+		{
+			Location = [0, 1]
+			Direction = Left
+		}
+		Port_Thermal_L2 : Port_Thermal_L0
+		{
+			Location = [0, 2]
+			Direction = Left
+		}
+		Port_Thermal_L3 : Port_Thermal_L0
+		{
+			Location = [0, 3]
+			Direction = Left
+		}
+		Port_Thermal_L4 : Port_Thermal_L0
+		{
+			Location = [0, 4]
+			Direction = Left
+		}
+		Port_Thermal_L5 : Port_Thermal_L0
+		{
+			Location = [0, 5]
+			Direction = Left
+		}
+		Port_Thermal_L6 : Port_Thermal_L0
+		{
+			Location = [0, 6]
+			Direction = Left
+		}
+		Port_Thermal_R0 : Port_Thermal_L0
+		{
+			Location = [5, 0]
+			Direction = Right
+		}
+		Port_Thermal_R1 : Port_Thermal_L0
+		{
+			Location = [5, 1]
+			Direction = Right
+		}
+		Port_Thermal_R2 : Port_Thermal_L0
+		{
+			Location = [5, 2]
+			Direction = Right
+		}
+		Port_Thermal_R3 : Port_Thermal_L0
+		{
+			Location = [5, 3]
+			Direction = Right
+		}
+		Port_Thermal_R4 : Port_Thermal_L0
+		{
+			Location = [5, 4]
+			Direction = Right
+		}
+		Port_Thermal_R5 : Port_Thermal_L0
+		{
+			Location = [5, 5]
+			Direction = Right
+		}
+		Port_Thermal_R6 : Port_Thermal_L0
+		{
+			Location = [5, 6]
+			Direction = Right
+		}
+		Port_Thermal_D0 : Port_Thermal_L0
+		{
+			Location = [0, 6]
+			Direction = Down
+		}
+		Port_Thermal_D1 : Port_Thermal_L0
+		{
+			Location = [1, 6]
+			Direction = Down
+		}
+		Port_Thermal_D2 : Port_Thermal_L0
+		{
+			Location = [2, 6]
+			Direction = Down
+		}
+		Port_Thermal_D3 : Port_Thermal_L0
+		{
+			Location = [3, 6]
+			Direction = Down
+		}
+		Port_Thermal_D4 : Port_Thermal_L0
+		{
+			Location = [4, 6]
+			Direction = Down
+		}
+		Port_Thermal_D5 : Port_Thermal_L0
+		{
+			Location = [5, 6]
+			Direction = Down
+		}
+		PeakHeatGenerationValue
+		{
+			Type = StaticValue
+			SHOT_HEAT_PER_SECOND = (&~/OVERCLOCK/HEAT_PER_SHOT) * (&~/Part/SecondaryToolTip/StatsByCategory/0/Stats/ShotsPerSecond)
+			Value = (&~/OVERCLOCK/HEAT_PER_SECOND) + (&SHOT_HEAT_PER_SECOND)
+		}
+		HeatGenerationStatProvider
+		{
+			Type = StatProvider
+			Stat = HeatGeneration
+			OperationalToggle = OverclockModeToggle
+			ValueFrom = PeakHeatGenerationValue
+		}
+		// ---- graficos ----
+		Graphics
+		{
+			Type = Graphics
+			Location = [3, 3.5]
+			OperationalToggle = IsOperational
+			Floor
+			{
+				Layer = "floors"
+				DamageLevels
+				[
+					{
+						File = "floor.png"
+						Size = [6, 7]
+					}
+				]
+			}
+			Walls
+			{
+				Layer = "walls"
+				DamageLevels
+				[
+					{
+						File = "walls.png"
+						Size = [6, 7]
+					}
+				]
+			}
+			Roof
+			{
+				Layer = "roofs"
+				DamageLevels
+				[
+					{
+						File = "roof.png"
+						NormalsFile = "roof_normals.png"
+						Size = [6, 7]
+					}
+				]
+			}
+		}
+		TurretGraphics
+		{
+			Type = Graphics
+			ChainedTo = Turret
+			Location = [0, 0]
+			Rotation = 90d
+			OperationalToggle = IsOperational
+			Floor
+			{
+				Layer = "doodads_high"
+				DamageLevels
+				[
+					{
+						File = "turret_shadow.png"
+						Size = [5.52, 5.52]
+					}
+				]
+			}
+			OperationalDoodad
+			{
+				Layer = "roof_turrets"
+				DamageLevels
+				[
+					{
+						File = "turret.png"
+						NormalsFile = "turret_normals.png"
+						Size = [5.52, 5.52]
+					}
+				]
+			}
+			NonOperationalDoodad
+			{
+				Layer = "roof_turrets"
+				DamageLevels
+				[
+					{
+						File = "turret_off.png"
+						NormalsFile = "turret_normals.png"
+						Size = [5.52, 5.52]
+					}
+				]
+			}
+		}
+		Barrel1Graphics
+		{
+			Type = Graphics
+			ChainedTo = Turret
+			Location = [4.287, -0.989]
+			Rotation = 90d
+			OperationalToggle = IsOperational
+			ResetAnimationTrigger = Emitter1Proxy
+			OperationalDoodad
+			{
+				Layer = "roof_turrets"
+				DamageLevels
+				[
+					{
+						AnimationFiles = ["barrel2.png", "barrel3.png", "barrel4.png", "barrel5.png", "barrel1.png"]
+						NormalsAnimationFiles
+						[
+							"barrel_normals1.png"
+							"barrel_normals1.png"
+							"barrel_normals1.png"
+							"barrel_normals1.png"
+							"barrel_normals1.png"
+						]
+						Size = [0.92, 4.6]
+						AnimationInterval = 0.06
+						AnimationStartTime = MinValue
+						ClampAnimation = true
+					}
+				]
+			}
+			NonOperationalDoodad
+			{
+				Layer = "roof_turrets"
+				DamageLevels
+				[
+					{
+						File = "barrel1.png"
+						NormalsFile = "barrel_normals1.png"
+						Size = [0.92, 4.6]
+					}
+				]
+			}
+		}
+		Barrel2Graphics
+		{
+			Type = Graphics
+			ChainedTo = Turret
+			Location = [4.287, 0]
+			Rotation = 90d
+			OperationalToggle = IsOperational
+			ResetAnimationTrigger = Emitter2Proxy
+			OperationalDoodad
+			{
+				Layer = "roof_turrets"
+				DamageLevels
+				[
+					{
+						AnimationFiles = ["barrel2.png", "barrel3.png", "barrel4.png", "barrel5.png", "barrel1.png"]
+						NormalsAnimationFiles
+						[
+							"barrel_normals1.png"
+							"barrel_normals1.png"
+							"barrel_normals1.png"
+							"barrel_normals1.png"
+							"barrel_normals1.png"
+						]
+						Size = [0.92, 4.6]
+						AnimationInterval = 0.06
+						AnimationStartTime = MinValue
+						ClampAnimation = true
+					}
+				]
+			}
+			NonOperationalDoodad
+			{
+				Layer = "roof_turrets"
+				DamageLevels
+				[
+					{
+						File = "barrel1.png"
+						NormalsFile = "barrel_normals1.png"
+						Size = [0.92, 4.6]
+					}
+				]
+			}
+		}
+		Barrel3Graphics
+		{
+			Type = Graphics
+			ChainedTo = Turret
+			Location = [4.287, 0.989]
+			Rotation = 90d
+			OperationalToggle = IsOperational
+			ResetAnimationTrigger = Emitter3Proxy
+			OperationalDoodad
+			{
+				Layer = "roof_turrets"
+				DamageLevels
+				[
+					{
+						AnimationFiles = ["barrel2.png", "barrel3.png", "barrel4.png", "barrel5.png", "barrel1.png"]
+						NormalsAnimationFiles
+						[
+							"barrel_normals1.png"
+							"barrel_normals1.png"
+							"barrel_normals1.png"
+							"barrel_normals1.png"
+							"barrel_normals1.png"
+						]
+						Size = [0.92, 4.6]
+						AnimationInterval = 0.06
+						AnimationStartTime = MinValue
+						ClampAnimation = true
+					}
+				]
+			}
+			NonOperationalDoodad
+			{
+				Layer = "roof_turrets"
+				DamageLevels
+				[
+					{
+						File = "barrel1.png"
+						NormalsFile = "barrel_normals1.png"
+						Size = [0.92, 4.6]
+					}
+				]
+			}
+		}
+		OperationEffects
+		{
+			Type = ToggleEffects
+			Location = [3, 3.5]
+			Toggle = IsOperational
+			ToggledOnMediaEffects = &/COMMON_EFFECTS/MachinesOnLarge
+			ToggledOffMediaEffects = &/COMMON_EFFECTS/MachinesOffLarge
+		}
+		ScorchedTrigger
+		{
+			Type = ToggleTrigger
+			Toggle = ScorchedToggle
+			TriggerWhenOn = false
+		}
+		ScorchedEffects
+		{
+			Type = TriggeredEffects
+			Trigger = ScorchedTrigger
+			Location = &../DestroyedEffects/Location
+			MediaEffects = &/COMMON_EFFECTS/HugePartScorched
+		}
+		DestroyedEffects
+		{
+			Type = DeathEffects
+			MediaEffects = &/COMMON_EFFECTS/HugePartDestroyed
+			Location = [3, 3.5]
+		}
+		Indicators
+		{
+			Type = IndicatorSprites
+			Location = [3, 3.5]
+			Indicators
+			[
+				{
+					Toggle = ScorchedToggle
+					AtlasSprite = &/INDICATORS/Scorched
+					HidesIndicators = [1, 2, 3, 4]
+				}
+				{
+					Toggle = PowerToggle
+					AtlasSprite
+					{
+						File = &/INDICATORS/PowerOff
+						Size = [1, 1]
+					}
+					HidesIndicators = [2, 3, 4]
+				}
+				{
+					Toggle = AmmoPrereq
+					Delay = &~/FIRE_INTERVAL
+					AtlasSprite
+					{
+						File = &/INDICATORS/NoAmmo
+						Size = [1, 1]
+					}
+				}
+				{
+					Toggle = &~/Part/^/0/OVERCLOCK_OPERATIONAL
+					AtlasSprite : /INDICATORS/OverclockReset
+					{
+						Size = [1, 1]
+					}
+					HidesIndicators = [4]
+				}
+				{
+					Toggle = PartCrew
+					AtlasSprite
+					{
+						File = &/INDICATORS/NoCrew
+						Size = [1, 1]
+					}
+				}
+			]
+		}
+		Blueprints
+		{
+			Type = BlueprintSprite
+			File = "blueprints.png"
+			Size = [6, 7]
+		}
+	}
+	Stats
+	{
+		CrewRequired = &~/Part/Components/PartCrew/Crew
+		AmmoCapacity = &~/Part/Components/MagStorage_0/MaxResources
+		BSShotsPerMag = &~/Part/Components/Splitter_0/ToQuantity
+		CrewStunDuration = [0, &~/Part/Components/StunEffect/HitEffects/0/Duration/BaseValue]
+		CrewStunRadius = &~/Part/Components/StunEffect/HitEffects/0/Radius/BaseValue
+	}
+	StatsByCategory
+	[
+		{
+			NameKey = "StatCategories/BSAmmo_std"
+			Stats
+			{
+				DamagePerShot = &~/Part/Components/Fire_0_N/Components/TargetEmitter/Bullet/STAT_DAMAGE
+				ShotsPerSecond = 3 * 1 / (&~/Part/Components/Turret/FireInterval/BaseValue)
+				DamagePerSecond = (&DamagePerShot) * (&ShotsPerSecond)
+				Damage = [&../DamagePerShot, &../DamagePerSecond]
+				Penetration = &~/Part/Components/Fire_0_N/Components/TargetEmitter/Bullet/STAT_PENETRATION
+				ROF = &ShotsPerSecond
+				Range = &~/Part/Components/Fire_0_N/Components/TargetEmitter/Bullet/Range
+				Arc = deg(&~/Part/Components/Turret/FiringArc)
+				Spread = deg(&~/Part/Components/Fire_0_N/Components/TargetEmitter/Spread/1)
+				TurretSpeed = deg(&~/Part/Components/Turret/RotateSpeed)
+				ShotSpeed = &~/Part/Components/Fire_0_N/Components/TargetEmitter/Bullet/Speed
+				ShotHP = &~/Part/Components/Fire_0_N/Components/TargetEmitter/Bullet/Components/Targetable/Health
+				AmmoPerShot = (&~/Part/Components/Fire_0_N/Components/TargetEmitter/ResourcesUsed) / (&~/Part/Components/Splitter_0/ToQuantity)
+				AmmoPerSecond = (&AmmoPerShot) * (&ShotsPerSecond)
+				ShotAmmoUsage = [&../AmmoPerShot, &../AmmoPerSecond]
+			}
+		}
+		{
+			NameKey = "StatCategories/BSAmmo_ap"
+			Stats
+			{
+				DamagePerShot = &~/Part/Components/Fire_1_N/Components/TargetEmitter/Bullet/STAT_DAMAGE
+				ShotsPerSecond = 3 * 1 / (&~/Part/Components/Turret/FireInterval/BaseValue)
+				DamagePerSecond = (&DamagePerShot) * (&ShotsPerSecond)
+				Damage = [&../DamagePerShot, &../DamagePerSecond]
+				Penetration = &~/Part/Components/Fire_1_N/Components/TargetEmitter/Bullet/STAT_PENETRATION
+				ROF = &ShotsPerSecond
+				Range = &~/Part/Components/Fire_1_N/Components/TargetEmitter/Bullet/Range
+				Arc = deg(&~/Part/Components/Turret/FiringArc)
+				Spread = deg(&~/Part/Components/Fire_1_N/Components/TargetEmitter/Spread/1)
+				TurretSpeed = deg(&~/Part/Components/Turret/RotateSpeed)
+				ShotSpeed = &~/Part/Components/Fire_1_N/Components/TargetEmitter/Bullet/Speed
+				ShotHP = &~/Part/Components/Fire_1_N/Components/TargetEmitter/Bullet/Components/Targetable/Health
+				AmmoPerShot = (&~/Part/Components/Fire_1_N/Components/TargetEmitter/ResourcesUsed) / (&~/Part/Components/Splitter_1/ToQuantity)
+				AmmoPerSecond = (&AmmoPerShot) * (&ShotsPerSecond)
+				ShotAmmoUsage = [&../AmmoPerShot, &../AmmoPerSecond]
+			}
+		}
+		{
+			NameKey = "StatCategories/BSAmmo_aphe"
+			Stats
+			{
+				DamagePerShot = &~/Part/Components/Fire_2_N/Components/TargetEmitter/Bullet/STAT_DAMAGE
+				ShotsPerSecond = 3 * 1 / (&~/Part/Components/Turret/FireInterval/BaseValue)
+				DamagePerSecond = (&DamagePerShot) * (&ShotsPerSecond)
+				Damage = [&../DamagePerShot, &../DamagePerSecond]
+				Penetration = &~/Part/Components/Fire_2_N/Components/TargetEmitter/Bullet/STAT_PENETRATION
+				ROF = &ShotsPerSecond
+				Range = &~/Part/Components/Fire_2_N/Components/TargetEmitter/Bullet/Range
+				Arc = deg(&~/Part/Components/Turret/FiringArc)
+				Spread = deg(&~/Part/Components/Fire_2_N/Components/TargetEmitter/Spread/1)
+				TurretSpeed = deg(&~/Part/Components/Turret/RotateSpeed)
+				ShotSpeed = &~/Part/Components/Fire_2_N/Components/TargetEmitter/Bullet/Speed
+				ShotHP = &~/Part/Components/Fire_2_N/Components/TargetEmitter/Bullet/Components/Targetable/Health
+				AmmoPerShot = (&~/Part/Components/Fire_2_N/Components/TargetEmitter/ResourcesUsed) / (&~/Part/Components/Splitter_2/ToQuantity)
+				AmmoPerSecond = (&AmmoPerShot) * (&ShotsPerSecond)
+				ShotAmmoUsage = [&../AmmoPerShot, &../AmmoPerSecond]
+			}
+		}
+		{
+			NameKey = "StatCategories/BSAmmo_emp"
+			Stats
+			{
+				DamagePerShot = &~/Part/Components/Fire_3_N/Components/TargetEmitter/Bullet/STAT_DAMAGE
+				ShotsPerSecond = 3 * 1 / (&~/Part/Components/Turret/FireInterval/BaseValue)
+				DamagePerSecond = (&DamagePerShot) * (&ShotsPerSecond)
+				Damage = [&../DamagePerShot, &../DamagePerSecond]
+				Penetration = &~/Part/Components/Fire_3_N/Components/TargetEmitter/Bullet/STAT_PENETRATION
+				ROF = &ShotsPerSecond
+				Range = &~/Part/Components/Fire_3_N/Components/TargetEmitter/Bullet/Range
+				Arc = deg(&~/Part/Components/Turret/FiringArc)
+				Spread = deg(&~/Part/Components/Fire_3_N/Components/TargetEmitter/Spread/1)
+				TurretSpeed = deg(&~/Part/Components/Turret/RotateSpeed)
+				ShotSpeed = &~/Part/Components/Fire_3_N/Components/TargetEmitter/Bullet/Speed
+				ShotHP = &~/Part/Components/Fire_3_N/Components/TargetEmitter/Bullet/Components/Targetable/Health
+				AmmoPerShot = (&~/Part/Components/Fire_3_N/Components/TargetEmitter/ResourcesUsed) / (&~/Part/Components/Splitter_3/ToQuantity)
+				AmmoPerSecond = (&AmmoPerShot) * (&ShotsPerSecond)
+				ShotAmmoUsage = [&../AmmoPerShot, &../AmmoPerSecond]
+			}
+		}
+	]
+	SecondaryToolTip
+	{
+		TitleKey = "StatCategories/Overclocked"
+		DescriptionKey = "Parts/BSNaval406OverclockDesc"
+		StatsByCategory
+		[
+			{
+				NameKey = "StatCategories/BSAmmo_std"
+				Stats
+				{
+					DamagePerShot = &~/Part/Components/Fire_0_OC/Components/TargetEmitter/Bullet/STAT_DAMAGE
+					ShotsPerSecond = 3 * 1 / ((&~/Part/Components/Turret/FireInterval/BaseValue) * (&~/OVERCLOCK/FIRE_INTERVAL_FACTOR))
+					DamagePerSecond = (&DamagePerShot) * (&ShotsPerSecond)
+					Damage = [&../DamagePerShot, &../DamagePerSecond]
+					ROF = &ShotsPerSecond
+					Range = &~/Part/Components/Fire_0_OC/Components/TargetEmitter/Bullet/Range
+					Spread = deg(&~/OVERCLOCK/HALF_SPREAD)
+					ShotSpeed = &~/Part/Components/Fire_0_OC/Components/TargetEmitter/Bullet/Speed
+					HeatPerShot = (&~/OVERCLOCK/HEAT_PER_SHOT)
+					HeatGeneration = (&~/OVERCLOCK/HEAT_PER_SECOND)
+					Penetration = &~/Part/Components/Fire_0_OC/Components/TargetEmitter/Bullet/STAT_PENETRATION
+				}
+			}
+		]
+	}
+}

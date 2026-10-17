@@ -1,0 +1,341 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Fabrica: Nuclear Shell Foundry / Fundição de Projéteis Nucleares
+
+Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
+{
+	NameKey = "Parts/BSFactoryNukeShell"
+	IconNameKey = "Parts/BSFactoryNukeShellIcon"
+	DescriptionKey = "Parts/BSFactoryNukeShellDesc"
+	ID = rafaeltessaro.bs_factory_nuke_shell
+	EditorGroups = ["BulletStrike", "Production"]
+	Resources = [[steel, 120], [coil2, 60], [enriched_uranium, 2]]
+	Size = [3, 2]
+	IsFlippable = true
+	SelectionPriority = 1
+	MaxHealth = 16000
+	TypeCategories = [provides_ammo, uses_power]
+	ReceivableBuffs : ^/0/ReceivableBuffs [Factory]
+	BlockedTravelCells = [[0, 0], [2, 0]]
+	ForceManhattanPathInPart = true
+	AllowedDoorLocations = [[-1, 1], [3, 1], [0, 2], [1, 2], [2, 2]]
+	EditorIcon
+	{
+		Texture
+		{
+			File = "icon.png"
+			SampleMode = Linear
+		}
+		Size = [64, 42.67]
+	}
+	Components : ^/0/Components
+	{
+		IsOperational
+		{
+			Type = MultiToggle
+			Toggles = [PowerToggle, NonJunkToggle, ScorchedToggle, Input0, Input1, BatteryStorage]
+			Mode = All
+		}
+		NonJunkToggle
+		{
+			Type = JunkToggle
+			OnWhenJunk = false
+		}
+		CommandConsumptionToggle
+		{
+			Type = MultiToggle
+			Toggles = [PowerToggle, ScorchedToggle]
+			Mode = All
+		}
+		PowerToggle
+		{
+			Type = UIToggle
+			ToggleID = "on_off"
+			Default = 1
+			RequiresCommand = false
+		}
+		ScorchedToggle
+		{
+			Type = StatusToggle
+			StatusType = cosmoteer.scorched
+			MinStatusValue = 1
+			Invert = true
+		}
+		CommandConsumer
+		{
+			Type = CommandConsumer
+			OperationalToggle = CommandConsumptionToggle
+			CommandPoints = 1
+		}
+		Input0
+		{
+			Type = TypedResourceGrid
+			ResourceType = enriched_uranium
+			GridRect = [0, 1, 1, 1]
+			Layer = "doodads_low"
+			SpriteInset = [8/64, 6/64, 8/64, 9/64]
+			ToggleOnResources = 1
+			ToggleOffResources = 0
+			AllowExternalPickupAndDelivery = true
+		}
+		Input0Consumer
+		{
+			Type = TypedResourceGridConsumer
+			ResourceType = enriched_uranium
+			Storage = Input0
+			DefaultPriority = &/PRIORITIES/Factory_Supply
+			OperationalToggle = CommandConsumptionToggle
+			ConsumptionToggleButtonOffset = [0, -0.4]
+		}
+		Input1
+		{
+			Type = TypedResourceGrid
+			ResourceType = bullet
+			GridRect = [1, 0, 1, 2]
+			Layer = "doodads_low"
+			SpriteInset = [8/64, 6/64, 8/64, 9/64]
+			ToggleOnResources = 40
+			ToggleOffResources = 39
+			AllowExternalPickupAndDelivery = true
+		}
+		Input1Consumer
+		{
+			Type = TypedResourceGridConsumer
+			ResourceType = bullet
+			Storage = Input1
+			DefaultPriority = &/PRIORITIES/Factory_Supply
+			OperationalToggle = CommandConsumptionToggle
+			ConsumptionToggleButtonOffset = [0, -0.4]
+		}
+		Output
+		{
+			Type = TypedResourceGrid
+			ResourceType = rafaeltessaro.bs_shell_nuke
+			GridRect = [2, 1, 1, 1]
+			Layer = "doodads_low"
+			SpriteInset = [8/64, 6/64, 8/64, 9/64]
+			SuppliesResources = true
+			SupplyToggleButtonOffset = [0, -0.4]
+			InitToMaxResources = 0
+			AllowExternalPickupAndDelivery = true
+		}
+		BatteryStorage
+		{
+			Type = ResourceStorage
+			ResourceType = battery
+			MaxResources = 8000
+			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/PowerDeliver
+		}
+		BatteryConsumer
+		{
+			Type = ResourceConsumer
+			ResourceType = battery
+			Storage = BatteryStorage
+			DefaultPriority = &/PRIORITIES/Factory_Supply
+			ResupplyThreshold = 2000
+			OperationalToggle = CommandConsumptionToggle
+		}
+		ResourceConverter
+		{
+			Type = ResourceConverter
+			OperationalToggle = IsOperational
+			From
+			[
+				{
+					Storage = Input0
+					Quantity = 1
+				}
+				{
+					Storage = Input1
+					Quantity = 40
+				}
+				{
+					Storage = BatteryStorage
+					Quantity = 2000
+					MinQuantityForConversion = 1
+				}
+			]
+			ToStorage = Output
+			ToQuantity = 8
+			Interval
+			{
+				BaseValue = 16
+				Modifiers
+				[
+					{
+						Type = Buff
+						BuffType = Factory
+						ModificationMode = Divide
+					}
+				]
+			}
+			CheckResourceLimits = true
+		}
+		ConvertEffects
+		{
+			Type = TriggeredEffects
+			Trigger = ResourceConverter
+			Location = [1.5, 1]
+			MediaEffects
+			[
+				: /BASE_SOUNDS/AudioInteriorDetail
+				{
+					RandomSounds
+					[
+						"./Data/ships/terran/factory_ammo/sounds/cannon_ammo_factory_putdown_01.wav"
+						"./Data/ships/terran/factory_ammo/sounds/cannon_ammo_factory_putdown_02.wav"
+						"./Data/ships/terran/factory_ammo/sounds/cannon_ammo_factory_putdown_03.wav"
+						"./Data/ships/terran/factory_ammo/sounds/cannon_ammo_factory_putdown_04.wav"
+						"./Data/ships/terran/factory_ammo/sounds/cannon_ammo_factory_putdown_05.wav"
+						"./Data/ships/terran/factory_ammo/sounds/cannon_ammo_factory_putdown_06.wav"
+						"./Data/ships/terran/factory_ammo/sounds/cannon_ammo_factory_putdown_07.wav"
+					]
+					Volume = 1
+					Db = -2
+					Speed = 1
+					SpeedVariation = 0.05
+				}
+			]
+		}
+		BuffProvider
+		{
+			Type = GridBuffProvider
+			BuffType = Factory
+			BuffAmount = 25%
+			GridDistance = 1
+			OperationalToggle = BatteryStorage
+		}
+		Graphics
+		{
+			Type = Graphics
+			Location = [1.5, 1]
+			OperationalToggle = IsOperational
+			Floor
+			{
+				Layer = "floors"
+				DamageLevels
+				[
+					{
+						File = "floor.png"
+						Size = [3, 2]
+					}
+				]
+			}
+			OperationalDoodad
+			{
+				Layer = "doodads_low"
+				Offset = [0, -0.5]
+				DamageLevels
+				[
+					{
+						AnimationFiles = ["machine_on1.png", "machine_on2.png", "machine_on3.png", "machine_on4.png"]
+						Size = [3, 1]
+						AnimationInterval = 0.12
+					}
+				]
+			}
+			NonOperationalDoodad
+			{
+				Layer = "doodads_low"
+				Offset = [0, -0.5]
+				DamageLevels
+				[
+					{
+						File = "machine_off.png"
+						Size = [3, 1]
+					}
+				]
+			}
+			Walls
+			{
+				Layer = "walls"
+				DamageLevels
+				[
+					{
+						File = "walls.png"
+						Size = [3, 2]
+					}
+				]
+			}
+			Roof
+			{
+				Layer = "roofs"
+				DamageLevels
+				[
+					{
+						File = "roof.png"
+						NormalsFile = "roof_normals.png"
+						Size = [3, 2]
+					}
+				]
+			}
+		}
+		Blueprints
+		{
+			Type = BlueprintSprite
+			File = "blueprints.png"
+			Size = [3, 2]
+		}
+		Indicators
+		{
+			Type = IndicatorSprites
+			Location = [1.5, 1]
+			Indicators
+			[
+				{
+					Toggle = PowerToggle
+					AtlasSprite
+					{
+						File = &/INDICATORS/PowerOff
+						Size = [1, 1]
+					}
+					HidesIndicators = [1, 2, 3]
+				}
+				{
+					Toggle = Input0
+					AtlasSprite
+					{
+						File = &/INDICATORS/NoResource
+						Size = [1, 1]
+					}
+				}
+				{
+					Toggle = Input1
+					AtlasSprite
+					{
+						File = &/INDICATORS/NoResource
+						Size = [1, 1]
+					}
+				}
+				{
+					Toggle = BatteryStorage
+					AtlasSprite
+					{
+						File = &/INDICATORS/NoPower
+						Size = [1, 1]
+					}
+				}
+			]
+		}
+		OperationEffects
+		{
+			Type = ToggleEffects
+			Location = [1.5, 1]
+			Toggle = IsOperational
+			ToggledOnMediaEffects = &/COMMON_EFFECTS/MachinesOn
+			ToggledOffMediaEffects = &/COMMON_EFFECTS/MachinesOff
+		}
+		DestroyedEffects
+		{
+			Type = DeathEffects
+			MediaEffects = &/COMMON_EFFECTS/MedPartDestroyed
+			Location = [1.5, 1]
+		}
+	}
+	Stats
+	{
+		BSFactoryOutput = (&~/Part/Components/ResourceConverter/ToQuantity) / (&~/Part/Components/ResourceConverter/Interval/BaseValue)
+		FactoryBuff = (&~/Part/Components/BuffProvider/BuffAmount) * 100
+		PowerPerSecond = (&~/Part/Components/ResourceConverter/From/2/Quantity) / (&~/Part/Components/ResourceConverter/Interval/BaseValue) / 1000
+		PowerCapacity = (&~/Part/Components/BatteryStorage/MaxResources) / 1000
+	}
+}

@@ -1,0 +1,202 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Projetil: Nuclear Howitzer - nuclear
+
+STAT_DAMAGE = 152000
+STAT_PENETRATION = 0
+ID = "rafaeltessaro.bs_shot_nuke_howitzer_nuclear"
+Range = 600
+IdealRange = [180, &~/Range]
+IdealRadius = [5, 50]
+Speed = 80
+Components
+{
+	Physics
+	{
+		Type = CirclePhysics
+		Radius = 0.45
+		Density = 0.0001
+	}
+	Death
+	{
+		Type = DeathByLifetime
+	}
+	Targetable
+	{
+		Type = Targetable
+		Health = 7000
+		TargetCategory = "missile"
+		OnDeath
+		{
+			MediaEffects = [&<./Data/shots/flak_large/particles/flak_large_flash.rules>]
+		}
+	}
+	Hit
+	{
+		Type = SimpleHit
+		FriendlyShipLowCollisions = false
+		HitOperational
+		{
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
+					{
+						BaseValue = 2000
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 150000
+						EffectScaleExponent = 1
+					}
+					Radius = 8
+					StatusType = cosmoteer.fire
+					StatusChancePerNDamage = 50%
+					StatusValue = 1
+					StatusValueType = Interpolated
+					NDamage = 1000
+					Filter
+					{
+						Friendlies = true
+					}
+				}
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 45000
+						EffectScaleExponent = 1
+					}
+					Radius = 6.4
+					Filter
+					{
+						OperationalHealth = false
+						StructuralHealth = true
+						Friendlies = true
+					}
+				}
+				{
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 30
+						EffectScaleExponent = 1
+					}
+				}
+			]
+			MediaEffects
+			[
+				&<./Data/shots/missile_nuke/particles/missile_nuke_flash_light.rules>
+				&<./Data/shots/missile_nuke/particles/missile_nuke_flash.rules>
+				&<./Data/shots/missile_nuke/particles/missile_nuke_shockwave.rules>
+				&<./Data/shots/missile_nuke/particles/missile_nuke_hit.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds = ["./Data/shots/missile_nuke/missile_nuke_hit.wav"]
+					Volume = 1
+					SpeedVariation = 0.2
+					MaxConcurrent = 4
+				}
+				: /BASE_SHAKE
+				{
+					ShakeAmount = 0.35
+					Duration = 0.5
+				}
+			]
+		}
+		HitStructural = &HitOperational
+		HitCrew = &HitOperational
+		CrewCollisions = {Enemies=true; Junk=true}
+		HitShield
+		{
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
+					{
+						BaseValue = 526
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 39474
+						EffectScaleExponent = 1
+					}
+					Radius = 8
+					Filter
+					{
+						Ships = true
+						Shields = true
+					}
+				}
+			]
+			MediaEffects = &../HitOperational/MediaEffects
+		}
+	}
+	Sprite
+	{
+		Type = AnimatedSprite
+		RenderBucket = BulletUpper3
+		ReduceScaleWith = Hit
+		ReduceScaleExponent = 0.5
+		Animation
+		{
+			AtlasSprite
+			{
+				Texture
+				{
+					File = "./Data/shots/bullet_large/bullet_large.png"
+					SampleMode = Linear
+					MipLevels = max
+				}
+				Size = [1.05, 1.05]
+			}
+			FrameCount = 16
+			FrameSize = [256, 256]
+			FramesPerRow = 4
+			FramesPerSecond = 120
+		}
+		NormalsTexture = &Animation/AtlasSprite/Texture
+		DiffuseShader = "./Data/default.shader"
+		NormalsShader = "./Data/no_normals.shader"
+	}
+	GlowSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Z = 0
+		IsLight = true
+		Offset = [-2, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [16, 8]
+			VertexColor = [140, 255, 60]
+			TargetBlendMode = Add
+			Shader = "./Data/common_effects/fancy_light.shader"
+			_z = 1
+			_nrmlStrengthLimit = 1
+			_litReflectiveStrength = 24
+			_litAdditiveStrength = 0.05
+			_unlitAdditiveStrength = 0.125
+		}
+	}
+	Trail
+	{
+		Type = MediaEffects
+		MediaEffects = [&<./Data/shots/bullet_deck/particles/bullet_trail_deck.rules>]
+	}
+}

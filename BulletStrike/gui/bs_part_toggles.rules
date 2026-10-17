@@ -1,0 +1,69 @@
+// Seletor de municao do Bullet Strike (mesmo formato do missile_type vanilla).
+
+PartToggles
+[
+	{
+		ToggleID = "bs_ammo_type"
+		Style = Popout
+		ShowInEditor = true
+		Choices
+		[
+			{
+				ChoiceID = "bs_ammo_std"
+				Mode = 0
+				ButtonToolTipKey = "PartToggles/BSAmmo_Std"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "ammo_std.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+			{
+				ChoiceID = "bs_ammo_ap"
+				Mode = 1
+				ButtonToolTipKey = "PartToggles/BSAmmo_AP"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "ammo_ap.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+			{
+				ChoiceID = "bs_ammo_aphe"
+				Mode = 2
+				ButtonToolTipKey = "PartToggles/BSAmmo_APHE"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "ammo_aphe.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+			{
+				ChoiceID = "bs_ammo_emp"
+				Mode = 3
+				ButtonToolTipKey = "PartToggles/BSAmmo_EMP"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "ammo_emp.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+		]
+	}
+]

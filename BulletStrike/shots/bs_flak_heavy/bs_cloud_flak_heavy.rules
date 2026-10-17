@@ -1,0 +1,85 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Projetil: bs_cloud_flak_heavy
+
+ID = "rafaeltessaro.bs_cloud_flak_heavy"
+Range = 0
+Speed = 0
+RADIUS = 4.5
+REPULSE_RANGE = 9
+LIFETIME = 3
+DAMAGE_POOL = 2000
+MAX_BULLET_DAMAGE = ceil((&DAMAGE_POOL) / ((&RADIUS) * 2))
+Components
+{
+	Physics
+	{
+		Type = CirclePhysics
+		Radius = &~/RADIUS
+		Density = 1
+		LinearDamping = 25%
+	}
+	FieldRepulsion
+	{
+		Type = ProximityAcceleration
+		Range = &~/REPULSE_RANGE
+		Acceleration = -7
+		AccelerateTowardsShips = false
+		AccelerateTowardsBullets = true
+		AccelerateTowardsBulletCategories = [bs_flak_cloud]
+		AccelerateTowardsFriendlies = true
+		AccelerateTowardsEnemies = false
+	}
+	Targetable
+	{
+		Type = Targetable
+		Health = 1
+		TargetCategory = "bs_flak_cloud"
+	}
+	LifetimeDeath
+	{
+		Type = DeathByLifetime
+		Lifetime = &~/LIFETIME
+	}
+	DamagePoolDeath
+	{
+		Type = DeathByDamagePool
+		DamagePool = DamagePool
+	}
+	DamagePool
+	{
+		Type = DamagePool
+		Damage
+		{
+			BaseValue = (&~/DAMAGE_POOL)
+			EffectScaleExponent = 1
+		}
+	}
+	VolHit
+	{
+		Type = VolumeHit
+		BeamAttenuationDamagePool = DamagePool
+		HitBullet
+		{
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage = 0
+					DamagePool = DamagePool
+					MaxDamageFromPool
+					{
+						BaseValue = (&~/MAX_BULLET_DAMAGE)
+						EffectScaleExponent = 1
+					}
+				}
+			]
+			MediaEffects = [&<./Data/shots/flak_large/overclock/particles/sparks_field.rules>]
+		}
+	}
+	MediaEffects
+	{
+		Type = MediaEffects
+		FactorEffectsWith = DamagePool
+		MediaEffects = [&<./Data/shots/flak_large/overclock/particles/flak_large_overclock_field_shrapnel.rules>]
+	}
+}
