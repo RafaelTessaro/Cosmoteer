@@ -95,6 +95,36 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 			Mode = FireModeToggle
 			OnMode = 2
 		}
+		FirePrefToggle
+		{
+			Type = UIToggle
+			ToggleID = "fire_pref"
+			Default = 2
+		}
+		FirePrefAttack
+		{
+			Type = ModeToggle
+			Mode = FirePrefToggle
+			OnModes = [0, 2]
+		}
+		FirePrefDefend
+		{
+			Type = ModeToggle
+			Mode = FirePrefToggle
+			OnModes = [1, 2]
+		}
+		AttackToggle
+		{
+			Type = MultiToggle
+			Toggles = [AutoTargetToggle, FirePrefAttack]
+			Mode = All
+		}
+		DefendToggle
+		{
+			Type = MultiToggle
+			Toggles = [AutoTargetToggle, FirePrefDefend]
+			Mode = All
+		}
 		IsOperationalNonOverclocked
 		{
 			Type = MultiToggle
@@ -371,8 +401,14 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 			AutoTargets
 			[
 				{
+					TargetType = Bullets
+					BulletTargetCategories = [missile, mine, bullet, laser, ion_shot]
+					Toggle = DefendToggle
+				}
+				{
 					TargetType = ShipParts
-					Toggle = AutoTargetToggle
+					Toggle = AttackToggle
+					Overridable = true
 				}
 			]
 			BlueprintArcSprite
@@ -383,6 +419,10 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 			}
 			BlueprintArcRadius = 10
 			BlueprintArcSpriteSegments = 64
+			TargetSearchesPerSecond = 6
+			AllowShipWideExplicitTargetsToggle = FirePrefAttack
+			EstimateFirepowerToggle = AttackToggle
+			AllowDirectControlToggle = FirePrefAttack
 		}
 		TurretCollider
 		{

@@ -129,7 +129,7 @@ def build_gun(g, shot_paths):
     part["Size"] = [w, h]
     part["SelectionPriority"] = 1
     part["MaxHealth"] = g["hp"]
-    part["TypeCategories"] = ["weapon", "uses_ammo", "is_crewed"]
+    part["TypeCategories"] = ["weapon", "uses_ammo", "is_crewed"] + list(g.get("extra_categories", []))
     part["SignificanceToggle"] = "ScorchedToggle"
     if spin:
         part["ReceivableBuffs : ^/0/ReceivableBuffs"] = ["RateOfFire"]
@@ -143,7 +143,8 @@ def build_gun(g, shot_paths):
     part["EditorIcon"] = C.editor_icon(w, h, geo["overhang"])
 
     comp = {}
-    comp.update(C.standard_toggles(bool(oc), g["cp"]))
+    hybrid = bool(g.get("hybrid"))
+    comp.update(C.standard_toggles(bool(oc), g["cp"], defense=hybrid, fire_pref_default=2))
 
     # ------------------------------------------------------------------ municao
     comp[C.comment("---- municao (carregadores abertos em N tiros) ----")] = None
@@ -241,6 +242,16 @@ def build_gun(g, shot_paths):
     }
     if g.get("searches"):
         turret["TargetSearchesPerSecond"] = g["searches"]
+    if hybrid:
+        # Atacar / Defender / Ambos, como a Flak vanilla (flak_cannon_large.rules l.444-477)
+        turret["TargetSearchesPerSecond"] = g.get("searches", 6)
+        turret["AllowShipWideExplicitTargetsToggle"] = "FirePrefAttack"
+        turret["EstimateFirepowerToggle"] = "AttackToggle"
+        turret["AllowDirectControlToggle"] = "FirePrefAttack"
+        turret["AutoTargets"] = [
+            {"TargetType": "Bullets", "BulletTargetCategories": C.ANTI_SHOT_CATEGORIES, "Toggle": "DefendToggle"},
+            {"TargetType": "ShipParts", "Toggle": "AttackToggle", "Overridable": True},
+        ]
     comp["Turret"] = turret
     comp["TurretCollider"] = {"Type": "CircleCollider", "Location": "&../Turret/Location",
                               "Radius": geo["collider"], "IsHigh": True}

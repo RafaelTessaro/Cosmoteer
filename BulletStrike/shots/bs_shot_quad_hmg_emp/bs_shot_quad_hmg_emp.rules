@@ -207,6 +207,29 @@ Components
 		}
 		FinishedPenetratingOperational = &PenetratingOperational
 		FinishedPenetratingStructural = &PenetratingStructural
+		BulletCollisions
+		{
+			Enemies = true
+			Junk = true
+			Neutrals = true
+			OnlyBulletCategories = [missile, mine, bullet, laser, ion_shot]
+		}
+		HitBullet
+		{
+			Offset = [-0.15, 0]
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
+					{
+						BaseValue = 95
+						EffectScaleExponent = 1
+					}
+				}
+			]
+			MediaEffects = [&<./Data/shots/pd_shot/particles/pd_shot_sparks.rules>]
+		}
 	}
 	Sprite
 	{

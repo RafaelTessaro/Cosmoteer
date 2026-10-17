@@ -6,7 +6,7 @@ from bsgen import common as C
 COMPAT = ["0.30.4", "0.30.4a", "0.30.4b", "0.30.4c", "0.30.5"]
 
 
-def mod_rules(data, part_paths, resource_paths, version):
+def mod_rules(data, part_paths, resource_paths, version, limits=()):
     desc_lines = data["description_en"]
     top = {
         "ID": C.MOD_ID,
@@ -54,6 +54,16 @@ def mod_rules(data, part_paths, resource_paths, version):
     actions.append({"Action": "AddMany",
                     "AddTo": Q("<modes/pvp/pvp_buildbattle/techs_buildbattle.rules>/PartsWhitelist"),
                     "ManyToAdd": "&<techs/bs_techs_buildbattle.rules>/PartsWhitelist"})
+    if limits:
+        # limite por nave (ex.: obuseiros nucleares). Mesmo padrao em 2 passos do SW:ACD (mod.rules l.263-356),
+        # para os dois mods poderem criar a lista sem conflito.
+        actions.append({"Action": "Add", "AddTo": Q("<ships/terran/terran.rules>/Terran"), "Name": "CategoryLimits",
+                        "OnlyIfNotExisting": True, "ToAdd": []})
+        actions.append({"Action": "AddMany", "AddTo": Q("<ships/terran/terran.rules>/Terran/CategoryLimits"),
+                        "ManyToAdd": [{"Category": Q(cat), "Max": mx} for cat, mx, _s, _p in limits]})
+        actions.append({"Action": "AddMany", "AddTo": Q("<ships/terran/terran.rules>/Terran/CategoryNouns"),
+                        "ManyToAdd": [{"Category": cat, "SingularKey": Q(sk), "PluralKey": Q(pk)}
+                                      for cat, _m, sk, pk in limits]})
     top["Actions"] = actions
     header = ("Bullet Strike - armas de convés movidas a munição para Cosmoteer\n"
               "Gerado por tools/build_mod.py - edite os dados em tools/bs_data.py e rode o gerador de novo.\n"

@@ -68,6 +68,9 @@ def build_factory(f, own_stack):
     conv_from = []
     for i, (res, qty) in enumerate(inputs):
         cap_tiles = 1 if qty <= stack[res] else 2
+        if qty > 2 * stack[res]:
+            raise ValueError(f"{f['short']}: receita pede {qty} {res}, mas a grade de entrada so guarda "
+                             f"{2 * stack[res]} (2 tiles x pilha {stack[res]}). Reduza a receita.")
         rect = [i, 1, 1, 1] if cap_tiles == 1 else [i, 0, 1, 2]
         comp[f"Input{i}"] = {
             "Type": "TypedResourceGrid", "ResourceType": res, "GridRect": rect,

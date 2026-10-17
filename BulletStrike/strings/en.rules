@@ -145,3 +145,8 @@ Resource
 	BSShellNukePlural = "Nuclear Shells"
 	BSShellNukeDesc = "A nuclear artillery shell. Handle with care: it cooks off violently if its storage is destroyed. Bullet Strike ammunition."
 }
+CategoryNouns
+{
+	BSLimitNukeSingular = "Nuclear Howitzer"
+	BSLimitNukePlural = "Nuclear Howitzers"
+}

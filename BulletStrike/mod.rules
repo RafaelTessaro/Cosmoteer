@@ -102,4 +102,34 @@ Actions
 		AddTo = "<modes/pvp/pvp_buildbattle/techs_buildbattle.rules>/PartsWhitelist"
 		ManyToAdd = &<techs/bs_techs_buildbattle.rules>/PartsWhitelist
 	}
+	{
+		Action = Add
+		AddTo = "<ships/terran/terran.rules>/Terran"
+		Name = CategoryLimits
+		OnlyIfNotExisting = true
+		ToAdd = []
+	}
+	{
+		Action = AddMany
+		AddTo = "<ships/terran/terran.rules>/Terran/CategoryLimits"
+		ManyToAdd
+		[
+			{
+				Category = "bs_limit_nuke"
+				Max = 2
+			}
+		]
+	}
+	{
+		Action = AddMany
+		AddTo = "<ships/terran/terran.rules>/Terran/CategoryNouns"
+		ManyToAdd
+		[
+			{
+				Category = bs_limit_nuke
+				SingularKey = "CategoryNouns/BSLimitNukeSingular"
+				PluralKey = "CategoryNouns/BSLimitNukePlural"
+			}
+		]
+	}
 ]

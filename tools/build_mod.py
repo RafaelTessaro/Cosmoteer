@@ -88,11 +88,18 @@ def shot_file(out, s):
 # ----------------------------------------------------------------------------- main
 def build(args):
     if os.path.isdir(ROOT) and not args.keep:
-        for name in os.listdir(ROOT):
-            p = os.path.join(ROOT, name)
-            if name in (".workshop",):
-                continue
-            shutil.rmtree(p) if os.path.isdir(p) else os.remove(p)
+        if args.no_art:
+            # sem arte: apaga so os .rules (as imagens ja geradas continuam valendo)
+            for dp, _dn, fn in os.walk(ROOT):
+                for f in fn:
+                    if f.endswith(".rules"):
+                        os.remove(os.path.join(dp, f))
+        else:
+            for name in os.listdir(ROOT):
+                p = os.path.join(ROOT, name)
+                if name in (".workshop",):
+                    continue
+                shutil.rmtree(p) if os.path.isdir(p) else os.remove(p)
     out = Out(ROOT)
     art = None
     if not args.no_art:
@@ -159,7 +166,7 @@ def build(args):
     en, pt = DATA.strings()
     out.text("strings/en.rules", infra.strings_file(en, DATA.MOD_TAG_EN))
     out.text("strings/pt-br.rules", infra.strings_file(pt, DATA.MOD_TAG_PT))
-    out.text("mod.rules", infra.mod_rules(DATA.MOD, part_paths, res_paths, DATA.VERSION))
+    out.text("mod.rules", infra.mod_rules(DATA.MOD, part_paths, res_paths, DATA.VERSION, DATA.LIMITS))
     if art:
         art.misc_art(out)
 

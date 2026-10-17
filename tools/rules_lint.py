@@ -38,35 +38,45 @@ even though binaries are not checked out.
 What is checked
 ---------------
 1. Syntax: `//` and `/* */` comments; `Name = value`, `Name { }`,
-   `Name [ ]`, `Name = { }` / `= [ ]`, `Name : Base1, Base2 { }` (bases with
-   or without `&`, also newline-separated `&...` bases), inherit-only nodes
-   (`A : B` with no body), unnamed list elements (`{}`, `[]`, `: base {}`,
-   `: 0 {}`), void fields (bare name), values up to end of line / `,` / `;`
-   (newlines allowed inside parentheses), quoted strings with escapes,
-   `"..."\\` + newline continuation, `@"verbatim"` strings. Reports unclosed
-   brackets/strings/comments, stray tokens, duplicate field names.
-2. References: every `&path` (whole value, list element, or `(&path)` inside
-   a math expression) and every inheritance base must resolve. Supported:
-   `<file>` / `<file>/path` (relative to the file the text is written in,
-   `./Data/...` = vanilla), `~/` (root of the current file), `/` (root of
-   Data/cosmoteer.rules), `^/N/` (N-th base of the current node), `..`
-   (parent; inside a list the list itself is a level; after stepping through
-   a reference `..` walks from the referenced node, as vanilla's
-   `&~/OVERCLOCK/BEAM/../DAMAGE` requires), `.`, numeric list indices, sibling
-   names, and `:` (virtual / most-derived; treated as "current node", a miss
-   is only a warning). Children of bases are visible through derived nodes
-   (multiple inheritance, first base wins; list inheritance = base elements
-   first). Resolution always starts where the text is physically written (an
-   inherited node keeps its original file/node context, as the game does).
-   Node-name lookups are case-insensitive like the game; case-only mismatches
-   are WARNINGs in mod files. A `&` reference inside math that is not wrapped
-   in parentheses is an ERROR; `X = <file>/Path` without `&` is a WARNING.
-3. Assets: string values of `File`, `NormalsFile`, `Sound`, `Logo`,
-   `Texture`, `Shader`, `Font`, entries of `AnimationFiles`,
-   `NormalsAnimationFiles`, `RandomSounds`, `Sounds`, `Files`, and any string
-   ending in .png/.wav/.ogg/.shader/.jpg/.ttf/.mp3/.ship must exist (relative
-   to the file containing the string, or `./Data/...`). File-name case
-   mismatches are WARNINGs (fine on Windows, wrong elsewhere).
+   `Name [ ]`, `Name = { }` / `= [ ]` / `= : Base [ ]`, `Name : B1, B2 { }`
+   (bases with or without `&`, `Name :/ROOT/X`, bases on following lines,
+   trailing comma before the body), inherit-only nodes (`A : B`, no body),
+   unnamed list elements (`{}`, `[]`, `: base {}`, `: 0 {}`), void fields
+   (bare name), quoted strings with escapes, `"..."\\` + newline
+   continuation, `@"verbatim"` strings. Like the game, a value runs to the end
+   of the line or to `,` / `;` / `}` / `]` - parentheses do not protect
+   commas (vanilla quotes such math: `"round((&X) * 2, 0)"`), and quoted and
+   unquoted pieces concatenate (`db2vol( "&~/X" )`). Reports unclosed
+   brackets (with an indentation-based "probable culprit" hint), unterminated
+   strings/comments, stray tokens, missing separators, duplicate field names
+   (WARNING: vanilla never has them).
+2. References: every `&path` (whole value, list element, `(&path)` inside
+   math, also inside quoted math strings) and every inheritance base must
+   resolve. Supported: `<file>` / `<file>/path` (relative to the file the
+   text is written in; `./Data/...` = vanilla), `~/` (root of the current
+   file), `/` (root of Data/cosmoteer.rules), `^/N/` (N-th base of the
+   current node), `..` (parent; inside a list the list itself is a level;
+   after stepping through a reference, `..` walks from the referenced node, as
+   vanilla's `&~/OVERCLOCK/BEAM/../DAMAGE` requires), `.`, numeric list
+   indices, child/sibling names (looked up only in the node containing the
+   field - no search of ancestors), `& path` with a space, and `:` (virtual /
+   most-derived: treated as "current node", a miss is only a WARNING).
+   Children of bases are visible through derived nodes (multiple inheritance,
+   first base wins; list inheritance = base elements first). Resolution always
+   starts where the text is physically written (an inherited node keeps its
+   original file/node context, as the game does). Node-name lookups are
+   case-insensitive like the game (vanilla relies on it, e.g. `&Base` vs
+   `BASE`); case-only mismatches are WARNINGs. ERRORs also for a `&` in math
+   that is not wrapped in parentheses and for a stray `&` operator;
+   `X = <file>/Path` without `&` is a WARNING.
+3. Assets: string (or unquoted word) values of `File`, `NormalsFile`,
+   `Sound`, `Logo`, `Texture`, `Shader`, `Font`, entries of `AnimationFiles`,
+   `NormalsAnimationFiles`, `RandomSounds`, `Sounds`, `Files`, and any quoted
+   string ending in .png/.wav/.ogg/.shader/.jpg/.ttf/.mp3/.ship must exist
+   (relative to the file containing the string, or `./Data/...`). Files
+   tracked by git but not checked out (sparse checkouts of vanilla or of the
+   mod) count as existing. File-name case mismatches are WARNINGs (fine on
+   Windows only).
 4. Mod mode: parses `mod.rules`; checks ID/Name/CompatibleGameVersions, Logo
    and StringsFolder; for each Action checks the target path
    (AddTo/OverrideIn/Replace/Remove/RemoveMany/AddBaseTo, relative to Data/)
@@ -77,36 +87,61 @@ What is checked
    Value fields (ToAdd/ManyToAdd/With/Overrides/BaseToAdd) are linted as part
    of mod.rules, and every mod file they reach is linted recursively; then all
    remaining .rules files under the mod folder are linted (issues there are
-   downgraded to WARNINGs, tagged "[unreachable]", because the game never
-   loads them; use --strict-unreachable to keep them as errors).
+   downgraded to WARNINGs tagged "[unreachable]", because the game never
+   loads them; --strict-unreachable keeps them as errors).
    String keys (NameKey, IconNameKey, DescriptionKey, PluralNameKey,
    TitleKey, ButtonToolTipKey, ToolTipKey/TooltipKey, LongNameKey,
    SingularKey, PluralKey) written as literal strings in mod files must exist
-   in <StringsFolder>/en.rules or vanilla strings/en.rules (ERROR); keys of
-   the mod en.rules missing from pt-br.rules (or --langs) are WARNINGs.
-   Duplicate part IDs (`ID` of `Part` nodes in mod files and the effective ID
-   of every part added to a `.../Parts` list, also against vanilla parts) and
-   duplicate shot IDs (roots of files under a `shots/` folder, `Bullet` nodes
-   and targets of `Bullet = &...`, also against vanilla shots) are ERRORs.
+   in <StringsFolder>/en.rules or vanilla strings/en.rules (ERROR; nested
+   groups and group inheritance are followed); keys of the mod en.rules
+   missing from pt-br.rules (or --langs) are WARNINGs.
+   Duplicate part IDs (`ID` of `Part` nodes in reachable mod files, and the
+   effective ID of every part added to a `.../Parts` list, also against the
+   vanilla Terran parts) and duplicate shot IDs (roots of files under a
+   `shots/` folder, `Bullet`/`Shot` nodes, targets of `Bullet = &...`, also
+   against vanilla shots) are ERRORs; a registered part/bullet that changes
+   its base but inherits the base's ID is flagged too.
+
+Important semantic note
+-----------------------
+The game resolves references lazily: a broken reference inside a field the
+game never reads does not crash (vanilla ships 4 such latent bugs, SW:ACD
+dozens). The linter reports every broken reference anyway, because in new
+code the same mistake usually sits in a field that *is* read.
 
 Known limitations
 -----------------
 * Values are not type-checked (no knowledge of component schemas, required
   fields, enum names or math validity beyond reference extraction).
 * `:` virtual (most-derived) paths are resolved as if `:` were the current
-  node; if that fails it is reported as a WARNING only.
+  node; if that fails it is reported as a WARNING only. Void fields that
+  remove an inherited component (0.30.2+) still count as existing nodes.
 * Mod actions are applied in a simplified way (Remove/RemoveMany only hide
   named children; list-index Remove/Replace are checked but not applied).
   Only mod.rules is used as manifest (mod_*.rules variants are linted as
-  ordinary files).
+  ordinary files). References to other mods cannot be checked.
 * `./` paths that do not start with `./Data/` cannot be checked (WARNING).
+* Unquoted words are asset-checked only for the asset keys above (vanilla
+  particle `Filename = SmoothFalloffRamp.png` / planet `DecalFiles` names are
+  resolved by the engine elsewhere).
 * Vanilla files are only linted in --vanilla-selftest; in mod mode they are
   loaded for lookups only.
-* Vanilla self-test result (0.30.5 RC4, 939 files): see the end of this
-  docstring (kept up to date by hand).
 
-Vanilla self-test (0.30.5 RC4 mirror, origin/main-unstable, all 939 files):
-  SELFTEST_RESULTS_PLACEHOLDER
+Vanilla self-test (0.30.5 RC4 mirror, origin/main-unstable, 2026-10-17)
+-----------------------------------------------------------------------
+939 .rules files (744 checked out + 195 read from git) parsed with 0 syntax
+errors; references 9748/9749 resolved, inheritance bases 5802/5803, assets
+15927/15928 (29 case-only mismatches, e.g. `&Base` -> `BASE`). The 4
+remaining errors are genuine latent vanilla bugs in never-read fields, not
+linter false positives:
+  ships/terran/terran.rules:703       base `<../base_ship.rules>/Fire` (no Fire)
+  shots/resonance_beam/resonance_beam.rules:184  `&^/0/Scale` (base modifier
+                                      #2 has no Scale)
+  shots/resonance_beam/resonance_beam.rules:482  `File = ../../fire/particles/
+                                      fire_ramp.png` (lives in statuses/fire/)
+  statuses/fire/fire.rules:26         `(&SCORCH_PER_SECOND) & (&TickInterval)`
+                                      (`&` typed instead of `*`)
+Runtime: ~6 s for vanilla, ~16 s for SW:ACD (4643 files) on one core.
 """
 
 import argparse
@@ -943,7 +978,6 @@ class Linter(object):
         self.files = {}           # (origin, path) -> RFile
         self.global_root_file = None
         self._ref_cache = {}      # id(node) -> node or None
-        self._ref_err = {}
         self._bases_cache = {}    # id(node) -> list of nodes
         self._busy = set()
         self.lint_queue = []
@@ -953,7 +987,6 @@ class Linter(object):
                       'bases_ok': 0, 'assets': 0, 'assets_ok': 0,
                       'case_notes': 0, 'virtual': 0}
         self.case_notes = []
-        self.show_case = False
         # mod-mode collections
         self.string_key_uses = []     # (rfile, line, key)
         self.part_id_nodes = []       # (rfile, line, id, node)
@@ -1066,9 +1099,8 @@ class Linter(object):
         self._busy.add(('r', nid))
         try:
             target = self.walk(node.value[1:], node.parent, node.file)
-        except ResolveError as e:
+        except ResolveError:
             target = None
-            self._ref_err[nid] = str(e)
         finally:
             self._busy.discard(('r', nid))
         self._ref_cache[nid] = target
@@ -1523,7 +1555,6 @@ class ModLinter(object):
         self.apply_actions(mrf)
         # caches may hold results computed before overlays existed
         L._ref_cache.clear()
-        L._ref_err.clear()
         L._bases_cache.clear()
         mrf.linted = False
         L._pending_parse_issues[(mrf.origin, mrf.path)] = ((), ())
@@ -2090,9 +2121,8 @@ def _flatten_keys(root):
 # Drivers
 # ---------------------------------------------------------------------------
 
-def run_selftest(vfs, report, show_case, only_checked_out=False):
+def run_selftest(vfs, report, only_checked_out=False):
     L = Linter(vfs, report, mode='selftest')
-    L.show_case = show_case
     names = sorted(act for low, act in vfs.vfiles.items() if low.endswith('.rules'))
     on_disk = 0
     for act in names:
@@ -2187,8 +2217,7 @@ def main(argv=None):
     vfs = VFS(vdir, args.git_ref)
     try:
         if args.vanilla_selftest:
-            L, total, on_disk = run_selftest(vfs, report, args.show_case,
-                                             args.checked_out_only)
+            L, total, on_disk = run_selftest(vfs, report, args.checked_out_only)
             ne, nw = print_report(report, not args.no_warnings, args.max_issues)
             st = L.stats
             print('SELFTEST: %d .rules files listed (%d checked out), %d parsed'

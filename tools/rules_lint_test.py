@@ -17,6 +17,7 @@ import tempfile
 import textwrap
 import unittest
 
+sys.dont_write_bytecode = True   # keep tools/__pycache__ clean
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import rules_lint as RL  # noqa: E402
 

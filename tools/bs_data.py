@@ -373,6 +373,20 @@ def _defense(w, hint, short, oc, ap):
 
 _convert()
 
+# ----------------------------------------------------------------------------- limites por nave
+# (categoria, maximo, chave singular, chave plural, pedaco do ID das armas que entram no limite)
+LIMIT_DEFS = SPEC.get("category_limits") or [
+    {"category": "bs_limit_nuke", "max": 2, "match": "nuke", "en": ["Nuclear Howitzer", "Nuclear Howitzers"],
+     "pt": ["Obuseiro Nuclear", "Obuseiros Nucleares"]},
+]
+LIMITS = []
+for _l in LIMIT_DEFS:
+    key = "BS" + "".join(p.capitalize() for p in _l["category"].split("_")[1:])
+    LIMITS.append((_l["category"], _l["max"], f"CategoryNouns/{key}Singular", f"CategoryNouns/{key}Plural"))
+    for _g in GUNS + DEFENSES:
+        if _l["match"] in _g["short"]:
+            _g.setdefault("extra_categories", []).append(_l["category"])
+
 # ----------------------------------------------------------------------------- recursos e fabricas
 RESOURCES = []
 for r in SPEC["resources"]:

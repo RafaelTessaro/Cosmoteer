@@ -175,6 +175,11 @@ def strings():
     for a, (n_en, n_pt) in AMMO_NAMES.items():
         en["StatCategories"][f"BSAmmo_{a}"] = n_en
         pt["StatCategories"][f"BSAmmo_{a}"] = n_pt
+    en["CategoryNouns"], pt["CategoryNouns"] = {}, {}
+    for l in D.LIMIT_DEFS:
+        key = "BS" + "".join(p.capitalize() for p in l["category"].split("_")[1:])
+        en["CategoryNouns"][key + "Singular"], en["CategoryNouns"][key + "Plural"] = l["en"]
+        pt["CategoryNouns"][key + "Singular"], pt["CategoryNouns"][key + "Plural"] = l["pt"]
     en["StatCategories"]["BSFlak"] = "Airburst Flak"
     pt["StatCategories"]["BSFlak"] = "Flak de explosão aérea"
     en["Stats"]["BSShotsPerMagFmt"] = "<white>Shots per Load:</white> <good>{0:0}</good>"

@@ -213,6 +213,14 @@ def build_kinetic(s):
     else:
         hit["FinishedPenetratingOperational"] = "&PenetratingOperational"
     hit["FinishedPenetratingStructural"] = "&PenetratingStructural"
+    if s.get("anti_projectile"):
+        # tambem acerta misseis/minas/projeteis (padrao de shots/mine/mine_shrapnel.rules e pd_shot.rules)
+        hit["BulletCollisions"] = {"Enemies": True, "Junk": True, "Neutrals": True,
+                                   "OnlyBulletCategories": s.get("anti_categories",
+                                                                 ["missile", "mine", "bullet", "laser", "ion_shot"])}
+        hit["HitBullet"] = {"Offset": [-0.15, 0],
+                            "HitEffects": [{"Type": "Damage", "Damage": _val(s["anti_projectile"])}],
+                            "MediaEffects": [f"&<{D}/pd_shot/particles/pd_shot_sparks.rules>"]}
 
     comps = {
         "Physics": {"Type": "CirclePhysics", "Radius": s.get("radius", 0.12), "Density": 0.0001},

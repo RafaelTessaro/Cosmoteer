@@ -145,3 +145,8 @@ Resource
 	BSShellNukePlural = "Projétil Nuclears"
 	BSShellNukeDesc = "Um projétil de artilharia nuclear. Cuidado: explode violentamente se o depósito for destruído. Munição do Bullet Strike."
 }
+CategoryNouns
+{
+	BSLimitNukeSingular = "Obuseiro Nuclear"
+	BSLimitNukePlural = "Obuseiros Nucleares"
+}
