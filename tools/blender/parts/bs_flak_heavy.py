@@ -4,8 +4,8 @@ Montagem larga e baixa: nucleo escuro largo com escudos laterais em ondas (poror
 mare que sobe o Amazonas): tres niveis de placas curvas facetadas em cada flanco, empilhadas como a
 crista de uma onda que quebra, cada uma terminando num labio que avanca ate o berco do cano e se
 enrola para tras. Espinha central em seta com bloco de direcao de tiro (lente escura) e a onda gravada,
-quebra-ondas em V entre os bercos, tremonhas de granadas com contador nos vaos, bercos escuros dos
-canos e baia de exaustao traseira.
+quebra-ondas em lamina (quilha em seta que continua a espinha) entre os bercos em cunha, tremonhas de
+granadas com contador nos vaos e baia de exaustao traseira.
 Canos: dois canos longos de 57 mm com luva de recuo escura (cobre todo o berco, serve para as duas
 ordens de desenho), camisa de resfriamento clara com fendas transversais, tubo com canal escuro e
 abafador de chama multi-camara claro em ponta de flecha (janelas transversais escuras).
@@ -30,12 +30,12 @@ PART = {
     "barrels": {
         "ys": [-0.45, 0.45],       # dois canos lado a lado
         "root": 0.62,              # pivo -> raiz do cano
-        "length": 2.4,             # raiz -> boca (raiz escura de 0.82 fica dentro do berco)
+        "length": 2.6,             # raiz -> boca (raiz escura de 0.82 fica dentro do berco)
         "width": 0.50,             # largura do sprite do cano (cabe o abafador)
         "pad": 0.30,               # espaco atras da raiz para o recuo
         "anim": "recoil",
         "recoil": [0.25, 0.21, 0.16, 0.11, 0.07, 0.04, 0.02],
-        "heat": [0.72, 0.66, 0.59, 0.52, 0.45, 0.38, 0.31, 0.24, 0.16, 0.08],
+        "heat": [0.85, 0.78, 0.66, 0.56, 0.47, 0.38, 0.31, 0.24, 0.16, 0.08],
         "interval": 0.06,
     },
     "lights": [
@@ -209,13 +209,17 @@ def head(M, T="head", phase=0.0):
         Mo.slot_with_pips(f"bslot{side}", sx * 1.22, -1.04, -0.62, 0.06, 0.49, 4, M, tags,
                           target=[ba, bp], depth=0.07)
         # linhas de painel no corpo (fundo 0.42: atravessa o painel e entra 0.04 na placa de baixo)
-        _lines((ba, bp), f"bl{side}", g([(-1.27, -0.44, 0.20, 90), (-1.26, -0.12, 0.13, 90)]), 0.42, K)
-        # segmentos transversais nas cristas: cada nivel da onda le como placas sobrepostas
-        _lines((c2a, c2p), f"c2l{side}", g([_across(CREST2, CW2, 0, 0.75), _across(CREST2, CW2, 1, 0.70)]),
-               0.60, K)
+        # bloco traseiro: junta continua chanfro -> pe da fenda -> borda interna (separa um calcanhar traseiro)
+        _lines((ba, bp), f"bl{side}", g([(-1.27, -0.44, 0.20, 90), (-1.26, -0.12, 0.13, 90),
+                                         (-1.369, -1.169, 0.30, -45), (-1.18, -1.07, 0.20, 90)]), 0.42, K)
+        # segmentos transversais nas cristas (ritmo 0.3-0.5 ate os labios): cada nivel le como placas sobrepostas
+        _lines((c2a, c2p), f"c2l{side}", g([_across(CREST2, CW2, 0, 0.75), _across(CREST2, CW2, 1, 0.70),
+                                            _across(CREST2, CW2, 2, 0.55), _across(CREST2, CW2, 3, 0.85),
+                                            _across(CREST2, CW2, 5, 0.20)]), 0.60, K)
         _lines((cma, cmp_), f"cml{side}", g([_across(CRESTM, CWM, 0, 0.75), _across(CRESTM, CWM, 3, 0.55),
                                              _across(CRESTM, CWM, 5, 0.25)]), 0.50, K)
-        _lines((c3a, c3p), f"c3l{side}", g([_across(CREST3, CW3, 2, 0.30)]), 0.74, K)
+        _lines((c3a, c3p), f"c3l{side}", g([_across(CREST3, CW3, 2, 0.30), _across(CREST3, CW3, 3, 0.60)]),
+               0.74, K)
         # fenda acesa ao longo da crista do meio (como a lamina do 76 mm)
         p, q = (sx * 1.495, -0.40), (sx * 1.45, 0.02)
         for k, t in enumerate((cma, cmp_)):
@@ -232,36 +236,39 @@ def head(M, T="head", phase=0.0):
     # ---------------------------------------------------------------- bercos dos canos (escuros)
     for sx in (-1, 1):
         cx = sx * 0.45
-        crad = [(cx - 0.25, 0.36), (cx + 0.25, 0.36), (cx + 0.27, 0.50), (cx + 0.27, 1.16), (cx + 0.15, 1.42),
-                (cx - 0.15, 1.42), (cx - 0.27, 1.16), (cx - 0.27, 0.50)]
+        # berco em cunha: chanfro frontal longo (de 1.00 ate a boca), canal recortado afunila junto
+        crad = [(cx - 0.25, 0.36), (cx + 0.25, 0.36), (cx + 0.27, 0.50), (cx + 0.27, 1.00), (cx + 0.15, 1.42),
+                (cx - 0.15, 1.42), (cx - 0.27, 1.00), (cx - 0.27, 0.50)]
         c = B.plate(f"cradle{sx}", crad, 0.26, 0.54, KM, slope=0.04, tags=tags)
-        B.cut(c, [B.box(f"crad_c{sx}", cx, 1.10, 0.34, 0.66, 0.46, 0.9, K, bevel=0.0)])
+        cc = [(cx - 0.17, 0.77), (cx + 0.17, 0.77), (cx + 0.17, 1.00), (cx + 0.09, 1.46), (cx - 0.09, 1.46),
+              (cx - 0.17, 1.00)]
+        B.cut(c, [B.loft(f"crad_c{sx}", cc, cc, 0.46, 0.9, K, bevel=0.0)])
         # toco da luva de recuo no berco (mesmos aneis da raiz do cano): aparece com qualquer ordem de desenho
-        B.cyl(f"stub{sx}", cx, 1.08, ZB, 0.15, 0.60, KM, axis="Y", verts=8, bevel=0.008, tags=tags)
+        B.cyl(f"stub{sx}", cx, 1.08, ZB, 0.15, 0.60, KM, axis="Y", verts=8, bevel=0.008, tags=tags, r2=0.13)
         for i, y in enumerate((0.91, 1.13)):
             B.cyl(f"stubr{sx}{i}", cx, y, ZB, 0.165, 0.035, K, axis="Y", verts=8, bevel=0.005, tags=tags)
         # labio de aco na boca do berco (marca a saida do cano)
-        B.cyl(f"lip{sx}", cx, 1.40, ZB, 0.19, 0.05, S, axis="Y", verts=8, bevel=0.006, tags=tags)
+        B.cyl(f"lip{sx}", cx, 1.40, ZB, 0.16, 0.05, S, axis="Y", verts=8, bevel=0.006, tags=tags)
         for k in (-1, 1):
-            B.cyl(f"recup{sx}{k}", cx + k * 0.215, 0.92, 0.55, 0.03, 0.56, S, axis="Y", verts=10, tags=tags)
+            B.cyl(f"recup{sx}{k}", cx + k * 0.215, 0.83, 0.55, 0.03, 0.42, S, axis="Y", verts=10, tags=tags)
         # culatra atras do berco
         B.box(f"breech{sx}", cx, 0.42, 0.34, 0.26, 0.40, 0.62, KM, bevel=0.012, tags=tags)
         B.box(f"breechr{sx}", cx, 0.50, 0.38, 0.045, 0.42, 0.64, S, bevel=0.008, tags=tags)
         B.box(f"breechs{sx}", cx, 0.38, 0.14, 0.09, 0.60, 0.625, M["black"], bevel=0.0, tags=tags)
 
-    # regulador de espoleta entre os bercos (caixa escura com nervuras) + quebra-ondas em V por cima
-    B.plate("fuze", B.rpoly(0, 0.78, 0.26, 0.64, 0, chamfer=0.05), 0.28, 0.50, KM, slope=0.025, tags=tags)
-    for i in range(3):
-        B.box(f"fuzer{i}", 0, 0.54 + i * 0.07, 0.22, 0.03, 0.48, 0.53, S, bevel=0.006, tags=tags)
-    brk = [(0.0, 1.16), (0.15, 0.97), (0.15, 0.82), (0.07, 0.76), (-0.07, 0.76), (-0.15, 0.82), (-0.15, 0.97)]
-    wa, wp = B.shard("breakwater", brk, 0.46, 0.56, A, slope=0.035, groove=0.02, panel_h=0.02, tags=tags)
-    vee = [(-0.07, 0.86), (0.0, 0.96), (0.07, 0.86)]
+    # quebra-ondas: lamina unica em lanca entre os bercos, nasce por baixo do nariz da espinha (quilha da proa
+    # que afina para a frente); junta em V de borda a borda separa a capa do nariz (costura, sem luz)
+    # e uma linha transversal de segmento
+    brk = [(0.0, 1.26), (0.06, 1.14), (0.15, 0.70), (0.15, 0.46), (0.10, 0.36), (-0.10, 0.36), (-0.15, 0.46),
+           (-0.15, 0.70), (-0.06, 1.14)]
+    wa, wp = B.shard("breakwater", brk, 0.46, 0.58, A, slope=0.035, groove=0.02, panel_h=0.02, tags=tags)
+    vee = [(-0.14, 0.78), (0.0, 0.97), (0.14, 0.78)]
     for k, t in enumerate((wa, wp)):
         if t is not None:
-            B.cut(t, [_stroke(f"bwc{k}{i}", vee[i], vee[i + 1], 0.04, 0.515, 1.0, K) for i in range(2)])
+            B.cut(t, [_stroke(f"bwc{k}{i}", vee[i], vee[i + 1], 0.032, 0.515, 1.0, K) for i in range(2)])
     for i in range(2):
-        _stroke(f"bwbed{i}", vee[i], vee[i + 1], 0.04, 0.51, 0.52, M["black"], tags)
-        _stroke(f"bwglow{i}", vee[i], vee[i + 1], 0.014, 0.515, 0.525, M["glow_dim"], tags)
+        _stroke(f"bwbed{i}", vee[i], vee[i + 1], 0.032, 0.51, 0.52, M["black"], tags)
+    _lines((wa, wp), "bwl", [(0, 0.62, 0.24, 90)], 0.52, K)
 
     # ---------------------------------------------------------------- tremonhas de granadas nos vaos
     for sx in (-1, 1):
@@ -276,6 +283,9 @@ def head(M, T="head", phase=0.0):
                 B.cyl(f"rndb{sx}{c}{i}", x, y - 0.075, 0.47, 0.06, 0.025, KM, axis="Y", verts=8, bevel=0.003,
                       tags=tags)
                 B.cyl(f"rnd{sx}{c}{i}", x, y, 0.47, 0.056, 0.15, S, axis="Y", verts=8, bevel=0.004, tags=tags)
+                # cinta de forcamento escura (le como granada, nao como lapis)
+                B.cyl(f"rndc{sx}{c}{i}", x, y + 0.035, 0.47, 0.063, 0.026, KM, axis="Y", verts=8, bevel=0.003,
+                      tags=tags)
                 B.cyl(f"rndt{sx}{c}{i}", x, y + 0.12, 0.47, 0.056, 0.09, AM, axis="Y", verts=8, bevel=0.003,
                       tags=tags, r2=0.016)
         # contador ambar num rebaixo atras da bandeja
@@ -296,11 +306,13 @@ def head(M, T="head", phase=0.0):
     sp2 = [(-0.19, -0.90), (0.19, -0.90), (0.22, -0.83), (0.22, -0.40), (0.08, -0.28), (-0.08, -0.28),
            (-0.22, -0.40), (-0.22, -0.83)]
     s2 = B.plate("spine2", sp2, 0.68, 0.76, A, slope=0.03, tags=tags)
-    # onda gravada (emblema): crista que sobe e quebra enrolando + linha d'agua; rebaixo preto com fio aceso
+    # onda gravada (emblema): contorno FECHADO e facetado de uma onda quebrando (base reta, costas, crista,
+    # labio que avanca e bolso), eco das cristas dos flancos; rebaixo preto com fio aceso (como o raio do Trovao)
     wave_m = B.mat_glow("wave_glow", Mo.AMBER, 0.8)
-    wave = [(-0.12, -0.745), (-0.055, -0.71), (-0.01, -0.64), (0.02, -0.565), (0.075, -0.52), (0.12, -0.555),
-            (0.12, -0.62), (0.075, -0.645), (0.05, -0.605)]
-    segs = [(wave[i], wave[i + 1]) for i in range(len(wave) - 1)] + [((-0.12, -0.81), (0.12, -0.81))]
+    emblem = [(-0.13, -0.80), (0.13, -0.80), (0.13, -0.78), (0.055, -0.75), (0.02, -0.68), (0.04, -0.635),
+              (0.085, -0.63), (0.13, -0.665), (0.12, -0.585), (0.06, -0.53), (-0.02, -0.55), (-0.08, -0.64),
+              (-0.13, -0.76)]
+    segs = [(emblem[i], emblem[(i + 1) % len(emblem)]) for i in range(len(emblem))]
     B.cut(s2, [_stroke(f"emc{i}", p, q, 0.044, 0.72, 1.0, K) for i, (p, q) in enumerate(segs)] +
           [B.rbox("s2l", 0, -0.44, 0.30, 0.016, 0.72, 1.0, K, bevel=0.0)])
     for i, (p, q) in enumerate(segs):
@@ -328,14 +340,23 @@ def head(M, T="head", phase=0.0):
         B.box(f"louver{i}", 0, -1.28 + i * 0.045, 0.92, 0.02, 0.28, 0.35, KM, bevel=0.004, tags=tags)
     for i in range(6):
         B.box(f"vent_pip{i}", -0.375 + i * 0.15, -1.08, 0.06, 0.024, 0.30, 0.36, M["glow"], bevel=0.0, tags=tags)
+    # modulos traseiros: caixa chanfrada com tira de aco na frente e 2 pips suaves num rebaixo
     for sx in (-1, 1):
-        B.box(f"module{sx}", sx * 0.80, -1.12, 0.22, 0.14, 0.28, 0.40, KM, bevel=0.01, tags=tags)
+        mx = sx * 0.80
+        mod = B.plate(f"module{sx}", B.rpoly(mx, -1.11, 0.24, 0.18, 0, chamfer=0.035), 0.28, 0.40, KM, slope=0.02,
+                      tags=tags)
+        B.cut(mod, [B.box(f"modc{sx}", mx, -1.14, 0.11, 0.04, 0.35, 0.6, K, bevel=0.0)])
+        B.box(f"modbed{sx}", mx, -1.14, 0.11, 0.04, 0.345, 0.355, M["black"], bevel=0.0, tags=tags)
+        for k in (-1, 1):
+            B.box(f"modpip{sx}{k}", mx + k * 0.025, -1.14, 0.03, 0.022, 0.35, 0.36, M["glow_dim"], bevel=0.0,
+                  tags=tags)
+        B.box(f"modcap{sx}", mx, -1.06, 0.17, 0.026, 0.395, 0.415, S, bevel=0.005, tags=tags)
     B.bolts("bolt", [(x, -1.24) for x in (-0.86, -0.62, 0.62, 0.86)], 0.32, 0.024, S, tags=tags)
     check_meshes(T)
 
 
 # ============================================================================ cano
-def barrel(M, L=2.4, T="barrel", phase=0.0):
+def barrel(M, L=2.6, T="barrel", phase=0.0):
     """Cano de 57 mm com raiz (y=0) e boca (y=L), centrado em x=0, altura ZB."""
     tags = (T,)
     hot = (T, "hot")  # so abafador e colar da boca brilham de calor
@@ -352,9 +373,11 @@ def barrel(M, L=2.4, T="barrel", phase=0.0):
     # sem bisel: o bisel reaplicado depois das fendas gera uma rampa diagonal quebrada na faceta esquerda
     jk = B.cyl("b_jacket", 0, (y0j + y1j) / 2, z, 0.145, y1j - y0j, A, axis="Y", verts=8, bevel=0.0, tags=tags)
     ys = [0.93 + i * 0.10 for i in range(4)]
-    B.cut(jk, [B.box(f"b_js{i}", 0, y, 0.17, 0.045, z + 0.08, z + 0.3, K, bevel=0.0) for i, y in enumerate(ys)])
+    B.cut(jk, [B.box(f"b_js{i}", 0, y, 0.17, 0.05, z + 0.08, z + 0.3, K, bevel=0.0) for i, y in enumerate(ys)])
     for i, y in enumerate(ys):
-        B.box(f"b_heat{i}", 0, y, 0.165, 0.042, z + 0.072, z + 0.086, M["ember"], bevel=0.0, tags=tags)
+        # fundo preto acima do piso claro da fenda + nucleo de brasa pequeno (rebaixo escuro, como o 76 mm)
+        B.box(f"b_hbed{i}", 0, y, 0.168, 0.049, z + 0.078, z + 0.085, M["black"], bevel=0.0, tags=tags)
+        B.box(f"b_heat{i}", 0, y, 0.11, 0.02, z + 0.084, z + 0.090, M["ember"], bevel=0.0, tags=tags)
     B.cyl("b_collar0", 0, y1j, z, 0.155, 0.05, AM, axis="Y", verts=8, bevel=0.008, tags=tags)
     # tubo longo afunilado com canal escuro no topo
     y0, y1 = y1j, L - 0.50
@@ -375,6 +398,7 @@ def barrel(M, L=2.4, T="barrel", phase=0.0):
     hc = [B.box(f"b_hp{i}", 0, ya + 0.075 + i * 0.065, 0.44, 0.03, z + 0.03, z + 0.3, K, bevel=0.0) for i in range(6)]
     hc.append(B.box("b_bore", 0, yb, 0.09, 0.08, z - 0.06, z + 0.3, K, bevel=0.0))
     B.cut(h, hc)
+    # nucleo marcado 'hot': as janelas escuras acendem em brasa logo depois do tiro
     core = B.offset_poly(hid, 0.035)
     B.loft("b_hider_core", core, core, z - 0.10, z + 0.034, K, bevel=0.0, tags=tags)
     check_meshes(T)

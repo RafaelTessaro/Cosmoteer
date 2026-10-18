@@ -99,9 +99,11 @@ def hull_roof(M, w, h, pivot, ring_r, T="roof"):
     # fileira de tras: escotilha no meio (pecas com 3+ de largura) e respiros com luz nos tiles das pontas
     hy = -h / 2 + 0.5
     if w >= 3:
-        hatch = B.rpoly(0, hy, 0.62, 0.62, 0, chamfer=0.12)
-        B.plate("hatch", hatch, 0.06, 0.10, M["armor_mid"], slope=0.02, tags=tags)
-        B.box("hatch_h", 0, hy - 0.16, 0.26, 0.05, 0.10, 0.13, M["steel"], bevel=0.01, tags=tags)
+        # largura impar: uma escotilha no tile do meio; par: uma em cada tile central (nao cai na emenda)
+        for k, hx in enumerate([0.0] if w % 2 else [-0.5, 0.5]):
+            hatch = B.rpoly(hx, hy, 0.62, 0.62, 0, chamfer=0.12)
+            B.plate(f"hatch{k}", hatch, 0.06, 0.10, M["armor_mid"], slope=0.02, tags=tags)
+            B.box(f"hatch_h{k}", hx, hy - 0.16, 0.26, 0.05, 0.10, 0.13, M["steel"], bevel=0.01, tags=tags)
     vents = [0.0] if w == 1 else [sx * (w / 2 - 0.5) for sx in (-1, 1)]
     for k, cx in enumerate(vents):
         v = B.box(f"hvent{k}", cx, hy, 0.56, 0.34, 0.05, 0.11, M["core_mid"], bevel=0.01, slope=0.015, tags=tags)
