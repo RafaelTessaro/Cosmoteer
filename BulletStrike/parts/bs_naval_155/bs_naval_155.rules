@@ -1137,7 +1137,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				[
 					{
 						File = "turret_shadow.png"
-						Size = [3.9, 3.9]
+						Size = [4.15, 4.15]
 					}
 				]
 			}
@@ -1191,7 +1191,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = Graphics
 			ChainedTo = Turret
-			Location = [2.275, -0.45]
+			Location = [2.305, -0.45]
 			Rotation = 90d
 			OperationalToggle = IsOperational
 			ResetAnimationTrigger = Emitter1Proxy
@@ -1201,7 +1201,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				DamageLevels
 				[
 					{
-						Size = [0.56, 3.45]
+						Size = [0.62, 3.51]
 						AnimationFiles
 						[
 							"barrel2.png"
@@ -1248,7 +1248,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					{
 						File = "barrel1.png"
 						NormalsFile = "barrel_normals1.png"
-						Size = [0.56, 3.45]
+						Size = [0.62, 3.51]
 					}
 				]
 			}
@@ -1257,7 +1257,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = Graphics
 			ChainedTo = Turret
-			Location = [2.275, 0.45]
+			Location = [2.305, 0.45]
 			Rotation = 90d
 			OperationalToggle = IsOperational
 			ResetAnimationTrigger = Emitter2Proxy
@@ -1267,7 +1267,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				DamageLevels
 				[
 					{
-						Size = [0.56, 3.45]
+						Size = [0.62, 3.51]
 						AnimationFiles
 						[
 							"barrel2.png"
@@ -1314,7 +1314,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					{
 						File = "barrel1.png"
 						NormalsFile = "barrel_normals1.png"
-						Size = [0.56, 3.45]
+						Size = [0.62, 3.51]
 					}
 				]
 			}
@@ -1323,7 +1323,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = Graphics
 			ChainedTo = Turret
-			Location = [-1.52, 0]
+			Location = [-1.56, 0]
 			OperationalToggle = IsOperational
 			OperationalRoofLighting
 			{
