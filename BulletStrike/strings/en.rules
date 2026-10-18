@@ -89,6 +89,9 @@ Parts
 	BSFactoryShellNuke = "Nuclear Shell Foundry"
 	BSFactoryShellNukeIcon = "Nuclear Shell Foun"
 	BSFactoryShellNukeDesc = "Turns 0.125 enriched_uranium + 2 bs_mag_std and 0.8 power into 1 Nuclear Shell every 8 s. +25% speed for each adjacent factory.<string id='BSModTag'/>"
+	BSMslBox = "Deck Micro-Missile Box"
+	BSMslBoxIcon = "Tocandira"
+	BSMslBoxDesc = "A RAM-style micro-missile box: the gunner cranks it around and twelve micro-missiles hiss out, pair by pair. \"Tocandira\"\n\nEarly-game deck missile launcher. A full rack ripples 12 missiles in 0.73 s, then a crewed autoloader refills it one cassette at a time (1.39 s each; reloading stops while nobody mans it): one salvo every 9.1 s. Range 300 m. Missiles: Muriçoca (High-Explosive), Taturana-mirim (Napalm).\n\nNeeds no power: 1 crew and vanilla H.E. Missile Parts / T.C. Missile Parts carried into its internal magazines (12 parts each). Switching the missile type costs one full reload; a dry magazine still fires the partial rack. The missiles fly over your own deck and can be shot down by point defense. A loaded launcher cooks off when it burns or is destroyed.<string id='BSModTag'/>"
 }
 PartToggles
 {
@@ -104,6 +107,27 @@ PartToggles
 	BSAmmo_EMP = "<b>Ammo: EMP</b>\n\nEach hit drains battery from shields and powered parts. Lower hull damage, but great against energy-hungry ships and shields."
 	BSAmmo_EMPName = "EMP Magazines"
 	BSAmmo_EMPDesc = "Each hit drains battery from shields and powered parts. Lower hull damage, but great against energy-hungry ships and shields."
+	BSMissile_He = "<b>Missile: Jararaca (High-Explosive)</b>\n\nA fast, direct high-explosive warhead: the reference missile. Big salvos saturate point defense."
+	BSMissile_HeName = "Jararaca Missiles (High-Explosive)"
+	BSMissile_HeDesc = "A fast, direct high-explosive warhead: the reference missile. Big salvos saturate point defense."
+	BSMissile_Cluster = "<b>Missile: Piranha (Cluster)</b>\n\nOpens 25 m from the enemy hull and releases a school of mini-missiles that spread over several parts."
+	BSMissile_ClusterName = "Piranha Missiles (Cluster)"
+	BSMissile_ClusterDesc = "Opens 25 m from the enemy hull and releases a school of mini-missiles that spread over several parts."
+	BSMissile_Limpet = "<b>Missile: Carrapato (Limpet)</b>\n\nSticks to the hull and explodes 2.5 s later, with a high chance to kill crew rushing in to repair."
+	BSMissile_LimpetName = "Carrapato Missiles (Limpet)"
+	BSMissile_LimpetDesc = "Sticks to the hull and explodes 2.5 s later, with a high chance to kill crew rushing in to repair."
+	BSMissile_Napalm = "<b>Missile: Taturana (Napalm)</b>\n\nSmall blast, guaranteed fire on the part it hits and a heat pool that keeps lighting new fires. Useless against armor; extinguishers and foam are the counter."
+	BSMissile_NapalmName = "Taturana Missiles (Napalm)"
+	BSMissile_NapalmDesc = "Small blast, guaranteed fire on the part it hits and a heat pool that keeps lighting new fires. Useless against armor; extinguishers and foam are the counter."
+	BSMissile_Emp = "<b>Missile: Poraquê (EMP)</b>\n\nDrains batteries and shields in an area. Bullet Strike weapons have no battery and are immune."
+	BSMissile_EmpName = "Poraquê Missiles (EMP)"
+	BSMissile_EmpDesc = "Drains batteries and shields in an area. Bullet Strike weapons have no battery and are immune."
+	BSMissile_Torpedo = "<b>Missile: Boto (Decoy Torpedo)</b>\n\nA slow, tough torpedo that releases decoys to fool point defense before it strikes."
+	BSMissile_TorpedoName = "Boto Missiles (Decoy Torpedo)"
+	BSMissile_TorpedoDesc = "A slow, tough torpedo that releases decoys to fool point defense before it strikes."
+	BSMissile_Nuclear = "<b>Missile: Iara (Nuclear Torpedo)</b>\n\nHeavy-battery only. Dies to area flak on its own: mask it with a heavy salvo fired right after it."
+	BSMissile_NuclearName = "Iara Missiles (Nuclear Torpedo)"
+	BSMissile_NuclearDesc = "Heavy-battery only. Dies to area flak on its own: mask it with a heavy salvo fired right after it."
 }
 Stats
 {
@@ -120,6 +144,8 @@ StatCategories
 	BSAmmo_plasma = "Plasma Bolt"
 	BSAmmo_nuclear = "Nuclear Shell"
 	BSFlak = "Airburst Flak"
+	BSMslBox_he = "Micro-Missile \"Muriçoca\""
+	BSMslBox_napalm = "Incendiary Micro-Missile \"Taturana-mirim\""
 }
 Resource
 {

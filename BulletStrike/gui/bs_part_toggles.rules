@@ -1,4 +1,4 @@
-// Seletor de municao do Bullet Strike (mesmo formato do missile_type vanilla).
+// Seletores do Bullet Strike: municao das armas e tipo de missil dos lancadores (formato do missile_type vanilla).
 
 PartToggles
 [
@@ -59,6 +59,112 @@ PartToggles
 					Texture
 					{
 						File = "ammo_emp.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+		]
+	}
+	{
+		ToggleID = "bs_missile_type"
+		Style = Popout
+		ShowInEditor = true
+		Choices
+		[
+			{
+				ChoiceID = "bs_missile_he"
+				Mode = 0
+				ButtonToolTipKey = "PartToggles/BSMissile_He"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "missile_he.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+			{
+				ChoiceID = "bs_missile_cluster"
+				Mode = 1
+				ButtonToolTipKey = "PartToggles/BSMissile_Cluster"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "missile_cluster.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+			{
+				ChoiceID = "bs_missile_limpet"
+				Mode = 2
+				ButtonToolTipKey = "PartToggles/BSMissile_Limpet"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "missile_limpet.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+			{
+				ChoiceID = "bs_missile_napalm"
+				Mode = 3
+				ButtonToolTipKey = "PartToggles/BSMissile_Napalm"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "missile_napalm.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+			{
+				ChoiceID = "bs_missile_emp"
+				Mode = 4
+				ButtonToolTipKey = "PartToggles/BSMissile_Emp"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "missile_emp.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+			{
+				ChoiceID = "bs_missile_torpedo"
+				Mode = 5
+				ButtonToolTipKey = "PartToggles/BSMissile_Torpedo"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "missile_torpedo.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+			{
+				ChoiceID = "bs_missile_nuclear"
+				Mode = 6
+				ButtonToolTipKey = "PartToggles/BSMissile_Nuclear"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "missile_nuclear.png"
 						MipLevels = 2
 						SampleMode = Linear
 					}

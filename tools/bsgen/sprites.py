@@ -634,3 +634,204 @@ def render_group_icon():
         c.fill(c.mask_poly([(x - 7, y0 + 16), (x, y0), (x + 7, y0 + 16)]), (180, 120, 60), height=0.65, bevel=1.2)
         c.fill(c.mask_rect(x - 7, 70, x + 7, 74), (120, 80, 30), height=0.62, bevel=0.5)
     return c.render()
+
+
+# =====================================================================================  lancadores de misseis
+# Arte provisoria (procedural) dos lancadores de convés ate o modelo 3D existir (contrato: STYLE.md secao 8).
+# Casulo (turret.png) em roof_doodads; celulas carregadas (cells_<tipo>_p<casulo>_<n>.png) em roof_turrets, no
+# MESMO quadro da torre (lado = turret_box, pivo no centro, frente para cima), transparentes fora dos narizes.
+def _tp(T, fwd, lat):
+    """Coordenadas da torre (tiles, x frente / y direita) -> pixels do quadro da torre (frente para cima)."""
+    return T / 2 + lat * PX, T / 2 - fwd * PX
+
+
+def _tube_extent(T, units, tube_r, pitch_deg):
+    tubes = [t for u in units for t in u["tubes"]]
+    r = tube_r * PX
+    ry = r * max(0.35, math.sin(math.radians(pitch_deg)))
+    xs = [_tp(T, *t)[0] for t in tubes]
+    ys = [_tp(T, *t)[1] for t in tubes]
+    return tubes, r, ry, min(xs), max(xs), min(ys), max(ys)
+
+
+def launcher_pod_canvas(T, units, tube_r, pitch_deg, accent, lamps_on=True):
+    """Caixa de micromisseis estilo RAM (Tocandira): caixa chanfrada inclinada sobre um garfo blindado, grade
+    escura de tubos (cassetes de 2), garras laterais, espinha com fenda ambar e baia de respiro traseira."""
+    c = Canvas(T, T)
+    cx = cy = T / 2
+    tubes, r, ry, xmin, xmax, ymin, ymax = _tube_extent(T, units, tube_r, pitch_deg)
+    pad_x, pad_y = r * 1.9, ry * 2.8
+    fx0, fx1 = xmin - pad_x, xmax + pad_x                  # face com os tubos
+    fy0, fy1 = ymin - pad_y, ymax + pad_y
+    bx0, bx1 = fx0 - T * 0.04, fx1 + T * 0.04              # corpo da caixa
+    rear = cy + T * 0.31
+    _base_ring(c, cx, cy, T * 0.38, accent)
+    # garfo (yoke) curto sob a caixa
+    for sgn in (-1, 1):
+        ex = cx + sgn * (bx1 - cx + T * 0.01)
+        _plate(c, c.mask_rect(ex - T * 0.05, cy - T * 0.12, ex + T * 0.05, cy + T * 0.16, r=T * 0.02), GUNMETAL, 0.42, 1)
+    ch = T * 0.06
+    body = [(bx0 + ch, fy0), (bx1 - ch, fy0), (bx1, fy0 + ch), (bx1, rear - ch), (bx1 - ch, rear),
+            (bx0 + ch, rear), (bx0, rear - ch), (bx0, fy0 + ch)]
+    _plate(c, c.mask_poly(body), STEEL, 0.6, 3, gradient=(METAL_LIGHT, METAL_DARK))
+    inner = [(x * 0.9 + cx * 0.1, y * 0.9 + (fy0 + rear) / 2 * 0.1) for x, y in body]
+    _plate(c, c.mask_poly(inner), shade(STEEL, 1.06), 0.68, 2, gradient=(WHITE, METAL))
+    # face inclinada com a grade de tubos (recesso escuro)
+    c.fill(c.mask_rect(fx0, fy0 + T * 0.01, fx1, fy1, r=T * 0.025), GUNMETAL, height=0.5, bevel=1.2, mode="set")
+    c.groove([(fx0, fy1), (fx1, fy1)], 1.2, 0.1, BLACK)
+    for (fwd, lat) in tubes:
+        x, y = _tp(T, fwd, lat)
+        c.fill(c.mask_ellipse(x, y, r * 1.18, ry * 1.25), METAL_DARK, height=0.52, bevel=0.6, mode="set")
+        c.fill(c.mask_ellipse(x, y, r, ry), BLACK, height=0.3, bevel=0.4, mode="set")
+    # divisores de cassete (pares) e de fileira
+    for u in units:
+        if len(u["tubes"]) > 1:
+            (f0, l0), (f1, l1) = u["tubes"][0], u["tubes"][-1]
+            xa, ya = _tp(T, f0, l0)
+            xb, _yb = _tp(T, f1, l1)
+            c.groove([(xa - r * 1.25, ya + ry * 1.5), (xb + r * 1.25, ya + ry * 1.5)], 0.7, 0.05, shade(METAL, 0.55))
+    # garras laterais que abracam a caixa
+    for sgn in (-1, 1):
+        x_out = cx + sgn * (bx1 - cx)
+        pts = [(x_out, fy0 + T * 0.02), (x_out + sgn * T * 0.07, fy0 + T * 0.10), (x_out + sgn * T * 0.07, cy + T * 0.06),
+               (x_out, cy + T * 0.12)]
+        _plate(c, c.mask_poly(pts), shade(STEEL, 1.1), 0.7, 1.2, gradient=(METAL_LIGHT, METAL))
+        c.groove([(x_out + sgn * T * 0.035, fy0 + T * 0.12), (x_out + sgn * T * 0.035, cy + T * 0.04)], 0.7, 0.05,
+                 shade(METAL, 0.5))
+    # espinha central com fenda do sensor IR
+    sy0, sy1 = fy1 + T * 0.03, rear - T * 0.12
+    _plate(c, c.mask_rect(cx - T * 0.06, sy0, cx + T * 0.06, sy1, r=T * 0.02), shade(STEEL, 1.12), 0.8, 1.2,
+           gradient=(WHITE, METAL_LIGHT))
+    slit = c.mask_rect(cx - T * 0.035, sy0 + T * 0.03, cx + T * 0.035, sy0 + T * 0.055, r=1)
+    c.fill(slit, BLACK, height=0.7, bevel=0.3, mode="set")
+    if lamps_on:
+        c.glow(slit, accent, 0.8, blur=1.5)
+    # baia de respiro traseira com 3 pips
+    vy0, vy1 = rear - T * 0.10, rear - T * 0.03
+    c.fill(c.mask_rect(bx0 + T * 0.08, vy0, bx1 - T * 0.08, vy1, r=2), BLACK, height=0.5, bevel=0.6, mode="set")
+    for i in range(5):
+        lx = bx0 + T * 0.1 + i * (bx1 - bx0 - T * 0.2) / 4
+        c.groove([(lx, vy0 + 2), (lx, vy1 - 2)], 0.8, 0.04, (70, 74, 80))
+    for i in range(3):
+        px = cx + (i - 1) * T * 0.045
+        pip = c.mask_ellipse(px, (vy0 + vy1) / 2, T * 0.012)
+        c.fill(pip, shade(accent, 0.45), height=0.55, bevel=0.2)
+        if lamps_on:
+            c.glow(pip, accent, 0.9, blur=1.2)
+    _rivet_row(c, bx0 + T * 0.03, fy1 + T * 0.04, bx0 + T * 0.03, rear - T * 0.04, 4)
+    _rivet_row(c, bx1 - T * 0.03, fy1 + T * 0.04, bx1 - T * 0.03, rear - T * 0.04, 4)
+    return c
+
+
+def render_launcher_pod(ts_tiles, units, tube_r, pitch_deg, accent):
+    T = int(round(ts_tiles * PX))
+    on = launcher_pod_canvas(T, units, tube_r, pitch_deg, accent, lamps_on=True)
+    off = launcher_pod_canvas(T, units, tube_r, pitch_deg, accent, lamps_on=False)
+    img_on = drop_shadow(on.render(), 2, 45)
+    img_off = drop_shadow(off.render(), 2, 45)
+    off_arr = np.asarray(img_off, dtype=np.float32)
+    off_arr[..., :3] *= 0.86
+    img_off = Image.fromarray(np.clip(off_arr, 0, 255).astype(np.uint8), "RGBA")
+    nrm = on.final_normals()
+    shadow = silhouette_shadow(img_on, (T, T), blur=max(3, T // 40), alpha=120)
+    return img_on, img_off, nrm, shadow
+
+
+def render_launcher_cells(ts_tiles, units, loaded, tube_r, pitch_deg, band):
+    """Sobreposicao de um nivel do rack: narizes (cone claro + anel na cor do tipo) nas unidades `loaded`."""
+    T = int(round(ts_tiles * PX))
+    c = Canvas(T, T)
+    _tubes, r, ry, *_ = _tube_extent(T, units, tube_r, pitch_deg)
+    for u in loaded:
+        for (fwd, lat) in u["tubes"]:
+            x, y = _tp(T, fwd, lat)
+            c.fill(c.mask_ellipse(x, y, r * 0.98, ry * 1.02), shade(band, 0.95), height=0.62, bevel=0.4)
+            c.fill(c.mask_ellipse(x, y - ry * 0.12, r * 0.72, ry * 0.74), (196, 200, 206), height=0.78, bevel=0.5,
+                   gradient=((236, 238, 240), (150, 154, 160)))
+            c.fill(c.mask_ellipse(x - r * 0.18, y - ry * 0.32, r * 0.24, ry * 0.26), (250, 250, 250), height=0.82,
+                   bevel=0.2)
+    return c.render(), c.final_normals()
+
+
+def compose_launcher(w, h, roof, pod, cells, pivot):
+    """Icone: teto pintado + casulo + celulas cheias (frente para cima)."""
+    img = Image.new("RGBA", (w * PX, h * PX), (0, 0, 0, 0))
+    img.alpha_composite(paint_roof_preview(roof))
+    T = pod.size[0]
+    x, y = int(round(pivot[0] * PX - T / 2)), int(round(pivot[1] * PX - T / 2))
+    for im in (pod, cells):
+        if im is None:
+            continue
+        layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        layer.paste(im, (x, y), im)
+        img = Image.alpha_composite(img, layer)
+    return img
+
+
+def render_missile_icon(kind, accent):
+    """Icone do seletor bs_missile_type (64x64): missil na diagonal + sinal do tipo."""
+    c = Canvas(64, 64)
+    c.fill(c.mask_ellipse(32, 32, 29), (34, 36, 42), height=0.4, bevel=2)
+    c.fill(c.mask_ellipse(32, 32, 25), shade(accent, 0.32), height=0.45, bevel=1)
+
+    def missile(x0, y0, x1, y1, wid, body=(196, 200, 206), band=accent):
+        ang = math.atan2(y1 - y0, x1 - x0)
+        nx, ny = -math.sin(ang) * wid / 2, math.cos(ang) * wid / 2
+        tip = (x1 + math.cos(ang) * wid * 0.9, y1 + math.sin(ang) * wid * 0.9)
+        c.fill(c.mask_poly([(x0 + nx, y0 + ny), (x1 + nx, y1 + ny), tip, (x1 - nx, y1 - ny), (x0 - nx, y0 - ny)]), body,
+               height=0.72, bevel=0.8, gradient=((236, 238, 240), (130, 134, 140)))
+        bx, by = x0 + (x1 - x0) * 0.62, y0 + (y1 - y0) * 0.62
+        bx2, by2 = x0 + (x1 - x0) * 0.74, y0 + (y1 - y0) * 0.74
+        c.fill(c.mask_poly([(bx + nx * 1.05, by + ny * 1.05), (bx2 + nx * 1.05, by2 + ny * 1.05),
+                            (bx2 - nx * 1.05, by2 - ny * 1.05), (bx - nx * 1.05, by - ny * 1.05)]), band, height=0.74,
+               bevel=0.3)
+        for s in (-1, 1):
+            c.fill(c.mask_poly([(x0 + s * nx * 0.2, y0 + s * ny * 0.2), (x0 + s * nx * 2.2 - (x1 - x0) * 0.05,
+                                 y0 + s * ny * 2.2 - (y1 - y0) * 0.05), (x0 + (x1 - x0) * 0.18 + s * nx,
+                                                                         y0 + (y1 - y0) * 0.18 + s * ny)]),
+                   (120, 124, 130), height=0.7, bevel=0.3)
+        fl = c.mask_ellipse(x0 - (x1 - x0) * 0.08, y0 - (y1 - y0) * 0.08, wid * 0.45)
+        c.glow(fl, (255, 160, 60), 0.8, blur=1.5)
+
+    if kind == "he":
+        missile(17, 47, 41, 23, 9)
+    elif kind == "cluster":
+        missile(14, 50, 30, 34, 8)
+        for (x, y) in ((40, 18), (46, 28), (34, 14)):
+            missile(x - 5, y + 5, x, y, 4)
+    elif kind == "limpet":
+        missile(15, 49, 36, 28, 9)
+        b = c.mask_ellipse(44, 20, 5)
+        c.fill(b, (200, 40, 30), height=0.8, bevel=0.5)
+        c.glow(b, (255, 40, 30), 1.0, blur=2.5)
+    elif kind == "napalm":
+        missile(15, 49, 34, 30, 9)
+        fl = c.mask_poly([(42, 14), (48, 26), (45, 34), (38, 36), (34, 28), (38, 22)])
+        c.fill(fl, (255, 120, 30), height=0.75, bevel=0.6)
+        c.glow(fl, (255, 90, 20), 0.9, blur=2.5)
+    elif kind == "emp":
+        missile(14, 50, 32, 32, 9)
+        bolt = c.mask_poly([(45, 10), (36, 26), (42, 26), (37, 40), (50, 22), (44, 22)])
+        c.fill(bolt, (150, 200, 255), height=0.78, bevel=0.6)
+        c.glow(bolt, (80, 150, 255), 0.8, blur=2.5)
+    elif kind == "torpedo":
+        missile(14, 46, 40, 24, 14, body=(170, 176, 184))
+        for (x, y) in ((46, 40), (50, 33)):
+            d = c.mask_ellipse(x, y, 3)
+            c.fill(d, (230, 230, 230), height=0.7, bevel=0.3)
+            c.glow(d, accent, 0.6, blur=2)
+    elif kind == "nuclear":
+        missile(14, 50, 34, 30, 11, body=(170, 180, 160))
+        rr = 8
+        ex, ey = 43, 21
+        c.fill(c.mask_ellipse(ex, ey, rr * 1.15), (230, 200, 40), height=0.8, bevel=0.6)
+        tre = Image.new("L", (c.W, c.H), 0)
+        d = ImageDraw.Draw(tre)
+        for k in range(3):
+            a0 = -90 + k * 120 - 30
+            d.pieslice(c.box(ex - rr, ey - rr, ex + rr, ey + rr), a0, a0 + 60, fill=255)
+        d.ellipse(c.box(ex - rr * 0.2, ey - rr * 0.2, ex + rr * 0.2, ey + rr * 0.2), fill=255)
+        c.fill(tre, BLACK, height=0.82, bevel=0.2)
+    else:
+        raise ValueError(kind)
+    return c.render()

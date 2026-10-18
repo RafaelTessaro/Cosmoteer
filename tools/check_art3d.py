@@ -55,6 +55,34 @@ def main():
             if f.endswith(".png"):
                 Image.open(A3.path(short, f)).verify()
         print(f"regras geradas: {len(text.splitlines())} linhas; canos visiveis {len(br['ys'])}; quadros {len(br['frames'])}")
+    elif meta["kind"] == "launcher":
+        from bsgen import launchers
+        lch = next((x for x in D.LAUNCHERS if x["short"] == short), None)
+        if lch is None:
+            sys.exit(f"ERRO: {short} nao e lancador gerado (bs_data.BUILD_LAUNCHERS)")
+        top, info = launchers.build_launcher(lch, {m["type"]: "x.rules" for m in lch["modes"]})
+        text = render(top, "teste")
+        if list(lch["size"]) != list(meta["size"]):
+            errs.append(f"tamanho {meta['size']} difere do spec {lch['size']}")
+        ts = meta["turret_size"]
+        im = Image.open(A3.path(short, meta["turret"]["frames"][0]))
+        if abs(im.width - round(ts * 64)) > 1:
+            errs.append(f"turret.png tem {im.width}px, esperado {round(ts * 64)}")
+        solid = lambda img: img.split()[-1].point(lambda v: 255 if v > 40 else 0)  # noqa: E731
+        bb = solid(im).getbbox()
+        if bb and (bb[0] <= 0 or bb[1] <= 0 or bb[2] >= im.width or bb[3] >= im.height):
+            errs.append(f"o casulo encosta na borda do sprite (bbox {bb} em {im.size}): aumente turret_box")
+        for m in lch["modes"]:
+            mm = meta["modes"][m["type"]]
+            for ov in mm["overlays"]:
+                for f in ov["files"]:
+                    o = Image.open(A3.path(short, f))
+                    if o.size != im.size:
+                        errs.append(f"{f}: {o.size} difere do quadro do casulo {im.size}")
+        for f in meta["files"]:
+            if f.endswith(".png"):
+                Image.open(A3.path(short, f)).verify()
+        print(f"regras geradas: {len(text.splitlines())} linhas; modos {[m['type'] for m in lch['modes']]}")
     elif meta["kind"] == "factory":
         f = next((x for x in D.FACTORIES if x["short"] == short), None)
         top, info = factory.build_factory(f, {r["id"]: r["max_stack"] for r in D.RESOURCES})

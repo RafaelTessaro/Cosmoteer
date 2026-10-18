@@ -298,6 +298,130 @@ def build_explosive(s):
     return top
 
 
+# ============================================================================= misseis de convés
+# Nucleo comum (copiado de shots/missile_he/missile_he.rules l.9-48, 110-123, versao "de convés"):
+#   - Hit com FriendlyShipLowCollisions = false + FriendlyShipHighCollisions = false (passa por cima do
+#     proprio casco e das torres de convés vizinhas; bullet_deck.rules l.41) e SourcePartCollisionDelay;
+#   - Targetable categoria "missile" (PD/flak vanilla e SW:ACD derrubam); abatido = so efeito (HitFriendly);
+#   - explosoes SEM Friendlies = true; numeros escalaveis como { BaseValue; EffectScaleExponent = 1 };
+#   - sprite e brilho em buckets Upper (os Lower das particulas de propulsor ficariam sob o nosso teto).
+MSL_D = f"{D}/missile_he"
+MSL_T = f"{D}/missile_thermal"
+MISSILE_MEDIA = {
+    "he": {"particles": [f"{MSL_D}/particles/missile_he_hit.rules", f"{MSL_D}/particles/missile_he_flash.rules",
+                         f"{MSL_D}/particles/missile_he_smoke.rules"],
+           "sounds": [f"{MSL_D}/sounds/launcher_rocket_impact_0{i}.wav" for i in (1, 2, 3)],
+           "plume": f"{MSL_D}/particles/missile_he_thruster_plume_light.rules"},
+    "napalm": {"particles": [f"{MSL_T}/particles/missile_thermal_hit_cone.rules",
+                             f"{MSL_T}/particles/missile_thermal_shockwave.rules",
+                             f"{MSL_T}/particles/missile_thermal_flash.rules"],
+               "sounds": [f"{MSL_T}/missile_thermal_hit.wav"],
+               "plume": f"{MSL_T}/particles/missile_thermal_thruster_plume_light.rules"},
+}
+
+
+def _missile_media(s, shake=True):
+    mm = MISSILE_MEDIA[s["payload"]]
+    media = [f"&<{p}>" for p in mm["particles"]]
+    media.append(Inh("/BASE_SOUNDS/AudioExterior", {"RandomSounds": [Q(x) for x in mm["sounds"]],
+                                                   "Volume": s.get("volume", 0.7), "SpeedVariation": 0.15,
+                                                   "MaxConcurrent": s.get("max_conc", 16)}))
+    if shake and s.get("shake"):
+        media.append(Inh("/BASE_SHAKE", {"ShakeAmount": s["shake"], "Duration": 0.5}))
+    return media
+
+
+def _missile_hit(s, hit_op, hit_shield):
+    v = s.get("variants", {})
+    delay = "0.3" if v.get("source_part_collision_delay") == "s_0_3" else "1.5 / (&/Simulation/PhysicsUpdatesPerSecond)"
+    hit = {"Type": "SimpleHit", "SourcePartCollisionDelay": delay,
+           "FriendlyShipLowCollisions": False, "FriendlyShipHighCollisions": False}
+    hit["HitShield"] = hit_shield if hit_shield is not None else "&HitOperational"
+    hit["HitOperational"] = hit_op
+    hit["HitStructural"] = "&HitOperational"
+    hit["HitFriendly"] = {"MediaEffects": _missile_media(s, shake=False)}
+    return hit
+
+
+def _payload_he(s):
+    d = s["damage"]
+    fx = [{"Type": "ExplosiveDamage", "TotalDamage": _val(d["ExplosiveDamage"]), "Radius": d["Radius"]},
+          {"Type": "Impulse", "Impulse": _val(d.get("Impulse", 0))}]
+    stats = {"STAT_DAMAGE": d["ExplosiveDamage"], "STAT_RADIUS": d["Radius"]}
+    return {"HitEffects": fx, "MediaEffects": _missile_media(s)}, None, stats
+
+
+def _payload_napalm(s):
+    """Taturana: explosao pequena sem fogo embutido (o fogo interpolado de ExplosiveDamage muda entre
+    0.30.4 e 0.30.5) + fogo garantido na peca (bullet_med.rules l.129-132 / bullet_large_overclock_shrapnel
+    l.113-114) + poca de calor que reacende (missile_thermal.rules l.128-139, com valor literal)."""
+    d = s["damage"]
+    fire = {"Type": "StatusApplication", "StatusType": "cosmoteer.fire", "StatusChance": _val(d["fire_StatusChance"]),
+            "StatusValue": d["fire_StatusValue_interpolated"], "ValueType": "Interpolated"}
+    if s.get("variants", {}).get("napalm_fire") == "all_hit_part_tiles":
+        fire["ApplyToAllHitPartTiles"] = True
+    heat_pool = {"Type": "GridStatusApplication", "StatusType": "cosmoteer.heat", "StatusValue": 0,
+                 "StatusValuePool": d["heat_StatusValuePool"], "ValueFalloff": 1, "MaxCost": d["heat_MaxCost"],
+                 "FalloffPadding": 0.5, "EmptyTileCost": 1000, "AllowDiagonals": True,
+                 "Filter": {"Friendlies": False, "TargetedFriendlies": True}}
+    blast = {"Type": "ExplosiveDamage", "TotalDamage": _val(d["blast_ExplosiveDamage"]), "Radius": d["blast_radius"]}
+    hit_op = {"HitEffects": [blast, fire, heat_pool], "MediaEffects": _missile_media(s)}
+    shield_blast = {"Type": "ExplosiveDamage", "TotalDamage": _val(d["shield_blast"]), "Radius": d["blast_radius"]}
+    hit_shield = {"HitEffects": [shield_blast,
+                                 {"Type": "StatusApplication", "StatusType": "cosmoteer.heat", "StatusValue": d["shield_heat"],
+                                  "ApplyToAllHitPartTiles": True, "DivideValueByPartArea": True}],
+                  "MediaEffects": "&../HitOperational/MediaEffects"}
+    stats = {"STAT_DAMAGE": d["blast_ExplosiveDamage"], "STAT_RADIUS": d["blast_radius"],
+             "STAT_HEAT_POOL": d["heat_StatusValuePool"], "STAT_FIRE_CHANCE": d["fire_StatusChance"]}
+    return hit_op, hit_shield, stats
+
+
+MISSILE_PAYLOADS = {"he": _payload_he, "napalm": _payload_napalm}
+
+
+def build_missile(s):
+    """Missil de convés: nucleo comum + carga (s['payload'])."""
+    hit_op, hit_shield, stats = MISSILE_PAYLOADS[s["payload"]](s)
+    top = dict(stats)
+    top.update({"ID": Q(s["id"]), "Range": s["range"], "IdealRange": s["range"], "Speed": s["speed"]})
+    v = s.get("variants", {})
+    homing = {"Type": "TargetHoming", "TurnVelocity": f"{s['turn']}d", "Delay": s["homing_delay"]}
+    if v.get("homing_avoidance") == "raycast_250":
+        homing["AvoidanceRaycastDistance"] = 250
+    elif v.get("homing_avoidance") == "no_avoid_friendlies":
+        homing["AvoidsFriendlies"] = False
+    homing["VelocityCompensation"] = "60%"
+    mm = MISSILE_MEDIA[s["payload"]]
+    w, h = s["sprite_wh"]
+    gl = s["glow_size"]
+    comps = {
+        "Physics": {"Type": "BoxPhysics", "Size": list(s["box"]), "Density": 0.1},
+        "Homing": homing,
+        "Retarget": {"Type": "SameShipRetarget"},
+        "Acceleration": {"Type": "Acceleration", "Acceleration": s["accel"]},
+        "NegativeAcceleration": {"Type": "Acceleration", "Acceleration": [-90, 0], "AccelerationOverTime": [0, 0.75],
+                                 "Direction": "FrameOfReferenceVelocity"},
+        "DeathByLifetime": {"Type": "DeathByLifetime", "Lifetime": s["lifetime"]},
+        "Sprite": {"Type": "Sprite", "RenderBucket": "BulletUpper3", "IsLit": True,
+                   "Sprite": {"Texture": {"File": Q(f"{MSL_D}/missile_he.png"), "MipLevels": "max"}, "Size": [w, h]},
+                   "NormalsTexture": {"File": Q(f"{MSL_D}/missile_he_normals.png"), "MipLevels": "max"}},
+        "GlowSprite": {"Type": "Sprite", "RenderBucket": "BulletUpper4", "Z": 0, "IsLight": True,
+                       "Offset": [round(-w * 0.45, 3), 0],
+                       "Sprite": {**GLOW, "Size": gl, "VertexColor": s["glow_color"], "TargetBlendMode": "Add",
+                                  "Shader": Q("./Data/common_effects/fancy_light.shader"),
+                                  "_z": 1, "_nrmlStrengthLimit": 1, "_litReflectiveStrength": 24,
+                                  "_litAdditiveStrength": 0.05, "_unlitAdditiveStrength": 0.125}},
+        "MediaEffects": {"Type": "MediaEffects", "Offset": [s["plume_offset"], 0], "Rotation": "180d",
+                         "MediaEffects": [f"&<{mm['plume']}>"]},
+        # abatido no ar: so o efeito, sem dano em area ("No AOE damage when shot down", missile_he.rules l.116)
+        "Targetable": {"Type": "Targetable", "Health": s["hp"], "TargetCategory": Q("missile"),
+                       "OnDeath": "&../Hit/HitFriendly"},
+        "Hit": _missile_hit(s, hit_op, hit_shield),
+    }
+    top["Components"] = comps
+    return top
+
+
 def build_flak_beam(s):
     """Rajada antiprojetil: feixe instantaneo ate o ponto mirado + explosao em area (flak_large.rules)."""
     cats = s["categories"]

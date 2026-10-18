@@ -108,10 +108,11 @@ def standard_toggles(overclock, command_points, defense=False, fire_pref_default
     return c
 
 
-def overclock_machinery(center, w, h, heat_triggers, has_constant_heat=True):
+def overclock_machinery(center, w, h, heat_triggers, has_constant_heat=True, shot_heat=True):
     """Componentes de overclock (calor por tiro, calor constante, portas termicas).
 
     heat_triggers: lista de nomes de triggers que disparam somente em overclock.
+    shot_heat=False: sem calor por tiro (lancadores cobram o calor por missil carregado no autoloader).
     """
     c = {}
     c["OverclockStateValue"] = {"Type": "ToggleValueSelector", "Toggle": "OverclockModeToggle",
@@ -119,16 +120,17 @@ def overclock_machinery(center, w, h, heat_triggers, has_constant_heat=True):
     c["Zero"] = {"Type": "StaticValue", "Value": 0}
     c["One"] = {"Type": "StaticValue", "Value": 1}
     c["OverheatEffects : ^/0/OverheatEffects"] = {"Location": center}
-    # Mesmo padrao do Deck Cannon: MultiTrigger dos proxies, ativo somente em overclock.
-    c["Overclock_EmissionTriggered"] = {"Type": "MultiTrigger", "OperationalToggle": "IsOverclocked",
-                                        "Triggers": heat_triggers}
-    trig = "Overclock_EmissionTriggered"
-    c["Overclock_ShotHeatProducer"] = {
-        "Type": "ResourceChange",
-        "ResourceStorage": "&~/Part/^/0/HEAT_TARGET_STORAGE",
-        "Trigger": trig,
-        "Amount": "(&~/OVERCLOCK/HEAT_PER_SHOT) * (&~/HEAT_TO_RESOURCE)",
-    }
+    if shot_heat:
+        # Mesmo padrao do Deck Cannon: MultiTrigger dos proxies, ativo somente em overclock.
+        c["Overclock_EmissionTriggered"] = {"Type": "MultiTrigger", "OperationalToggle": "IsOverclocked",
+                                            "Triggers": heat_triggers}
+        trig = "Overclock_EmissionTriggered"
+        c["Overclock_ShotHeatProducer"] = {
+            "Type": "ResourceChange",
+            "ResourceStorage": "&~/Part/^/0/HEAT_TARGET_STORAGE",
+            "Trigger": trig,
+            "Amount": "(&~/OVERCLOCK/HEAT_PER_SHOT) * (&~/HEAT_TO_RESOURCE)",
+        }
     if has_constant_heat:
         c["Overclock_ConstantHeatProducer"] = {
             "Type": "ResourceConverter",
@@ -171,10 +173,11 @@ def destroyed_effects(center, w, h):
     }
 
 
-def weapon_indicators(center, ammo_toggle, overclock, reload_delay):
+def weapon_indicators(center, ammo_toggle, overclock, reload_delay, no_ammo_sprite="&/INDICATORS/NoAmmo"):
     """Indicadores (sem energia / sem municao / overclock resetando / sem tripulacao).
 
     Um indicador aparece enquanto o Toggle esta DESLIGADO (cannon_deck.rules l.1645-1699).
+    no_ammo_sprite: lancadores usam &/INDICATORS/NoMissiles (missile_launcher_he.rules l.355).
     """
     inds = [
         {"Toggle": "ScorchedToggle", "AtlasSprite": "&/INDICATORS/Scorched",
@@ -182,7 +185,7 @@ def weapon_indicators(center, ammo_toggle, overclock, reload_delay):
         {"Toggle": "PowerToggle", "AtlasSprite": {"File": "&/INDICATORS/PowerOff", "Size": [1, 1]},
          "HidesIndicators": [2, 3, 4] if overclock else [2, 3]},
         {"Toggle": ammo_toggle, "Delay": reload_delay,
-         "AtlasSprite": {"File": "&/INDICATORS/NoAmmo", "Size": [1, 1]}},
+         "AtlasSprite": {"File": no_ammo_sprite, "Size": [1, 1]}},
     ]
     if overclock:
         inds.append({"Toggle": "&~/Part/^/0/OVERCLOCK_OPERATIONAL",

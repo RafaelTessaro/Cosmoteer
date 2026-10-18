@@ -89,6 +89,9 @@ Parts
 	BSFactoryShellNuke = "Fundição de Projéteis Nucleares"
 	BSFactoryShellNukeIcon = "Fundição de Projét"
 	BSFactoryShellNukeDesc = "Transforma 0.125 enriched_uranium + 2 bs_mag_std e 0.8 de energia em 1 Projétil Nuclear a cada 8 s. +25% de velocidade para cada fábrica vizinha.<string id='BSModTag'/>"
+	BSMslBox = "Caixa de Micromísseis de Convés"
+	BSMslBoxIcon = "Tocandira"
+	BSMslBoxDesc = "Uma caixa de micromísseis estilo RAM: o atirador gira a caixa e doze micromísseis saem chiando, de dois em dois. \"Tocandira\"\n\nInício de jogo - lança-mísseis de convés. Com o rack cheio, dispara 12 mísseis em sequência em 0,73 s; depois um autocarregador tripulado recarrega um cassete por vez (1,39 s cada; sem tripulação no posto a recarga para): uma salva a cada 9,1 s. Alcance 300 m. Mísseis: Muriçoca (alto-explosivo), Taturana-mirim (napalm).\n\nNão usa energia: 1 tripulante e peças de míssil A.E. / peças de míssil T.C. do jogo base levadas até os paióis internos (12 peças cada). Trocar o tipo de míssil custa uma recarga completa; com o paiol vazio, o rack parcial dispara mesmo assim. Os mísseis passam por cima do próprio convés e podem ser abatidos pela defesa de ponto. Carregado, o lançador explode quando pega fogo ou é destruído.<string id='BSModTag'/>"
 }
 PartToggles
 {
@@ -104,6 +107,27 @@ PartToggles
 	BSAmmo_EMP = "<b>Munição: EMP</b>\n\nCada acerto drena bateria de escudos e partes energizadas. Menos dano ao casco, mas ótima contra naves que dependem de energia e escudos."
 	BSAmmo_EMPName = "Carregadores: EMP"
 	BSAmmo_EMPDesc = "Cada acerto drena bateria de escudos e partes energizadas. Menos dano ao casco, mas ótima contra naves que dependem de energia e escudos."
+	BSMissile_He = "<b>Míssil: Jararaca (Alto-Explosivo)</b>\n\nOgiva alto-explosiva rápida e direta: o míssil de referência. Salvas grandes saturam a defesa de ponto."
+	BSMissile_HeName = "Mísseis Jararaca (alto-explosivo)"
+	BSMissile_HeDesc = "Ogiva alto-explosiva rápida e direta: o míssil de referência. Salvas grandes saturam a defesa de ponto."
+	BSMissile_Cluster = "<b>Míssil: Piranha (Submunições)</b>\n\nAbre a 25 m do casco inimigo e solta um cardume de minimísseis que se espalham por várias peças."
+	BSMissile_ClusterName = "Mísseis Piranha (submunições)"
+	BSMissile_ClusterDesc = "Abre a 25 m do casco inimigo e solta um cardume de minimísseis que se espalham por várias peças."
+	BSMissile_Limpet = "<b>Míssil: Carrapato (Grudento)</b>\n\nGruda no casco e explode 2,5 s depois, com alta chance de matar a tripulação que vier consertar."
+	BSMissile_LimpetName = "Mísseis Carrapato (grudento)"
+	BSMissile_LimpetDesc = "Gruda no casco e explode 2,5 s depois, com alta chance de matar a tripulação que vier consertar."
+	BSMissile_Napalm = "<b>Míssil: Taturana (Napalm)</b>\n\nExplosão pequena, fogo garantido na peça atingida e calor em volta que continua acendendo incêndios. Inútil contra blindagem; extintor e espuma são o contra."
+	BSMissile_NapalmName = "Mísseis Taturana (napalm)"
+	BSMissile_NapalmDesc = "Explosão pequena, fogo garantido na peça atingida e calor em volta que continua acendendo incêndios. Inútil contra blindagem; extintor e espuma são o contra."
+	BSMissile_Emp = "<b>Míssil: Poraquê (PEM)</b>\n\nDrena baterias e escudos em área. As armas do Bullet Strike não usam bateria e são imunes."
+	BSMissile_EmpName = "Mísseis Poraquê (PEM)"
+	BSMissile_EmpDesc = "Drena baterias e escudos em área. As armas do Bullet Strike não usam bateria e são imunes."
+	BSMissile_Torpedo = "<b>Míssil: Boto (Torpedo com Iscas)</b>\n\nTorpedo lento e resistente que solta iscas para enganar a defesa de ponto antes de acertar."
+	BSMissile_TorpedoName = "Mísseis Boto (torpedo com iscas)"
+	BSMissile_TorpedoDesc = "Torpedo lento e resistente que solta iscas para enganar a defesa de ponto antes de acertar."
+	BSMissile_Nuclear = "<b>Míssil: Iara (Torpedo Nuclear)</b>\n\nSó na bateria pesada. Sozinho morre para flak de área: esconda-o com uma salva pesada logo depois."
+	BSMissile_NuclearName = "Mísseis Iara (torpedo nuclear)"
+	BSMissile_NuclearDesc = "Só na bateria pesada. Sozinho morre para flak de área: esconda-o com uma salva pesada logo depois."
 }
 Stats
 {
@@ -120,6 +144,8 @@ StatCategories
 	BSAmmo_plasma = "Disparo de plasma"
 	BSAmmo_nuclear = "Projétil nuclear"
 	BSFlak = "Flak de explosão aérea"
+	BSMslBox_he = "Micromíssil \"Muriçoca\""
+	BSMslBox_napalm = "Micromíssil Incendiário \"Taturana-mirim\""
 }
 Resource
 {

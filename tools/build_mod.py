@@ -22,7 +22,7 @@ sys.path.insert(0, HERE)
 
 from rules_dsl import render  # noqa: E402
 from bsgen import common as C  # noqa: E402
-from bsgen import guns, ciws, shots, factory, resources, infra  # noqa: E402
+from bsgen import guns, ciws, shots, factory, resources, infra, launchers  # noqa: E402
 import bs_data as DATA  # noqa: E402
 import art3d as A3  # noqa: E402
 
@@ -78,6 +78,10 @@ def shot_file(out, s):
     elif kind == "cloud":
         top = shots.build_flak_cloud(s)
         rel = f"shots/{s['dir']}/{sid}.rules"
+    elif kind == "missile":
+        # missil de convés (bsgen/shots.py build_missile); filhos/cargas extras virao no mesmo diretorio
+        top = shots.build_missile(s)
+        rel = f"shots/{s['dir']}/{sid}.rules"
     else:
         raise ValueError(kind)
     if kind in ("flak",):
@@ -123,6 +127,8 @@ def build(args):
     shot_rel = {}
     for s in DATA.SHOTS:
         shot_rel[s["file"]] = shot_file(out, s)
+    for s in DATA.MISSILES:
+        shot_rel[s["file"]] = shot_file(out, s)
 
     part_paths = []
     # armas
@@ -166,9 +172,22 @@ def build(args):
         elif f.get("art3d"):
             A3.copy_files(out.root, pdir, f["short"], f["art3d"])
 
+    # lancadores de misseis de convés
+    for lch in DATA.LAUNCHERS:
+        pdir = f"parts/{lch['short']}"
+        sp = {m["type"]: relpath(pdir, shot_rel[m["shot"]]) for m in lch["modes"]}
+        top, info = launchers.build_launcher(lch, sp)
+        rel = f"{pdir}/{lch['short']}.rules"
+        out.text(rel, render(top, HEADER + f"\nLancador de misseis: {lch['name_en']} / {lch['name_pt']} "
+                                           f"(\"{lch['codename']}\")"))
+        part_paths.append(rel)
+        if art:
+            art.launcher_art(out, pdir, lch, info)
+        elif lch.get("art3d"):
+            A3.copy_files(out.root, pdir, lch["short"], lch["art3d"])
     # gui / techs / strings / mod.rules
     out.text("gui/bs_part_stats.rules", infra.part_stats())
-    out.text("gui/bs_part_toggles.rules", infra.part_toggles(DATA.AMMO_CHOICES))
+    out.text("gui/bs_part_toggles.rules", infra.part_toggles(DATA.AMMO_CHOICES, DATA.missile_toggles()))
     car, bb = infra.techs(DATA.career_techs(), DATA.buildbattle_techs(), DATA.BB_WHITELIST)
     out.text("techs/bs_techs_career.rules", car)
     out.text("techs/bs_techs_buildbattle.rules", bb)

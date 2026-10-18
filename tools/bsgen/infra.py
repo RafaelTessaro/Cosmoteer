@@ -80,14 +80,24 @@ def part_stats():
     return render({"PartStats": stats}, "Linhas de estatistica do Bullet Strike (adicionadas com AddMany).")
 
 
-def part_toggles(ammo_choices):
-    """ammo_choices: lista de (mode, choice_id, tooltip_key, icon_file)."""
-    choices = []
-    for mode, cid, tip, icon in ammo_choices:
-        choices.append({"ChoiceID": Q(cid), "Mode": mode, "ButtonToolTipKey": Q(tip),
-                        "ButtonSprite": {"Texture": {"File": Q(icon), "MipLevels": 2, "SampleMode": "Linear"}}})
-    toggles = [{"ToggleID": Q("bs_ammo_type"), "Style": "Popout", "ShowInEditor": True, "Choices": choices}]
-    return render({"PartToggles": toggles}, "Seletor de municao do Bullet Strike (mesmo formato do missile_type vanilla).")
+def part_toggles(ammo_choices, extra_toggles=()):
+    """ammo_choices: lista de (mode, choice_id, tooltip_key, icon_file).
+
+    extra_toggles: outros seletores [(toggle_id, choices)] com o mesmo formato (ex.: bs_missile_type dos
+    lancadores de misseis); cada um vira mais uma entrada de PartToggles."""
+    def entry(tid, chs):
+        choices = []
+        for mode, cid, tip, icon in chs:
+            choices.append({"ChoiceID": Q(cid), "Mode": mode, "ButtonToolTipKey": Q(tip),
+                            "ButtonSprite": {"Texture": {"File": Q(icon), "MipLevels": 2, "SampleMode": "Linear"}}})
+        return {"ToggleID": Q(tid), "Style": "Popout", "ShowInEditor": True, "Choices": choices}
+    toggles = [entry("bs_ammo_type", ammo_choices)]
+    for tid, chs in extra_toggles:
+        toggles.append(entry(tid, chs))
+    head = "Seletor de municao do Bullet Strike (mesmo formato do missile_type vanilla)."
+    if extra_toggles:
+        head = "Seletores do Bullet Strike: municao das armas e tipo de missil dos lancadores (formato do missile_type vanilla)."
+    return render({"PartToggles": toggles}, head)
 
 
 def techs(career, buildbattle, whitelist):

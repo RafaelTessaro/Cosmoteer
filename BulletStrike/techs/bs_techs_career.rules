@@ -322,5 +322,26 @@ Techs
 		Cost = 160000
 		Prerequisites = [rafaeltessaro.bs_naval_406, cosmoteer.heat_management]
 	}
+	{
+		ID = rafaeltessaro.bs_msl_box
+		NameKey = &<../parts/bs_msl_box/bs_msl_box.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_msl_box/bs_msl_box.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_msl_box/bs_msl_box.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked = [&<../parts/bs_msl_box/bs_msl_box.rules>/Part/ID]
+		ToggleChoicesUnlocked = [[bs_missile_type, 0]]
+		Cost = 3500
+		Prerequisites = [rafaeltessaro.bs_autocannon_20]
+	}
+	{
+		ID = rafaeltessaro.bs_msl_napalm
+		NameKey = "PartToggles/BSMissile_NapalmName"
+		DescriptionKey = "PartToggles/BSMissile_NapalmDesc"
+		Icon = &<../parts/bs_msl_box/bs_msl_box.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [[bs_missile_type, 3]]
+		Cost = 9000
+		Prerequisites = [rafaeltessaro.bs_msl_box, cosmoteer.factory_thermal]
+	}
 ]
 OverclockIcon = &<./Data/modes/career/techs.rules>/OverclockIcon

@@ -37,6 +37,11 @@ traçantes, clarões de boca, granadas explodindo, flak enchendo o céu. É *tir
   **Padrão**, **Perfurante** (atravessa blindagem), **Perfurante-Explosiva** (atravessa e explode dentro do
   casco) e **EMP** (drena um pouco de escudo e bateria a cada acerto).
 - **Munições especiais:** **células de plasma** (ótimas contra escudos) e **projéteis nucleares**.
+- **Lança-mísseis de convés** (em construção): a **Tocandira** (início, 2x2) já está no mod: uma caixa de
+  micromísseis estilo RAM que dispara 12 micromísseis em sequência. A tripulação enche um paiol interno com as
+  peças de míssil do jogo base; um autocarregador recarrega as células **só enquanto há tripulação no posto**.
+  Mísseis Muriçoca (alto-explosivo) e Taturana-mirim (incendiário). Caipora (meio) e Mula-sem-Cabeça (fim) vêm
+  na próxima etapa. Projeto completo em [docs/MISSEIS_PROJETO.md](docs/MISSEIS_PROJETO.md).
 - **Overclock** nas armas de meio e fim de jogo: mais cadência, dano ou alcance em troca de calor.
 - **Aba própria "Bullet Strike"** no menu de construção, techs no modo **Carreira** e no **Build & Battle**.
 - **Limite por nave:** no máximo 2 obuseiros nucleares e 2 torres de 406 mm (a arma do encouraçado),
@@ -103,6 +108,7 @@ python3 tools/rules_lint.py --mod BulletStrike --vanilla <pasta Data do Cosmotee
 |---|---|
 | `BulletStrike/` | **O mod pronto** (copie esta pasta para o jogo) |
 | `tools/spec/bullet_strike_spec.json` | Números de balanceamento |
+| `tools/spec/bullet_strike_missiles.json` | Projeto e números dos lança-mísseis (com as variantes de mecânica) |
 | `tools/build_mod.py` | Gera o mod inteiro |
 | `tools/bsgen/` | Geradores de peças, projéteis, fábricas, recursos e arte procedural |
 | `tools/rules_lint.py` | Validador de arquivos `.rules` (referências, caminhos, imagens, textos) |

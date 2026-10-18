@@ -10,6 +10,7 @@ import os
 
 from rules_dsl import Q
 import art3d as A3
+from launcher_layout import cell_layout
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SPEC_PATH = os.path.join(HERE, "spec", "bullet_strike_spec.json")
@@ -456,8 +457,232 @@ AMMO_CHOICES = [
     (3, "bs_ammo_emp", "PartToggles/BSAmmo_EMP", "ammo_emp.png"),
 ]
 
+# ============================================================================= lancadores de misseis de convés
+# O projeto dos lancadores fica num spec proprio (tools/spec/bullet_strike_missiles.json, legivel em
+# docs/MISSEIS_PROJETO.md). Os lancadores NAO entram em GUNS: tem modelo de recarga proprio
+# (carregador por familia -> autoloader tripulado -> rack com trava -> salva em ripple), ver bsgen/launchers.py.
+MSPEC_PATH = os.path.join(HERE, "spec", "bullet_strike_missiles.json")
+with open(MSPEC_PATH, encoding="utf-8") as fh:
+    MSPEC = json.load(fh)
+
+# Estagio do gerador: quais lancadores e quais cargas ja sao gerados. Os demais continuam so no spec.
+BUILD_LAUNCHERS = ["rafaeltessaro.bs_msl_box"]          # estagio 1: Tocandira (inicio de jogo)
+BUILD_PAYLOADS = {"he", "napalm"}                       # estagio 1: alto-explosivo + incendiario
+GENERATOR_STAGE = 1
+
+
+def _variants():
+    """Variantes de mecanica (spec mechanic_variants). Default = projeto primario; para testar um fallback:
+    BS_MSL_VARIANTS="rack_gate=salvo_timer,cell_sync=free_cycle" python3 tools/build_mod.py ..."""
+    v = {k: e["default"] for k, e in MSPEC.get("mechanic_variants", {}).items() if isinstance(e, dict)}
+    for item in filter(None, os.environ.get("BS_MSL_VARIANTS", "").split(",")):
+        k, _, val = item.partition("=")
+        k, val = k.strip(), val.strip()
+        spec = MSPEC["mechanic_variants"].get(k)
+        if not spec or val not in spec["options"]:
+            raise ValueError(f"BS_MSL_VARIANTS: variante desconhecida {item!r}")
+        if spec.get("stage", 1) > GENERATOR_STAGE and val != spec["default"]:
+            raise NotImplementedError(f"BS_MSL_VARIANTS: {k} so existe a partir do estagio {spec['stage']}")
+        v[k] = val
+    return v
+
+
+MISSILE_VARIANTS = _variants()
+MISSILE_TYPES = {m["id"]: m for m in MSPEC["missile_types"]}
+FAMILY_OF = {"missile_part_he": "HE", "missile_part_thermal": "Thermal", "missile_part_emp": "EMP",
+             "missile_part_nuke": "Nuke"}
+_TIER_LETTER = {"early": "s", "mid": "m", "late": "l"}
+
+
+def _hex_rgb(s):
+    h = s.split()[0].lstrip("#")
+    return [int(h[i:i + 2], 16) for i in (0, 2, 4)]
+
+
+def _missile_toggle_id(tier):
+    if MISSILE_VARIANTS.get("selector_ids") == "per_launcher":
+        return f"bs_missile_type_{_TIER_LETTER[tier]}"
+    return MSPEC["toggle"]["toggle_id"]
+
+
+# (indice, choice_id, chave do texto, icone, tipo) - todas as 7 escolhas; cada lancador limita com AvailableChoices
+MISSILE_CHOICES = [(c["index"], c["choice_id"], c["string_key"], c["icon"].split("/", 1)[-1],
+                    next(m["id"] for m in MSPEC["missile_types"] if m["toggle_index"] == c["index"]))
+                   for c in MSPEC["toggle"]["choices"]]
+
+FX["launch_s"] = {
+    # clarao Upper1 do lancador vanilla (missile_launcher_shoot.rules e Middle3: ficaria sob o teto) + som
+    "flash": [f"{T}/missile_launcher/particles/missile_launcher_shoot_flash.rules"],
+    "backblast": [f"{T}/chaingun/particles/chaingun_shoot_smoke.rules"],
+    "sound": [f"{T}/missile_launcher/sounds/launcher_launch_0{i}.wav" for i in (1, 2, 3)],
+    "volume": 0.5, "max_concurrent": 12, "shake": 0,
+    "reload": [f"{T}/missile_launcher/sounds/launcher_reload_0{i}.wav" for i in (1, 2, 3)],
+    "ready": [f"{T}/missile_launcher/sounds/launcher_ready_0{i}.wav" for i in (1, 2, 3)],
+}
+
+MISSILES = []          # especificacao de cada arquivo de missil (shots.build_missile)
+LAUNCHERS = []
+
+
+def _parse_box(physics):
+    nums = [float(x) for x in physics.split("[", 1)[1].split("]", 1)[0].split(",")]
+    return nums
+
+
+def _missile_shot_spec(L, mode, mtype):
+    """Arquivo de projetil de um modo (variante do tipo de missil para este lancador)."""
+    var = next(v for v in mtype["variants"] if v["launcher"] == L["id"])
+    short = _short(var["shot_id"])
+    fl = var["flight"]
+    box = _parse_box(fl["physics"])
+    scale = box[0] / 1.5                               # missil vanilla: BoxPhysics [1.5, .5], sprite [2, 1]
+    glow = _hex_rgb(mtype["glow"])
+    s = {"kind": "missile", "payload": mtype["id"], "file": short, "dir": short, "id": var["shot_id"],
+         "title": f"{var['variant_name_en']} ({var['variant_codename']}) - {L['codename']}",
+         "range": fl["range_m"], "speed": fl["speed"], "accel": fl["accel"], "turn": fl["turn_deg_s"],
+         "homing_delay": fl["homing_delay_s"], "hp": fl["hp"], "lifetime": fl["lifetime_s"], "box": box,
+         "sprite_wh": [round(2 * scale, 3), round(1 * scale, 3)], "glow_color": glow,
+         "glow_size": [round(4.5 * scale, 2), round(2.2 * scale, 2)], "plume_offset": round(-0.6 * box[0], 3),
+         "damage": dict(var["damage"]), "shake": round(min(0.15, 0.04 + 0.1 * scale), 3),
+         "volume": round(min(1.0, 0.45 + 0.4 * scale), 2), "max_conc": 16,
+         "variants": MISSILE_VARIANTS, "codename": var["variant_codename"],
+         "name_en": var["variant_name_en"], "name_pt": var["variant_name_ptbr"]}
+    return s
+
+
+def _cell_layout(L, mode):
+    """Posicoes dos tubos e das unidades do rack (ordem de enchimento), em coordenadas da TORRE."""
+    return cell_layout(L["art"]["part_meta"]["cells"], mode["layout"], mode["rack_units"],
+                       f"{L['codename']}/{mode['missile_type']}")
+
+
+def _attach_art3d_launcher(lch):
+    """Arte 3D (art3d/<id>/meta.json, kind 'launcher'): geometria e camadas vem do render (STYLE.md secao 8)."""
+    meta = A3.load_meta(lch["short"])
+    lch["art3d"] = meta
+    if not meta:
+        return
+    if meta.get("kind") != "launcher":
+        raise ValueError(f"art3d/{lch['short']}: meta.json nao e de lancador (kind {meta.get('kind')})")
+    for m in lch["modes"]:
+        mm = meta["modes"].get(m["type"])
+        if not mm or len(mm["units"]) != m["cells"]:
+            raise ValueError(f"art3d/{lch['short']}: modo {m['type']} precisa de {m['cells']} unidades no meta")
+    if meta.get("crew_pos"):
+        lch["crew_pos"] = [tuple(c) for c in meta["crew_pos"]]
+
+
+def _convert_launchers():
+    for L in MSPEC["launchers"]:
+        if L["id"] not in BUILD_LAUNCHERS:
+            continue
+        short = _short(L["id"])
+        oc_spec = L["overclock"]
+        oc_on = oc_spec.get("enabled") or (L["tier"] == "early" and MISSILE_VARIANTS.get("early_overclock") == "enabled")
+        tid = _missile_toggle_id(L["tier"])
+        modes, fams = [], {}
+        for m in L["modes"]:
+            if m["missile_type"] not in BUILD_PAYLOADS:
+                continue
+            mt = MISSILE_TYPES[m["missile_type"]]
+            shot = _missile_shot_spec(L, m, mt)
+            MISSILES.append(shot)
+            fam = FAMILY_OF[m["resource"]]
+            oc_c = m["computed"].get("oc") or {}
+            mode = {"type": m["missile_type"], "index": m["toggle_index"], "codename": m["codename"],
+                    "name_en": shot["name_en"], "name_pt": shot["name_pt"], "shot": shot["file"],
+                    "res": m["resource"], "family": fam, "cells": int(m["rack_units"]),
+                    "mpu": int(m["missiles_per_unit"]), "parts": m["parts_per_unit"],
+                    "reload": m["reload_s_per_unit"], "layout": m["layout"],
+                    "vent": int((oc_spec.get("costs", {}).get("vent_parts_per_salvo") or {}).get(m["missile_type"], 0)),
+                    "oc_factor": (oc_c.get("reload_factor") if m.get("overclock_affects", True) else None),
+                    "computed": m["computed"], "glow": shot["glow_color"]}
+            mode["geo"] = _cell_layout(L, m)
+            modes.append(mode)
+            fams.setdefault(fam, {"key": fam, "res": m["resource"], "modes": [],
+                                  "mag": int(L["internal_stock"][m["resource"]]["magazine_parts"])})
+            fams[fam]["modes"].append(mode["type"])
+        pm = L["art"]["part_meta"]
+        lch = {
+            "id": L["id"], "short": short, "key": "BS" + "".join(p.capitalize() for p in short.split("_")[1:]),
+            "name_en": L["name_en"], "name_pt": L["name_ptbr"], "codename": L["codename"], "tier": L["tier"],
+            "size": L["size"], "crew": L["crew"], "cp": L["command_points"], "hp": L["max_health"],
+            "cost": L["build_cost"], "ring": L.get("prohibit_ring_tiles", 1), "arc": L["firing_arc_deg"],
+            "rotate": L["rotate_speed_deg_s"], "threshold": L["fire_threshold_deg"],
+            "categories": list(L["type_categories"]),
+            "ripple": f"{round(L['ripple_delay_s'] * 30)}/30", "ripple_s": round(L["ripple_delay_s"] * 30) / 30,
+            "burst_delay": "2/30",
+            "toggle_id": tid, "available": [m["index"] for m in modes], "default_mode": modes[0]["index"],
+            "modes": modes, "families": list(fams.values()),
+            "oc": None, "cookoff": L["cookoff"],
+            "geo": {"pivot": list(pm["pivot"]), "turret_size": pm["turret_box"], "collider": pm["collider"],
+                    "ring_r": pm["ring_r"], "backblast": [[b[1], b[0]] for b in pm.get("backblast", [])],
+                    "accent": pm.get("accent", "amber"), "pitch_deg": pm.get("pitch_deg", 35)},
+            "fx": dict(FX["launch_s"]),          # estagio 2: presets launch_m / launch_l
+            "art": {"style": f"launcher_{short.rsplit('_', 1)[-1]}", "accent": "ammo"},
+            "desc": L.get("visual_concept", ""), "spec": L, "variants": MISSILE_VARIANTS,
+        }
+        if oc_on:
+            co = oc_spec["costs"]
+            lch["oc"] = {"reload_factor": next((m["oc_factor"] for m in modes if m.get("oc_factor")), 1.5),
+                         "heat_per_part": co["heat_per_part_loaded"],
+                         "heat_per_second": co["heat_per_second"]}
+        _attach_art3d_launcher(lch)
+        _check_launcher(lch, L)
+        LAUNCHERS.append(lch)
+
+
+def _check_launcher(lch, L):
+    """As regras geradas tem que reproduzir os numeros do spec (computed); aborta se divergirem."""
+    errs = []
+    burst = 2 / 30
+    for m in lch["modes"]:
+        c = m["computed"]
+        n = m["cells"] * m["mpu"]
+        salvo = (m["cells"] - 1) * lch["ripple_s"] + (m["mpu"] - 1) * burst
+        cycle = m["cells"] * m["reload"] + salvo
+        if n != c["missiles_per_salvo"]:
+            errs.append(f"{m['type']}: {n} misseis por salva, spec {c['missiles_per_salvo']}")
+        if abs(salvo - c["salvo_duration_s"]) > 0.002:
+            errs.append(f"{m['type']}: salva {salvo:.4f} s, spec {c['salvo_duration_s']}")
+        if abs(cycle - c["cycle_s"]) > 0.01:
+            errs.append(f"{m['type']}: ciclo {cycle:.4f} s, spec {c['cycle_s']}")
+        shot = next(s_ for s_ in MISSILES if s_["file"] == m["shot"])
+        d = shot["damage"]
+        per = d.get("ExplosiveDamage", d.get("blast_ExplosiveDamage", 0))
+        if per * n != c["alpha_explosive"]:
+            errs.append(f"{m['type']}: alfa {per * n}, spec {c['alpha_explosive']}")
+    if len(lch["modes"]) == len(L["modes"]):
+        for f in lch["families"]:
+            ck = lch["cookoff"].get(f["res"])
+            stock = f["mag"] + sum(m["cells"] for m in lch["modes"] if m["family"] == f["key"])
+            if ck and ck.get("parts_full") != stock:
+                errs.append(f"cook-off {f['key']}: estoque {stock}, spec parts_full {ck.get('parts_full')}")
+    if errs:
+        raise ValueError(f"{lch['codename']}: regras divergem do spec: " + "; ".join(errs))
+
+
+_convert_launchers()
+for _lch in LAUNCHERS:
+    for _l in LIMIT_DEFS:
+        if _l["match"] in _lch["short"]:
+            _lch.setdefault("extra_categories", []).append(_l["category"])
+
+def missile_toggles():
+    """Seletores de missil para gui/bs_part_toggles.rules: [(toggle_id, [(indice, choice_id, chave, icone)])]."""
+    if not LAUNCHERS:
+        return []
+    if MISSILE_VARIANTS.get("selector_ids") == "per_launcher":
+        out = []
+        for lch in LAUNCHERS:
+            out.append((lch["toggle_id"], [c[:4] for c in MISSILE_CHOICES if c[0] in lch["available"]]))
+        return out
+    return [(MSPEC["toggle"]["toggle_id"], [c[:4] for c in MISSILE_CHOICES])]
+
+
 ALL_PARTS = {g["short"]: g for g in GUNS + DEFENSES}
 ALL_PARTS.update({f["short"]: f for f in FACTORIES})
+ALL_PARTS.update({lch["short"]: lch for lch in LAUNCHERS})
 
 
 def _part_ref(short, field):
@@ -507,6 +732,62 @@ def career_techs():
         if pre:
             entry["Prerequisites"] = pre
         out.append(entry)
+    out += _missile_career_techs()
+    return out
+
+
+def _missile_choice_unlocks(types):
+    """'missile:<tipo>' -> ToggleChoicesUnlocked = [[bs_missile_type, N]] (techs.rules:118, como o 'ammo:')."""
+    res = []
+    for mt in types:
+        idx = MISSILE_TYPES[mt]["toggle_index"]
+        for lch in LAUNCHERS:
+            entry = f"[{lch['toggle_id']}, {idx}]"
+            if idx in lch["available"] and entry not in res:
+                res.append(entry)
+    return res
+
+
+def _missile_career_techs():
+    out = []
+    built = {lch["id"]: lch for lch in LAUNCHERS}
+    for t in MSPEC.get("career_techs", []):
+        parts = [u for u in t["unlocks"] if ":" not in u and u in built]
+        ocs = [u.split(":", 1)[1] for u in t["unlocks"] if u.startswith("overclock:")]
+        ocs = [o for o in ocs if o in built and built[o].get("oc")]
+        if t.get("enabled") is False and not ocs:
+            continue
+        missiles = _missile_choice_unlocks([u.split(":", 1)[1] for u in t["unlocks"] if u.startswith("missile:")])
+        entry = {"ID": t["id"]}
+        if parts:
+            p0 = _short(parts[0])
+            entry.update({"NameKey": _part_ref(p0, "NameKey"), "DescriptionKey": _part_ref(p0, "DescriptionKey"),
+                          "Icon": _part_ref(p0, "EditorIcon"), "EditorGroup": Q("BulletStrike"),
+                          "PartsUnlocked": [_part_ref(_short(p), "ID") for p in parts]})
+            if missiles:
+                entry["ToggleChoicesUnlocked"] = missiles
+        elif ocs:
+            p0 = _short(ocs[0])
+            key = ALL_PARTS[p0]["key"]
+            entry.update({"Categories": ["overclock"], "NameKey": Q(f"Parts/{key}Overclock"),
+                          "DescriptionKey": Q(f"Parts/{key}OverclockDesc"), "Icon": _part_ref(p0, "EditorIcon"),
+                          "SecondaryIcon": "&~/OverclockIcon", "EditorGroup": Q("BulletStrike"),
+                          "ToggleChoicesUnlocked": [f"{{ PartID={o}; ToggleID=thermal_overclock; Mode=1; }}" for o in ocs]})
+        elif missiles:
+            mt = next(u.split(":", 1)[1] for u in t["unlocks"] if u.startswith("missile:"))
+            key = MISSILE_TYPES[mt]["choice_id"].split("_", 2)[-1].capitalize()
+            icon = next(lch for lch in LAUNCHERS if MISSILE_TYPES[mt]["toggle_index"] in lch["available"])
+            entry.update({"NameKey": Q(f"PartToggles/BSMissile_{key}Name"),
+                          "DescriptionKey": Q(f"PartToggles/BSMissile_{key}Desc"),
+                          "Icon": _part_ref(icon["short"], "EditorIcon"), "EditorGroup": Q("BulletStrike"),
+                          "ToggleChoicesUnlocked": missiles})
+        else:
+            continue
+        entry["Cost"] = int(t["cost_credits"])
+        pre = [p for p in t.get("prerequisites", []) if p]
+        if pre:
+            entry["Prerequisites"] = pre
+        out.append(entry)
     return out
 
 
@@ -528,11 +809,30 @@ def buildbattle_techs():
                         "ToggleChoicesUnlocked": [f"{{ PartID={AUTHOR}.{g['short']}; ToggleID=thermal_overclock; Mode=1; }}"],
                         "Cost": 5000, "FundsThresholdBeforeOffered": 0 if g["tier"] == "mid" else 200000,
                         "Prerequisites": [f"{AUTHOR}.bs_bb_{g['short']}"]})
+    # lancadores de misseis (os de inicio de jogo entram na lista branca, como as armas)
+    for lch in LAUNCHERS:
+        if lch["tier"] == "early":
+            continue
+        out.append({"ID": f"{AUTHOR}.bs_bb_{lch['short']}", "NameKey": _part_ref(lch["short"], "NameKey"),
+                    "DescriptionKey": _part_ref(lch["short"], "DescriptionKey"),
+                    "Icon": _part_ref(lch["short"], "EditorIcon"), "Category": ["weapons"],
+                    "PartsUnlocked": [_part_ref(lch["short"], "ID")], "Cost": 5000,
+                    "FundsThresholdBeforeOffered": 0 if lch["tier"] == "mid" else 200000})
+        if lch.get("oc"):
+            out.append({"ID": f"{AUTHOR}.bs_bb_{lch['short']}-overclock", "NameKey": Q(f"Parts/{lch['key']}Overclock"),
+                        "DescriptionKey": Q(f"Parts/{lch['key']}OverclockDesc"),
+                        "Icon": _part_ref(lch["short"], "EditorIcon"), "SecondaryIcon": "&~/OverclockIcon",
+                        "Category": ["overclocks"],
+                        "PartsUnlocked": "&<./Data/modes/pvp/pvp_buildbattle/techs_buildbattle.rules>/ThermalParts",
+                        "ToggleChoicesUnlocked": [f"{{ PartID={AUTHOR}.{lch['short']}; ToggleID=thermal_overclock; Mode=1; }}"],
+                        "Cost": 5000, "FundsThresholdBeforeOffered": 0 if lch["tier"] == "mid" else 200000,
+                        "Prerequisites": [f"{AUTHOR}.bs_bb_{lch['short']}"]})
     return out
 
 
 BB_WHITELIST = [f"{AUTHOR}.{g['short']}" for g in GUNS + DEFENSES if g["tier"] == "early"] + \
-               [f"{AUTHOR}.{f['short']}" for f in FACTORIES]
+               [f"{AUTHOR}.{f['short']}" for f in FACTORIES] + \
+               [f"{AUTHOR}.{lch['short']}" for lch in LAUNCHERS if lch["tier"] == "early"]
 
 
 from bs_strings import strings  # noqa: E402,F401

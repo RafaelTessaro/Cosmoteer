@@ -92,11 +92,8 @@ def _fire_block_toggle(g, k, oc_state):
     return None, False
 
 
-def deck_graphics(comp, g, geo, reset_triggers, spin=False, recoil_interval=0.06, spin_speed=None):
-    """Componentes de grafico de uma torre de convés (casco, torre, canos, luzes).
-
-    Com arte 3D usa os quadros/normais do meta.json (recuo com calor, giro, torre animada, luzes
-    dinamicas roof_lights_fancy e brilho interno lights_add); sem ela, o formato da arte procedural."""
+def deck_hull_graphics(comp, g):
+    """Casco (piso, paredes, teto e luzes internas lights_add da arte 3D)."""
     w, h = g["size"]
     center = [w / 2, h / 2]
     a3 = g.get("art3d")
@@ -111,6 +108,12 @@ def deck_graphics(comp, g, geo, reset_triggers, spin=False, recoil_interval=0.06
         hull["OperationalLighting"] = {"Layer": Q("lights_add"), "DamageLevels": [
             {"File": Q(a3["hull"]["lights"]), "Size": [w, h]}]}
     comp["Graphics"] = hull
+
+
+def deck_turret_graphics(comp, g, geo, layer="roof_turrets"):
+    """Torre/casulo girando (sombra em doodads_high). Lancadores usam layer="roof_doodads" para as
+    sobreposicoes das celulas ficarem por cima em roof_turrets."""
+    a3 = g.get("art3d")
     ts = geo["turret_size"]
     if a3:
         t = a3["turret"]
@@ -131,9 +134,31 @@ def deck_graphics(comp, g, geo, reset_triggers, spin=False, recoil_interval=0.06
         "Type": "Graphics", "ChainedTo": "Turret", "Location": [0, 0], "Rotation": "90d",
         "OperationalToggle": "IsOperational",
         "Floor": {"Layer": Q("doodads_high"), "DamageLevels": [{"File": Q(shadow), "Size": [shadow_size, shadow_size]}]},
-        "OperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [on]},
-        "NonOperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [off]},
+        "OperationalDoodad": {"Layer": Q(layer), "DamageLevels": [on]},
+        "NonOperationalDoodad": {"Layer": Q(layer), "DamageLevels": [off]},
     }
+
+
+def deck_light_graphics(comp, g):
+    """Luzes dinamicas (iluminam o casco com normal map; so com "iluminacao sofisticada" ligada)."""
+    for i, l in enumerate((g.get("art3d") or {}).get("lights", [])):
+        comp[f"Light{i + 1}Graphics"] = {
+            "Type": "Graphics", "ChainedTo": "Turret", "Location": [round(l["loc"][0], 4), round(l["loc"][1], 4)],
+            "OperationalToggle": "IsOperational",
+            "OperationalRoofLighting": {"Layer": Q("roof_lights_fancy"), "DamageLevels": [{
+                "File": Q("./Data/ships/common/light_blob.png"), "Size": [l["size"], l["size"]], "Z": l["z"],
+                "VertexColor": list(l["color"])}]},
+        }
+
+
+def deck_graphics(comp, g, geo, reset_triggers, spin=False, recoil_interval=0.06, spin_speed=None):
+    """Componentes de grafico de uma torre de convés (casco, torre, canos, luzes).
+
+    Com arte 3D usa os quadros/normais do meta.json (recuo com calor, giro, torre animada, luzes
+    dinamicas roof_lights_fancy e brilho interno lights_add); sem ela, o formato da arte procedural."""
+    a3 = g.get("art3d")
+    deck_hull_graphics(comp, g)
+    deck_turret_graphics(comp, g, geo)
     if a3:
         br = a3["barrel"]
         bl, bw = br["sprite_len"], br["sprite_w"]
@@ -174,15 +199,7 @@ def deck_graphics(comp, g, geo, reset_triggers, spin=False, recoil_interval=0.06
         }
         if spin and spin_speed:
             comp[f"Barrel{i + 1}Graphics"]["AnimationSpeedFactor"] = spin_speed
-    # luzes dinamicas (iluminam o casco com normal map; so com "iluminacao sofisticada" ligada)
-    for i, l in enumerate((a3 or {}).get("lights", [])):
-        comp[f"Light{i + 1}Graphics"] = {
-            "Type": "Graphics", "ChainedTo": "Turret", "Location": [round(l["loc"][0], 4), round(l["loc"][1], 4)],
-            "OperationalToggle": "IsOperational",
-            "OperationalRoofLighting": {"Layer": Q("roof_lights_fancy"), "DamageLevels": [{
-                "File": Q("./Data/ships/common/light_blob.png"), "Size": [l["size"], l["size"]], "Z": l["z"],
-                "VertexColor": list(l["color"])}]},
-        }
+    deck_light_graphics(comp, g)
 
 
 def _barrels_per_trigger(pattern, nb):

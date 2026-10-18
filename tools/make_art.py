@@ -113,6 +113,61 @@ def factory_art(out, pdir, f, info):
     out.image(f"../docs/preview/{f['short']}.png", icon)
 
 
+def launcher_art(out, pdir, lch, info):
+    """Lancador de misseis: casulo (roof_doodads) + niveis do rack (roof_turrets) + casco + icone/blueprint.
+
+    Com arte 3D (art3d/<id>/meta.json, kind 'launcher', STYLE.md secao 8) so copia os PNGs renderizados."""
+    geo = info["geo"]
+    w, h = lch["size"]
+    if lch.get("art3d"):
+        A3.copy_files(out.root, pdir, lch["short"], lch["art3d"])
+        load = lambda n: Image.open(A3.path(lch["short"], n)).convert("RGBA")  # noqa: E731
+        meta = lch["art3d"]
+        roof, pod = load(meta["hull"]["roof"]), load(meta["turret"]["frames"][0])
+        full = load(geo["modes"][lch["modes"][0]["type"]]["overlays"][0]["files"][-1])
+    else:
+        a = S.ACCENTS["ammo"]
+        ts = geo["turret_size"]
+        pitch = lch["geo"].get("pitch_deg", 35)
+        m0 = lch["modes"][0]
+        units0 = geo["modes"][m0["type"]]["units"]
+        tube_r = m0["geo"]["tube_r"]
+        on, off, nrm, shadow = S.render_launcher_pod(ts, units0, tube_r, pitch, a)
+        out.image(f"{pdir}/turret.png", on)
+        out.image(f"{pdir}/turret_off.png", off)
+        out.image(f"{pdir}/turret_normals.png", nrm)
+        out.image(f"{pdir}/turret_shadow.png", shadow)
+        full = None
+        for m in lch["modes"]:
+            gm = geo["modes"][m["type"]]
+            band = tuple(m["glow"])
+            for ov in gm["overlays"]:
+                lo, hi = ov["range"]
+                pod_units = gm["units"][lo:hi]
+                for j, (fname, nname) in enumerate(zip(ov["files"], ov["normals"])):
+                    img, nimg = S.render_launcher_cells(ts, units0, pod_units[:j], tube_r, pitch, band)
+                    out.image(f"{pdir}/{fname}", img)
+                    out.image(f"{pdir}/{nname}", nimg)
+                    if m is m0 and j == len(ov["files"]) - 1:
+                        full = img if full is None else Image.alpha_composite(full, img)
+        crew = lch.get("crew_pos")
+        if not crew:
+            from bsgen.common import crew_positions
+            crew = crew_positions(w, h, lch["crew"], geo["pivot"])
+        floor, walls, roof, roof_n = S.render_hull(w, h, a, geo["pivot"], lch["geo"]["ring_r"], crew,
+                                                   seed=zlib.crc32(lch["short"].encode()) % 997)
+        out.image(f"{pdir}/floor.png", floor)
+        out.image(f"{pdir}/walls.png", walls)
+        out.image(f"{pdir}/roof.png", roof)
+        out.image(f"{pdir}/roof_normals.png", roof_n)
+        pod = on
+    icon = S.compose_launcher(w, h, roof, pod, full, geo["pivot"])
+    out.image(f"{pdir}/icon.png", icon)
+    sil = S.compose_launcher(w, h, Image.new("RGBA", roof.size, (0, 0, 0, 0)), pod, full, geo["pivot"])
+    out.image(f"{pdir}/blueprints.png", S.blueprint_from(w, h, sil))
+    out.image(f"../docs/preview/{lch['short']}.png", icon)
+
+
 def resource_art(out, r):
     d = f"resources/{r['dir']}"
     if r.get("art3d"):
@@ -207,4 +262,9 @@ def misc_art(out):
     for kind in ("std", "ap", "aphe", "emp"):
         acc = {"std": "ammo", "ap": "ap", "aphe": "aphe", "emp": "emp"}[kind]
         out.image(f"gui/ammo_{kind}.png", S.render_toggle_icon(kind, S.ACCENTS[acc]))
+    # seletor de missil (bs_missile_type): um icone por escolha, cor do brilho do tipo (spec missile_types[].glow)
+    import bs_data as D
+    if D.LAUNCHERS:
+        for _idx, _cid, _key, icon, mt in D.MISSILE_CHOICES:
+            out.image(f"gui/{icon}", S.render_missile_icon(mt, tuple(D._hex_rgb(D.MISSILE_TYPES[mt]["glow"]))))
     out.image("logo.png", logo())

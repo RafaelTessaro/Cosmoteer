@@ -1,7 +1,7 @@
 """Renderizador generico dos sprites 3D do Bullet Strike.
 
     <venv-com-bpy>/bin/python tools/blender/render_part.py <id_curto> [--out DIR] [--quick] [--preview]
-                                                          [--only turret,barrel,hull,factory,resource]
+                                                          [--only turret,barrel,hull,cells]
 
 Carrega o modelo de tools/blender/parts/<id_curto>.py (dicionario PART + funcoes de modelagem) e grava
 em art3d/<id_curto>/ (ou --out) os PNGs no formato do jogo e um meta.json que o gerador do mod
@@ -11,6 +11,8 @@ Tipos de peca (PART["kind"]):
   "gun"      torre de convés: head(M, T, phase) + barrel(M, L, T, phase); opcionais roof/floor
   "factory"  fabrica: floor(M, T), machine(M, T, phase), roof(M, T)
   "resource" municao: item(M, T) (uma unidade, centrada na origem, cabe num tile)
+  "launcher" lancador de misseis de convés: head(M, T, phase) = casulo com as bocas VAZIAS +
+             cell(M, look, T) = UM nariz carregado na origem; os niveis do rack sao compostos aqui
 
 Contrato completo e convencoes: tools/blender/STYLE.md.
 """
@@ -48,6 +50,15 @@ def spec_entry(pid):
         for e in spec.get(key, []):
             if e["id"] == pid:
                 return e
+    return launcher_entry(pid)
+
+
+def launcher_entry(pid):
+    """Lancador de misseis no spec proprio (tools/spec/bullet_strike_missiles.json)."""
+    spec = json.load(open(os.path.join(ROOT, "tools", "spec", "bullet_strike_missiles.json"), encoding="utf-8"))
+    for e in spec.get("launchers", []):
+        if e["id"] == pid:
+            return e
     return {}
 
 
@@ -128,17 +139,11 @@ def heat_composite(frame, heat_rgba, f):
     return Image.fromarray(out.astype(np.uint8), "RGBA")
 
 
-# ============================================================================ armas (torres de convés)
-def render_gun(mod, out, only):
-    P = mod.PART
-    W, H = P["size"]
-    pv = P["pivot"]
+# ============================================================================ pecas comuns (cabeca e casco)
+def _render_head(mod, out, P, only):
+    """Cabeca da torre / casulo do lancador: turret*.png (+ animacao), turret_off, normais e sombra."""
     ts = P["turret_box"]
     accent = P.get("accent", "amber")
-    bar = P["barrels"]
-    meta = {"version": 1, "id": P["id"], "kind": "gun", "size": [W, H], "pivot": list(pv), "turret_size": ts,
-            "collider": P.get("collider", round(ts * 0.45, 3))}
-    files = []
     tsz = (int(round(ts * PX)), int(round(ts * PX)))
 
     # ---------------------------------------------------------------- torre (com animacao opcional)
@@ -162,10 +167,66 @@ def render_gun(mod, out, only):
     for i in range(nfr):
         tnames.append("turret.png" if nfr == 1 else f"turret{i + 1}.png")
         tnorms.append("turret_normals.png" if nfr == 1 else f"turret{i + 1}_normals.png")
-    meta["turret"] = {"frames": tnames, "normals": tnorms, "interval": tanim["interval"] if tanim else 0,
-                      "off": "turret_off.png", "off_normals": tnorms[0], "shadow": "turret_shadow.png",
-                      "shadow_size": round(ts + 2 * SHADOW_MARGIN / PX, 4)}
-    files += tnames + tnorms + ["turret_off.png", "turret_shadow.png"]
+    tmeta = {"frames": tnames, "normals": tnorms, "interval": tanim["interval"] if tanim else 0,
+             "off": "turret_off.png", "off_normals": tnorms[0], "shadow": "turret_shadow.png",
+             "shadow_size": round(ts + 2 * SHADOW_MARGIN / PX, 4)}
+    return tmeta, tnames + tnorms + ["turret_off.png", "turret_shadow.png"]
+
+
+def _render_hull(mod, out, P, only):
+    """Casco (teto verde, piso com assentos, paredes, luzes internas). Retorna (crew_pos, meta_hull, arquivos)."""
+    W, H = P["size"]
+    pv = P["pivot"]
+    ts = P["turret_box"]
+    accent = P.get("accent", "amber")
+    pid = P["id"]
+    crew_n = int(spec_entry(pid).get("crew") or P.get("crew", 1))
+    if "crew_pos" in P:
+        crew = [list(c) for c in P["crew_pos"]]
+    else:
+        from bsgen.common import crew_positions
+        crew = [list(c) for c in crew_positions(W, H, crew_n, pv)]
+    if not only or "hull" in only:
+        M = fresh(accent)
+        B.camera(W, H, (0, 0))
+        samples(48)
+        ring = P.get("ring_r", ts * 0.45)
+        (getattr(mod, "roof", None) or (lambda M_, T: Mo.hull_roof(M_, W, H, pv, ring, T)))(M, "roof")
+        (getattr(mod, "floor", None) or (lambda M_, T: Mo.hull_floor(M_, W, H, pv, ring, crew, T)))(M, "floor")
+        size = (W * PX, H * PX)
+        B.show_only(["roof"])
+        B.render_set(os.path.join(out, "roof"), size, glow_halo=True, off=False)
+        B.show_only(["floor"])
+        fl = B.render_set(os.path.join(out, "floor"), size, glow_halo=True, off=False, normals=False)
+        # piso opaco (o jogo espera alpha 255) e luzes do interior (lights_add, aditivo)
+        base = Image.new("RGBA", size, (18, 19, 21, 255))
+        base.alpha_composite(fl["on"])
+        base.save(os.path.join(out, "floor.png"))
+        em = emission_pass(os.path.join(out, "lights_raw.png"), size)
+        glow = em.filter(ImageFilter.GaussianBlur(6))
+        arr = np.asarray(glow, dtype=np.float32)
+        rgb = np.clip(arr[..., :3] * (arr[..., 3:4] / 255.0) * 1.6, 0, 255)
+        Image.fromarray(np.dstack([rgb, np.full(rgb.shape[:2], 255.0)]).astype(np.uint8), "RGBA").save(
+            os.path.join(out, "lights.png"))
+        walls_png(W, H).save(os.path.join(out, "walls.png"))
+    hull = {"floor": "floor.png", "walls": "walls.png", "roof": "roof.png", "roof_normals": "roof_normals.png",
+            "lights": "lights.png"}
+    return crew, hull, ["floor.png", "walls.png", "roof.png", "roof_normals.png", "lights.png"]
+
+
+# ============================================================================ armas (torres de convés)
+def render_gun(mod, out, only):
+    P = mod.PART
+    W, H = P["size"]
+    pv = P["pivot"]
+    ts = P["turret_box"]
+    accent = P.get("accent", "amber")
+    bar = P["barrels"]
+    meta = {"version": 1, "id": P["id"], "kind": "gun", "size": [W, H], "pivot": list(pv), "turret_size": ts,
+            "collider": P.get("collider", round(ts * 0.45, 3))}
+    files = []
+    meta["turret"], tfiles = _render_head(mod, out, P, only)
+    files += tfiles
 
     # ---------------------------------------------------------------- cano(s)
     L, root, pad, bw = bar["length"], bar["root"], bar.get("pad", 0.3), bar["width"]
@@ -232,40 +293,8 @@ def render_gun(mod, out, only):
     files += sorted(set(names + norms))
 
     # ---------------------------------------------------------------- casco (teto, piso, paredes, luzes)
-    pid = P["id"]
-    crew_n = int(spec_entry(pid).get("crew") or P.get("crew", 1))
-    if "crew_pos" in P:
-        crew = [list(c) for c in P["crew_pos"]]
-    else:
-        from bsgen.common import crew_positions
-        crew = [list(c) for c in crew_positions(W, H, crew_n, pv)]
-    meta["crew_pos"] = crew
-    if not only or "hull" in only:
-        M = fresh(accent)
-        B.camera(W, H, (0, 0))
-        samples(48)
-        ring = P.get("ring_r", ts * 0.45)
-        (getattr(mod, "roof", None) or (lambda M_, T: Mo.hull_roof(M_, W, H, pv, ring, T)))(M, "roof")
-        (getattr(mod, "floor", None) or (lambda M_, T: Mo.hull_floor(M_, W, H, pv, ring, crew, T)))(M, "floor")
-        size = (W * PX, H * PX)
-        B.show_only(["roof"])
-        B.render_set(os.path.join(out, "roof"), size, glow_halo=True, off=False)
-        B.show_only(["floor"])
-        fl = B.render_set(os.path.join(out, "floor"), size, glow_halo=True, off=False, normals=False)
-        # piso opaco (o jogo espera alpha 255) e luzes do interior (lights_add, aditivo)
-        base = Image.new("RGBA", size, (18, 19, 21, 255))
-        base.alpha_composite(fl["on"])
-        base.save(os.path.join(out, "floor.png"))
-        em = emission_pass(os.path.join(out, "lights_raw.png"), size)
-        glow = em.filter(ImageFilter.GaussianBlur(6))
-        arr = np.asarray(glow, dtype=np.float32)
-        rgb = np.clip(arr[..., :3] * (arr[..., 3:4] / 255.0) * 1.6, 0, 255)
-        Image.fromarray(np.dstack([rgb, np.full(rgb.shape[:2], 255.0)]).astype(np.uint8), "RGBA").save(
-            os.path.join(out, "lights.png"))
-        walls_png(W, H).save(os.path.join(out, "walls.png"))
-    meta["hull"] = {"floor": "floor.png", "walls": "walls.png", "roof": "roof.png", "roof_normals": "roof_normals.png",
-                    "lights": "lights.png"}
-    files += ["floor.png", "walls.png", "roof.png", "roof_normals.png", "lights.png"]
+    meta["crew_pos"], meta["hull"], hfiles = _render_hull(mod, out, P, only)
+    files += hfiles
 
     # luzes dinamicas: coordenadas da cabeca (x direita, y frente) -> torre (x frente, y direita)
     meta["lights"] = [{"loc": [l["at"][1], l["at"][0]], "size": l.get("size", 1.2), "color": l.get("color", [255, 120, 30]),
@@ -298,6 +327,93 @@ def _heat_layer(stem, size, L):
     img = Image.fromarray(arr.astype(np.uint8), "RGBA")
     halo = img.filter(ImageFilter.GaussianBlur(2))
     return Image.alpha_composite(halo, img)
+
+
+# ============================================================================ lancadores de misseis
+def render_launcher(mod, out, only):
+    """Lancador de misseis de convés (STYLE.md secao 8).
+
+    head(M, T, phase): o casulo girando, com as bocas dos tubos VAZIAS (camada roof_doodads).
+    cell(M, look, T): UM nariz de missil carregado, centrado na origem, inclinado como o casulo.
+    As posicoes das celulas e a ordem de enchimento vem de tools/launcher_layout.py com os layouts por modo do
+    spec (launchers[].modes[].layout); cada nivel do rack (cells_<tipo>_p<casulo>_<n>.png, no quadro da torre)
+    e composto aqui colando o nariz renderizado nas primeiras n unidades do casulo."""
+    from launcher_layout import cell_layout
+    P = mod.PART
+    W, H = P["size"]
+    ts = P["turret_box"]
+    accent = P.get("accent", "amber")
+    L = launcher_entry(P["id"])
+    if not L:
+        raise SystemExit(f"{P['id']}: lancador nao existe em tools/spec/bullet_strike_missiles.json")
+    pm = L["art"]["part_meta"]
+    if list(P["size"]) != list(L["size"]):
+        raise SystemExit(f"{P['id']}: PART size {P['size']} difere do spec {L['size']}")
+    meta = {"version": 1, "id": P["id"], "kind": "launcher", "size": [W, H], "pivot": list(P["pivot"]),
+            "turret_size": ts, "collider": P.get("collider", pm.get("collider", round(ts * 0.45, 3)))}
+    files = []
+    meta["turret"], tfiles = _render_head(mod, out, P, only)
+    files += tfiles
+    cells = P.get("cells") or pm["cells"]
+    T = int(round(ts * PX))
+    cw = cells.get("tube_r", 0.09) * 5                     # quadro do nariz (tiles)
+    cpx = max(8, int(round(cw * PX)))
+    looks = P.get("looks", pm.get("looks", []))
+    noses = {}
+    modes = {}
+    for m in L["modes"]:
+        look = m["missile_type"]
+        if look not in looks:
+            raise SystemExit(f"{P['id']}: PART['looks'] precisa cobrir o modo {look}")
+        lay = cell_layout(cells, m["layout"], m["rack_units"], f"{P['id']}/{look}")
+        stem = os.path.join(out, f"cell_{look}")
+        if look not in noses:
+            if not only or "cells" in only:
+                M = fresh(accent)
+                B.camera(cw, cw, (0, 0))
+                samples(48)
+                mod.cell(M, look, "cell")
+                B.show_only(["cell"])
+                B.render_set(stem, (cpx, cpx), glow_halo=False, normals=True, off=False)
+            if os.path.exists(stem + ".png"):
+                noses[look] = (Image.open(stem + ".png").convert("RGBA"),
+                               Image.open(stem + "_normals.png").convert("RGBA"))
+        overlays = []
+        for pod in lay["pods"]:
+            a, b = pod["range"]
+            fn = [f"cells_{look}_p{pod['index']}_{j}.png" for j in range(b - a + 1)]
+            nn = [f"cells_{look}_p{pod['index']}_{j}_normals.png" for j in range(b - a + 1)]
+            if look in noses:
+                img, nrm = noses[look]
+                for j in range(b - a + 1):
+                    cv = Image.new("RGBA", (T, T), (0, 0, 0, 0))
+                    nv = Image.new("RGBA", (T, T), (0, 0, 0, 0))
+                    for u in lay["units"][a:a + j]:
+                        for fwd, lat in u["tubes"]:
+                            x, y = int(round(T / 2 + lat * PX - cpx / 2)), int(round(T / 2 - fwd * PX - cpx / 2))
+                            cv.alpha_composite(img, (x, y))
+                            nv.alpha_composite(nrm, (x, y))
+                    cv.save(os.path.join(out, fn[j]))
+                    nv.save(os.path.join(out, nn[j]))
+            overlays.append({"range": [a, b], "files": fn, "normals": nn})
+            files += fn + nn
+        modes[look] = {"units": [u["pos"] for u in lay["units"]], "unit_pods": [u["pod"] for u in lay["units"]],
+                       "tubes": [u["tubes"] for u in lay["units"]], "overlays": overlays}
+    for look in noses:
+        for suf in (".png", "_normals.png"):
+            p = os.path.join(out, f"cell_{look}{suf}")
+            if os.path.exists(p):
+                os.remove(p)
+    meta["modes"] = modes
+    meta["crew_pos"], meta["hull"], hfiles = _render_hull(mod, out, P, only)
+    files += hfiles
+    # cabeca (x direita, y frente) -> torre (x frente, y direita)
+    meta["backblast"] = [[b[1], b[0]] for b in P.get("backblast", pm.get("backblast", []))]
+    meta["lights"] = [{"loc": [l["at"][1], l["at"][0]], "size": l.get("size", 1.2), "color": l.get("color", [255, 120, 30]),
+                       "z": l.get("z", 1.0)} for l in P.get("lights", [])]
+    meta["preview_pattern"] = P.get("preview_pattern", "ripple")
+    meta["files"] = sorted(set(files))
+    return meta
 
 
 # ============================================================================ fabricas
@@ -426,7 +542,8 @@ def main():
     os.makedirs(out, exist_ok=True)
     mod = importlib.import_module(f"parts.{short}")
     kind = mod.PART["kind"]
-    fn = {"gun": render_gun, "factory": render_factory, "resource": render_resource}[kind]
+    fn = {"gun": render_gun, "factory": render_factory, "resource": render_resource,
+          "launcher": render_launcher}[kind]
     meta = fn(mod, out, only)
     mp = os.path.join(out, "meta.json")
     if only and os.path.exists(mp):

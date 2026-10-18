@@ -33,6 +33,15 @@
 | **Torre Naval Tripla 406 mm** | Mapinguari | 6x7 | 10 | 600 m | 16.000 | Carregadores (Padrão/Perfurante/Perf.-Explosiva/EMP) | sim |
 | **Bateria Flak Pesada** | Pororoca | 4x4 | 4 | 320 m | 12.000/s contra projéteis | Carregador padrão | sim |
 
+## Lança-mísseis de convés
+
+> Projeto completo em `docs/MISSEIS_PROJETO.md` (spec `tools/spec/bullet_strike_missiles.json`). Ciclo = recarga do rack inteiro + salva.
+
+| Lançador | Codinome | Fase | Tamanho | Tripulação | Míssil | Salva | Ciclo | Alcance | Recurso |
+|---|---|---|---|---|---|---|---|---|---|
+| **Caixa de Micromísseis de Convés** | Tocandira | Início | 2x2 | 1 | Micromíssil (Muriçoca) | 12 em 0,7 s | 9,1 s | 300 m | missile_part_he |
+| **Caixa de Micromísseis de Convés** | Tocandira | Início | 2x2 | 1 | Micromíssil Incendiário (Taturana-mirim) | 12 em 0,7 s | 9,1 s | 300 m | missile_part_thermal |
+
 ## Munições
 
 | Recurso | Pilha por tile | Observação |

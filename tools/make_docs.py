@@ -47,6 +47,20 @@ def main():
             lines.append(f"| **{g['name_pt']}** | {g.get('codename', '')} | {w['size'][0]}x{w['size'][1]} | {w['crew']} | "
                          f"{w['range_m']} m | {dps} | {ammo} | {oc} |")
         lines.append("")
+    if D.LAUNCHERS:
+        lines += ["## Lança-mísseis de convés", "",
+                  "> Projeto completo em `docs/MISSEIS_PROJETO.md` (spec `tools/spec/bullet_strike_missiles.json`). "
+                  "Ciclo = recarga do rack inteiro + salva.", "",
+                  "| Lançador | Codinome | Fase | Tamanho | Tripulação | Míssil | Salva | Ciclo | Alcance | Recurso |",
+                  "|---|---|---|---|---|---|---|---|---|---|"]
+        for lch in D.LAUNCHERS:
+            for m in lch["modes"]:
+                c = m["computed"]
+                lines.append(f"| **{lch['name_pt']}** | {lch['codename']} | {TIER[lch['tier']]} | "
+                             f"{lch['size'][0]}x{lch['size'][1]} | {lch['crew']} | {m['name_pt']} ({m['codename']}) | "
+                             f"{c['missiles_per_salvo']} em {fmt(c['salvo_duration_s'])} s | {fmt(c['cycle_s'])} s | "
+                             f"{lch['spec']['range_m'][m['type']]} m | {m['res']} |")
+        lines.append("")
     lines += ["## Munições", "", "| Recurso | Pilha por tile | Observação |", "|---|---|---|"]
     for r in D.RESOURCES:
         lines.append(f"| **{r['name_pt']}** | {r['max_stack']} | {r['note']} |")

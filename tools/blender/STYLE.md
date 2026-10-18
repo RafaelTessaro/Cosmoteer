@@ -212,3 +212,74 @@ def item(M, T="item"): ...   # ONE unit centered on the origin, fitting in ~1x1 
   EMP (blue coils/glow), plasma cell (glowing cyan cylinder), nuclear shell (large shell, green band, radiation
   symbol made of 3 wedges).
 - Stacks of 5-6 must not look like a jumble: use an organized 2-layer arrangement (`stack_layout`).
+
+## 8. Missile launchers (`kind: "launcher"`)
+
+Deck missile launchers (Tocandira 2x2 early, Caipora 3x3 mid, Mula-sem-Cabeça 5x6 late) are deck turrets like the
+guns, but they have **no barrels**. A rotating pod holds a grid of tubes, and the game shows how many missiles are
+loaded by drawing **overlay images on top of the pod** (one image per rack level, a `ResourceSprites` component on
+the rack storage). The design and all numbers are in `tools/spec/bullet_strike_missiles.json` (readable version:
+`docs/MISSEIS_PROJETO.md`); the rules are written by `tools/bsgen/launchers.py`.
+
+Until a model exists, `tools/bsgen/sprites.py` draws procedural placeholders with **the same files and the same
+geometry**, so a finished model replaces them without changing the rules.
+
+### 8.1 What the rules reference (the art contract)
+
+| image(s) | layer | component | notes |
+|---|---|---|---|
+| `turret.png`, `turret_normals.png`, `turret_off.png`, `turret_shadow.png` (+ `turret<n>.png` frames if `turret_anim`) | pod: `roof_doodads`; shadow: `doodads_high` | `TurretGraphics` (ChainedTo Turret, Rotation 90d) | square of side `turret_box` centered on the pivot, forward = image top, exactly like a gun head. **The tube mouths are drawn EMPTY** (dark holes) |
+| `cells_<type>_p<pod>_<n>.png` + `cells_<type>_p<pod>_<n>_normals.png`, n = 0..units of that pod | `roof_turrets` (above the pod) | one `ResourceSprites` per pod and per missile mode (`RangeLow`/`RangeHigh` = the pod's rack units, `HasZeroResourceSprite = true`) | **same canvas as `turret.png`** (side `turret_box`, pivot at the center, zero offset). Level n shows the loaded noses of the first n rack units of that pod **in fill order**; everything else is transparent. Level 0 is fully transparent |
+| `floor.png`, `walls.png`, `roof.png`, `roof_normals.png`, `lights.png` | hull layers | `Graphics` | same as the guns (green roof, crew seats; launchers should show missile racks/cradles in the floor) |
+| `icon.png`, `blueprints.png` | – | editor | built by `tools/make_art.py` from roof + pod + full rack |
+
+Launch effects are vanilla particles, not images: the per-tube flash is
+`ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules` (bucket `Upper1`) at each emitter, and
+the backblast puff is `ships/terran/chaingun/particles/chaingun_shoot_smoke.rules` at each `backblast` point. Do not
+use `missile_launcher_shoot.rules` (bucket `Middle3`, it would be hidden under our roof). **No pod recoil**: recoil
+would move the pod but not the overlays.
+
+Fire order is **LIFO**: the last rack unit loaded fires first, so the overlay that disappears is always the tube that
+just fired. The rack unit of each mode is set by the spec (`launchers[].modes[]`): one tube (`fine*` layouts), a
+twin-tube cassette (`cassette`, Tocandira: 6 units = 12 tubes, 2 micro-missiles per unit) and, in stage 2, heavy
+rows and torpedo cassettes.
+
+### 8.2 Model file (`tools/blender/parts/bs_msl_<box|twin|quad>.py`)
+
+```python
+PART = {
+    "id": "rafaeltessaro.bs_msl_box", "kind": "launcher",
+    "size": [2, 2], "pivot": [1.0, 0.95],     # MUST match launchers[].size and art.part_meta.pivot in the spec
+    "turret_box": 1.9, "ring_r": 0.8, "collider": 0.85, "accent": "amber",
+    "looks": ["he", "napalm"],                 # must cover every missile mode of the launcher (spec modes[])
+    # optional: "cells": {...} overrides art.part_meta.cells (pods: center/cols/rows/pitch in HEAD coordinates,
+    #           tube_r, units "pairs" | single); the default reads the spec, so the cells always match the rules
+    # optional: "backblast": [[x, y], ...] (head coordinates), "lights": [...], "turret_anim": {...}
+}
+def head(M, T="head", phase=0.0): ...   # mount/yoke + pod(s); tube mouths EMPTY (dark), at the spec cell positions
+def cell(M, look, T="cell"): ...        # ONE loaded nose at the origin (tube axis pitched like the pod), with a
+                                        # thin band in the type colour; it must fit in a square of 5 x tube_r
+def roof(M, T="roof"): ...              # optional (default Mo.hull_roof)
+def floor(M, T="floor"): ...            # optional (default Mo.hull_floor)
+```
+
+Cell positions come from `tools/launcher_layout.py` (shared with the rules generator): head coordinates
+(x right, y forward from the pivot), pods filled one after the other, rows from the back to the front, left to right.
+The renderer renders `cell()` once per look and pastes it at every tube of the first n units to compose each level,
+so the noses always sit exactly on the mouths that `head()` draws at the same coordinates.
+
+`render_part.py <short> [--quick] [--out DIR] [--only turret,hull,cells]` writes the images and a `meta.json` with
+`kind: "launcher"`, `turret` (as for guns), `modes.<type>.units` / `tubes` / `unit_pods` (turret coordinates,
+fill order) and `modes.<type>.overlays[{range, files, normals}]`, plus `backblast`, `crew_pos`, `hull`, `lights`.
+`tools/bs_data.py` checks that every mode has as many units as the spec's rack.
+
+### 8.3 Style per launcher (same family look as the guns: dark core + light shards, LEDs in recesses)
+
+| launcher | size | crew | pods / tubes | rack unit | style | accent |
+|---|---|---|---|---|---|---|
+| bs_msl_box (Tocandira) | 2x2 | 1 | 1 box pod, 4x3 = 12 tubes, pitched 35 deg | twin-tube cassette (6) | RAM-style box on a short yoke, side claws, spine with amber IR slit, rear vent bay with 3 pips | amber |
+| bs_msl_twin (Caipora) | 3x3 | 2 | 2 octagonal pods (3-2-3) = 16 tubes + sensor dome | 1 tube (16); torpedo 2 | twin pods on arms, central dome with a sensor eye | amber |
+| bs_msl_quad (Mula-sem-Cabeça) | 5x6 | 8 | 4 pods 3x4 = 48 tubes on hydraulic arms, headless body | 1 tube (48); heavy row (16); torpedo 4; nuclear 2 | headless quad battery, collar recess with a very dim ember | amber |
+
+Overlay noses: light nose cone + a 2-3 px band in the missile colour (spec `missile_types[].glow`): Jararaca amber,
+Piranha yellow, Carrapato red, Taturana orange, Poraquê blue, Boto white, Iara green. Keep the 1-2 % emissive budget.

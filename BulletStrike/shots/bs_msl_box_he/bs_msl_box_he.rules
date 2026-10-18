@@ -1,0 +1,182 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Projetil: Micro-Missile (Muriçoca) - Tocandira
+
+STAT_DAMAGE = 1600
+STAT_RADIUS = 1.5
+ID = "rafaeltessaro.bs_msl_box_he"
+Range = 300
+IdealRange = 300
+Speed = 55
+Components
+{
+	Physics
+	{
+		Type = BoxPhysics
+		Size = [0.8, 0.28]
+		Density = 0.1
+	}
+	Homing
+	{
+		Type = TargetHoming
+		TurnVelocity = 300d
+		Delay = 0.15
+		VelocityCompensation = 60%
+	}
+	Retarget
+	{
+		Type = SameShipRetarget
+	}
+	Acceleration
+	{
+		Type = Acceleration
+		Acceleration = 85
+	}
+	NegativeAcceleration
+	{
+		Type = Acceleration
+		Acceleration = [-90, 0]
+		AccelerationOverTime = [0, 0.75]
+		Direction = FrameOfReferenceVelocity
+	}
+	DeathByLifetime
+	{
+		Type = DeathByLifetime
+		Lifetime = 7
+	}
+	Sprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper3
+		IsLit = true
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/shots/missile_he/missile_he.png"
+				MipLevels = max
+			}
+			Size = [1.067, 0.533]
+		}
+		NormalsTexture
+		{
+			File = "./Data/shots/missile_he/missile_he_normals.png"
+			MipLevels = max
+		}
+	}
+	GlowSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Z = 0
+		IsLight = true
+		Offset = [-0.48, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [2.4, 1.17]
+			VertexColor = [255, 176, 0]
+			TargetBlendMode = Add
+			Shader = "./Data/common_effects/fancy_light.shader"
+			_z = 1
+			_nrmlStrengthLimit = 1
+			_litReflectiveStrength = 24
+			_litAdditiveStrength = 0.05
+			_unlitAdditiveStrength = 0.125
+		}
+	}
+	MediaEffects
+	{
+		Type = MediaEffects
+		Offset = [-0.48, 0]
+		Rotation = 180d
+		MediaEffects = [&<./Data/shots/missile_he/particles/missile_he_thruster_plume_light.rules>]
+	}
+	Targetable
+	{
+		Type = Targetable
+		Health = 380
+		TargetCategory = "missile"
+		OnDeath = &../Hit/HitFriendly
+	}
+	Hit
+	{
+		Type = SimpleHit
+		SourcePartCollisionDelay = 1.5 / (&/Simulation/PhysicsUpdatesPerSecond)
+		FriendlyShipLowCollisions = false
+		FriendlyShipHighCollisions = false
+		HitShield = &HitOperational
+		HitOperational
+		{
+			HitEffects
+			[
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 1600
+						EffectScaleExponent = 1
+					}
+					Radius = 1.5
+				}
+				{
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 15
+						EffectScaleExponent = 1
+					}
+				}
+			]
+			MediaEffects
+			[
+				&<./Data/shots/missile_he/particles/missile_he_hit.rules>
+				&<./Data/shots/missile_he/particles/missile_he_flash.rules>
+				&<./Data/shots/missile_he/particles/missile_he_smoke.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_01.wav"
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_02.wav"
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_03.wav"
+					]
+					Volume = 0.66
+					SpeedVariation = 0.15
+					MaxConcurrent = 16
+				}
+				: /BASE_SHAKE
+				{
+					ShakeAmount = 0.093
+					Duration = 0.5
+				}
+			]
+		}
+		HitStructural = &HitOperational
+		HitFriendly
+		{
+			MediaEffects
+			[
+				&<./Data/shots/missile_he/particles/missile_he_hit.rules>
+				&<./Data/shots/missile_he/particles/missile_he_flash.rules>
+				&<./Data/shots/missile_he/particles/missile_he_smoke.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_01.wav"
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_02.wav"
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_03.wav"
+					]
+					Volume = 0.66
+					SpeedVariation = 0.15
+					MaxConcurrent = 16
+				}
+			]
+		}
+	}
+}
