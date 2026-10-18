@@ -390,3 +390,8 @@ normals PNG per body size; never use a Lower/Middle bucket (hidden under our roo
   1.25-1.4). For cyan parts build explicit levels from `Mo.CYAN` (e.g. 0.16 / 0.34 / 0.70 / 1.25) so idle stays dimmer than active.
 - **Fast factory iteration:** `render_part.py <fabrica> --quick --only f1,f8` renders only those machine frames; `--only hull`
   renders only roof/floor/walls.
+- **Blue accent glows:** `Mo.mats("blue")` puts glow/glow_dim at strength 9/3, which clips to white/cyan in the Standard view.
+  Blue parts define their own low-strength glow materials (~0.5-1.5), as `parts/bs_mag_emp.py` does.
+- **Material cache is per name:** `bs3d` caches materials by name, so two part files that define "silver" or "brass" with different
+  values in the same scene share the first one. Reuse the existing values or pick a unique name.
+- **Copper bands** are the EMP family signature (EMP magazine and charger); other ammo lines should not use them.

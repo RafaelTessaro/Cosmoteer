@@ -105,7 +105,7 @@ def ogive(name, x, y0, zc, sc, X, M, tags, trefoil=True):
         (ya, ra), (yb, rb) = OG_PROF[k], OG_PROF[k + 1]
         segs.append(octo_cyl(f"{name}{k}", x, Y(ya), Y(yb), ra * sc, X["ogive"], tags, r2=rb * sc, z=zc,
                              bevel=0.004 * sc))
-    octo_cyl(f"{name}_pl", x, Y(0.343), Y(0.359), R * 0.63 * sc, M["black"], tags, z=zc, bevel=0.0)
+    octo_cyl(f"{name}_pl", x, Y(0.342), Y(0.360), R * 0.645 * sc, M["black"], tags, z=zc, bevel=0.0)
     octo_cyl(f"{name}_fz", x, Y(0.44), Y(Y_TIP), R * 0.30 * sc, X["ring"], tags, r2=0.01 * sc, z=zc, bevel=0.0)
     octo_cyl(f"{name}_fzr", x, Y(0.432), Y(0.452), R * 0.33 * sc, M["core_mid"], tags, z=zc, bevel=0.0)
     if not trefoil:

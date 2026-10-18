@@ -50,18 +50,20 @@ import models as Mo  # noqa: E402
 # armas: "at" = canto (x0, y0) da peca na grade do conves (tiles inteiros); yaw = giro da torre (graus,
 # anti-horario; 0 = cano para +Y); elev = elevacao dos canos (graus); recoil = recuo dos canos (tiles)
 WEAPONS = [
-    {"mod": "bs_naval_406", "at": (-3, -3), "yaw": -140.0, "elev": 14.0, "recoil": 0.15, "fire": True},
-    {"mod": "bs_msl_quad", "alt": "bs_msl_twin", "at": (1, 9), "yaw": 120.0, "missile": True},
-    {"mod": "bs_plasma_heavy", "at": (-3, 8), "yaw": -20.0, "elev": 10.0, "charge": True},
+    {"mod": "bs_naval_406", "at": (-3, -3), "yaw": -76.0, "elev": 14.0, "recoil": 0.15, "fire": True},
+    # msl_s: ponto do caminho do missil (tiles desde o tubo) em que ele aparece
+    {"mod": "bs_msl_quad", "alt": "bs_msl_twin", "at": (-3, 7), "yaw": 150.0, "missile": True, "msl_s": 2.2},
+    {"mod": "bs_plasma_heavy", "at": (3, 8), "yaw": -45.0, "elev": 18.0, "charge": True},
 ]
-DECK_X = (-24, 26)          # extensao do conves (tiles): passa da borda direita do quadro (o casco continua
-DECK_Y = (-18, 16)          # por baixo do clarao); so a borda do fundo aparece, como horizonte
+DECK_X = (-24, 26)          # extensao do conves (tiles): passa das bordas laterais do quadro; so a borda do
+DECK_Y = (-18, 14)          # fundo aparece, logo atras das armas do fundo, como horizonte contra o espaco
 # camera em coordenadas esfericas em volta do alvo: azimute (graus, 0 = +X), altura (graus acima do conves),
-# distancia e lente. 3/4 baixo pela frente-direita do 406 (os canos atravessam o quadro para a direita).
-CAM_AIM = (1.6, 1.4, 0.9)
-CAM_AZ = -123.0
-CAM_EL = 24.0
-CAM_DIST = 13.0
+# distancia e lente. Quase alinhada com a grade do conves (a borda do fundo fica um horizonte baixo) e 3/4 por
+# tras-direita do 406: os tres canos sobem para a direita, separados, e o corpo fica grande a esquerda.
+CAM_AIM = (1.6, 0.4, 0.6)
+CAM_AZ = -108.0
+CAM_EL = 30.0
+CAM_DIST = 11.0
 CAM_LENS = 35.0
 CAM_FSTOP = 1.0             # profundidade de campo leve (cena em metros: f/1 so desfoca de leve o conves da frente)
 FLASH = 0.72                # escala do clarao da salva (bola de fogo, jatos, fagulhas)
@@ -716,6 +718,29 @@ def point_light(name, loc, power, color, radius=0.25, parent=None):
     return o
 
 
+def missile_slide(emp, pts, s_new, s_tail=3.6):
+    """Leva o missil (e o rastro) para outro ponto s do mesmo caminho, sem refazer a etapa 1. O caminho
+    p(s) = m0 + eixo * s + (0, 0, 0.05 s^2) e recuperado das pontas do rastro gravado (s = s_tail - 0.3 ... 0.15)."""
+    sa, sb = s_tail - 0.3, 0.15
+    qa = Vector(pts[0][:3]) - Vector((0, 0, 0.05 * sa * sa))
+    qb = Vector(pts[-1][:3]) - Vector((0, 0, 0.05 * sb * sb))
+    axis = (qa - qb) / (sa - sb)
+    m0 = qb - axis * sb
+
+    def path(s):
+        return m0 + axis * s + Vector((0, 0, 0.05 * s * s))
+
+    emp.location = path(s_new)
+    emp.rotation_quaternion = (path(s_new + 0.1) - path(s_new)).normalized().to_track_quat("Y", "Z")
+    n = len(pts)
+    out = []
+    for j in range(n):
+        t = j / (n - 1)
+        p = path(s_new - 0.3 - (s_new - 0.15) * t)
+        out.append([p.x, p.y, p.z, 0.10 + 0.34 * t ** 0.9])
+    return out
+
+
 def effects():
     """Salva do 406 (clarao, jatos do freio, luz, fumaca, freio em brasa), chama/luz/rastro do missil e a carga
     ciano nas bocas do canhao de plasma."""
@@ -744,7 +769,7 @@ def effects():
                 if o.get("fx_hot") == key and o.type == "MESH" and o.data.materials:
                     m0 = o.data.materials[0]
                     if m0.name not in heat:
-                        heat[m0.name] = mat_heat(m0)
+                        heat[m0.name] = mat_heat(m0, strength=0.55)
                     o.data.materials[0] = heat[m0.name]
             anchors = sorted([o for o in sc.objects if o.name.startswith(f"fxa_muzzle_{key}")], key=lambda o: o.name)
             for k, a in enumerate(anchors):
@@ -778,13 +803,15 @@ def effects():
                 point_light(f"plasmalight{k}", (0, 0.25, 0.1), 25.0, (0.3, 0.8, 1.0), radius=0.15, parent=a)
         if spec.get("missile") and f"fxa_msl_{key}" in sc.objects:
             emp = sc.objects[f"fxa_msl_{key}"]
+            head = sc.objects[f"head_{key}"]
+            pts = json.loads(head["fx_trail"])
+            if spec.get("msl_s"):
+                pts = missile_slide(emp, pts, spec["msl_s"])
             emp.scale = (1.35, 1.35, 1.35)     # missil um pouco maior que a escala do casulo (le na miniatura)
             flame("msl_flame", 1.5, 0.13, fx["msl"], spikes=4, seed=9, cone=10, parent=emp, loc=(0, -0.02, 0),
                   rot=(0, 0, 180))
             point_light("msl_light", (0, -0.35, 0), 220.0, (1.0, 0.5, 0.16), radius=0.2, parent=emp)
-            head = sc.objects[f"head_{key}"]
             rnd = random.Random(23)
-            pts = json.loads(head["fx_trail"])
             for j, (x, y, z, r) in enumerate(pts):
                 # rastro irregular: bolas desencontradas, cada vez mais ralas perto do casulo (a fumaca se desfaz)
                 t = j / max(1, len(pts) - 1)

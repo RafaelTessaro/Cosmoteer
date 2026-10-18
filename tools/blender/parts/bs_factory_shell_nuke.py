@@ -10,26 +10,31 @@ Coordenadas centradas na peca, +Y = frente (topo da imagem), 1 unidade = 1 tile.
 Maquina (mesma familia das armas: cascas claras chanfradas com bisel duplo sobre nucleo escuro, luz verde
 so em recessos escuros):
   * camara de fundicao blindada no tile de cima do meio: parede grossa em cunha apontando para o berco,
-    moldura de segundo degrau em volta de uma janela retangular de vidro de chumbo escuro (moldura de aco em
-    degrau) por onde se ve o cadinho com o banho verde pulsando; fendas com pips verdes, respiro traseiro;
-    portas de transferencia escuras nos dois chanfros de baixo;
+    moldura de segundo degrau em volta de uma janela rasa (labio de aco em degrau, 2 reflexos claros do vidro
+    de chumbo num canto) por onde se ve o cadinho: aro octogonal de blindagem clara, sulco escuro, banho verde
+    octogonal que pulsa (centro mais quente, cascas de escoria girando) e as 2 pincas de aco dos lados; fendas
+    de pips verdes nos lados da moldura, fenda vertical na cunha de baixo, portas de transferencia escuras nos
+    dois chanfros de baixo;
   * dois manipuladores remotos articulados nos cantos de cima: tampao blindado de parede (torre do ombro),
     braco e antebraco de casca clara sobre viga escura com cilindros hidraulicos de aco, cotovelo de aco com
-    LED, punho e garra de 2 dedos. O da esquerda leva o nucleo verde da porta ate o estojo aberto, o da
-    direita leva a ogiva ate a ponta do projetil. Colunas blindadas nos cantos de fora, casco de chumbo
-    (esquerda) e estante de ogivas (direita) no leito escuro por baixo do curso dos bracos;
+    LED, punho e garra de 2 dedos de aco com pontas claras. O da esquerda leva o nucleo verde da porta ate o
+    estojo aberto, o da direita leva a ogiva (com o trevo) ate a ponta do projetil. Colunas blindadas nos
+    cantos de fora, casco de chumbo (esquerda) e estante de ogivas (direita) no leito escuro;
   * berco de montagem blindado no tile central: calha escura com o estojo partido em 2 metades (as mesmas
     medidas do Projetil Nuclear, parts/bs_shell_nuke.py, em 0.72), 2 mordentes pesados de grampo (bloco
     escuro + casca clara) que correm em trilhos de aco, e capuz de saida embaixo (o projetil pronto desce por
     baixo dele para a saida).
-Animacao (12 quadros, 0.11 s): 0 estojo aberto, garras nas portas (nucleo e ogiva presos); 1-3 o braco
-esquerdo leva o nucleo (o banho pulsa forte quando o nucleo sai); 2-4 o braco direito leva a ogiva; 4-5 as
-metades fecham; 6 o grampo bate com lampejo verde pelas costuras; 7-8 o lampejo apaga e o grampo solta;
-9-10 o projetil desce para a saida; 11 berco vazio, novos nucleo e ogiva saindo das portas.
-Teto: placas verdes (pintura) em blindagem extra pesada de 2 degraus, ombreiras dos manipuladores com tampa
-de aco e laminas claras apontando para o centro, tampa da celula quente sem pintura em degraus com visor
-verde, e o emblema do tile central: trevo de 3 laminas de blindagem clara sobre base escura com pips verdes
-entre as laminas; setas das entradas e da saida com pips verdes em fendas vazadas.
+Animacao (12 quadros, 0.11 s): 0 estojo aberto com as faixas apagadas, garras nas portas (nucleo e ogiva
+presos); 1-3 o braco esquerdo leva o nucleo (o banho pulsa forte quando o nucleo sai) e as faixas acendem
+quando ele entra; 2-4 o braco direito leva a ogiva; 4-5 as metades fecham; 6 o grampo bate com lampejo verde
+pelas costuras; 7-8 o lampejo apaga e o grampo solta; 9-10 o projetil desce para a saida; 11 metades novas
+chegando pelos lados (LED de pronto na calha), novos nucleo e ogiva saindo das portas. O quadro 0 (base do
+lights.png) nao tem o estojo aceso.
+Teto: placas verdes (pintura) em blindagem extra pesada: guardas claras em L nos cantos de cima, 4 laminas
+claras em cunha (cantos de cima e de baixo) emoldurando o trevo de 3 laminas de blindagem clara do tile
+central, tampa da celula quente sem pintura em degraus com visor, chevrons duplos verdes elevados nas
+entradas e na saida, cinta de cofre em segmentos claros com dobradicas e trava central sobre a saida. As
+luzes do teto sao lima (R alto, B zero) para nao cair no teste de troca de cor do shader do teto.
 """
 
 import math
@@ -104,9 +109,10 @@ def _extra(st=None):
     X = dict(NK.mats())   # mesmos materiais do Projetil Nuclear (corpo, ogiva, aco claro, nucleo, faixas)
     X.update({
         "cap": X["ogive"],
-        # banho do cadinho: verde saturado (forca <= ~1.2 para nao estourar em branco), centro mais quente
-        "melt": B.mat_glow("nk_melt", (0.30, 1.0, 0.14), 0.42 + 0.30 * melt),
-        "melt_hot": B.mat_glow("nk_melt_hot", (0.36, 1.0, 0.18), 0.6 + 0.45 * melt),
+        # banho do cadinho: verde saturado. Forca baixa porque o halo do render soma ~55% em areas grandes de
+        # emissao (com mais que ~0.4 o banho estoura em verde-branco); centro mais quente
+        "melt": B.mat_glow("nk_melt", (0.30, 1.0, 0.14), 0.16 + 0.13 * melt),
+        "melt_hot": B.mat_glow("nk_melt_hot", (0.36, 1.0, 0.18), 0.30 + 0.25 * melt),
         "flash": B.mat_glow("nk_flash", (0.35, 1.0, 0.16), 1.2 + 1.8 * flash),
         "lead": B.mat_metal("nk_lead", (0.075, 0.08, 0.085), rough=0.55, metal=0.5),
         # cinza medio fosco das cascas secundarias (sem desgaste: nao clareia nas quinas)
@@ -114,7 +120,7 @@ def _extra(st=None):
         # fundo do poco da janela: preto esverdeado (vidro de chumbo visto por dentro)
         "wbed": B.mat_metal("nk_wbed", (0.006, 0.016, 0.010), rough=0.5, metal=0.2),
         # reflexo claro no vidro (riscos diagonais no canto da janela)
-        "glint": B.mat_paint("nk_glint", (0.72, 0.80, 0.78), rough=0.15, metal=0.0, wear=0.0, grime=0.0, scale=4),
+        "glint": B.mat_paint("nk_glint", (0.42, 0.50, 0.47), rough=0.15, metal=0.0, wear=0.0, grime=0.0, scale=4),
     })
     return X
 
@@ -318,9 +324,9 @@ def _chamber(M, X, tags, st):
         B.box(f"cru_tmount{k}", wx + k * (WIN[0] / 2 - 0.01), wy, 0.03, 0.09, 0.245, 0.40, KM, bevel=0.005,
               tags=tags)
     # reflexos do vidro de chumbo: 2 riscos claros em diagonal no canto de cima a esquerda
-    for k, (d, ln) in enumerate(((0.0, 0.11), (0.032, 0.07))):
-        gx, gy = wx - 0.170 + d * 0.707, wy + 0.105 - d * 0.707
-        B.rbox(f"ch_glint{k}", gx, gy, ln, 0.011, 0.448, 0.452, X["glint"], rot=45, bevel=0.0, tags=tags)
+    for k, (d, ln) in enumerate(((0.0, 0.12), (0.03, 0.06))):
+        gx, gy = wx - 0.168 + d * 0.707, wy + 0.103 - d * 0.707
+        B.rbox(f"ch_glint{k}", gx, gy, ln, 0.008, 0.448, 0.452, X["glint"], rot=45, bevel=0.0, tags=tags)
     # labio de aco em degrau em volta da janela, com parafusos
     lip = B.plate("ch_wlip", B.rpoly(wx, wy, WIN[0] + 0.06, WIN[1] + 0.055, 0, chamfer=0.07), 0.42, 0.475, S,
                   slope=0.012, bevel=0.004, tags=tags)
@@ -570,9 +576,10 @@ def _cradle(M, X, tags, st):
             B.box(f"fx_joint{k}", 0, yy * SC + SY + oy, 0.17, 0.007 + 0.004 * f, SZ + 0.23, SZ + 0.262,
                   X["flash"], bevel=0.0, tags=tags)
     if st["slide"] > 0:
-        # o que desce alem do capuz fica escondido (holdout transparente); comeca em y -0.50 (abaixo da borda
-        # de baixo do capuz e do bloco, y -0.47), senao recorta essa borda nos quadros da descida
-        B.box("out_hold", 0, -0.66, 0.40, 0.32, -0.1, 1.2, _holdout(), bevel=0.0, tags=tags)
+        # o que desce alem do capuz fica escondido (holdout transparente). Comeca em y -0.485, logo abaixo da
+        # borda de baixo do capuz e do bloco (y -0.47), senao recorta essa borda nos quadros da descida; largura so
+        # a do projetil, para nao mexer na saia do capuz. Sobra uma lasca de ~1 px do projetil entrando na saida.
+        B.box("out_hold", 0, -0.645, 0.30, 0.32, -0.1, 1.2, _holdout(), bevel=0.0, tags=tags)
 
     # mordentes do grampo: bloco escuro + casca clara pesada (bisel duplo), correndo em trilhos de aco
     xin = 0.150 + (1.0 - st["clamp"]) * 0.11
@@ -642,6 +649,7 @@ RF_GUARD = [(-1.38, 1.30), (-1.30, 1.38), (-0.64, 1.38), (-0.58, 1.33), (-0.76, 
             (-1.26, 1.00), (-1.38, 1.04)]
 # lamina clara (sem pintura) em cunha de bisel duplo na base do canto, apontando para o berco
 RF_BLADE = [(-1.40, 0.92), (-1.40, 0.77), (-1.20, 0.645), (-0.56, 0.645), (-0.72, 0.85), (-1.22, 0.85)]
+BL_LED_Y = 1.5 - 48.5 / 64    # fenda de LEDs da lamina no centro de uma fileira de pixels (y = 0.742)
 # tampa da celula quente (sem pintura): cunha da camara (1o degrau) e bloco do visor (2o degrau)
 LID = [(-0.46, 1.45), (0.46, 1.45), (0.50, 1.41), (0.50, 1.04), (0.22, 0.585), (-0.22, 0.585), (-0.50, 1.04),
        (-0.50, 1.41)]
@@ -697,8 +705,10 @@ def roof(M, T="roof"):
         bl = f(RF_BLADE)
         B.plate(f"rf_blk{sx}", B.offset_poly(bl, -0.03), 0.06, 0.12, K, slope=0.012, tags=tags)
         ba, bp = B.shard(f"rf_bl{sx}", bl, 0.10, 0.21, A, slope=0.04, groove=0.02, panel_h=0.02, tags=tags)
-        _ledslot(f"rf_bsl{sx}", sx * 0.94, 0.745, 0.32, 0.042, 0.12, 3, M, tags, [ba, bp], vertical=False,
-                 pip_mat=LED, pw=0.022)
+        # (fenda alta e pips finos centrados numa fileira de pixels: a borda do LED nao se mistura com a blindagem
+        # clara, mistura que cairia no teste de troca de cor)
+        _ledslot(f"rf_bsl{sx}", sx * 0.94, BL_LED_Y, 0.32, 0.06, 0.12, 3, M, tags, [ba, bp], vertical=False,
+                 pip_mat=LED, pw=0.02)
         if bp is not None:
             B.cut(bp, [B.rbox(f"rf_bpl{sx}", sx * 0.70, 0.735, 0.022, 0.12, 0.18, 0.6, K, rot=sx * 35, bevel=0.0)])
         B.bolts(f"rf_tb{sx}", [(sx * 0.63, 0.95)], 0.10, 0.015, S, tags=tags)
@@ -790,8 +800,8 @@ def roof(M, T="roof"):
         bl = [(x, -y) for x, y in reversed(f(RF_BLADE))]
         B.plate(f"rf_bbk{k}", B.offset_poly(bl, -0.03), 0.06, 0.12, K, slope=0.012, tags=tags)
         la_, lp_ = B.shard(f"rf_bbl{k}", bl, 0.10, 0.21, A, slope=0.04, groove=0.02, panel_h=0.02, tags=tags)
-        _ledslot(f"rf_bsl{k}", sx * 0.94, -0.745, 0.32, 0.042, 0.12, 3, M, tags, [la_, lp_], vertical=False,
-                 pip_mat=LED, pw=0.022)
+        _ledslot(f"rf_bsl{k}", sx * 0.94, -BL_LED_Y, 0.32, 0.06, 0.12, 3, M, tags, [la_, lp_], vertical=False,
+                 pip_mat=LED, pw=0.02)
         if lp_ is not None:
             B.cut(lp_, [B.rbox(f"rf_bbp{k}", sx * 0.70, -0.735, 0.022, 0.12, 0.18, 0.6, K, rot=sx * -35,
                                bevel=0.0)])
