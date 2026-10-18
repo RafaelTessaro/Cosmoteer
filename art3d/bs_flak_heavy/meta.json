@@ -1,0 +1,148 @@
+{
+ "version": 1,
+ "id": "rafaeltessaro.bs_flak_heavy",
+ "kind": "gun",
+ "size": [
+  4,
+  4
+ ],
+ "pivot": [
+  2.0,
+  1.68
+ ],
+ "turret_size": 3.92,
+ "collider": 1.55,
+ "turret": {
+  "frames": [
+   "turret.png"
+  ],
+  "normals": [
+   "turret_normals.png"
+  ],
+  "interval": 0,
+  "off": "turret_off.png",
+  "off_normals": "turret_normals.png",
+  "shadow": "turret_shadow.png",
+  "shadow_size": 4.17
+ },
+ "barrel": {
+  "ys": [
+   -0.45,
+   0.45
+  ],
+  "root": 0.62,
+  "length": 2.2,
+  "pad": 0.3,
+  "sprite_w": 0.5,
+  "sprite_len": 2.56,
+  "center": 1.6,
+  "muzzle": 2.77,
+  "anim": "recoil",
+  "frames": [
+   "barrel2.png",
+   "barrel3.png",
+   "barrel4.png",
+   "barrel5.png",
+   "barrel6.png",
+   "barrel7.png",
+   "barrel8.png",
+   "barrel9.png",
+   "barrel10.png",
+   "barrel11.png",
+   "barrel1.png"
+  ],
+  "normals": [
+   "barrel_normals2.png",
+   "barrel_normals3.png",
+   "barrel_normals4.png",
+   "barrel_normals5.png",
+   "barrel_normals6.png",
+   "barrel_normals7.png",
+   "barrel_normals8.png",
+   "barrel_normals1.png",
+   "barrel_normals1.png",
+   "barrel_normals1.png",
+   "barrel_normals1.png"
+  ],
+  "interval": 0.06,
+  "rest": "barrel1.png",
+  "rest_normals": "barrel_normals1.png"
+ },
+ "crew_pos": [
+  [
+   0.5,
+   3.55,
+   0
+  ],
+  [
+   1.5,
+   3.55,
+   0
+  ],
+  [
+   2.5,
+   3.55,
+   0
+  ],
+  [
+   3.5,
+   3.55,
+   0
+  ]
+ ],
+ "hull": {
+  "floor": "floor.png",
+  "walls": "walls.png",
+  "roof": "roof.png",
+  "roof_normals": "roof_normals.png",
+  "lights": "lights.png"
+ },
+ "lights": [
+  {
+   "loc": [
+    -1.12,
+    0.0
+   ],
+   "size": 1.7,
+   "color": [
+    255,
+    120,
+    30
+   ],
+   "z": 0.8
+  }
+ ],
+ "preview_pattern": "alternate",
+ "accent": "amber",
+ "preview_fx": "fire",
+ "files": [
+  "barrel1.png",
+  "barrel10.png",
+  "barrel11.png",
+  "barrel2.png",
+  "barrel3.png",
+  "barrel4.png",
+  "barrel5.png",
+  "barrel6.png",
+  "barrel7.png",
+  "barrel8.png",
+  "barrel9.png",
+  "barrel_normals1.png",
+  "barrel_normals2.png",
+  "barrel_normals3.png",
+  "barrel_normals4.png",
+  "barrel_normals5.png",
+  "barrel_normals6.png",
+  "barrel_normals7.png",
+  "barrel_normals8.png",
+  "floor.png",
+  "lights.png",
+  "roof.png",
+  "roof_normals.png",
+  "turret.png",
+  "turret_normals.png",
+  "turret_off.png",
+  "turret_shadow.png",
+  "walls.png"
+ ]
+}
