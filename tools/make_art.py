@@ -284,13 +284,14 @@ def logo():
 
 
 def misc_art(out):
-    out.image("gui/group_bullet_strike.png", S.render_group_icon())
+    # icones da interface no padrao do jogo (silhueta azul com brilho, 96 px; ver bsgen/ui_icons.py)
+    from bsgen import ui_icons as U
+    out.image("gui/group_bullet_strike.png", U.icon_group())
     for kind in ("std", "ap", "aphe", "emp"):
-        acc = {"std": "ammo", "ap": "ap", "aphe": "aphe", "emp": "emp"}[kind]
-        out.image(f"gui/ammo_{kind}.png", S.render_toggle_icon(kind, S.ACCENTS[acc]))
-    # seletor de missil (bs_missile_type): um icone por escolha, cor do brilho do tipo (spec missile_types[].glow)
+        out.image(f"gui/ammo_{kind}.png", U.icon_ammo(kind))
+    # seletor de missil (bs_missile_type): um icone por escolha
     import bs_data as D
     if D.LAUNCHERS:
         for _idx, _cid, _key, icon, mt in D.MISSILE_CHOICES:
-            out.image(f"gui/{icon}", S.render_missile_icon(mt, tuple(D._hex_rgb(D.MISSILE_TYPES[mt]["glow"]))))
+            out.image(f"gui/{icon}", U.icon_missile(mt))
     out.image("logo.png", logo())
