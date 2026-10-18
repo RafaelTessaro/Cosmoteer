@@ -339,11 +339,16 @@ def safe_offset(poly, d):
     return d
 
 
+_PLATE_WARNED = set()
+
+
 def plate(name, poly, z0, z1, mat, slope=0.06, bevel=0.018, seg=1, tags=()):
     """Placa com laterais chanfradas (facetas iluminadas/sombreadas) e quina viva."""
     want = slope
     slope = safe_offset(poly, slope)
-    if want > 0 and slope < want * 0.6:
+    if want > 0 and slope < want * 0.6 and name not in _PLATE_WARNED:
+        # um aviso por peca e por processo (os quadros de animacao reconstroem a cena e repetiriam o aviso)
+        _PLATE_WARNED.add(name)
         print(f"AVISO: plate '{name}' teve o chanfro reduzido de {want:.3f} para {slope:.3f} (poligono fino ou agudo)")
     return loft(name, poly, offset_poly(poly, slope), z0, z1, mat, bevel, seg, tags)
 

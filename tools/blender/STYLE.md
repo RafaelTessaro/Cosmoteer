@@ -362,3 +362,24 @@ normals PNG per body size; never use a Lower/Middle bucket (hidden under our roo
   ~0.1 of space between the opening and the back-row rims.
 - **Emission saturation:** with the Standard view, glows above ~1.5 of strength saturate (orange turns yellow). An overclock
   "orange eye" uses strength 1.0-1.5 with color (1, 0.16, 0.01).
+
+- **Recess deeper than the top shard on an inclined pod:** a recess cut into a 40 degree pod top deeper than the top armor shard
+  (~0.07-0.09 thick) reaches the pod's dark body, whose top face then becomes the "vent floor" (and, with `oc_occlude`, hides any
+  overclock glow below it). Keep recess floors just above the body top.
+- **Louvers on inclined tops:** slats built square to an inclined top hide their own gaps in the top view (the grille reads as a
+  solid dark slot). Shear them to world-vertical walls (top shifted by dz*tan(pitch)), like the cutters.
+- **`Mo.slot_with_pips(vertical=False)`:** `x` becomes the slot's y position and `y0/y1` the x range. Use keywords and double-check.
+- **`Mo.slot_with_pips` on a shard:** target `[shard, panel]`, never only the panel (the recess bed ends up buried inside the shard
+  body and the pips disappear).
+- **Narrow blind slots on beveled plates:** `B.cut` re-applies the bevel, which also fillets the concave floor edge of a blind slot
+  and covers the edges of the black bed (on green roof inlays the slot renders green). For slots narrower than ~0.06, cut a
+  through-hole and put the black bed on the piece below (helper `_ledslot` in `parts/bs_factory_mag_ap.py`).
+- **Paint wear on small meshes:** the edge-wear mask of `mat_paint` bleeds over whole faces of small low-poly beveled meshes and
+  makes dark paint render light. Use `wear=0.0` on small dark items (ammo).
+- **`B.rpoly` with negative `sy`** returns a clockwise polygon: the cut does nothing. Keep sizes positive.
+- **Factory light map:** `render_factory` builds `lights.png` from machine frame 1 only; keep the big glows static or accept a static
+  light map.
+- **Floating islands:** check that the turret sprite is ONE connected component (alpha > 100). A plate whose polygon starts beyond
+  the end of the piece under it floats over the hull.
+- **Overclock glow:** never cover a whole housing with an emissive slab (it reads as a flat orange sticker). Put small concentric
+  emitters at the bottom of the recess and let `oc_occlude` (holdout) cut them with the rims and vanes in front.
