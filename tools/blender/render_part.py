@@ -363,8 +363,9 @@ def render_launcher(mod, out, only):
     head(M, T, phase): o casulo girando, com as bocas dos tubos VAZIAS (camada roof_doodads).
     cell(M, look, T): UM nariz de missil carregado, centrado na origem, inclinado como o casulo.
     As posicoes das celulas e a ordem de enchimento vem de tools/launcher_layout.py com os layouts por modo do
-    spec (launchers[].modes[].layout); cada nivel do rack (cells_<tipo>_p<casulo>_<n>.png, no quadro da torre)
-    e composto aqui colando o nariz renderizado nas primeiras n unidades do casulo."""
+    spec (launchers[].modes[].layout); cada nivel do rack (cells_<tipo>_p<casulo>_<n>.png, no retangulo do casulo
+    recortado do quadro da torre, launcher_layout.overlay_rect) e composto aqui colando o nariz renderizado nas
+    primeiras n unidades do casulo."""
     from launcher_layout import cell_layout, overlay_rect
     P = mod.PART
     W, H = P["size"]
@@ -641,7 +642,7 @@ def main():
         old["files"] = sorted(set(old.get("files", [])) | set(meta["files"]))
         meta = old
     json.dump(meta, open(mp, "w"), indent=1)
-    if "--preview" in args and kind == "gun":
+    if "--preview" in args and kind in ("gun", "launcher"):
         import compose_preview
         compose_preview.make_all(out)
     print("OK", short, out)

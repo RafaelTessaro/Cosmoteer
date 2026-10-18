@@ -1,0 +1,393 @@
+{
+ "version": 1,
+ "id": "rafaeltessaro.bs_msl_box",
+ "kind": "launcher",
+ "size": [
+  2,
+  2
+ ],
+ "pivot": [
+  1.0,
+  0.95
+ ],
+ "turret_size": 1.9,
+ "collider": 0.85,
+ "turret": {
+  "frames": [
+   "turret1.png",
+   "turret2.png",
+   "turret3.png",
+   "turret4.png",
+   "turret5.png",
+   "turret6.png",
+   "turret7.png",
+   "turret8.png"
+  ],
+  "normals": [
+   "turret1_normals.png",
+   "turret2_normals.png",
+   "turret3_normals.png",
+   "turret4_normals.png",
+   "turret5_normals.png",
+   "turret6_normals.png",
+   "turret7_normals.png",
+   "turret8_normals.png"
+  ],
+  "interval": 0.12,
+  "off": "turret_off.png",
+  "off_normals": "turret1_normals.png",
+  "shadow": "turret_shadow.png",
+  "shadow_size": 2.15
+ },
+ "modes": {
+  "he": {
+   "units": [
+    [
+     0.1,
+     -0.26
+    ],
+    [
+     0.1,
+     0.26
+    ],
+    [
+     0.32,
+     -0.26
+    ],
+    [
+     0.32,
+     0.26
+    ],
+    [
+     0.54,
+     -0.26
+    ],
+    [
+     0.54,
+     0.26
+    ]
+   ],
+   "unit_pods": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "tubes": [
+    [
+     [
+      0.1,
+      -0.39
+     ],
+     [
+      0.1,
+      -0.13
+     ]
+    ],
+    [
+     [
+      0.1,
+      0.13
+     ],
+     [
+      0.1,
+      0.39
+     ]
+    ],
+    [
+     [
+      0.32,
+      -0.39
+     ],
+     [
+      0.32,
+      -0.13
+     ]
+    ],
+    [
+     [
+      0.32,
+      0.13
+     ],
+     [
+      0.32,
+      0.39
+     ]
+    ],
+    [
+     [
+      0.54,
+      -0.39
+     ],
+     [
+      0.54,
+      -0.13
+     ]
+    ],
+    [
+     [
+      0.54,
+      0.13
+     ],
+     [
+      0.54,
+      0.39
+     ]
+    ]
+   ],
+   "overlays": [
+    {
+     "range": [
+      0,
+      6
+     ],
+     "files": [
+      "cells_he_p0_0.png",
+      "cells_he_p0_1.png",
+      "cells_he_p0_2.png",
+      "cells_he_p0_3.png",
+      "cells_he_p0_4.png",
+      "cells_he_p0_5.png",
+      "cells_he_p0_6.png"
+     ],
+     "normals": [
+      "cells_he_p0_0_normals.png",
+      "cells_he_p0_1_normals.png",
+      "cells_he_p0_2_normals.png",
+      "cells_he_p0_3_normals.png",
+      "cells_he_p0_4_normals.png",
+      "cells_he_p0_5_normals.png",
+      "cells_he_p0_6_normals.png"
+     ],
+     "rect": [
+      19,
+      10,
+      103,
+      71
+     ]
+    }
+   ]
+  },
+  "napalm": {
+   "units": [
+    [
+     0.1,
+     -0.26
+    ],
+    [
+     0.1,
+     0.26
+    ],
+    [
+     0.32,
+     -0.26
+    ],
+    [
+     0.32,
+     0.26
+    ],
+    [
+     0.54,
+     -0.26
+    ],
+    [
+     0.54,
+     0.26
+    ]
+   ],
+   "unit_pods": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "tubes": [
+    [
+     [
+      0.1,
+      -0.39
+     ],
+     [
+      0.1,
+      -0.13
+     ]
+    ],
+    [
+     [
+      0.1,
+      0.13
+     ],
+     [
+      0.1,
+      0.39
+     ]
+    ],
+    [
+     [
+      0.32,
+      -0.39
+     ],
+     [
+      0.32,
+      -0.13
+     ]
+    ],
+    [
+     [
+      0.32,
+      0.13
+     ],
+     [
+      0.32,
+      0.39
+     ]
+    ],
+    [
+     [
+      0.54,
+      -0.39
+     ],
+     [
+      0.54,
+      -0.13
+     ]
+    ],
+    [
+     [
+      0.54,
+      0.13
+     ],
+     [
+      0.54,
+      0.39
+     ]
+    ]
+   ],
+   "overlays": [
+    {
+     "range": [
+      0,
+      6
+     ],
+     "files": [
+      "cells_napalm_p0_0.png",
+      "cells_napalm_p0_1.png",
+      "cells_napalm_p0_2.png",
+      "cells_napalm_p0_3.png",
+      "cells_napalm_p0_4.png",
+      "cells_napalm_p0_5.png",
+      "cells_napalm_p0_6.png"
+     ],
+     "normals": [
+      "cells_napalm_p0_0_normals.png",
+      "cells_napalm_p0_1_normals.png",
+      "cells_napalm_p0_2_normals.png",
+      "cells_napalm_p0_3_normals.png",
+      "cells_napalm_p0_4_normals.png",
+      "cells_napalm_p0_5_normals.png",
+      "cells_napalm_p0_6_normals.png"
+     ],
+     "rect": [
+      19,
+      10,
+      103,
+      71
+     ]
+    }
+   ]
+  }
+ },
+ "crew_pos": [
+  [
+   1.0,
+   1.55,
+   0
+  ]
+ ],
+ "hull": {
+  "floor": "floor.png",
+  "walls": "walls.png",
+  "roof": "roof.png",
+  "roof_normals": "roof_normals.png",
+  "lights": "lights.png"
+ },
+ "backblast": [
+  [
+   -0.55,
+   0.0
+  ]
+ ],
+ "lights": [
+  {
+   "loc": [
+    -0.8,
+    0.0
+   ],
+   "size": 1.0,
+   "color": [
+    255,
+    120,
+    30
+   ],
+   "z": 0.6
+  }
+ ],
+ "preview_pattern": "ripple",
+ "files": [
+  "cells_he_p0_0.png",
+  "cells_he_p0_0_normals.png",
+  "cells_he_p0_1.png",
+  "cells_he_p0_1_normals.png",
+  "cells_he_p0_2.png",
+  "cells_he_p0_2_normals.png",
+  "cells_he_p0_3.png",
+  "cells_he_p0_3_normals.png",
+  "cells_he_p0_4.png",
+  "cells_he_p0_4_normals.png",
+  "cells_he_p0_5.png",
+  "cells_he_p0_5_normals.png",
+  "cells_he_p0_6.png",
+  "cells_he_p0_6_normals.png",
+  "cells_napalm_p0_0.png",
+  "cells_napalm_p0_0_normals.png",
+  "cells_napalm_p0_1.png",
+  "cells_napalm_p0_1_normals.png",
+  "cells_napalm_p0_2.png",
+  "cells_napalm_p0_2_normals.png",
+  "cells_napalm_p0_3.png",
+  "cells_napalm_p0_3_normals.png",
+  "cells_napalm_p0_4.png",
+  "cells_napalm_p0_4_normals.png",
+  "cells_napalm_p0_5.png",
+  "cells_napalm_p0_5_normals.png",
+  "cells_napalm_p0_6.png",
+  "cells_napalm_p0_6_normals.png",
+  "floor.png",
+  "lights.png",
+  "roof.png",
+  "roof_normals.png",
+  "turret1.png",
+  "turret1_normals.png",
+  "turret2.png",
+  "turret2_normals.png",
+  "turret3.png",
+  "turret3_normals.png",
+  "turret4.png",
+  "turret4_normals.png",
+  "turret5.png",
+  "turret5_normals.png",
+  "turret6.png",
+  "turret6_normals.png",
+  "turret7.png",
+  "turret7_normals.png",
+  "turret8.png",
+  "turret8_normals.png",
+  "turret_off.png",
+  "turret_shadow.png",
+  "walls.png"
+ ]
+}

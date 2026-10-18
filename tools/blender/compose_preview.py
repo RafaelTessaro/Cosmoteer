@@ -5,6 +5,8 @@
 Gera na mesma pasta:
     preview_ingame.png  -> peca montada na escala do jogo (64 px/tile) e ampliada 3x
     preview_fire.gif    -> torre girando, 3 disparos ("tum, tum, tum") com recuo, clarao e calor
+Lancadores (meta kind "launcher"): o casulo com o rack cheio (1x e 3x) e um GIF com a salva em LIFO tubo a tubo
+(o nivel do rack cai uma unidade por lancamento, clarao no tubo e baforada de sopro) e a recarga unidade a unidade.
 """
 
 import json
@@ -203,6 +205,8 @@ def _crop_frames(frames, bg=(7, 9, 14)):
 
 def make_all(d, paint=(46, 58, 74), scale=2):
     meta = json.load(open(os.path.join(d, "meta.json")))
+    if meta.get("kind") == "launcher":
+        return make_all_launcher(d, meta, paint, scale)
     roof = paint_roof(load(d, "roof.png"), paint)
     br = meta["barrel"]
     nb = len(br["ys"])
@@ -284,6 +288,225 @@ def make_all(d, paint=(46, 58, 74), scale=2):
         tf += 1 if ntf > 1 else 0
     frames = _crop_frames(frames)
     # pecas grandes: limita o tamanho do GIF (envio maximo ~30 MB)
+    k = min(1.0, 760 / max(frames[0].size))
+    if k < 1:
+        frames = [f.resize((int(f.width * k), int(f.height * k)), Image.LANCZOS) for f in frames]
+    pal = [f.convert("RGB").quantize(colors=200, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+           for f in frames]
+    pal[0].save(os.path.join(d, "preview_fire.gif"), save_all=True, append_images=pal[1:], duration=durs, loop=0,
+                optimize=True, disposal=1)
+    return len(frames)
+
+
+
+# ============================================================================ lancadores de misseis
+LAUNCH_REACH = 1.9      # tiles a frente do pivo mostrados no GIF (voo dos misseis), no minimo
+
+
+def _reach(meta):
+    return max(LAUNCH_REACH, meta["turret_size"] / 2 + 1.0)
+
+
+def _launcher_layer(d, meta, look, level, tframe=0, fx=None, side=None):
+    """Casulo + nivel do rack (ResourceSprites) num quadrado centrado no pivo, ainda sem girar.
+
+    level: unidades carregadas (0..N). fx: [(img, frente, lado, aditivo)] em coordenadas da torre."""
+    ts = meta["turret_size"]
+    T = int(round(ts * PX))
+    side = side or int(math.ceil(2 * _reach(meta) * PX)) + 4
+    lay = Image.new("RGBA", (side, side), (0, 0, 0, 0))
+    c = side / 2
+    tf = meta["turret"]["frames"]
+    x0, y0 = int(round(c - T / 2)), int(round(c - T / 2))
+    lay.alpha_composite(load(d, tf[tframe % len(tf)]), (x0, y0))
+    for ov in meta["modes"][look]["overlays"]:
+        a, b = ov["range"]
+        n = max(0, min(b - a, level - a))
+        r = ov.get("rect") or [0, 0, T, T]
+        lay.alpha_composite(load(d, ov["files"][n]), (x0 + r[0], y0 + r[1]))
+    sh = meta["modes"][look].get("shutters")
+    if sh:                      # persianas fechadas dos casulos sem unidade neste modo (quadro da torre)
+        lay.alpha_composite(load(d, sh["file"]), (x0, y0))
+    for img, fwd, lat, additive in (fx or []):
+        if additive:
+            add_center(lay, img, c + lat * PX, c - fwd * PX, gain=1.2)
+            paste_center(lay, _fade(img, 0.35), c + lat * PX, c - fwd * PX)
+        else:
+            paste_center(lay, img, c + lat * PX, c - fwd * PX)
+    return lay
+
+
+def _launcher_frame(d, meta, roof, look, level, tframe=0, angle=0.0, fx=None, scale=1, bg=(7, 9, 14)):
+    """Peca inteira: teto, sombra do casulo, casulo + rack + efeitos girados juntos (ChainedTo Turret)."""
+    W, H = meta["size"]
+    pvx, pvy = meta["pivot"]
+    reach = _reach(meta)
+    top = max(0.0, reach - pvy) + 0.2
+    side = max(0.0, reach - pvx, reach - (W - pvx)) + 0.2
+    cw, ch = int((W + 2 * side) * PX), int((H + top + 0.4) * PX)
+    canvas = Image.new("RGBA", (cw, ch), bg + (255,))
+    ox, oy = int(side * PX), int(top * PX)
+    canvas.alpha_composite(roof, (ox, oy))
+    px, py = ox + pvx * PX, oy + pvy * PX
+    base = rotate_about_center(_launcher_layer(d, meta, look, level, tframe), angle)
+    paste_center(canvas, shadow_of(base), px, py)
+    lay = rotate_about_center(_launcher_layer(d, meta, look, level, tframe, fx), angle) if fx else base
+    paste_center(canvas, lay, px, py)
+    if scale != 1:
+        canvas = canvas.resize((cw * scale, ch * scale), Image.LANCZOS)
+    return canvas
+
+
+def tube_flash(scale, t, seed=0):
+    """Clarao pequeno na boca do tubo (missile_launcher_shoot_flash): nucleo claro + lingua curta para frente."""
+    S = 4
+    U = PX * scale * S
+    w = int(1.2 * U)
+    im = Image.new("RGBA", (w, w), (0, 0, 0, 0))
+    dr = ImageDraw.Draw(im)
+    k = (1 - t) ** 0.8
+    rng = np.random.default_rng(seed)
+    for i, col in enumerate(FIRE_COLS):
+        f = 1 - i * 0.22
+        _flame(dr, w / 2, w / 2 + U * 0.04, U * (0.42 + 0.1 * rng.random()) * k * f, U * 0.10 * k * f,
+               rng.uniform(-6, 6), col)
+        r = U * 0.11 * k * f
+        dr.ellipse([w / 2 - r, w / 2 - r, w / 2 + r, w / 2 + r], fill=col)
+    im = im.resize((w // S, w // S), Image.LANCZOS)
+    return Image.alpha_composite(im.filter(ImageFilter.GaussianBlur(3 * scale)), im)
+
+
+def micro_missile(scale, age):
+    """Micromissil em voo (frente para cima): corpo claro, nariz e pluma ambar que cresce."""
+    S = 4
+    U = PX * scale * S
+    w, h = int(0.5 * U), int(1.3 * U)
+    im = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    dr = ImageDraw.Draw(im)
+    cx, cy = w / 2, h * 0.30
+    L, R = U * 0.24, U * 0.035
+    pl = U * (0.18 + 0.12 * min(age, 3))
+    for i, col in enumerate(FIRE_COLS):
+        f = 1 - i * 0.2
+        _flame(dr, cx, cy + L / 2, pl * f, R * 1.6 * f, 180, col)
+    dr.rounded_rectangle([cx - R, cy - L / 2, cx + R, cy + L / 2], radius=R, fill=(205, 208, 214, 255))
+    dr.polygon([(cx - R, cy - L / 2 + R), (cx + R, cy - L / 2 + R), (cx, cy - L / 2 - R * 1.6)], fill=(232, 234, 238, 255))
+    dr.rectangle([cx - R, cy - L / 2 + R * 1.2, cx + R, cy - L / 2 + R * 2.0], fill=(255, 176, 0, 255))
+    im = im.resize((w // S, h // S), Image.LANCZOS)
+    return Image.alpha_composite(im.filter(ImageFilter.GaussianBlur(2 * scale)), im)
+
+
+def backblast_puff(scale, t, seed=0):
+    """Baforada de sopro atras do casulo (chaingun_shoot_smoke): leque de fumaca clara indo para tras (baixo)."""
+    S = 2
+    w = int(1.8 * PX * scale * S)
+    im = Image.new("RGBA", (w, w), (0, 0, 0, 0))
+    dr = ImageDraw.Draw(im)
+    rng = np.random.default_rng(seed)
+    U = PX * scale * S
+    for _ in range(10):
+        ang = rng.uniform(-1.2, 1.2)
+        dist = U * (0.05 + 0.55 * t) * rng.uniform(0.5, 1.1)
+        x = w / 2 + math.sin(ang) * dist
+        y = w / 2 + math.cos(ang) * dist * 0.8
+        r = U * (0.08 + 0.26 * t) * rng.uniform(0.7, 1.2)
+        a = int(165 * (1 - t) ** 1.3)
+        g = int(rng.uniform(150, 190))
+        dr.ellipse([x - r, y - r, x + r, y + r], fill=(g, g, g + 6, a))
+    return im.filter(ImageFilter.GaussianBlur(4 * scale)).resize((w // S, w // S), Image.LANCZOS)
+
+
+def make_all_launcher(d, meta, paint=(46, 58, 74), scale=2):
+    """Previas do lancador: casulo com o rack cheio (1x e 3x) e GIF girando, salva em LIFO tubo a tubo (o nivel
+    do rack cai uma unidade por lancamento, clarao em cada tubo + baforada de sopro atras) e recarga unidade
+    a unidade."""
+    roof = paint_roof(load(d, "roof.png"), paint)
+    looks = list(meta["modes"])
+    look = looks[0]
+    units = len(meta["modes"][look]["units"])
+    bg = (7, 9, 14)
+
+    # vista do jogo: 1x e 3x com o rack cheio (+ 1x dos outros modos)
+    def still(lk):
+        c = _launcher_frame(d, meta, roof, lk, len(meta["modes"][lk]["units"]))
+        return crop_content(c, bg)
+    one = still(look)
+    extra = [still(lk) for lk in looks[1:]]
+    three = one.resize((one.width * 3, one.height * 3), Image.LANCZOS)
+    left_w = max([one.width] + [e.width for e in extra])
+    sheet = Image.new("RGBA", (left_w + three.width + 48, three.height + 32), bg + (255,))
+    y = 16 + three.height - one.height - sum(e.height + 12 for e in extra)
+    for im in extra + [one]:
+        sheet.alpha_composite(im, (16, max(16, y)))
+        y += im.height + 12
+    sheet.alpha_composite(three, (left_w + 32, 16))
+    sheet.convert("RGB").save(os.path.join(d, "preview_ingame.png"))
+
+    # GIF (40 ms por quadro): mira, salva em ripple (4/30 s ~ 3 quadros; 2o tubo do cassete 2/30 s ~ 2 quadros
+    # depois do 1o), recarga unidade a unidade, volta
+    ntf = len(meta["turret"]["frames"])
+    tf_every = max(1, int(round(meta["turret"].get("interval", 0.12) / 0.04))) if ntf > 1 else 0
+    tubes = meta["modes"][look]["tubes"]
+    upods = meta["modes"][look].get("unit_pods") or [0] * units
+    bb = (meta.get("backblast") or [[-0.5, 0.0]])
+    reach = _reach(meta)
+    frames, durs = [], []
+    aim = -28.0
+    clock = [0]
+
+    def tfr():
+        return (clock[0] // tf_every) % ntf if tf_every else 0
+
+    def push(img):
+        frames.append(img)
+        durs.append(40)
+        clock[0] += 1
+
+    for i in range(10):
+        t = (i + 1) / 10
+        push(_launcher_frame(d, meta, roof, look, units, tfr(), aim * (1 - math.cos(t * math.pi)) / 2, scale=scale))
+    for _ in range(3):
+        push(_launcher_frame(d, meta, roof, look, units, tfr(), aim, scale=scale))
+    ripple, burst = 3, 2
+    events = []                 # (quadro, unidade, tubo)
+    for k in range(units):
+        u = units - 1 - k       # LIFO: a ultima unidade carregada sai primeiro
+        for j in range(len(tubes[u])):
+            events.append((k * ripple + j * burst, u, j))
+    fsc = max(0.5, min(1.4, meta["turret_size"] / 2.0))
+    last = max(e[0] for e in events)
+    level = units
+    for f in range(last + 12):
+        fx = []
+        for (f0, u, j) in events:
+            age = f - f0
+            if age == 0 and j == 0:
+                level = u       # o rack perde a unidade no 1o tiro do cassete
+            if age < 0:
+                continue
+            fwd, lat = tubes[u][j]
+            if age < 8:         # missil saindo do tubo e acelerando para frente
+                s = 0.10 + 0.22 * age + 0.06 * age * age
+                if fwd + s < reach - 0.2:
+                    fx.append((micro_missile(scale=1, age=age), fwd + s + 0.12, lat, False))
+            if age < 3:
+                fx.append((tube_flash(fsc, age / 3, seed=f0 * 5 + j), fwd + 0.08, lat, True))
+            if age < 9 and j == 0:
+                # uma baforada no ponto de sopro do casulo que disparou
+                for b in [bb[upods[u]] if upods[u] < len(bb) else bb[0]]:
+                    fx.append((backblast_puff(fsc, age / 9, seed=f0 + 3), b[0] - 0.08 - age * 0.03, b[1], False))
+                    if age < 2:
+                        fx.append((tube_flash(fsc * 0.8, 0.3 + age / 3, seed=f0 + 11), b[0], b[1], True))
+        push(_launcher_frame(d, meta, roof, look, level, tfr(), aim, fx=fx, scale=scale))
+    for lv in range(units + 1):       # recarga: uma unidade por vez
+        for _ in range(4):
+            push(_launcher_frame(d, meta, roof, look, lv, tfr(), aim, scale=scale))
+    for _ in range(4):
+        push(_launcher_frame(d, meta, roof, look, units, tfr(), aim, scale=scale))
+    for i in range(10):
+        t = (i + 1) / 10
+        push(_launcher_frame(d, meta, roof, look, units, tfr(), aim * (1 + math.cos(t * math.pi)) / 2, scale=scale))
+    frames = _crop_frames(frames)
     k = min(1.0, 760 / max(frames[0].size))
     if k < 1:
         frames = [f.resize((int(f.width * k), int(f.height * k)), Image.LANCZOS) for f in frames]
