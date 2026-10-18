@@ -788,8 +788,9 @@ def roof(M, T="roof"):
                             slope=0.03, groove=0.05, panel_h=0.024, tags=tags))
     ba, bp = bots[1]
     _vchev("rf_bv", 0.0, -0.905, 270, (ba, bp), 0.15, green, M, tags, s=0.95)
-    _ledslot("rf_bpips", 0.0, -0.665, 0.22, 0.05, 0.02, 3, M, tags, [ba, bp], vertical=False, pw=0.026,
-             pip_mat=LED)
+    # (fenda alta e pips finos centrados numa fileira de pixels: o LED nao se mistura com o verde da placa)
+    _ledslot("rf_bpips", 0.0, -(1.5 - 138.5 / 64), 0.22, 0.06, 0.02, 3, M, tags, [ba, bp], vertical=False,
+             pw=0.02, pip_mat=LED)
     for k in (0, 2):
         cx = -1.0 if k == 0 else 1.0
         sx = -1 if cx < 0 else 1
@@ -834,9 +835,11 @@ def roof(M, T="roof"):
     B.plate("rf_ctk", B.rpoly(0, STRAP_Y, 0.17, 0.17, 45), 0.02, 0.14, K, slope=0.012, tags=tags)
     ct = B.plate("rf_ct", B.rpoly(0, STRAP_Y, 0.135, 0.135, 45), 0.12, 0.21, S, slope=0.02, bevel=0.005,
                  tags=tags)
-    B.cut(ct, [B.box("rf_ctc", 0, STRAP_Y, 0.024, 0.075, 0.17, 0.6, K, bevel=0.0)])
-    B.box("rf_ctbed", 0, STRAP_Y, 0.024, 0.075, 0.165, 0.175, M["black"], bevel=0.0, tags=tags)
-    B.box("rf_ctl", 0, STRAP_Y, 0.012, 0.05, 0.175, 0.181, LED, bevel=0.0, tags=tags)
+    # fenda horizontal larga com o LED fino centrado numa fileira de pixels (sem misturar com o aco)
+    ly = -(1.5 - 179.5 / 64)
+    B.cut(ct, [B.box("rf_ctc", 0, ly, 0.08, 0.048, 0.17, 0.6, K, bevel=0.0)])
+    B.box("rf_ctbed", 0, ly, 0.08, 0.048, 0.165, 0.175, M["black"], bevel=0.0, tags=tags)
+    B.box("rf_ctl", 0, ly, 0.05, 0.014, 0.175, 0.181, LED, bevel=0.0, tags=tags)
     B.bolts("rf_bandb", [(x, STRAP_Y) for x in (-0.84, -0.255, 0.255, 0.84)], 0.175, 0.015, KM, tags=tags)
 
     # o verde do conves nao reflete nem rebate luz nas pecas sem pintura (senao a pintura vaza nas bordas claras)
