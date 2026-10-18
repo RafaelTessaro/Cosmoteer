@@ -52,7 +52,7 @@ def mirror(poly):
 
 
 # ============================================================================ 76 mm naval
-def slot_with_pips(name, x, y0, y1, w, ztop, n, M, tags, target=None, depth=0.05, vertical=True):
+def slot_with_pips(name, x, y0, y1, w, ztop, n, M, tags, target=None, depth=0.05, vertical=True, pip_mat=None):
     """Fenda escura (recortada no alvo, se houver) com uma fileira de n pips ambar no fundo."""
     cx, cy = (x, (y0 + y1) / 2) if vertical else ((y0 + y1) / 2, x)
     sx, sy = (w, abs(y1 - y0)) if vertical else (abs(y1 - y0), w)
@@ -66,7 +66,7 @@ def slot_with_pips(name, x, y0, y1, w, ztop, n, M, tags, target=None, depth=0.05
         t = (i + 0.5) / n
         px, py = (x, min(y0, y1) + t * L) if vertical else (min(y0, y1) + t * L, x)
         B.box(f"{name}_pip{i}", px, py, (w * 0.55) if vertical else L / n * 0.55, (L / n * 0.55) if vertical else w * 0.55,
-              ztop - depth, ztop - depth + 0.012, M["glow"], bevel=0.0, tags=tags)
+              ztop - depth, ztop - depth + 0.012, pip_mat or M["glow"], bevel=0.0, tags=tags)
 
 
 def hull_roof(M, w, h, pivot, ring_r, T="roof"):

@@ -8,8 +8,9 @@ canos, com o "olho" (fenda de luz fraca num modulo escuro) no vao entre o escudo
 ambar na espinha da caixa); duas asas curtas facetadas com degrau, varridas para tras, com fenda de pips e nervura;
 abdomen curto em faixas em chevron separadas por sulcos escuros (as listras) e ferrao em ponta, com a baia de
 exaustao (persiana e 3 pips) no sulco antes do ferrao. Em repouso nada passa da largura da peca de 1 tile (so as
-pontas das mandibulas, raio ~0.6, sobram um pouco quando a torre gira). Canos: culatra escura, camisa escura com fendas e brasa fraca, luva clara com canal e colares,
-freio leve facetado em ponta de flecha com fendas transversais escuras. Recuo alternado.
+pontas das mandibulas, raio ~0.6, sobram um pouco quando a torre gira). Canos: culatra escura, camisa escura com
+fendas e brasa fraca, luva clara com canal e colares, freio leve facetado em ponta de flecha com fendas transversais
+escuras. Recuo alternado.
 """
 
 import math
@@ -88,7 +89,7 @@ ABD_W = [(-0.25, 0.20), (-0.30, 0.215), (-0.38, 0.19), (-0.46, 0.13), (-0.53, 0.
 ABD_SEG = [(-0.245, -0.32, 0.44, 0.025), (-0.345, -0.405, 0.41, 0.02)]   # (frente, tras, topo, chanfro)
 # ferrao: frente reta (o sulco antes dele vira cunha, com a baia de exaustao) e ponta de flecha para tras
 YTF = -0.48                        # frente do ferrao
-TAIL = [(0.0, -0.552), (0.06, -0.537), (0.135, YTF), (-0.135, YTF), (-0.06, -0.537)]
+TAIL = [(0.0, -0.548), (0.06, -0.534), (0.135, YTF), (-0.135, YTF), (-0.06, -0.534)]   # ponta 0.03 dentro do quadro
 TAIL_Z = 0.38
 ABD_V = 0.03                       # flecha do chevron de cada segmento (centro mais atras)
 
