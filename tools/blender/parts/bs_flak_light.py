@@ -34,7 +34,7 @@ PART = {
         "root": 0.44,              # pivo -> raiz do cano (culatra escura no berco)
         "length": 0.90,            # raiz -> boca
         "width": 0.27,             # largura do sprite de cada cano (cabe o cone de chama)
-        "pad": 0.13,               # espaco atras da raiz para o recuo
+        "pad": 0.16,               # espaco atras da raiz para o recuo (0.12 + folga)
         "anim": "recoil",
         "recoil": [0.12, 0.08, 0.045, 0.015],
         "heat": [0.55, 0.32, 0.15, 0.05],   # calor leve so no cone de chama
@@ -290,7 +290,7 @@ def head(M, T="head", phase=0.0):
             if t is not None:
                 B.cut(t, [B.rbox(f"csl{sd}{t.name}", cx, cy, 0.035, 0.22, 0.45, 0.9, K, rot=rot, bevel=0.0)])
         B.rbox(f"cslbed{sd}", cx, cy, 0.035, 0.22, 0.44, 0.452, M["black"], rot=rot, bevel=0.0, tags=tags)
-        B.rbox(f"cslglow{sd}", cx, cy, 0.012, 0.13, 0.452, 0.46, M["glow_dim"], rot=rot, bevel=0.0, tags=tags)
+        B.rbox(f"cslglow{sd}", cx, cy, 0.012, 0.10, 0.452, 0.46, M["glow_dim"], rot=rot, bevel=0.0, tags=tags)
         # fenda de 3 pips na ponta da faixa do meio (na faceta de fora)
         x = 0.66
         yc = (BAND2.tf(x) + BAND2.tb(x)) / 2
@@ -301,7 +301,7 @@ def head(M, T="head", phase=0.0):
             x = 0.36
             yy = gap_mid(bf, bb, x)
             ang = math.degrees(math.atan2(gap_mid(bf, bb, x - 0.1) - gap_mid(bf, bb, x + 0.1), 0.2))
-            B.rbox(f"gapled{sd}{k}", sx * x, yy, 0.09, 0.012, 0.28, 0.288, M["glow_dim"], rot=-sx * ang, bevel=0.0,
+            B.rbox(f"gapled{sd}{k}", sx * x, yy, 0.065, 0.011, 0.28, 0.288, M["glow_dim"], rot=-sx * ang, bevel=0.0,
                    tags=tags)
         # pinos de articulacao das faixas (aco) no vao, perto das pontas
         for k, (bf, bb) in enumerate(((BAND1, BAND2), (BAND2, BAND3))):

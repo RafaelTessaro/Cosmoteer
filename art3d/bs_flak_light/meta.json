@@ -1,0 +1,140 @@
+{
+ "version": 1,
+ "id": "rafaeltessaro.bs_flak_light",
+ "kind": "gun",
+ "size": [
+  2,
+  2
+ ],
+ "pivot": [
+  1.0,
+  0.92
+ ],
+ "turret_size": 2.0,
+ "collider": 0.86,
+ "turret": {
+  "frames": [
+   "turret1.png",
+   "turret2.png",
+   "turret3.png",
+   "turret4.png",
+   "turret5.png",
+   "turret6.png",
+   "turret7.png",
+   "turret8.png"
+  ],
+  "normals": [
+   "turret1_normals.png",
+   "turret2_normals.png",
+   "turret3_normals.png",
+   "turret4_normals.png",
+   "turret5_normals.png",
+   "turret6_normals.png",
+   "turret7_normals.png",
+   "turret8_normals.png"
+  ],
+  "interval": 0.1,
+  "off": "turret_off.png",
+  "off_normals": "turret1_normals.png",
+  "shadow": "turret_shadow.png",
+  "shadow_size": 2.25
+ },
+ "barrel": {
+  "ys": [
+   -0.2,
+   0.2
+  ],
+  "root": 0.44,
+  "length": 0.9,
+  "pad": 0.16,
+  "sprite_w": 0.27,
+  "sprite_len": 1.12,
+  "center": 0.84,
+  "muzzle": 1.29,
+  "anim": "recoil",
+  "frames": [
+   "barrel2.png",
+   "barrel3.png",
+   "barrel4.png",
+   "barrel5.png",
+   "barrel1.png"
+  ],
+  "normals": [
+   "barrel_normals2.png",
+   "barrel_normals3.png",
+   "barrel_normals4.png",
+   "barrel_normals5.png",
+   "barrel_normals1.png"
+  ],
+  "interval": 0.05,
+  "rest": "barrel1.png",
+  "rest_normals": "barrel_normals1.png"
+ },
+ "crew_pos": [
+  [
+   1.0,
+   1.55,
+   0
+  ]
+ ],
+ "hull": {
+  "floor": "floor.png",
+  "walls": "walls.png",
+  "roof": "roof.png",
+  "roof_normals": "roof_normals.png",
+  "lights": "lights.png"
+ },
+ "lights": [
+  {
+   "loc": [
+    -0.74,
+    0.0
+   ],
+   "size": 0.9,
+   "color": [
+    255,
+    120,
+    30
+   ],
+   "z": 0.8
+  }
+ ],
+ "preview_pattern": "alternate",
+ "accent": "amber",
+ "preview_fx": "fire",
+ "files": [
+  "barrel1.png",
+  "barrel2.png",
+  "barrel3.png",
+  "barrel4.png",
+  "barrel5.png",
+  "barrel_normals1.png",
+  "barrel_normals2.png",
+  "barrel_normals3.png",
+  "barrel_normals4.png",
+  "barrel_normals5.png",
+  "floor.png",
+  "lights.png",
+  "roof.png",
+  "roof_normals.png",
+  "turret1.png",
+  "turret1_normals.png",
+  "turret2.png",
+  "turret2_normals.png",
+  "turret3.png",
+  "turret3_normals.png",
+  "turret4.png",
+  "turret4_normals.png",
+  "turret5.png",
+  "turret5_normals.png",
+  "turret6.png",
+  "turret6_normals.png",
+  "turret7.png",
+  "turret7_normals.png",
+  "turret8.png",
+  "turret8_normals.png",
+  "turret_off.png",
+  "turret_shadow.png",
+  "walls.png"
+ ]
+}
