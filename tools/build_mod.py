@@ -165,7 +165,7 @@ def build(args):
     for cdef in DATA.DEFENSES:
         pdir = f"parts/{cdef['short']}"
         beam = relpath(pdir, shot_rel[cdef["beam"]])
-        beam_oc = relpath(pdir, shot_rel[cdef["beam_oc"]]) if cdef.get("oc") else None
+        beam_oc = relpath(pdir, shot_rel[cdef["beam_oc"]]) if cdef.get("beam_oc") else None
         top, info = ciws.build_ciws(cdef, beam, beam_oc)
         rel = f"{pdir}/{cdef['short']}.rules"
         out.text(rel, render(top, HEADER + f"\nDefesa: {cdef['name_en']} / {cdef['name_pt']}"))

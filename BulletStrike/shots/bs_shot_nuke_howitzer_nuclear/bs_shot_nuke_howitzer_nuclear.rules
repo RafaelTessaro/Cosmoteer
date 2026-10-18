@@ -19,12 +19,48 @@ Components
 	Death
 	{
 		Type = DeathByLifetime
+		OnDeath
+		{
+			HitEffects
+			[
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 150000
+						EffectScaleExponent = 1
+					}
+					Radius = 8
+					StatusType = cosmoteer.fire
+					StatusChancePerNDamage = 50%
+					StatusValue = 1
+					StatusValueType = Interpolated
+					NDamage = 1000
+				}
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 40000
+						EffectScaleExponent = 1
+					}
+					Radius = 6
+					Filter
+					{
+						OperationalHealth = false
+						StructuralHealth = true
+						Friendlies = false
+					}
+				}
+			]
+			MediaEffects = &../../Hit/HitOperational/MediaEffects
+		}
 	}
 	Targetable
 	{
 		Type = Targetable
 		Health = 7500
-		TargetCategory = "missile"
+		TargetCategory = "bullet"
 		OnDeath
 		{
 			MediaEffects = [&<./Data/shots/flak_large/particles/flak_large_flash.rules>]
@@ -59,24 +95,20 @@ Components
 					StatusValue = 1
 					StatusValueType = Interpolated
 					NDamage = 1000
-					Filter
-					{
-						Friendlies = true
-					}
 				}
 				{
 					Type = ExplosiveDamage
 					TotalDamage
 					{
-						BaseValue = 45000
+						BaseValue = 40000
 						EffectScaleExponent = 1
 					}
-					Radius = 6.4
+					Radius = 6
 					Filter
 					{
 						OperationalHealth = false
 						StructuralHealth = true
-						Friendlies = true
+						Friendlies = false
 					}
 				}
 				{

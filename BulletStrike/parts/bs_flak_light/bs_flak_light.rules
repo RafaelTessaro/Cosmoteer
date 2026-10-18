@@ -90,7 +90,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 		{
 			Type = UIToggle
 			ToggleID = "fire_pref"
-			Default = 1
+			Default = 2
 		}
 		FirePrefAttack
 		{

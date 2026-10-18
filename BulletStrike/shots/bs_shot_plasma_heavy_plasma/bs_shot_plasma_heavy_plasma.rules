@@ -24,7 +24,7 @@ Components
 	{
 		Type = Targetable
 		Health = 2500
-		TargetCategory = "bullet"
+		TargetCategory = "laser"
 		OnDeath
 		{
 			MediaEffects = &~/Components/Hit/HitOperational/MediaEffects
@@ -33,15 +33,11 @@ Components
 	Hit
 	{
 		Type = PenetratingHit
-		Penetration = 0
-		PenetrationSpeed = 25
 		FriendlyShipLowCollisions = false
 		CrewCollisions = {Enemies=true; Junk=true}
-		PenetratesCrew = true
 		HitCrew = &HitOperational
 		HitShield
 		{
-			ReduceEffectsByPenetration = true
 			Offset = [-0.15, 0]
 			HitEffects
 			[
@@ -66,7 +62,6 @@ Components
 		}
 		HitOperational
 		{
-			ReduceEffectsByPenetration = true
 			Offset = [-0.15, 0]
 			HitEffects
 			[
@@ -89,9 +84,19 @@ Components
 				{
 					Type = StatusApplication
 					StatusType = cosmoteer.heat
-					StatusValue = 288
+					StatusValue = 300
 					ApplyToAllHitPartTiles = true
 					DivideValueByPartArea = true
+				}
+				{
+					Type = StatusApplication
+					StatusType = cosmoteer.fire
+					StatusChance
+					{
+						BaseValue = 0.25
+						EffectScaleExponent = 1
+					}
+					ValueType = Interpolated
 				}
 			]
 			MediaEffects
@@ -120,7 +125,6 @@ Components
 		}
 		HitStructural
 		{
-			ReduceEffectsByPenetration = true
 			Offset = [0.15, 0]
 			HitEffects
 			[
@@ -149,45 +153,18 @@ Components
 		}
 		PenetratingOperational
 		{
-			ReduceEffectsByPenetration = true
-			HitEffects
-			[
-				{
-					Type = Damage
-					Damage
-					{
-						BaseValue = 3600
-						EffectScaleExponent = 1
-					}
-				}
-				{
-					Type = StatusApplication
-					StatusType = cosmoteer.fire
-					StatusChance
-					{
-						BaseValue = 0.25
-						EffectScaleExponent = 1
-					}
-					ValueType = Interpolated
-				}
-				{
-					Type = Impulse
-					Impulse
-					{
-						BaseValue = 5
-						EffectScaleExponent = 1
-					}
-				}
-			]
-			MediaEffects = &../HitOperational/MediaEffects
 		}
 		PenetratingStructural : &HitStructural
 		{
 			StructuralDamageRetentionPerHit = 50%
 			MinStructuralDamageScale = 3%
 		}
-		FinishedPenetratingOperational = &PenetratingOperational
-		FinishedPenetratingStructural = &PenetratingStructural
+		FinishedPenetratingOperational
+		{
+		}
+		FinishedPenetratingStructural
+		{
+		}
 	}
 	Sprite
 	{

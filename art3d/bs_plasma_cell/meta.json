@@ -3,6 +3,8 @@
  "id": "rafaeltessaro.bs_plasma_cell",
  "kind": "resource",
  "stack": 4,
+ "overlay_glow": true,
+ "nugget_scale": 0.46,
  "files": [
   "icon.png",
   "nugget.png",

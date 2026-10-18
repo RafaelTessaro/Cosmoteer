@@ -3,6 +3,8 @@
  "id": "rafaeltessaro.bs_mag_std",
  "kind": "resource",
  "stack": 6,
+ "overlay_glow": true,
+ "nugget_scale": 0.5,
  "files": [
   "icon.png",
   "nugget.png",

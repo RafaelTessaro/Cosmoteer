@@ -50,7 +50,16 @@ def geometry(g):
                "barrel_len": br["sprite_len"], "barrel_w": br["sprite_w"] / 2, "barrel_sprite_w": br["sprite_w"],
                "barrel_center": br["center"], "muzzle": br["muzzle"], "collider": a3.get("collider"),
                "ys": list(br["ys"])}
-        overhang = geo["muzzle"] - geo["pivot"][1]
+        # quanto o cano passa da borda de cima da peca (icone): ate o fim do desenho do cano em repouso, nao so
+        # ate a boca (no Boitata as pontas passam da boca e ficariam cortadas na primeira linha do icone)
+        top = geo["muzzle"]
+        if g.get("short"):
+            import art3d as A3
+            from PIL import Image
+            bb = Image.open(A3.path(g["short"], br["rest"])).getchannel("A").getbbox()
+            if bb:
+                top = max(top, br["center"] + br["sprite_len"] / 2 - bb[1] / 64)
+        overhang = top - geo["pivot"][1]
         geo["overhang"] = max(0, int(-(-overhang // 1)))
         return geo
     geo = dict(g.get("geom", {}))
@@ -237,6 +246,8 @@ def build_gun(g, shot_paths):
         }
         if spin:
             o["MAX_SPIN"] = oc.get("max_spin", spin["max"])
+            if oc.get("spin_up"):
+                o["SPIN_UP_TIME"] = oc["spin_up"]
         if g.get("stun"):
             o["CREW_STUN_DURATION"] = g["stun"].get("oc_duration", g["stun"]["duration"])
             o["CREW_STUN_RADIUS"] = g["stun"].get("oc_radius", g["stun"]["radius"])
@@ -272,7 +283,7 @@ def build_gun(g, shot_paths):
 
     comp = {}
     hybrid = bool(g.get("hybrid"))
-    comp.update(C.standard_toggles(bool(oc), g["cp"], defense=hybrid, fire_pref_default=2))
+    comp.update(C.standard_toggles(bool(oc), g["cp"], defense=hybrid, fire_pref_default=g.get("fire_pref_default", 2)))
 
     # ------------------------------------------------------------------ municao
     comp[C.comment("---- municao (carregadores abertos em N tiros) ----")] = None
@@ -342,6 +353,15 @@ def build_gun(g, shot_paths):
         else:
             acc["MaxValue"] = "&~/SPIN/MAX"
         acc["AccumulationRate"] = "((&~/SPIN/MAX) - 1) / (&~/SPIN/UP_TIME)"
+        if oc and oc.get("spin_up"):
+            # spin-up mais curto em overclock (chaingun.rules l.232-245: AccumulationRate BuffRemap Overclock;
+            # RemapTo parte do BaseValue, como o Range do pd_shot.rules)
+            acc["AccumulationRate"] = {
+                "BaseValue": "((&~/SPIN/MAX) - 1) / (&~/SPIN/UP_TIME)",
+                "Modifiers": [{"Type": "BuffRemap", "BuffType": "Overclock", "ModificationMode": "Replace",
+                               "RemapFrom": [0, 1],
+                               "RemapTo": ["&../../../BaseValue",
+                                           "((&~/OVERCLOCK/MAX_SPIN) - 1) / (&~/OVERCLOCK/SPIN_UP_TIME)"]}]}
         acc["DissipationRate"] = "((&~/SPIN/MAX) - 1) / (&~/SPIN/DOWN_TIME)"
         comp["SpinUp"] = acc
         comp["RateOfFireBuff"] = {"Type": "SelfBuffProvider", "BuffType": "RateOfFire", "BuffAmount": 1,
@@ -377,7 +397,8 @@ def build_gun(g, shot_paths):
         turret["EstimateFirepowerToggle"] = "AttackToggle"
         turret["AllowDirectControlToggle"] = "FirePrefAttack"
         turret["AutoTargets"] = [
-            {"TargetType": "Bullets", "BulletTargetCategories": C.ANTI_SHOT_CATEGORIES, "Toggle": "DefendToggle"},
+            {"TargetType": "Bullets", "BulletTargetCategories": g.get("anti_categories", C.ANTI_SHOT_CATEGORIES),
+             "Toggle": "DefendToggle"},
             {"TargetType": "ShipParts", "Toggle": "AttackToggle", "Overridable": True},
         ]
     comp["Turret"] = turret
@@ -580,7 +601,8 @@ def build_gun(g, shot_paths):
         else:
             st["ROF"] = "&ShotsPerSecond"
         st.update({
-            "Range": f"{em}/Bullet/Range",
+            # Range com BuffRemap de overclock (pd_shot): o valor base fica em Range/BaseValue
+            "Range": f"{em}/Bullet/Range" + ("/BaseValue" if m.get("oc_range") else ""),
             "Arc": "deg(&~/Part/Components/Turret/FiringArc)",
             "Spread": f"deg({em}/Spread/1)",
             "TurretSpeed": "deg(&~/Part/Components/Turret/RotateSpeed)",
@@ -607,7 +629,7 @@ def build_gun(g, shot_paths):
             "DamagePerSecond": "(&DamagePerShot) * (&ShotsPerSecond)",
             "Damage": ["&../DamagePerShot", "&../DamagePerSecond"],
             "ROF": "&ShotsPerSecond",
-            "Range": f"{em}/Bullet/Range",
+            "Range": f"{em}/Bullet/OVERCLOCK/RANGE" if m0.get("oc_range") else f"{em}/Bullet/Range",
             "Spread": "deg(&~/OVERCLOCK/HALF_SPREAD)",
             "ShotSpeed": f"{em}/Bullet/Speed",
             "HeatPerShot": "(&~/OVERCLOCK/HEAT_PER_SHOT)",

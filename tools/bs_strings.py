@@ -17,11 +17,11 @@ AMMO_PT = {
 }
 
 AMMO_NAMES = {  # (en, pt)
-    "bullet": ("Ball Round", "Munição comum"),
+    "bullet": ("Ball Round", "Munição avulsa"),
     "std": ("Standard", "Padrão"),
     "ap": ("Armor-Piercing", "Perfurante"),
     "aphe": ("AP-Explosive", "Perfurante-Explosiva"),
-    "emp": ("EMP", "EMP"),
+    "emp": ("EMP", "P.E.M."),
     "plasma": ("Plasma Bolt", "Disparo de plasma"),
     "nuclear": ("Nuclear Shell", "Projétil nuclear"),
 }
@@ -29,24 +29,27 @@ AMMO_NAMES = {  # (en, pt)
 AMMO_DESC = {
     "std": ("All-round ammunition. Shell guns fire high-explosive rounds that burst on impact.",
             "Munição versátil. Os canhões disparam granadas explosivas que estouram no impacto."),
-    "ap": ("Hardened penetrators that punch through armor (armor counts as half) to wreck the parts behind it. Weak against shields.",
-           "Penetradores endurecidos que atravessam blindagem (a blindagem conta pela metade) e destroem o que está atrás. Fracos contra escudos."),
+    "ap": ("Hardened penetrators that punch through armor (armor resists at only 60%) to wreck the parts behind it, "
+           "dealing half damage to each part after the first. Weak against shields.",
+           "Penetradores endurecidos que atravessam blindagem (a blindagem resiste só 60% do normal) e destroem o que "
+           "está atrás, com metade do dano em cada peça depois da primeira. Fracos contra escudos."),
     "aphe": ("Penetrates one or two armor plates and then detonates INSIDE the enemy hull.",
              "Atravessa uma ou duas placas de blindagem e então detona DENTRO do casco inimigo."),
     "emp": ("Each hit drains battery from shields and powered parts. Lower hull damage, but great against energy-hungry ships and shields.",
-            "Cada acerto drena bateria de escudos e partes energizadas. Menos dano ao casco, mas ótima contra naves que dependem de energia e escudos."),
+            "Cada acerto drena a energia de escudos e peças energizadas. Menos dano ao casco, mas ótima contra naves que dependem de energia e escudos."),
 }
 
-# Frases de efeito por arma (casam por pedaco do ID). en, pt
+# Frases de efeito por arma (casam por pedaco do ID, a primeira da lista que bater: "quad" antes de "hmg",
+# senao bs_quad_hmg pegaria a frase da metralhadora pesada). en, pt
 FLAVOR = [
     ("lmg", ("A cheap pintle-mounted machine gun. Small enough to fit anywhere on deck.",
              "Metralhadora barata em reparo de pino. Pequena o bastante para caber em qualquer canto do convés.")),
+    ("quad", ("Four heavy machine guns on one mount. Can also swat down incoming missiles and mines.",
+              "Quatro metralhadoras pesadas num só reparo. Também derruba mísseis e minas que se aproximam.")),
     ("hmg", ("Heavy machine gun that keeps a steady stream of tracers on target.",
              "Metralhadora pesada que mantém um fluxo constante de traçantes no alvo.")),
     ("autocannon", ("Twin 20 mm autocannon: the first real teeth of a gunboat.",
                     "Autocanhão duplo de 20 mm: os primeiros dentes de verdade de uma canhoneira.")),
-    ("quad", ("Four heavy machine guns on one mount. Can also swat down incoming missiles and mines.",
-              "Quatro metralhadoras pesadas num só reparo. Também derruba mísseis e minas que se aproximam.")),
     ("minigun", ("Six spinning barrels. Takes a few seconds to spin up, then turns targets into scrap.",
                  "Seis canos girando. Leva alguns segundos para acelerar e depois transforma o alvo em sucata.")),
     ("naval_76", ("A naval automatic cannon: not the fastest gun around, but every 'thump' lands a heavy shell.",
@@ -65,8 +68,8 @@ FLAVOR = [
               "Sistema de defesa de curto alcance: um canhão rotativo guiado por radar que enche o céu de flak.")),
     ("flak_light", ("Light flak mount that bursts near incoming projectiles, destroying several at once.",
                     "Flak leve que explode perto dos projéteis que chegam, destruindo vários de uma vez.")),
-    ("flak_heavy", ("Quad heavy flak battery: a wall of fire against missiles, torpedoes, shells and bolts.",
-                    "Bateria quádrupla de flak pesada: uma muralha de fogo contra mísseis, torpedos, granadas e disparos.")),
+    ("flak_heavy", ("Twin heavy flak battery: a wall of fire against missiles, torpedoes, shells and bolts.",
+                    "Bateria dupla de flak pesada: uma muralha de fogo contra mísseis, torpedos, granadas e disparos.")),
     ("nuke", ("Nuclear howitzer. Very slow, very loud, and nothing survives the blast radius. Shells can be shot down.",
               "Obuseiro nuclear. Muito lento, muito barulhento, e nada sobrevive à explosão. Os projéteis podem ser abatidos.")),
 ]
@@ -88,7 +91,10 @@ def _ammo_word(g, lang):
     a = g["modes"][0]["ammo"]
     if len(g["modes"]) > 1:
         return ("Magazines (selectable: Standard / AP / AP-Explosive / EMP)" if lang == "en"
-                else "carregadores (selecionáveis: Padrão / Perfurante / Perfurante-Explosiva / EMP)")
+                else "carregadores (selecionáveis: Padrão / Perfurante / Perfurante-Explosiva / P.E.M.)")
+    if a == "std":
+        # modo unico com carregador padrao (Saci): sem seletor, so o Carregador Padrao
+        return "Standard Magazines" if lang == "en" else "carregadores padrão"
     table = AMMO_EN if lang == "en" else AMMO_PT
     return table.get(a, table["std"])
 
@@ -113,9 +119,9 @@ def strings():
         crew_pt = f"{g['crew']} tripulante" + ("s" if g["crew"] > 1 else "")
         if g in D.DEFENSES:
             role_en = ("DEFENSE. Airburst flak that damages EVERY missile, mine, shell, laser bolt and ion shot inside its blast. "
-                       "Set it to Defend, Attack or Both.")
+                       "Set it to Defend, Attack or Attack + Defend.")
             role_pt = ("DEFESA. Flak de explosão aérea que danifica TODOS os mísseis, minas, granadas, disparos laser e iônicos "
-                       "dentro da explosão. Pode ser ajustada para Defender, Atacar ou Ambos.")
+                       "dentro da explosão. Pode ser ajustada para Defender, Atacar ou Atacar + Defender.")
         else:
             role_en, role_pt = "", ""
         oc_en = " Can be overclocked." if g.get("oc") else ""
@@ -127,13 +133,14 @@ def strings():
                                    f"Não usa energia: {crew_pt} e {_ammo_word(g, 'pt')}.{oc_pt}"
                                    + (f"\n\n{role_pt}" if role_pt else "") + "<string id='BSModTag'/>")
         if g.get("oc"):
-            ocd = (w.get("overclock") or {}).get("description", "")
+            ocs = w.get("overclock") or {}
+            if not ocs.get("description") or not ocs.get("description_ptbr"):
+                raise ValueError(f"{g['short']}: overclock sem description / description_ptbr no spec")
             en["Parts"][k + "Overclock"] = f"Overclocked {g['name_en']}"
             pt["Parts"][k + "Overclock"] = f"{g['name_pt']} (Overclocking)"
-            en["Parts"][k + "OverclockDesc"] = (ocd or "Fires faster and harder, but produces a lot of waste heat.") + \
-                " Produces waste heat while firing."
-            pt["Parts"][k + "OverclockDesc"] = OC_PT.get(g["short"], "Atira mais rápido e mais forte, mas gera muito calor.") + \
-                " Gera calor residual ao disparar."
+            # final igual ao do jogo base (CannonDeckOverclockDesc)
+            en["Parts"][k + "OverclockDesc"] = ocs["description"] + " Produces waste heat when firing."
+            pt["Parts"][k + "OverclockDesc"] = ocs["description_ptbr"] + " Produz calor ao disparar."
 
     _factory_strings(D, en, pt)
 
@@ -146,16 +153,25 @@ def strings():
         en["Resource"][k + "Desc"] = RES_DESC_EN.get(r["art"]["kind"], "") + " Bullet Strike ammunition."
         pt["Resource"][k + "Desc"] = RES_DESC_PT.get(r["art"]["kind"], "") + " Munição do Bullet Strike."
 
+    used = _tech_string_keys(D)
+    sel = next(g for g in D.GUNS if g["selector"])
+    res_of = {m["ammo"]: m["res"] for m in sel["modes"]}
     for idx, a in enumerate(("std", "ap", "aphe", "emp")):
         key = {0: "Std", 1: "AP", 2: "APHE", 3: "EMP"}[idx]
         n_en, n_pt = AMMO_NAMES[a]
         d_en, d_pt = AMMO_DESC[a]
+        # qual carregador o modo puxa (Perfurante e Perfurante-Explosiva dividem o Carregador Perfurante)
+        mag = f"<string id='Resource/{_res_key(D, res_of[a])}Plural'/>"
+        d_en = f"{d_en} Uses {mag}."
+        d_pt = f"{d_pt} Usa {mag}."
         en["PartToggles"][f"BSAmmo_{key}"] = f"<b>Ammo: {n_en}</b>\n\n{d_en}"
         pt["PartToggles"][f"BSAmmo_{key}"] = f"<b>Munição: {n_pt}</b>\n\n{d_pt}"
-        en["PartToggles"][f"BSAmmo_{key}Name"] = f"{n_en} Magazines"
-        pt["PartToggles"][f"BSAmmo_{key}Name"] = f"Carregadores: {n_pt}"
-        en["PartToggles"][f"BSAmmo_{key}Desc"] = d_en
-        pt["PartToggles"][f"BSAmmo_{key}Desc"] = d_pt
+        if f"PartToggles/BSAmmo_{key}Name" in used:
+            # nome da tech = o tipo de municao (nao existe carregador proprio de Perfurante-Explosiva)
+            en["PartToggles"][f"BSAmmo_{key}Name"] = f"{n_en} Ammo"
+            pt["PartToggles"][f"BSAmmo_{key}Name"] = f"Munição {n_pt}"
+            en["PartToggles"][f"BSAmmo_{key}Desc"] = d_en
+            pt["PartToggles"][f"BSAmmo_{key}Desc"] = d_pt
 
     for a, (n_en, n_pt) in AMMO_NAMES.items():
         en["StatCategories"][f"BSAmmo_{a}"] = n_en
@@ -172,8 +188,25 @@ def strings():
     en["Stats"]["BSFactoryOutputFmt"] = "<white>Production:</white> <good>{0:0.##}</good><gray>/sec</gray>"
     pt["Stats"]["BSFactoryOutputFmt"] = "<white>Produção:</white> <good>{0:0.##}</good><gray>/s</gray>"
     _factory_stat_strings(D, en, pt)
-    _launcher_strings(D, en, pt)
+    _launcher_strings(D, en, pt, used)
     return en, pt
+
+
+def _tech_string_keys(D):
+    """Chaves de texto citadas pelas techs da Carreira (NameKey / DescriptionKey); as chaves Name/Desc dos
+    seletores so sao geradas quando alguma tech as usa (sem textos mortos)."""
+    keys = set()
+    for t in D.career_techs():
+        for f in ("NameKey", "DescriptionKey"):
+            v = t.get(f)
+            if isinstance(v, str) and not v.startswith("&"):
+                keys.add(v.strip('"'))
+    return keys
+
+
+def _res_key(D, res):
+    own = next((r for r in D.RESOURCES if r["id"] == res), None)
+    return own["key"] if own else VANILLA_RES[res][0]
 
 
 # ============================================================================= fabricas
@@ -246,12 +279,13 @@ def _factory_strings(D, en, pt):
             sf = oc["speed_factor"]
             out_pl = _res_ref(D, out_r, 2)
             pwx_en = (f", using {_num_en(oc['power_use_factor'])}x the power per item" if f.get("power") else "")
-            pwx_pt = (f", com {_num_pt(oc['power_use_factor'])} vez a energia por item" if f.get("power") else "")
+            pwx_pt = (f", com {_num_pt(oc['power_use_factor'])} {_vezes(oc['power_use_factor'])} a energia por item"
+                      if f.get("power") else "")
             en["Parts"][k + "Overclock"] = f"Overclocked {f['name_en']}"
             pt["Parts"][k + "Overclock"] = f"{f['name_pt']} (Overclocking)"
             en["Parts"][k + "OverclockDesc"] = (f"Produces {_num_en(sf)}x faster{pwx_en}. Produces waste heat while "
                                                 f"producing {out_pl}.")
-            pt["Parts"][k + "OverclockDesc"] = (f"Produz {_num_pt(sf)} vezes mais rápido{pwx_pt}. Produz calor "
+            pt["Parts"][k + "OverclockDesc"] = (f"Produz {_num_pt(sf)} {_vezes(sf)} mais rápido{pwx_pt}. Produz calor "
                                                 f"enquanto fabrica {out_pl}.")
 
 
@@ -279,7 +313,7 @@ def _factory_stat_strings(D, en, pt):
 MISSILE_TXT = {  # tipo: (nome curto en, nome curto pt, descricao en, descricao pt)
     "he": ("High-Explosive", "Alto-Explosivo",
            "A fast, direct high-explosive warhead: the reference missile. Big salvos saturate point defense.",
-           "Ogiva alto-explosiva rápida e direta: o míssil de referência. Salvas grandes saturam a defesa de ponto."),
+           "Ogiva alto-explosiva rápida e direta: o míssil de referência. Salvas grandes saturam os pontos de defesa."),
     "cluster": ("Cluster", "Submunições",
                 "Opens 25 m from the enemy hull (or on impact, or at the end of its flight) and releases a school of "
                 "mini-missiles that spread over several parts. Shot down before it opens, it releases nothing.",
@@ -295,7 +329,7 @@ MISSILE_TXT = {  # tipo: (nome curto en, nome curto pt, descricao en, descricao 
                "Useless against armor; extinguishers and foam are the counter.",
                "Explosão pequena, fogo garantido na peça atingida e calor em volta que continua acendendo incêndios. "
                "Inútil contra blindagem; extintor e espuma são o contra."),
-    "emp": ("EMP", "PEM",
+    "emp": ("EMP", "P.E.M.",
             "Drains batteries and shields in an area and keeps draining powered parts for a few seconds. "
             "Bullet Strike weapons have no battery and are immune.",
             "Drena baterias e escudos em área e continua drenando as peças com energia por alguns segundos. "
@@ -304,17 +338,18 @@ MISSILE_TXT = {  # tipo: (nome curto en, nome curto pt, descricao en, descricao 
                 "A slow, tough torpedo: 1.5 s after launch the warhead separates among decoys that soak up point "
                 "defense and flak.",
                 "Torpedo lento e resistente: 1,5 s depois do lançamento a ogiva se separa no meio de iscas que gastam "
-                "a defesa de ponto e a flak."),
+                "os pontos de defesa e a flak."),
     "nuclear": ("Nuclear Torpedo", "Torpedo Nuclear",
                 "Heavy battery only. Counts toward the nuclear limit (2 per ship, shared with the Boiúna) and overclock "
                 "never speeds up its reload. Dies to area flak on its own: mask it with a heavy salvo fired right after it.",
                 "Só na bateria pesada. Conta no limite nuclear (2 por nave, junto com a Boiúna) e o overclock nunca "
                 "acelera a recarga. Sozinho morre para flak de área: esconda-o com uma salva pesada logo depois."),
 }
-RES_WORD = {"missile_part_he": ("H.E. Missile Parts", "peças de míssil A.E."),
-            "missile_part_thermal": ("T.C. Missile Parts", "peças de míssil T.C."),
-            "missile_part_emp": ("E.M.P. Missile Parts", "peças de míssil PEM"),
-            "missile_part_nuke": ("Nuclear Missile Parts", "peças de míssil nuclear")}
+# pecas de missil vanilla: o proprio jogo escreve o nome traduzido (strings/<lingua>.rules Resource/MissilePart*)
+RES_WORD = {"missile_part_he": "<string id='Resource/MissilePartHEPlural'/>",
+            "missile_part_thermal": "<string id='Resource/MissilePartThermalPlural'/>",
+            "missile_part_emp": "<string id='Resource/MissilePartEMPPlural'/>",
+            "missile_part_nuke": "<string id='Resource/MissilePartNukePlural'/>"}
 LAUNCHER_FLAVOR = {
     "bs_msl_box": ("A RAM-style micro-missile box: the gunner cranks it around and twelve micro-missiles hiss out, "
                    "pair by pair.",
@@ -322,19 +357,20 @@ LAUNCHER_FLAVOR = {
                    "de dois em dois."),
     "bs_msl_twin": ("Two octagonal pods flank an armored sensor dome; a full rack is a two-second drum-roll of sixteen "
                     "missiles, right pod first.",
-                    "Dois casulos octogonais ladeiam uma cúpula blindada com olho sensor; o rack cheio vira um rufar de "
-                    "dezesseis mísseis em dois segundos, o casulo direito primeiro."),
+                    "Dois casulos octogonais ladeiam uma cúpula blindada com olho sensor; com as células cheias, vem um "
+                    "rufar de dezesseis mísseis em dois segundos, o casulo direito primeiro."),
     "bs_msl_quad": ("A headless armored body carries four long pods on hydraulic arms: a stampede of 48 heavy missiles "
                     "in three seconds. Loaded, it is the most dangerous part of your ship.",
                     "Um corpo blindado sem cabeça carrega quatro casulos longos em braços hidráulicos: um estouro de 48 "
                     "mísseis pesados em três segundos. Carregada, é a peça mais perigosa da sua nave."),
 }
-FAMILY_WORD = {"missile_part_he": ("H.E.", "A.E."), "missile_part_thermal": ("thermal", "térmica"),
-               "missile_part_emp": ("EMP", "PEM"), "missile_part_nuke": ("nuclear", "nuclear")}
+# forma curta da familia, a mesma sigla dos nomes vanilla (en H.E. / T.C. / E.M.P.; pt A.E. / T. / P.E.M.)
+FAMILY_WORD = {"missile_part_he": ("H.E.", "A.E."), "missile_part_thermal": ("T.C.", "T."),
+               "missile_part_emp": ("E.M.P.", "P.E.M."), "missile_part_nuke": ("nuclear", "nuclear")}
 
 
 def _low(s):
-    """Minuscula para uso no meio da frase, sem estragar siglas (PEM)."""
+    """Minuscula para uso no meio da frase, sem estragar siglas (P.E.M.)."""
     return " ".join(w if w.isupper() else w.lower() for w in s.split(" "))
 
 
@@ -346,17 +382,36 @@ def _num_en(x, nd=2):
     return f"{x:.{nd}f}".rstrip("0").rstrip(".")
 
 
-def _launcher_strings(D, en, pt):
+def _vezes(x):
+    """'vez' abaixo de 2 (1,5 vez), 'vezes' de 2 para cima (3 vezes)."""
+    return "vez" if x < 2 else "vezes"
+
+
+def _choice_codename(D, mt):
+    """Codinome de uma escolha do seletor compartilhado: o do tipo e os das variantes de cada lancador que a
+    oferece (ex.: 'Jararaca / Muriçoca', 'Taturana / Taturana-mirim')."""
+    t = D.MISSILE_TYPES[mt]
+    built = {lch["id"] for lch in D.LAUNCHERS if t["toggle_index"] in lch["available"]}
+    names = [t["codename"]]
+    for v in t["variants"]:
+        if v["launcher"] in built and v["variant_codename"] not in names:
+            names.append(v["variant_codename"])
+    return " / ".join(names)
+
+
+def _launcher_strings(D, en, pt, used):
     for c_idx, cid, key, _icon, mt in D.MISSILE_CHOICES:
-        t = D.MISSILE_TYPES[mt]
+        code = _choice_codename(D, mt)
         s_en, s_pt, d_en, d_pt = MISSILE_TXT[mt]
         k = key.split("/", 1)[1]
-        en["PartToggles"][k] = f"<b>Missile: {t['codename']} ({s_en})</b>\n\n{d_en}"
-        pt["PartToggles"][k] = f"<b>Míssil: {t['codename']} ({s_pt})</b>\n\n{d_pt}"
-        en["PartToggles"][k + "Name"] = f"{t['codename']} Missiles ({s_en})"
-        pt["PartToggles"][k + "Name"] = f"Mísseis {t['codename']} ({_low(s_pt)})"
-        en["PartToggles"][k + "Desc"] = d_en
-        pt["PartToggles"][k + "Desc"] = d_pt
+        en["PartToggles"][k] = f"<b>Missile: {code} ({s_en})</b>\n\n{d_en}"
+        pt["PartToggles"][k] = f"<b>Míssil: {code} ({s_pt})</b>\n\n{d_pt}"
+        if f"PartToggles/{k}Name" in used:
+            # so os tipos liberados por tech propria (o alto-explosivo vem junto com a Tocandira)
+            en["PartToggles"][k + "Name"] = f"{code} Missiles ({s_en})"
+            pt["PartToggles"][k + "Name"] = f"Mísseis {code} ({_low(s_pt)})"
+            en["PartToggles"][k + "Desc"] = d_en
+            pt["PartToggles"][k + "Desc"] = d_pt
     for lch in D.LAUNCHERS:
         k = lch["key"]
         m0 = lch["modes"][0]
@@ -368,8 +423,7 @@ def _launcher_strings(D, en, pt):
         rng = lch["spec"]["range_m"][m0["type"]]
         mis_en = ", ".join(f"{m['codename']} ({MISSILE_TXT[m['type']][0]})" for m in lch["modes"])
         mis_pt = ", ".join(f"{m['codename']} ({_low(MISSILE_TXT[m['type']][1])})" for m in lch["modes"])
-        res_en = " / ".join(RES_WORD[f["res"]][0] for f in lch["families"])
-        res_pt = " / ".join(RES_WORD[f["res"]][1] for f in lch["families"])
+        res_en = res_pt = " / ".join(RES_WORD[f["res"]] for f in lch["families"])
         mags = [f["mag"] for f in lch["families"]]
         if len(set(mags)) == 1:
             mag_en, mag_pt = f"{mags[0]} parts each", f"{mags[0]} peças cada"
@@ -382,9 +436,10 @@ def _launcher_strings(D, en, pt):
         # salva parcial (variante dry_flush do spec): o texto segue o mecanismo gerado
         dry_en, dry_pt = {
             "debounced": ("; when the magazine stays dry for a whole reload, the partial rack still fires",
-                          "; se o paiol fica vazio por uma recarga inteira, o rack parcial dispara mesmo assim"),
+                          "; se o paiol ficar vazio por uma recarga inteira, as células já carregadas disparam mesmo "
+                          "assim"),
             "instant": ("; a dry magazine still fires the partial rack",
-                        "; com o paiol vazio, o rack parcial dispara mesmo assim"),
+                        "; com o paiol vazio, as células já carregadas disparam mesmo assim"),
         }.get(D.MISSILE_VARIANTS.get("dry_flush", "debounced"), ("", ""))
         oc_en = " Can be overclocked." if lch.get("oc") else ""
         oc_pt = " Aceita overclock." if lch.get("oc") else ""
@@ -417,25 +472,25 @@ def _launcher_strings(D, en, pt):
             f"fly over your own deck and can be shot down by point defense. A loaded launcher cooks off when it burns or is destroyed.{oc_en}{lim_en}"
             "<string id='BSModTag'/>")
         pt["Parts"][k + "Desc"] = (
-            f"{fl_pt} \"{lch['codename']}\"\n\n{TIER_PT[lch['tier']]} - lança-mísseis de convés. Com o rack cheio, "
-            f"dispara {n} mísseis em sequência em {_num_pt(salvo_t)} s; depois um autocarregador tripulado recarrega "
+            f"{fl_pt} \"{lch['codename']}\"\n\n{TIER_PT[lch['tier']]} - lança-mísseis de convés. Com todas as células "
+            f"carregadas, dispara {n} mísseis em sequência em {_num_pt(salvo_t)} s; depois um autocarregador tripulado recarrega "
             f"{unit_pt} por vez ({_num_pt(m0['reload'])} s cada; sem tripulação no posto a recarga para): uma "
             f"salva a cada {_num_pt(cycle, 1)} s. Alcance {rng} m. Mísseis: {mis_pt}.{var_pt}\n\nNão usa energia: "
             f"{crew_pt} e {res_pt} do jogo base levadas até os paióis internos ({mag_pt}). Trocar o tipo de "
-            f"míssil custa uma recarga completa{dry_pt}. Os mísseis passam por cima do próprio convés e podem ser abatidos pela defesa de "
-            f"ponto. Carregado, o lançador explode quando pega fogo ou é destruído.{oc_pt}{lim_pt}<string id='BSModTag'/>")
+            f"míssil custa uma recarga completa{dry_pt}. Os mísseis passam por cima do próprio convés e podem ser abatidos pelos pontos "
+            f"de defesa. Carregado, o lançador explode quando pega fogo ou é destruído.{oc_pt}{lim_pt}<string id='BSModTag'/>")
         if lch["tier"] == "early":
             # tech do Build & Battle que libera as pecas de missil vanilla do lancador de inicio (bs_data.buildbattle_techs)
-            res_and_en = " and ".join(RES_WORD[f["res"]][0] for f in lch["families"])
-            res_and_pt = " e as ".join(RES_WORD[f["res"]][1] for f in lch["families"])
+            res_and_en = " and ".join(RES_WORD[f["res"]] for f in lch["families"])
+            res_and_pt = " e as ".join(RES_WORD[f["res"]] for f in lch["families"])
             en["Parts"][k + "Ammo"] = f"{lch['codename']} Missile Parts"
             pt["Parts"][k + "Ammo"] = f"Peças de Míssil da {lch['codename']}"
             en["Parts"][k + "AmmoDesc"] = (
                 f"Unlocks the vanilla {res_and_en} that the {lch['name_en']} \"{lch['codename']}\" fires. In Build & "
                 f"Battle the launcher itself is always available, but its missile parts are not.")
             pt["Parts"][k + "AmmoDesc"] = (
-                f"Libera as {res_and_pt} do jogo base que a {lch['name_pt']} \"{lch['codename']}\" dispara. No Build "
-                f"& Battle o lançador já vem liberado, mas as peças de míssil não.")
+                f"Libera as {res_and_pt} do jogo base que a {lch['name_pt']} \"{lch['codename']}\" dispara. No modo "
+                f"Construir e Batalhar o lançador já vem liberado, mas as peças de míssil não.")
         if lch.get("oc"):
             o = lch["spec"]["overclock"]
             en["Parts"][k + "Overclock"] = f"Overclocked {lch['name_en']}"
@@ -446,29 +501,29 @@ def _launcher_strings(D, en, pt):
             no_oc = [m for m in lch["modes"] if not m["oc_factor"]]
             vent = any(m["vent"] for m in lch["modes"])
             ex_en = "".join(f" ({m['codename']}: {_num_en(m['oc_factor'])}x)" for m in emp)
-            ex_pt = "".join(f" ({m['codename']}: {_num_pt(m['oc_factor'])} vez)" for m in emp)
+            ex_pt = "".join(f" ({m['codename']}: {_num_pt(m['oc_factor'])} {_vezes(m['oc_factor'])})" for m in emp)
             nn_en = "".join(f" It never speeds up the reload of the {m['codename']} {m['name_en'].lower()}." for m in no_oc)
             nn_pt = "".join(f" Nunca acelera a recarga do {m['name_pt'].lower()} {m['codename']}." for m in no_oc)
             pre = D.MISSILE_VARIANTS.get("prefilled_switch", "full_delay") == "full_delay"
             pre_en = (" A rack that is already full when you switch to its missile type waits a normal (not overclocked) "
                       "reload." if pre else "")
-            pre_pt = (" Um rack que já estava cheio na troca de míssil espera a recarga normal (sem overclock)."
-                      if pre else "")
+            pre_pt = (" Se as células já estavam cheias na troca de míssil, a primeira salva espera a recarga normal "
+                      "(sem overclock)." if pre else "")
             vent_en = " About 1 in 16 missiles is vented from the magazine every salvo (torpedoes exempt)." if vent else ""
             vent_pt = (" Cerca de 1 em cada 16 mísseis é descartado do paiol a cada salva (torpedos isentos)."
                        if vent else "")
             en["Parts"][k + "OverclockDesc"] = (
                 f"\"{o.get('name_en', '')}\": the autoloader works {_num_en(fac[0])}x faster{ex_en}; ripple, damage and "
                 f"range stay the same.{nn_en} Costs {oc['heat_per_part']} heat per missile part loaded plus "
-                f"{oc['heat_per_second']} heat/s (needs radiators).{vent_en}{pre_en} Switching it off pauses the launcher for 3 s, "
-                f"and the magazine empties faster. Without enough cooling it overheats, catches fire and cooks off with "
+                f"{oc['heat_per_second']} heat/s (needs radiators).{vent_en}{pre_en} The magazine empties faster. Switching "
+                f"it off pauses the launcher for 3 s. Without enough cooling it overheats, catches fire and cooks off with "
                 f"its stock.")
             pt["Parts"][k + "OverclockDesc"] = (
-                f"\"{o.get('name_ptbr', '')}\": o autocarregador trabalha {_num_pt(fac[0])} vez mais rápido{ex_pt}; "
-                f"ripple, dano e alcance não mudam.{nn_pt} Custa {oc['heat_per_part']} de calor por peça de míssil "
-                f"carregada mais {oc['heat_per_second']} de calor/s (precisa de radiador).{vent_pt}{pre_pt} Desligar dá uma "
-                f"pausa de 3 s e o paiol esvazia mais rápido. Sem refrigeração suficiente, esquenta, pega fogo e explode "
-                f"junto com o estoque.")
+                f"\"{o.get('name_ptbr', '')}\": o autocarregador trabalha {_num_pt(fac[0])} {_vezes(fac[0])} mais "
+                f"rápido{ex_pt}; a cadência da salva, o dano e o alcance não mudam.{nn_pt} Custa {oc['heat_per_part']} de "
+                f"calor por peça de míssil carregada mais {oc['heat_per_second']} de calor/s (precisa de radiador)."
+                f"{vent_pt}{pre_pt} O paiol esvazia mais rápido. Desligar o overclock dá uma pausa de 3 s. Sem "
+                f"refrigeração suficiente, esquenta, pega fogo e explode junto com o estoque.")
         for m in lch["modes"]:
             en["StatCategories"][f"{k}_{m['type']}"] = f"{m['name_en']} \"{m['codename']}\""
             pt["StatCategories"][f"{k}_{m['type']}"] = f"{m['name_pt']} \"{m['codename']}\""
@@ -484,8 +539,7 @@ RES_DESC_PT = {"mag": "Um carregador lacrado que a tripulação leva até as arm
 PLURAL_PT = {
     "Carregador Padrão": "Carregadores Padrão",
     "Carregador Perfurante": "Carregadores Perfurantes",
-    "Carregador EMP": "Carregadores EMP",
+    "Carregador P.E.M.": "Carregadores P.E.M.",
     "Célula de Plasma": "Células de Plasma",
     "Projétil Nuclear": "Projéteis Nucleares",
 }
-OC_PT = {}

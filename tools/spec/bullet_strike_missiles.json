@@ -3,12 +3,12 @@
  "philosophy": "Tiro, porrada e bomba, with A's engine and A's numbers. Three crewed, power-free deck launchers - RAM micro-missile box (early), twin octagonal pods with a sensor dome (mid), headless quad battery with 48 tips (late) - run one loop: crew fill an internal magazine per resource family, a crewed autoloader fills the visible cells, a full rack ripples one dramatic salvo, then the launcher reloads. Sustained DPS sits exactly on the mod's tier bands; the drama is in the alpha and in the missiles: the Piranha school, the Carrapato countdown, napalm that keeps burning, EMP, the Boto decoy torpedo and the Iara nuke that must be masked. Overclock buys reload speed with heat, vented missiles and cook-off risk; the endgame battery is very powerful and very costly (5x6, 8 crew, 18 CP, 77000 cr, 2 per ship in the nuclear pool). Only vanilla component types and vanilla missile parts on the default path; every risky mechanic has a fallback that changes no number.",
  "base_choice": "BASE = Design A's launcher core (Model B latch, crewed autoloader, ModeSwitchDelay, DryFlush, safe napalm, untargetable limpet, heat per part loaded) and A's numeric spine (bands, OC <= 550, 300/400/600 m, 1500 drain per EMP part) - the two judges that weigh engine risk and balance both picked it (8.5 / 8.0). GRAFTED from B (fidelity 8.5): the stage-to-reference roster (RAM box -> twin octagonal pods + dome -> quad 3x4 battery), the Mula-sem-Cabeça endgame, the Piranha parameters (25 m, InheritVelocity false, weak late homing), the Iara in bs_limit_nuke with no OC, one magazine per resource family, per-family cook-off, the complete turret sketch and CrewKillChance on the limpet. GRAFTED from C: the micro-missile cassette (as Burst 2), the Boto decoy torpedo, the OC vent cost (scaled per cell), magnet + spacing children, the buzz-droid limpet charge, threshold MultiResourceStorage toggles, the isolated Repeating variant pattern and the counter matrix. NEW here: per-mode ModeSwitchDelay, tick-aligned ripples, heavy 16-unit layout on the Mula, children HP pool >= carrier HP, Iara masking timing.",
  "path_aliases": {
-  "R/": "/tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/research/vanilla_rules_0.30.5/ (vanilla 0.30.5 RC4)",
-  "RJ/": "/home/user/rojamahorse/cosmoteerupdates/ (vanilla RC4 on disk; commit ae16922 = 0.30.3, the 0.30.4 proxy)",
-  "SW/": "/tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/repos/main/ (SW:ACD, targets 0.30.4)",
-  "BS/": "/home/user/Cosmoteer/BulletStrike/ (our generated mod)",
-  "T/": "/home/user/Cosmoteer/tools/ (our generator)",
-  "NVL/NSM/NSW/NGEN/GAPS": "scratchpad/notes/missiles_vanilla_launcher.md / _special_mechanics.md / _swacd.md / _our_generator.md / _gaps.md"
+  "R/": "the vanilla 0.30.5 RC4 rules (the game's Data folder)",
+  "RJ/": "a second copy of the vanilla data (commit ae16922 = 0.30.3, used as the 0.30.4 reference)",
+  "SW/": "the Star Wars: A Cosmos Divided mod (SW:ACD, targets 0.30.4)",
+  "BS/": "BulletStrike/ (our generated mod, relative to the repository root)",
+  "T/": "tools/ (our generator, relative to the repository root)",
+  "NVL/NSM/NSW/NGEN/GAPS": "design research notes (vanilla launcher / special mechanics / SW:ACD / our generator / gaps); not in the repository"
  },
  "constraints": [
   "Cosmoteer 0.30.4 + 0.30.5 RC4: vanilla component types present in 0.30.3 and RC4 only; literals everywhere; no DefaultWeaponCoverage / MatchWeaponCoverage / CoverageSectorArc / UseContiguity / AllowVertexContiguity / structural-retention globals / APPLIED_HEAT_PER_MISSILE; HealthFactor, never ScaleHealth.",
@@ -585,7 +585,7 @@
   {
    "id": "rafaeltessaro.bs_msl_twin",
    "name_en": "Twin-Pod Deck Missile Launcher",
-   "name_ptbr": "Lançador de Mísseis de Convés de Casulo Duplo",
+   "name_ptbr": "Lançador Duplo de Mísseis de Convés",
    "codename": "Caipora",
    "tier": "mid",
    "size": [
@@ -2519,7 +2519,7 @@
    "toggle_index": 1,
    "choice_id": "bs_missile_cluster",
    "name_en": "Cluster Missile (Transformer)",
-   "name_ptbr": "Míssil de Submunições (Transformer)",
+   "name_ptbr": "Míssil de Submunições",
    "codename": "Piranha",
    "codename_why": "one shape in the water, then a school that strips the target from every side",
    "glow": "#FFE45C yellow, petal-segmented nose",
@@ -2536,7 +2536,7 @@
      "launcher_codename": "Caipora",
      "variant_codename": "Piranha",
      "variant_name_en": "Cluster Missile (Transformer)",
-     "variant_name_ptbr": "Míssil de Submunições (Transformer)",
+     "variant_name_ptbr": "Míssil de Submunições",
      "shot_id": "rafaeltessaro.bs_msl_twin_cluster",
      "files": [
       "shots/bs_msl_twin_cluster/bs_msl_twin_cluster.rules",
@@ -2585,7 +2585,7 @@
      "launcher_codename": "Mula-sem-Cabeça",
      "variant_codename": "Piranha",
      "variant_name_en": "Cluster Missile (Transformer)",
-     "variant_name_ptbr": "Míssil de Submunições (Transformer)",
+     "variant_name_ptbr": "Míssil de Submunições",
      "shot_id": "rafaeltessaro.bs_msl_quad_cluster",
      "files": [
       "shots/bs_msl_quad_cluster/bs_msl_quad_cluster.rules",
@@ -3003,7 +3003,7 @@
    "toggle_index": 4,
    "choice_id": "bs_missile_emp",
    "name_en": "EMP Missile",
-   "name_ptbr": "Míssil PEM",
+   "name_ptbr": "Míssil P.E.M.",
    "codename": "Poraquê",
    "codename_why": "the Amazon electric eel: one shock and everything goes dark",
    "glow": "#4FC3FF blue, coil ring",
@@ -3020,7 +3020,7 @@
      "launcher_codename": "Caipora",
      "variant_codename": "Poraquê",
      "variant_name_en": "EMP Missile",
-     "variant_name_ptbr": "Míssil PEM",
+     "variant_name_ptbr": "Míssil P.E.M.",
      "shot_id": "rafaeltessaro.bs_msl_twin_emp",
      "files": [
       "shots/bs_msl_twin_emp/bs_msl_twin_emp.rules"
@@ -3062,7 +3062,7 @@
      "launcher_codename": "Mula-sem-Cabeça",
      "variant_codename": "Poraquê",
      "variant_name_en": "EMP Missile",
-     "variant_name_ptbr": "Míssil PEM",
+     "variant_name_ptbr": "Míssil P.E.M.",
      "shot_id": "rafaeltessaro.bs_msl_quad_emp",
      "files": [
       "shots/bs_msl_quad_emp/bs_msl_quad_emp.rules"
@@ -5551,7 +5551,7 @@
    "id": "T09",
    "question": "Our CIWS/flak vs our own missiles (gap Q9)",
    "how": "Fire Piranha and HE salvos through our own Tamanduá airbursts and Pororoca Flak Wall field.",
-   "fallback_no_number_change": "explicit enemies-only filter on bs_cloud_ciws VolumeHit (defense file, no missile number)",
+   "fallback_no_number_change": "explicit enemies-only filter on the shrapnel cloud VolumeHit (bs_cloud_flak_heavy; the CIWS overclock no longer spawns a cloud) (defense file, no missile number)",
    "pass": "no own losses"
   },
   {
@@ -6261,9 +6261,9 @@
    "resolution": "One ID map: box = early, twin = mid, quad = late."
   }
  ],
- "user_presentation_ptbr": "## Lança-mísseis de convés do Bullet Strike - proposta final\n\nTrês lançadores, um para cada fase. Todos são torres de convés (em cima do casco), operados só pela tripulação e **sem energia**.\n\n### Como funciona (igual nos três)\n- **Estoque interno:** cada lançador tem um paiol por tipo de peça (HE, térmica, PEM, nuclear). A tripulação carrega as peças de míssil do jogo base até ele. O estoque cheio dá 3 salvas.\n- **Recarga automática:** um autocarregador passa um míssil por vez do paiol para as células visíveis. **Só funciona com tripulação no posto.** Com todas as células cheias, sai a salva em sequência e a recarga recomeça. Se o paiol acabar, a salva parcial sai mesmo assim.\n- **Trocar de míssil não dá salva grátis:** ao trocar o tipo, o lançador espera um ciclo completo de recarga do tipo novo.\n- **Overclock (só meio e fim):** a recarga fica 1,5 vez mais rápida (PEM: 1,2 vez). Custos: calor por peça carregada (precisa de radiador), cerca de 1 em cada 16 mísseis é descartado a cada salva, pausa de 3 s ao desligar, o paiol esvazia mais rápido e, sem radiador, o lançador esquenta, pega fogo e explode junto com o estoque. Nunca acelera o torpedo nuclear.\n- **Lançador cheio é uma bomba:** destruído ou queimado, explode proporcional ao estoque (cerca de 850 de dano por peça HE guardada).\n\n### Os lançadores\n- **Início - Tocandira (Caixa de Micromísseis de Convés), 2x2, 1 tripulante.** Caixa estilo RAM com 6 cassetes de tubo duplo: 12 micromísseis em 0,73 s a cada 9,1 s, alcance 300 m. Mísseis: Muriçoca (alto-explosivo) e Taturana-mirim (incendiário). Contra um PD vanilla, cerca de 58 % da salva passa.\n- **Meio - Caipora (Lançador de Mísseis de Convés de Casulo Duplo), 3x3, 2 tripulantes.** Dois casulos octogonais e uma cúpula com olho sensor: 16 mísseis em 2 s a cada 19,0 s, alcance 400 m. Mísseis: Jararaca, Piranha, Carrapato, Taturana, Poraquê e o torpedo Boto (2 por salva). Overclock: Fúria da Caipora.\n- **Fim - Mula-sem-Cabeça (Bateria Pesada de Mísseis Quádrupla), 5x6, 8 tripulantes, 18 CP, 77000 créditos.** Corpo sem cabeça com quatro casulos de 3x4 em braços hidráulicos: 48 mísseis pesados em 3,1 s a cada 15,8 s, alcance 600 m. Tem todos os mísseis, inclusive o nuclear Iara. Divide a vaga nuclear com a Boiúna (no máximo 2 por nave, em qualquer combinação). Overclock: Estouro da Boiada.\n\n### Os mísseis\n- **Jararaca (Alto-Explosivo):** explosão padrão; é o míssil \"normal\" do SW. Em salva grande, satura a defesa de ponto.\n- **Piranha (Submunições, o \"Transformers 3\"):** abre a 25 m do casco e solta 4 (meio) ou 6 (fim) minimísseis que se espalham e acertam várias peças. Faz 90 % do dano do HE. O contra é flak de área de raio grande.\n- **Carrapato (Grudento):** se for abatido no voo, perde-se; se acertar o casco, gruda, pisca e explode 2,5 s depois, com 50 % de chance de matar a tripulação que vier consertar. Não gruda em escudo.\n- **Taturana (Napalm):** explosão pequena, fogo garantido na peça atingida e calor em volta que continua acendendo incêndios. Extintor, espuma e blindagem são o contra.\n- **Poraquê (PEM):** drena bateria e escudos em área (1500 por peça PEM, abaixo do PEM vanilla). Não afeta as armas do Bullet Strike.\n- **Boto (Torpedo com Iscas):** torpedo lento e resistente que solta 4 a 6 iscas para enganar a defesa de ponto. Faz 24000 (meio) ou 48000 (fim) de dano explosivo.\n- **Iara (Torpedo Nuclear, só na Mula):** 120000 + 40000, 2 por salva a cada 20 s. Sozinho morre para qualquer flak; dispare o Iara primeiro e uma salva HE 1 a 3 s depois para os dois chegarem juntos.\n\n### O que é arriscado e precisa de teste no jogo\n1. **Carrapato:** a carga grudar num navio que gira e acelera. Há 4 planos B com os mesmos números.\n2. **Piranha:** os filhotes herdarem o alvo e não estourarem sobre o nosso casco. Plano B: ímã para o casco inimigo e atraso maior.\n3. **Trava das células** (salva completa antes de recarregar). Plano B com temporizador.\n4. **Mísseis sobre o próprio convés:** não podem bater na nossa torre nem desviar do nosso casco.\n5. **Nosso CIWS contra os nossos mísseis**, e o modelo do CIWS (cada disparo mata 1 míssil ou vários). Isso muda os números de interceptação.\n6. **Desempenho** com muitas submunições; **torpedo com iscas** (dois disparos no mesmo evento); **vaga nuclear** dividida com a Boiúna.\n\nTodas as mecânicas usam componentes do jogo base, a categoria 'missile' (compatível com o SW:ACD) e funcionam no 0.30.4 e no 0.30.5. Cada risco tem um plano B que não muda nenhum número.",
+ "user_presentation_ptbr": "## Lança-mísseis de convés do Bullet Strike - proposta final\n\nTrês lançadores, um para cada fase. Todos são torres de convés (em cima do casco), operados só pela tripulação e **sem energia**.\n\n### Como funciona (igual nos três)\n- **Estoque interno:** cada lançador tem um paiol por tipo de peça (A.E., T., P.E.M., nuclear). A tripulação carrega as peças de míssil do jogo base até ele. O estoque cheio dá 3 salvas.\n- **Recarga automática:** um autocarregador passa um míssil por vez do paiol para as células visíveis. **Só funciona com tripulação no posto.** Com todas as células cheias, sai a salva em sequência e a recarga recomeça. Se o paiol acabar, a salva parcial sai mesmo assim.\n- **Trocar de míssil não dá salva grátis:** ao trocar o tipo, o lançador espera um ciclo completo de recarga do tipo novo.\n- **Overclock (só meio e fim):** a recarga fica 1,5 vez mais rápida (P.E.M.: 1,2 vez). Custos: calor por peça carregada (precisa de radiador), cerca de 1 em cada 16 mísseis é descartado a cada salva, o paiol esvazia mais rápido, pausa de 3 s ao desligar e, sem radiador, o lançador esquenta, pega fogo e explode junto com o estoque. Nunca acelera o torpedo nuclear.\n- **Lançador cheio é uma bomba:** destruído ou queimado, explode proporcional ao estoque (cerca de 850 de dano por peça A.E. guardada).\n\n### Os lançadores\n- **Início - Tocandira (Caixa de Micromísseis de Convés), 2x2, 1 tripulante.** Caixa estilo RAM com 6 cassetes de tubo duplo: 12 micromísseis em 0,73 s a cada 9,1 s, alcance 300 m. Mísseis: Muriçoca (alto-explosivo) e Taturana-mirim (incendiário). Contra um ponto de defesa do jogo base, cerca de 58% da salva passa.\n- **Meio - Caipora (Lançador Duplo de Mísseis de Convés), 3x3, 2 tripulantes.** Dois casulos octogonais e uma cúpula com olho sensor: 16 mísseis em 2 s a cada 19,0 s, alcance 400 m. Mísseis: Jararaca, Piranha, Carrapato, Taturana, Poraquê e o torpedo Boto (2 por salva). Overclock: Fúria da Caipora.\n- **Fim - Mula-sem-Cabeça (Bateria Pesada de Mísseis Quádrupla), 5x6, 8 tripulantes, 18 pontos de comando, 77.000 créditos.** Corpo sem cabeça com quatro casulos de 3x4 em braços hidráulicos: 48 mísseis pesados em 3,1 s a cada 15,8 s, alcance 600 m. Tem todos os mísseis, inclusive o nuclear Iara. Divide a vaga nuclear com a Boiúna (no máximo 2 por nave, em qualquer combinação). Overclock: Estouro da Boiada.\n\n### Os mísseis\n- **Jararaca (Alto-Explosivo):** explosão padrão; é o míssil comum, como o míssil normal do SW:ACD. Em salva grande, satura os pontos de defesa.\n- **Piranha (Submunições, no estilo Transformers):** abre a 25 m do casco e solta 4 (meio) ou 6 (fim) minimísseis que se espalham e acertam várias peças. Faz 90% do dano do míssil A.E. O contra é flak de área de raio grande.\n- **Carrapato (Grudento):** se for abatido no voo, perde-se; se acertar o casco, gruda, pisca e explode 2,5 s depois, com 50% de chance de matar a tripulação que vier consertar. Não gruda em escudo.\n- **Taturana (Napalm):** explosão pequena, fogo garantido na peça atingida e calor em volta que continua acendendo incêndios. Extintor, espuma e blindagem são o contra.\n- **Poraquê (P.E.M.):** drena bateria e escudos em área (1.500 por peça P.E.M., abaixo do míssil P.E.M. do jogo base). Não afeta as armas do Bullet Strike.\n- **Boto (Torpedo com Iscas):** torpedo lento e resistente que solta 4 a 6 iscas para enganar os pontos de defesa. Faz 24.000 (meio) ou 48.000 (fim) de dano explosivo.\n- **Iara (Torpedo Nuclear, só na Mula):** 120.000 + 40.000 de dano, 2 por salva a cada 20 s. Sozinho morre para qualquer flak; dispare o Iara primeiro e uma salva de mísseis A.E. 1 a 3 s depois para os dois chegarem juntos.\n\n### O que é arriscado e precisa de teste no jogo\n1. **Carrapato:** a carga grudar numa nave que gira e acelera. Há 4 planos B com os mesmos números.\n2. **Piranha:** os minimísseis herdarem o alvo e não estourarem sobre o nosso casco. Plano B: ímã para o casco inimigo e atraso maior.\n3. **Trava das células** (salva completa antes de recarregar). Plano B com temporizador.\n4. **Mísseis sobre o próprio convés:** não podem bater na nossa torre nem desviar do nosso casco.\n5. **Nossa CIWS contra os nossos mísseis**, e o modelo da CIWS (cada disparo mata 1 míssil ou vários). Isso muda os números de interceptação.\n6. **Desempenho** com muitas submunições; **torpedo com iscas** (dois disparos no mesmo evento); **vaga nuclear** dividida com a Boiúna.\n\nTodas as mecânicas usam componentes do jogo base, a categoria 'missile' (compatível com o SW:ACD) e funcionam no 0.30.4 e no 0.30.5. Cada risco tem um plano B que não muda nenhum número.",
  "sources": {
-  "generator": "scratchpad/design/missiles/final/model.py + gen_missile_spec.py (python3 -I gen_missile_spec.py; aborts if any hard limit fails)",
+  "generator": "design-phase model.py + gen_missile_spec.py (not in the repository; aborted if any hard limit failed). In the repository the same checks run in tools/bs_data.py (_check_missile / _check_launcher) and tools/bsgen/launchers.py (_check_cookoff)",
   "inputs": [
    "MISSILE_BRIEF.md + 4 reference images",
    "notes/missiles_vanilla_launcher.md, _special_mechanics.md, _swacd.md, _our_generator.md, _gaps.md (gaps wins)",
@@ -6464,7 +6464,7 @@
    "test": "T09",
    "stage": 2,
    "options": {
-    "as_is": "bs_cloud_ciws VolumeHit unchanged",
+    "as_is": "bs_cloud_flak_heavy VolumeHit unchanged",
     "enemies_only": "explicit enemies-only bullet filter on the cloud (defense file, no missile number)"
    }
   },

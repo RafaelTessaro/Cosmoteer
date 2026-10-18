@@ -154,7 +154,7 @@ Components
 			Enemies = true
 			Junk = true
 			Neutrals = true
-			OnlyBulletCategories = [missile, mine, bullet, laser, ion_shot]
+			OnlyBulletCategories = [missile, mine, bullet]
 		}
 		HitBullet
 		{

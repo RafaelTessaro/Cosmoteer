@@ -1,13 +1,31 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
 // Projetil: 155mm Twin Naval Gun - emp
 
+OVERCLOCK
+{
+	RANGE = 598
+}
 STAT_DAMAGE = 4750
 STAT_PENETRATION = 1
 ID = "rafaeltessaro.bs_shot_naval_155_emp"
-Range = 520
-IdealRange = [156, &~/Range]
+Range
+{
+	BaseValue = 520
+	Modifiers
+	[
+		{
+			Type = BuffRemap
+			BuffType = Overclock
+			ModificationMode = Replace
+			RemapFrom = [0, 1]
+			RemapTo = [&../../../BaseValue, &~/OVERCLOCK/RANGE]
+		}
+	]
+}
+IdealRange = [156, 520]
 IdealRadius = [5, 50]
 Speed = 220
+ReceivableBuffs = [Overclock]
 Components
 {
 	Physics
@@ -66,7 +84,7 @@ Components
 					ResourceType = battery
 					Amount
 					{
-						BaseValue = 1500
+						BaseValue = 2080
 						EffectScaleExponent = 1
 					}
 					TreatShieldAsPart = true
@@ -106,7 +124,7 @@ Components
 					ResourceType = battery
 					Amount
 					{
-						BaseValue = 900
+						BaseValue = 1500
 						EffectScaleExponent = 1
 					}
 					MediaEffectsOnDrain

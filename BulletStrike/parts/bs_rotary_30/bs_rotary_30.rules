@@ -4,11 +4,12 @@
 OVERCLOCK
 {
 	FIRE_INTERVAL_FACTOR = 0.7143
-	HALF_SPREAD = 1.875d
+	HALF_SPREAD = 2.2d
 	RECOIL_FACTOR = 160%
 	HEAT_PER_SHOT = 120
 	HEAT_PER_SECOND = 100
 	MAX_SPIN = 6
+	SPIN_UP_TIME = 4
 }
 HEAT_TO_RESOURCE = &<./Data/statuses/heat/heat.rules>/STATUS_TO_RESOURCE_RATIO
 FIRE_INTERVAL = 0.5
@@ -194,7 +195,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = ResourceStorage
 			ResourceType = rafaeltessaro.bs_mag_ap
-			MaxResources = 24
+			MaxResources = 16
 			UITileRect = [1 + 7/64, 3 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true
@@ -238,7 +239,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = ResourceStorage
 			ResourceType = rafaeltessaro.bs_mag_ap
-			MaxResources = 24
+			MaxResources = 16
 			UITileRect = [2 + 7/64, 3 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true
@@ -282,7 +283,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = ResourceStorage
 			ResourceType = rafaeltessaro.bs_mag_emp
-			MaxResources = 24
+			MaxResources = 16
 			UITileRect = [3 + 7/64, 3 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true
@@ -400,7 +401,20 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					}
 				]
 			}
-			AccumulationRate = ((&~/SPIN/MAX) - 1) / (&~/SPIN/UP_TIME)
+			AccumulationRate
+			{
+				BaseValue = ((&~/SPIN/MAX) - 1) / (&~/SPIN/UP_TIME)
+				Modifiers
+				[
+					{
+						Type = BuffRemap
+						BuffType = Overclock
+						ModificationMode = Replace
+						RemapFrom = [0, 1]
+						RemapTo = [&../../../BaseValue, ((&~/OVERCLOCK/MAX_SPIN) - 1) / (&~/OVERCLOCK/SPIN_UP_TIME)]
+					}
+				]
+			}
 			DissipationRate = ((&~/SPIN/MAX) - 1) / (&~/SPIN/DOWN_TIME)
 		}
 		RateOfFireBuff

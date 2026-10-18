@@ -4,7 +4,7 @@
 OVERCLOCK
 {
 	FIRE_INTERVAL_FACTOR = 0.7143
-	HALF_SPREAD = 2.5d
+	HALF_SPREAD = 2.8d
 	RECOIL_FACTOR = 160%
 	HEAT_PER_SHOT = 30
 	HEAT_PER_SECOND = 40
@@ -197,7 +197,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 			[
 				{
 					TargetType = Bullets
-					BulletTargetCategories = [missile, mine, bullet, laser, ion_shot]
+					BulletTargetCategories = [missile, mine, bullet]
 					Toggle = DefendToggle
 				}
 				{
@@ -313,7 +313,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					GetTargetFrom = Turret
 					Location = [1.55, 0]
 					OperationalToggle = IsOperational
-					Bullet = &<../../shots/bs_shot_quad_hmg_std_oc/bs_shot_quad_hmg_std_oc.rules>
+					Bullet = &<../../shots/bs_shot_quad_hmg_std/bs_shot_quad_hmg_std.rules>
 					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
 					ResourceStorage = Splitter_0
 					ResourcesUsed = 1

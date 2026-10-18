@@ -5,7 +5,7 @@ OVERCLOCK
 {
 	FIRE_INTERVAL_FACTOR = 0.75
 	HALF_SPREAD = 0.938d
-	RECOIL_FACTOR = 160%
+	RECOIL_FACTOR = 200%
 	HEAT_PER_SHOT = 3000
 	HEAT_PER_SECOND = 200
 	CREW_STUN_DURATION = 1.5
@@ -199,7 +199,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = ResourceStorage
 			ResourceType = rafaeltessaro.bs_mag_ap
-			MaxResources = 36
+			MaxResources = 24
 			UITileRect = [1 + 7/64, 6 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true
@@ -243,7 +243,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = ResourceStorage
 			ResourceType = rafaeltessaro.bs_mag_ap
-			MaxResources = 36
+			MaxResources = 24
 			UITileRect = [2 + 7/64, 6 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true
@@ -287,7 +287,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = ResourceStorage
 			ResourceType = rafaeltessaro.bs_mag_emp
-			MaxResources = 36
+			MaxResources = 24
 			UITileRect = [3 + 7/64, 6 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true

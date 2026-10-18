@@ -3,6 +3,8 @@
  "id": "rafaeltessaro.bs_shell_nuke",
  "kind": "resource",
  "stack": 2,
+ "overlay_glow": true,
+ "nugget_scale": 0.9,
  "files": [
   "icon.png",
   "nugget.png",

@@ -7,7 +7,7 @@ ID = "rafaeltessaro.bs_shot_plasma_heavy_plasma_oc"
 Range = 600
 IdealRange = [180, &~/Range]
 IdealRadius = [5, 50]
-Speed = 227
+Speed = 260
 Components
 {
 	Physics
@@ -24,7 +24,7 @@ Components
 	{
 		Type = Targetable
 		Health = 2500
-		TargetCategory = "bullet"
+		TargetCategory = "laser"
 		OnDeath
 		{
 			MediaEffects = &~/Components/Hit/HitOperational/MediaEffects
@@ -33,15 +33,11 @@ Components
 	Hit
 	{
 		Type = PenetratingHit
-		Penetration = 0
-		PenetrationSpeed = 25
 		FriendlyShipLowCollisions = false
 		CrewCollisions = {Enemies=true; Junk=true}
-		PenetratesCrew = true
 		HitCrew = &HitOperational
 		HitShield
 		{
-			ReduceEffectsByPenetration = true
 			Offset = [-0.15, 0]
 			HitEffects
 			[
@@ -66,7 +62,6 @@ Components
 		}
 		HitOperational
 		{
-			ReduceEffectsByPenetration = true
 			Offset = [-0.15, 0]
 			HitEffects
 			[
@@ -79,6 +74,15 @@ Components
 					}
 				}
 				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 2000
+						EffectScaleExponent = 1
+					}
+					Radius = 3
+				}
+				{
 					Type = Impulse
 					Impulse
 					{
@@ -89,9 +93,19 @@ Components
 				{
 					Type = StatusApplication
 					StatusType = cosmoteer.heat
-					StatusValue = 374
+					StatusValue = 300
 					ApplyToAllHitPartTiles = true
 					DivideValueByPartArea = true
+				}
+				{
+					Type = StatusApplication
+					StatusType = cosmoteer.fire
+					StatusChance
+					{
+						BaseValue = 0.25
+						EffectScaleExponent = 1
+					}
+					ValueType = Interpolated
 				}
 			]
 			MediaEffects
@@ -99,6 +113,7 @@ Components
 				&<./Data/shots/bullet_railgun/particles/bullet_hit_railgun.rules>
 				&<./Data/shots/bullet_railgun/particles/bullet_railgun_sparks.rules>
 				&<./Data/shots/bullet_railgun/particles/bullet_flash_railgun.rules>
+				&<./Data/shots/missile_he/particles/missile_he_hit.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds
@@ -120,7 +135,6 @@ Components
 		}
 		HitStructural
 		{
-			ReduceEffectsByPenetration = true
 			Offset = [0.15, 0]
 			HitEffects
 			[
@@ -149,45 +163,18 @@ Components
 		}
 		PenetratingOperational
 		{
-			ReduceEffectsByPenetration = true
-			HitEffects
-			[
-				{
-					Type = Damage
-					Damage
-					{
-						BaseValue = 4680
-						EffectScaleExponent = 1
-					}
-				}
-				{
-					Type = StatusApplication
-					StatusType = cosmoteer.fire
-					StatusChance
-					{
-						BaseValue = 0.25
-						EffectScaleExponent = 1
-					}
-					ValueType = Interpolated
-				}
-				{
-					Type = Impulse
-					Impulse
-					{
-						BaseValue = 5
-						EffectScaleExponent = 1
-					}
-				}
-			]
-			MediaEffects = &../HitOperational/MediaEffects
 		}
 		PenetratingStructural : &HitStructural
 		{
 			StructuralDamageRetentionPerHit = 50%
 			MinStructuralDamageScale = 3%
 		}
-		FinishedPenetratingOperational = &PenetratingOperational
-		FinishedPenetratingStructural = &PenetratingStructural
+		FinishedPenetratingOperational
+		{
+		}
+		FinishedPenetratingStructural
+		{
+		}
 	}
 	Sprite
 	{

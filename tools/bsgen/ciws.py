@@ -2,7 +2,8 @@
 
 Padrao vanilla: flak_cannon_large.rules — BeamEmitter instantaneo ate o ponto mirado
 (ClipRangeToTarget) + ExplosiveDamage filtrado por categorias de projetil (acerta VARIOS projeteis
-de uma vez, os mais proximos do centro primeiro). Overclock: nuvem de estilhacos que fica no ar.
+de uma vez, os mais proximos do centro primeiro). Overclock: cadencia maior (FireInterval BuffRemap) e,
+quando o spec pede (Pororoca), um feixe proprio que deixa uma nuvem de estilhacos no ar.
 """
 
 from rules_dsl import Q, VOID, Inh
@@ -11,8 +12,10 @@ from bsgen.guns import geometry, deck_graphics
 
 
 def build_ciws(c, beam_path, beam_oc_path):
+    """beam_oc_path = None com overclock: so a cadencia muda, com o mesmo feixe (CIWS "Barragem")."""
     w, h = c["size"]
     oc = c.get("oc")
+    oc_beam = bool(oc and beam_oc_path)
     geo = geometry(c)
     center = [w / 2, h / 2]
     nb = len(geo["ys"]) if c.get("art3d") else c["barrels"]["count"]
@@ -124,7 +127,7 @@ def build_ciws(c, beam_path, beam_oc_path):
         "ResourceStorage": "Splitter",
         "FireTrigger": VOID,
         "Location": [geo["muzzle"], 0],
-        "OperationalToggle": "IsOperationalNonOverclocked" if oc else "IsOperational",
+        "OperationalToggle": "IsOperationalNonOverclocked" if oc_beam else "IsOperational",
         "ResourcesUsed": m.get("units_per_shot", 1),
         "Recoil": c.get("recoil", 4),
         "Burst": c.get("burst", 1),
@@ -139,7 +142,7 @@ def build_ciws(c, beam_path, beam_oc_path):
         comp[f"{n} : BaseFlakEmitter"] = {"Location": [geo["muzzle"], y], "FireTrigger": triggers[i]}
         emitters.append(n)
     oc_emitters = []
-    if oc:
+    if oc_beam:
         comp[f"Overclock_BaseFlakEmitter : <{beam_oc_path}>/Beam, BaseFlakEmitter"] = {
             "OperationalToggle": "IsOperationalOverclocked"}
         for i, y in enumerate(geo["ys"]):
@@ -149,7 +152,7 @@ def build_ciws(c, beam_path, beam_oc_path):
                 "ResourceStorage": "&^/1/ResourceStorage"}
             oc_emitters.append(n)
     for i in range(nb):
-        trig = [emitters[i]] + ([oc_emitters[i]] if oc else [])
+        trig = [emitters[i]] + ([oc_emitters[i]] if oc_beam else [])
         comp[f"Emitter{i + 1}Trigger"] = {"Type": "MultiTrigger", "Triggers": trig}
 
     fx = c["fx"]
@@ -210,17 +213,17 @@ def build_ciws(c, beam_path, beam_oc_path):
             "ShotAmmoUsage": ["&../AmmoPerShot", "&../AmmoPerSecond"],
         }}]
     if oc:
-        oem = "&~/Part/Components/Overclock_BaseFlakEmitter"
+        oc_stats = {"ROF": f"{burst} / (({fi_path}) * (&~/OVERCLOCK/FIRE_INTERVAL_FACTOR))"}
+        if oc_beam:
+            oem = "&~/Part/Components/Overclock_BaseFlakEmitter"
+            oc_stats.update({"ShrapnelFieldRadius": f"{oem}/STAT_CLOUD_RADIUS",
+                             "ShrapnelFieldDamagePool": f"{oem}/STAT_CLOUD_POOL",
+                             "ShrapnelFieldLifetime": f"{oem}/STAT_CLOUD_LIFETIME"})
+        oc_stats.update({"HeatPerShot": "(&~/OVERCLOCK/HEAT_PER_SHOT)",
+                         "HeatGeneration": "(&~/OVERCLOCK/HEAT_PER_SECOND)"})
         part["SecondaryToolTip"] = {
             "TitleKey": Q("StatCategories/Overclocked"),
             "DescriptionKey": Q(f"Parts/{c['key']}OverclockDesc"),
-            "StatsByCategory": [{"NameKey": Q("StatCategories/BSFlak"), "Stats": {
-                "ROF": f"{burst} / (({fi_path}) * (&~/OVERCLOCK/FIRE_INTERVAL_FACTOR))",
-                "ShrapnelFieldRadius": f"{oem}/STAT_CLOUD_RADIUS",
-                "ShrapnelFieldDamagePool": f"{oem}/STAT_CLOUD_POOL",
-                "ShrapnelFieldLifetime": f"{oem}/STAT_CLOUD_LIFETIME",
-                "HeatPerShot": "(&~/OVERCLOCK/HEAT_PER_SHOT)",
-                "HeatGeneration": "(&~/OVERCLOCK/HEAT_PER_SECOND)",
-            }}]}
+            "StatsByCategory": [{"NameKey": Q("StatCategories/BSFlak"), "Stats": oc_stats}]}
     top["Part : " + C.base_part_path(w, h, bool(oc))] = part
     return top, {"geo": geo, "center": center}

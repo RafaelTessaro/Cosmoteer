@@ -3,7 +3,7 @@
     python3 tools/make_gallery.py
 
 Gera em docs/preview/3d/:
-  galeria_armas_3d.png     - armas e lancadores de convés por fase (inicio / meio / fim), como aparecem no jogo
+  galeria_armas_3d.png     - armas, defesas e lancadores de convés por fase (inicio / meio / fim), como aparecem no jogo
   galeria_fabricas_3d.png  - fabricas (interior trabalhando + teto pintado) com a municao que produzem (pilha cheia + icone)
 """
 
@@ -72,7 +72,9 @@ def _sheet(rows, title_font, label_font, pad=20):
 def weapons_gallery():
     rows = []
     for tier, title in TIERS:
-        items = [(g["short"], g["codename"], g["size"][0] * g["size"][1]) for g in D.GUNS if g["tier"] == tier]
+        # armas e defesas (Tatu, Tamandua, Pororoca) por area; os lancadores no fim de cada fileira
+        items = [(g["short"], g["codename"], g["size"][0] * g["size"][1]) for g in D.GUNS + D.DEFENSES
+                 if g["tier"] == tier]
         items.sort(key=lambda t: t[2])
         items += [(m["short"], m["codename"], 0) for m in D.LAUNCHERS if m.get("tier") == tier]
         rows.append((title, [(weapon_tile(s), name) for s, name, _ in items

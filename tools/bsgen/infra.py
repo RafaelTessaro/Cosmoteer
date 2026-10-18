@@ -7,7 +7,7 @@ COMPAT = ["0.30.4", "0.30.4a", "0.30.4b", "0.30.4c", "0.30.5"]
 
 
 def mod_rules(data, part_paths, resource_paths, version, limits=(), status_paths=()):
-    desc_lines = data["description_en"]
+    desc_lines = data["description"]
     top = {
         "ID": C.MOD_ID,
         "Name": Q("Bullet Strike"),

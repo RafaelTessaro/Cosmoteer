@@ -4,10 +4,10 @@
 ID = "rafaeltessaro.bs_cloud_flak_heavy"
 Range = 0
 Speed = 0
-RADIUS = 5.25
-REPULSE_RANGE = 10.5
-LIFETIME = 3
-DAMAGE_POOL = 2000
+RADIUS = 5
+REPULSE_RANGE = 10
+LIFETIME = 4
+DAMAGE_POOL = 500
 MAX_BULLET_DAMAGE = ceil((&DAMAGE_POOL) / ((&RADIUS) * 2))
 Components
 {

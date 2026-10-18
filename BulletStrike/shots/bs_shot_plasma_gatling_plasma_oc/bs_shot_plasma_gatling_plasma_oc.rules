@@ -7,7 +7,7 @@ ID = "rafaeltessaro.bs_shot_plasma_gatling_plasma_oc"
 Range = 352
 IdealRange = [106, &~/Range]
 IdealRadius = [5, 50]
-Speed = 299
+Speed = 312
 Components
 {
 	Physics
@@ -24,7 +24,7 @@ Components
 	{
 		Type = Targetable
 		Health = 200
-		TargetCategory = "bullet"
+		TargetCategory = "laser"
 		OnDeath
 		{
 			MediaEffects = &~/Components/Hit/HitOperational/MediaEffects
@@ -33,15 +33,11 @@ Components
 	Hit
 	{
 		Type = PenetratingHit
-		Penetration = 0
-		PenetrationSpeed = 25
 		FriendlyShipLowCollisions = false
 		CrewCollisions = {Enemies=true; Junk=true}
-		PenetratesCrew = true
 		HitCrew = &HitOperational
 		HitShield
 		{
-			ReduceEffectsByPenetration = true
 			Offset = [-0.15, 0]
 			HitEffects
 			[
@@ -49,7 +45,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 675
+						BaseValue = 555
 						EffectScaleExponent = 1
 					}
 				}
@@ -66,7 +62,6 @@ Components
 		}
 		HitOperational
 		{
-			ReduceEffectsByPenetration = true
 			Offset = [-0.15, 0]
 			HitEffects
 			[
@@ -89,9 +84,19 @@ Components
 				{
 					Type = StatusApplication
 					StatusType = cosmoteer.heat
-					StatusValue = 19
+					StatusValue = 15
 					ApplyToAllHitPartTiles = true
 					DivideValueByPartArea = true
+				}
+				{
+					Type = StatusApplication
+					StatusType = cosmoteer.fire
+					StatusChance
+					{
+						BaseValue = 0.08
+						EffectScaleExponent = 1
+					}
+					ValueType = Interpolated
 				}
 			]
 			MediaEffects
@@ -115,7 +120,6 @@ Components
 		}
 		HitStructural
 		{
-			ReduceEffectsByPenetration = true
 			Offset = [0.15, 0]
 			HitEffects
 			[
@@ -144,45 +148,18 @@ Components
 		}
 		PenetratingOperational
 		{
-			ReduceEffectsByPenetration = true
-			HitEffects
-			[
-				{
-					Type = Damage
-					Damage
-					{
-						BaseValue = 240
-						EffectScaleExponent = 1
-					}
-				}
-				{
-					Type = StatusApplication
-					StatusType = cosmoteer.fire
-					StatusChance
-					{
-						BaseValue = 0.08
-						EffectScaleExponent = 1
-					}
-					ValueType = Interpolated
-				}
-				{
-					Type = Impulse
-					Impulse
-					{
-						BaseValue = 5
-						EffectScaleExponent = 1
-					}
-				}
-			]
-			MediaEffects = &../HitOperational/MediaEffects
 		}
 		PenetratingStructural : &HitStructural
 		{
 			StructuralDamageRetentionPerHit = 50%
 			MinStructuralDamageScale = 3%
 		}
-		FinishedPenetratingOperational = &PenetratingOperational
-		FinishedPenetratingStructural = &PenetratingStructural
+		FinishedPenetratingOperational
+		{
+		}
+		FinishedPenetratingStructural
+		{
+		}
 	}
 	Sprite
 	{

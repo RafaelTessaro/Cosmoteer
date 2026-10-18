@@ -23,19 +23,9 @@ AUTHOR = "rafaeltessaro"
 MOD_TAG_EN = "\n<s16><gray>Mod: Bullet Strike</gray></s16>"
 MOD_TAG_PT = "\n<s16><gray>Mod: Bullet Strike</gray></s16>"
 
-MOD = {
-    "description_en": (
-        "Deck-mounted, crew-operated weapons that run on AMMUNITION instead of power.\n\n"
-        "- Early game: light machine guns and autocannons (1-2 tiles).\n"
-        "- Mid game: minigun, naval automatic cannon, plasma gatling, CIWS (with overclock).\n"
-        "- Late game: heavy naval guns, heavy rotary cannon, heavy plasma, nuclear howitzer (with overclock).\n"
-        "- Flak/CIWS that shreds many missiles, mines, shells and laser bolts at once - but eats ammo.\n"
-        "- Magazine logistics: factories pack ammo into magazines that crew carry to the guns.\n"
-        "- Ammo selector: Standard, Armor-Piercing, AP-Explosive and EMP. Plus plasma cells and nuclear shells.\n\n"
-        "Compatible with Star Wars: A Cosmos Divided.\n\n"
-        "Armas de convés operadas por tripulação que usam MUNIÇÃO em vez de energia. Compatível com SW:ACD."
-    ),
-}
+# descricao do menu Mods (mod.rules tem um campo Description so, entao vai bilingue: pt-BR primeiro);
+# montada no fim deste arquivo, depois das armas, lancadores, fabricas e limites (_mod_description)
+MOD = {"description": ""}
 
 
 def _short(pid):
@@ -146,7 +136,18 @@ def _ammo_table(w, ammo):
             "fire_chance": w.get("fire_chance", 0.05), "shield_damage": w["damage_per_hit_std"], "emp_drain": 0}
 
 
-def _shot_spec(w, ammo, t, oc=None):
+# Perfurante (spec ammo_types[ap].penetration_rule): blindagem custa 60% da penetracao normal e cada peca
+# atravessada depois da primeira leva 50% do dano do primeiro acerto. Perfurante-explosiva: blindagem a 75%.
+AP_ARMOR_FACTOR = 0.6
+AP_PEN_DAMAGE_FACTOR = 0.5
+APHE_ARMOR_FACTOR = 0.75
+# categorias de projetil do modo defesa da metralhadora hibrida (spec: padrao pd_shot / point_defense)
+PD_CATEGORIES = ["missile", "mine", "bullet"]
+
+
+def _shot_spec(w, ammo, t, oc=None, oc_range=None):
+    """Projetil de um modo de municao. oc = overclock do spec (arquivo _oc proprio); oc_range = alcance em
+    overclock SEM troca de projetil (armas com seletor: Range com BuffRemap Overclock, padrao do pd_shot)."""
     short = _short(w["id"])
     name = f"bs_shot_{short.replace('bs_', '')}_{ammo}" + ("_oc" if oc else "")
     dmg = t["damage"]
@@ -157,14 +158,27 @@ def _shot_spec(w, ammo, t, oc=None):
     fire = t.get("fire_chance", 0.05)
     rng = w["range_m"]
     speed = w["shot_speed_mps"]
+    struct = None
+    if t.get("structural_explosive_damage"):
+        struct = [t["structural_explosive_radius_m"], t["structural_explosive_damage"]]
+    impact = None
     if oc:
-        dmg = round(dmg * oc.get("damage_factor", 1))
-        exp_d = round(exp_d * oc.get("damage_factor", 1))
+        df = oc.get("damage_factor", 1)
+        dmg = round(dmg * df)
+        exp_d = round(exp_d * df)
         if shield is not None:
-            shield = round(shield * oc.get("damage_factor", 1))
+            shield = round(shield * oc.get("shield_damage_factor", df))
         rf = oc.get("range_factor", 1)
         rng = min(600, round(rng * rf))
-        speed = round(speed * (1 + (rf - 1) * 1.5))
+        # velocidade: fator explicito do spec (speed_factor); sem ele, a regra antiga derivada do alcance
+        speed = round(speed * oc.get("speed_factor", 1 + (rf - 1) * 1.5))
+        if oc.get("explosive_damage"):
+            # explosao nova no impacto (Curupira "Erupcao Solar": 2000 r3)
+            impact = [oc["explosive_radius_m"], oc["explosive_damage"]]
+        elif oc.get("explosive_radius_m"):
+            exp_r = oc["explosive_radius_m"]
+        if oc.get("structural_explosive_damage"):
+            struct = [oc["structural_explosive_radius_m"], oc["structural_explosive_damage"]]
     cal = _caliber(dmg + exp_d)
     look = "med" if cal in ("mg", "med") else "large"
     size = {"mg": 0.18, "med": 0.32, "large": 0.7, "deck": 1.05}[cal]
@@ -198,8 +212,12 @@ def _shot_spec(w, ammo, t, oc=None):
                   "explosion_fire": 50 if ammo != "plasma" else None,
                   "shield_factor": (shield / max(1, dmg + exp_d)) if shield else 1})
         if ammo == "nuclear":
-            s.update({"fx": "nuke", "friendly_fire": True, "shake": 0.35, "volume": 1.0, "max_conc": 4,
-                      "struct_explosion": [max(2, exp_r * 0.8), round(exp_d * 0.3)], "category": "missile"})
+            # spec ammo_types[nuclear]: Friendlies = false (nao destroi a propria nave), TargetCategory bullet,
+            # explosao estrutural propria (40000 r6; Fat Boy 50000 r7) e detonacao no fim do alcance
+            # (DeathByLifetime -> OnDeath, padrao mine.rules)
+            s.update({"fx": "nuke", "friendly_fire": False, "shake": 0.35, "volume": 1.0, "max_conc": 4,
+                      "struct_explosion": struct or [max(2, exp_r * 0.8), round(exp_d * 0.3)], "category": "bullet",
+                      "death_blast": True})
             s["extra_particles"] = None
         return s
     s.update({"kind": "kinetic", "damage": dmg, "penetration": pen,
@@ -207,23 +225,37 @@ def _shot_spec(w, ammo, t, oc=None):
     if shield is not None and abs(shield - dmg) > 1:
         s["shield_damage"] = shield
     if ammo == "ap":
-        s["armor_factor"] = 0.5
+        s["armor_factor"] = AP_ARMOR_FACTOR
+        s["pen_damage"] = round(dmg * AP_PEN_DAMAGE_FACTOR)
     if ammo == "aphe":
-        s["armor_factor"] = 0.75
+        s["armor_factor"] = APHE_ARMOR_FACTOR
         if exp_d:
             s["finish_explosion"] = [max(1.0, exp_r), exp_d]
             s["explosion_fire"] = 40
-    if ammo == "std" and exp_d and pen > 1:
+    if ammo in ("std", "bullet") and exp_d and pen > 1:
+        # carga explosiva onde o projetil para (Carcara 20 mm e granadas de 30 mm para cima)
         s["finish_explosion"] = [max(1.0, exp_r), exp_d]
     if ammo == "emp":
         drain = t.get("emp_drain", 0) or 0
         if drain:
-            s["emp_shield_drain"] = drain
-            s["emp_drain"] = round(drain * 0.6)
+            # dreno nas pecas e no escudo direto da tabela do spec (emp_drain / emp_drain_shield)
+            s["emp_drain"] = drain
+            s["emp_shield_drain"] = t.get("emp_drain_shield") or drain
     if ammo == "plasma":
-        s["heat"] = round(min(400, dmg * 0.08))
+        # spec ammo_types[plasma]: TargetCategory laser (o ponto de defesa vanilla nao intercepta; flak e CIWS sim)
+        s["category"] = "laser"
+        s["heat"] = t.get("heat_per_hit") or round(min(400, dmg * 0.08))
+        # spec ammo_types[plasma].penetration_rule: penetracao 0, o disparo se gasta no primeiro escudo/peca;
+        # efeitos sem ReduceEffectsByPenetration (padrao do laser_bolt_small, ver shots._bolt_kinetic)
+        s["bolt"] = True
+    if impact:
+        s["impact_explosion"] = impact
+        s["extra_particles"] = ["./Data/shots/missile_he/particles/missile_he_hit.rules"]
+    if oc_range:
+        s["oc_range"] = oc_range
     if (w.get("anti_projectile") or {}).get("blast_radius_m") == 0:
         s["anti_projectile"] = (w["anti_projectile"] or {}).get("damage_vs_shots", 100)
+        s["anti_categories"] = PD_CATEGORIES
     return s
 
 
@@ -267,15 +299,22 @@ def _convert():
                                                   "nuclear" if "nuke" in res else "std")
             modes.append((0, a, res, _ammo_table(w, a)))
         gmodes = []
+        # alcance em overclock sem troca de projetil (Trovao "Supercarga": 520 -> 598 m, padrao pd_shot)
+        oc_rf = (oc or {}).get("range_factor", 1) or 1
+        oc_range = min(600, round(w["range_m"] * oc_rf)) if (oc and sel and oc_rf != 1) else None
         for k, a, res, t in modes:
-            s = _shot_spec(w, a, t)
+            s = _shot_spec(w, a, t, oc_range=oc_range)
             SHOTS.append(s)
+            # deposito interno: carregadores especiais (AP/APHE/EMP) tem o proprio tamanho no spec (12 padrao / 8)
+            storage = int(w.get("internal_storage_units") or 4)
+            if res != RES_BY_AMMO.get("std") and w.get("internal_storage_units_special") and sel:
+                storage = int(w["internal_storage_units_special"])
             m = {"mode": k, "ammo": a, "res": res, "shots_per_unit": int(w.get("shots_per_resource_unit") or 1),
                  "units_per_shot": int(w.get("resource_units_per_shot") or 1),
-                 "storage": int(w.get("internal_storage_units") or 4), "shot": s["file"],
-                 "show_pen": s["kind"] == "kinetic"}
-            if oc and sel:
-                # armas com seletor: o overclock so muda cadencia/dispersao/calor, o projetil e o mesmo
+                 "storage": storage, "shot": s["file"],
+                 "show_pen": s["kind"] == "kinetic", "oc_range": bool(s.get("oc_range"))}
+            if oc and (sel or (oc.get("damage_factor", 1) == 1 and oc_rf == 1)):
+                # seletor (ou overclock so de cadencia, como o Saci): o projetil e o mesmo, sem arquivo _oc
                 m["shot_oc"] = s["file"]
             elif oc:
                 so = _shot_spec(w, a, t, oc)
@@ -316,6 +355,9 @@ def _convert():
             "hybrid": bool(ap and ap.get("blast_radius_m", 0) == 0),
             "desc": w.get("visual_concept", ""), "spec": w,
         }
+        if g["hybrid"]:
+            g["anti_categories"] = PD_CATEGORIES
+            g["fire_pref_default"] = int(w.get("fire_pref_default") or 2)
         _attach_art3d(g)
         if nb > 1 and not spin:
             g["barrels"]["count"] = min(nb, 4)
@@ -326,21 +368,28 @@ def _convert():
                          "down": round(spin["seconds_to_max"] / 2, 2)}
         if w.get("crew_stun"):
             st = w["crew_stun"]
+            # atordoamento em overclock: numeros do spec (overclock.crew_stun); sem eles, +30% raio / +50% tempo
+            ost = (oc or {}).get("crew_stun") or {}
             g["stun"] = {"radius": st["radius_m"], "duration": st["seconds"],
-                         "oc_radius": st["radius_m"] * 1.3, "oc_duration": st["seconds"] * 1.5}
+                         "oc_radius": ost.get("radius_m", round(st["radius_m"] * 1.3, 3)),
+                         "oc_duration": ost.get("seconds", round(st["seconds"] * 1.5, 3))}
         if oc:
             fr = oc.get("fire_rate_factor", 1) or 1
-            g["oc"] = {"fire_interval_factor": round(1 / fr, 4), "half_spread": round(g["spread"] * 1.25, 3),
-                       "recoil_factor": 1.6, "heat_per_shot": oc["heat_per_shot"],
+            # dispersao e recuo em overclock: numeros do spec quando existem (formula antiga como reserva)
+            g["oc"] = {"fire_interval_factor": round(1 / fr, 4),
+                       "half_spread": oc.get("half_spread_deg", round(g["spread"] * 1.25, 3)),
+                       "recoil_factor": oc.get("recoil_factor", 1.6), "heat_per_shot": oc["heat_per_shot"],
                        "heat_per_second": oc.get("heat_per_second", 0)}
             if spin:
                 g["oc"]["max_spin"] = g["spin"]["max"]
+                if oc.get("spin_up_s"):
+                    g["oc"]["spin_up"] = oc["spin_up_s"]
         GUNS.append(g)
 
 
 def _attach_art3d(g):
     """Se existir arte 3D (art3d/<id>/meta.json), a geometria e a tripulacao vem dela."""
-    meta = A3.load_meta(g["short"])
+    meta = A3.require(g["short"], A3.load_meta(g["short"]))
     g["art3d"] = meta
     if meta and len(meta["barrel"]["ys"]) != g["barrels"]["count"]:
         raise ValueError(f"art3d/{g['short']}: o render tem {len(meta['barrel']['ys'])} cano(s) visiveis, mas as "
@@ -351,11 +400,15 @@ def _attach_art3d(g):
 
 def _defense(w, hint, short, oc, ap):
     rng = w["range_m"]
+    # explosao 2 (contra naves e escudos): explosive_damage / explosive_radius_m do spec (300 r2,5 / 400 r3 /
+    # 1200 r4); damage_per_hit_std e 0 nas defesas (o feixe nao tem dano direto)
     beam = {"kind": "flak", "file": f"bs_flak_{short.replace('bs_', '')}", "dir": short,
-            "range": rng, "vs_shots": ap["damage_vs_shots"], "vs_ships": w["damage_per_hit_std"],
-            "radius": ap["blast_radius_m"], "ship_radius": max(1.5, ap["blast_radius_m"] * 0.6),
+            "range": rng, "vs_shots": ap["damage_vs_shots"], "vs_ships": w.get("explosive_damage") or 0,
+            "radius": ap["blast_radius_m"],
+            "ship_radius": w.get("explosive_radius_m") or max(1.5, ap["blast_radius_m"] * 0.6),
             "categories": ["missile", "mine", "bullet", "laser", "ion_shot"],
-            "offset": [0.5, max(2.0, rng / 60)], "volume": 0.3, "max_conc": 12, "particles": 2}
+            "offset": list(w.get("random_offset_radius_m") or [0.5, max(2.0, rng / 60)]),
+            "volume": 0.3, "max_conc": 12, "particles": 2}
     SHOTS.append(beam)
     nb = int(w.get("barrels") or 1)
     res = w["ammo_resource"]
@@ -372,22 +425,28 @@ def _defense(w, hint, short, oc, ap):
         "barrels": {"count": 1 if hint["barrel"] == "gatling" else min(nb, 4), "spacing": 0.3 if w["size"][0] <= 3 else 0.5,
                     "length": {"early": 0.9, "mid": 1.4, "late": 1.9}[w["tier"]],
                     "width": 0.14 if hint["barrel"] != "gatling" else 0.3},
-        "fx": dict(FX["flak"]), "fire_pref_default": 1,
+        # Atacar / Defender / Atacar + Defender: padrao do spec (Tatu e Pororoca 2, Tamandua 1)
+        "fx": dict(FX["flak"]), "fire_pref_default": int(w.get("fire_pref_default") or 1),
         "art": {"style": hint["style"], "barrel": hint["barrel"], "accent": hint["accent"]},
         "desc": w.get("visual_concept", ""), "spec": w,
     }
+    if w.get("burst_delay_s"):
+        d["burst_delay"] = w["burst_delay_s"]
     _attach_art3d(d)
     if oc:
-        cloud = {"kind": "cloud", "file": f"bs_cloud_{short.replace('bs_', '')}", "dir": short,
-                 "id": f"{AUTHOR}.bs_cloud_{short.replace('bs_', '')}",
-                 "radius": max(2.0, ap["blast_radius_m"] * 0.75), "lifetime": 3.0,
-                 "pool": round(ap["damage_vs_shots"] * 0.5)}
-        SHOTS.append(cloud)
-        beam_oc = {"kind": "flak_oc", "file": f"{beam['file']}_oc", "dir": short, "base": beam["file"],
-                   "cloud": cloud["file"], "cloud_radius": cloud["radius"], "cloud_pool": cloud["pool"],
-                   "cloud_lifetime": cloud["lifetime"]}
-        SHOTS.append(beam_oc)
-        d["beam_oc"] = beam_oc["file"]
+        cl = oc.get("cloud")
+        if cl:
+            # nuvem de estilhacos so onde o spec pede (Pororoca "Muralha de Flak": LIFETIME 4, DAMAGE_POOL 500,
+            # raio 5); a CIWS so muda a cadencia, com o mesmo feixe
+            cloud = {"kind": "cloud", "file": f"bs_cloud_{short.replace('bs_', '')}", "dir": short,
+                     "id": f"{AUTHOR}.bs_cloud_{short.replace('bs_', '')}",
+                     "radius": cl["radius_m"], "lifetime": cl["lifetime_s"], "pool": cl["damage_pool"]}
+            SHOTS.append(cloud)
+            beam_oc = {"kind": "flak_oc", "file": f"{beam['file']}_oc", "dir": short, "base": beam["file"],
+                       "cloud": cloud["file"], "cloud_radius": cloud["radius"], "cloud_pool": cloud["pool"],
+                       "cloud_lifetime": cloud["lifetime"]}
+            SHOTS.append(beam_oc)
+            d["beam_oc"] = beam_oc["file"]
         fr = oc.get("fire_rate_factor", 1) or 1
         d["oc"] = {"fire_interval_factor": round(1 / fr, 4), "heat_per_shot": oc["heat_per_shot"],
                    "heat_per_second": oc.get("heat_per_second", 0)}
@@ -431,7 +490,7 @@ for r in SPEC["resources"]:
         "max_stack": int(r["max_stack_size"]), "cookoff": cook,
         "death_fx": "BigPartDestroyed" if kind == "shell" else "MedPartDestroyed",
         "art": {"kind": kind, "accent": acc}, "note": r.get("shots_note", ""),
-        "art3d": A3.load_meta(short),
+        "art3d": A3.require(short, A3.load_meta(short)),
     })
 
 FACTORIES = []
@@ -452,7 +511,7 @@ for f in SPEC["factories"]:
         "oc": f.get("overclock"),
         "icon_en": f.get("icon_en"), "icon_pt": f.get("icon_ptbr"),
         "sounds": f.get("sounds", "ammo"), "cookoff": f.get("cookoff"), "base_part": f.get("base_part"),
-        "art3d": A3.load_meta(short),
+        "art3d": A3.require(short, A3.load_meta(short)),
     })
 
 AMMO_CHOICES = [
@@ -751,7 +810,7 @@ def _cell_layout(L, mode):
 
 def _attach_art3d_launcher(lch):
     """Arte 3D (art3d/<id>/meta.json, kind 'launcher'): geometria e camadas vem do render (STYLE.md secao 8)."""
-    meta = A3.load_meta(lch["short"])
+    meta = A3.require(lch["short"], A3.load_meta(lch["short"]))
     lch["art3d"] = meta
     if not meta:
         return
@@ -936,6 +995,15 @@ def _part_ref(short, field):
     return f"&<../parts/{short}/{short}.rules>/Part/{field}"
 
 
+AMMO_INDEX = {"std": 0, "ap": 1, "aphe": 2, "emp": 3}
+
+
+def _ammo_choice_unlocks(ammos):
+    """'ammo:<tipo>' -> [bs_ammo_type, N]. O modo 0 (Padrao) e o padrao do seletor e fica sempre liberado;
+    plasma e nuclear nao tem seletor. Sem isto, uma escolha que nenhuma tech lista ja nasce liberada."""
+    return [f"[bs_ammo_type, {AMMO_INDEX[a]}]" for a in ammos if AMMO_INDEX.get(a)]
+
+
 def career_techs():
     out = []
     for t in SPEC.get("career_techs", []):
@@ -951,6 +1019,9 @@ def career_techs():
             entry.update({"NameKey": _part_ref(p0, "NameKey"), "DescriptionKey": _part_ref(p0, "DescriptionKey"),
                           "Icon": _part_ref(p0, "EditorIcon"), "EditorGroup": Q("BulletStrike"),
                           "PartsUnlocked": [_part_ref(_short(p), "ID") for p in parts if _short(p) in ALL_PARTS]})
+            # a tech da fabrica de um carregador especial tambem libera o modo do seletor (AP e P.E.M.)
+            if _ammo_choice_unlocks(ammos):
+                entry["ToggleChoicesUnlocked"] = _ammo_choice_unlocks(ammos)
         elif ocs:
             p0 = _short(ocs[0])
             if p0 not in ALL_PARTS:
@@ -963,7 +1034,7 @@ def career_techs():
                                                     for o in ocs if _short(o) in ALL_PARTS]})
         elif ammos:
             a = ammos[0]
-            idx = {"std": 0, "ap": 1, "aphe": 2, "emp": 3}.get(a)
+            idx = AMMO_INDEX.get(a)
             if idx is None:
                 continue
             key = {0: "Std", 1: "AP", 2: "APHE", 3: "EMP"}[idx]
@@ -1095,6 +1166,46 @@ def buildbattle_techs():
 BB_WHITELIST = [f"{AUTHOR}.{g['short']}" for g in GUNS + DEFENSES if g["tier"] == "early"] + \
                [f"{AUTHOR}.{f['short']}" for f in FACTORIES] + \
                [f"{AUTHOR}.{lch['short']}" for lch in LAUNCHERS if lch["tier"] == "early"]
+
+
+def _mod_description():
+    """Texto do menu Mods, com as contagens tiradas dos dados (armas, lancadores, misseis, fabricas, limites)."""
+    n_w, n_l, n_m, n_f = len(GUNS) + len(DEFENSES), len(LAUNCHERS), len(MISSILE_TYPES), len(FACTORIES)
+    lim = {lm["category"]: lm["max"] for lm in LIMIT_DEFS}
+    nuke, flag = lim.get("bs_limit_nuke", 2), lim.get("bs_limit_flagship", 2)
+    pt = (
+        "Armas de convés operadas pela tripulação que usam MUNIÇÃO em vez de energia.\n\n"
+        f"- {n_w} armas e {n_l} lança-mísseis de convés com {n_m} tipos de míssil, do início ao fim de jogo.\n"
+        "- Início de jogo: metralhadoras, autocanhão de 20 mm, flak leve e a caixa de micromísseis Tocandira.\n"
+        "- Meio de jogo: metralhadora quádrupla, minigun, canhão naval de 76 mm, gatling de plasma, CIWS e o "
+        "lançador de mísseis Caipora, todos com overclock.\n"
+        "- Fim de jogo: canhão rotativo de 30 mm, canhão naval duplo de 155 mm, plasma pesado, flak pesada, "
+        "obuseiro nuclear, torre tripla de 406 mm e a bateria de mísseis Mula-sem-Cabeça, todos com overclock.\n"
+        "- Flak e CIWS que destroem vários mísseis, minas, granadas e disparos de uma vez, mas gastam muita munição.\n"
+        f"- Logística de carregadores: {n_f} fábricas novas, todas com overclock; a tripulação leva os carregadores "
+        "até as armas. Os lança-mísseis usam as peças de míssil do jogo base.\n"
+        "- Seletor de munição: Padrão, Perfurante, Perfurante-Explosiva e P.E.M., além de células de plasma e "
+        "projéteis nucleares.\n"
+        f"- Limites por nave: {nuke} armas nucleares (Boiúna e Mula-sem-Cabeça) e {flag} torres de encouraçado.\n\n"
+        "Compatível com Star Wars: A Cosmos Divided.")
+    en = (
+        "Deck-mounted, crew-operated weapons that run on AMMUNITION instead of power.\n\n"
+        f"- {n_w} weapons and {n_l} deck missile launchers with {n_m} missile types, from early to late game.\n"
+        "- Early game: machine guns, 20 mm autocannon, light flak and the Tocandira micro-missile box.\n"
+        "- Mid game: quad machine gun, minigun, 76 mm naval cannon, plasma gatling, CIWS and the Caipora missile "
+        "launcher, all with overclock.\n"
+        "- Late game: 30 mm rotary cannon, twin 155 mm naval gun, heavy plasma, heavy flak, nuclear howitzer, "
+        "triple 406 mm turret and the Mula-sem-Cabeça missile battery, all with overclock.\n"
+        "- Flak and CIWS that shred many missiles, mines, shells and bolts at once, but eat ammo.\n"
+        f"- Magazine logistics: {n_f} new factories, all with overclock; crew carry the magazines to the guns. The "
+        "missile launchers use the vanilla missile parts.\n"
+        "- Ammo selector: Standard, Armor-Piercing, AP-Explosive and EMP, plus plasma cells and nuclear shells.\n"
+        f"- Per-ship limits: {nuke} nuclear weapons (Boiúna and Mula-sem-Cabeça) and {flag} battleship turrets.\n\n"
+        "Compatible with Star Wars: A Cosmos Divided.")
+    return f"{pt}\n\n---\n\n{en}"
+
+
+MOD["description"] = _mod_description()
 
 
 from bs_strings import strings  # noqa: E402,F401

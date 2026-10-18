@@ -150,9 +150,13 @@ def factory_art(out, pdir, f, info):
         icon.alpha_composite(load(meta["machine"]["frames"][0]))
         icon.alpha_composite(load("walls.png"))
         out.image(f"{pdir}/icon.png", icon)
-        out.image(f"{pdir}/blueprints.png", S.blueprint_from(w, h))
+        # planta com a silhueta da maquina (como o ramo procedural e as plantas vanilla, ex. factory_he)
+        mo = meta["machine"].get("offset", [0, 0])
+        out.image(f"{pdir}/blueprints.png", S.blueprint_from(w, h, load(meta["machine"]["off"]),
+                                                             (mo[0] * PX, mo[1] * PX)))
         # niveis de dano das paredes (bsgen/factory.py WALL_DAMAGE)
         _wall_damage_files(out, pdir, load("walls.png"), f["short"])
+        out.image(f"../docs/preview/{f['short']}.png", icon)
         return
     a = S.ACCENTS[f["art"].get("accent", "ammo")]
     floor, walls, roof, roof_n, frames, off = S.render_factory(w, h, a, f["art"].get("kind", "mag"),
@@ -288,12 +292,18 @@ LOGO_SUB = "ARMAS DE CONVÉS · MUNIÇÃO · OVERCLOCK"
 
 def logo():
     """Logo da Workshop / lista de mods (512 x 512 RGB): imagem heroi 3D + titulo e subtitulo.
-    Sem a imagem 3D, cai no desenho procedural antigo."""
-    if os.path.exists(LOGO_HERO):
-        try:
-            return _logo_hero(LOGO_HERO)
-        except Exception as e:  # imagem corrompida: nao derruba o build
-            print(f"AVISO: logo 3D falhou ({e}); usando o logo procedural")
+    Sem a imagem 3D o build para; o desenho procedural antigo so com BS_ARTE_PROCEDURAL=1."""
+    if not os.path.exists(LOGO_HERO):
+        if not A3.ALLOW_PROCEDURAL:
+            raise FileNotFoundError(f"{LOGO_HERO} nao existe: rode tools/blender/render_logo.py "
+                                    f"(ou BS_ARTE_PROCEDURAL=1 para o logo procedural antigo)")
+        return _logo_procedural()
+    try:
+        return _logo_hero(LOGO_HERO)
+    except Exception as e:
+        if not A3.ALLOW_PROCEDURAL:
+            raise
+        print(f"AVISO: logo 3D falhou ({e}); usando o logo procedural")
     return _logo_procedural()
 
 

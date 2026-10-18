@@ -49,7 +49,7 @@
   {
    "id": "emp",
    "name_en": "EMP",
-   "name_ptbr": "EMP",
+   "name_ptbr": "P.E.M.",
    "role": "Support round for all-ammo fleets: 'drains a bit' of battery from powered parts and shields on every hit. Strong vs SW:ACD (everything there is battery-fed), useless vs Bullet Strike guns (no battery). Selector mode 3.",
    "damage_mult_hull": 0.5,
    "damage_mult_shield": 1.0,
@@ -64,7 +64,7 @@
    "role": "Shield breaker family (Boitatá gatling, Curupira heavy cannon; Plasma Cell resource, no selector).",
    "damage_mult_hull": 0.75,
    "damage_mult_shield": 2.0,
-   "penetration_rule": "SimpleHit (Penetration 0): the bolt spends itself on the first shield/part. Separate HitShield block (railgun pattern) with ~2.7-2.8x the hull damage, as Damage (so shield overclock still halves it).",
+   "penetration_rule": "Penetration 0: the bolt spends itself on the first shield/part. Built as the vanilla laser bolt (shots/laser_bolt_small: PenetratingHit with no Penetration, NO ReduceEffectsByPenetration, Penetrating/FinishedPenetratingOperational with no effect), which behaves like a SimpleHit but keeps its own HitStructural (1/4 of the hull damage; vanilla SimpleHit only ever uses HitStructural = &HitOperational). Fire chance lives in HitOperational. Separate HitShield block (railgun pattern) with ~2.7-2.8x the hull damage, as Damage (so shield overclock still halves it).",
    "special": "TargetCategory laser (vanilla flak, SW PD4 and Bullet Strike CIWS can intercept it; vanilla PD cannot). StatusApplication cosmoteer.heat on hull hits (thermal-missile HitShield pattern). Shield DPS capped at 750/tile base and 880/tile overclocked (below SW/vanilla shield specialists 938-1312/tile).",
    "resource": "rafaeltessaro.bs_plasma_cell"
   },
@@ -102,7 +102,7 @@
   {
    "id": "rafaeltessaro.bs_mag_emp",
    "name_en": "EMP Magazine",
-   "name_ptbr": "Carregador EMP",
+   "name_ptbr": "Carregador P.E.M.",
    "max_stack_size": 4,
    "max_per_nugget": 1,
    "buy_price": 36,
@@ -166,7 +166,7 @@
    "max_health": 4000,
    "tier": "mid",
    "icon_en": "Std Mags",
-   "icon_ptbr": "Carreg. Padrão",
+   "icon_ptbr": "Carregadores Padrão",
    "sounds": "ammo",
    "overclock": {
     "speed_factor": 3.0,
@@ -223,7 +223,7 @@
    "max_health": 9000,
    "tier": "mid",
    "icon_en": "AP Mags",
-   "icon_ptbr": "Carreg. Perfurante",
+   "icon_ptbr": "Carregadores Perfurantes",
    "sounds": "ammo",
    "overclock": {
     "speed_factor": 3.0,
@@ -242,7 +242,7 @@
   {
    "id": "rafaeltessaro.bs_factory_mag_emp",
    "name_en": "EMP Magazine Charger",
-   "name_ptbr": "Carregadora de Carregadores EMP",
+   "name_ptbr": "Energizador de Carregadores P.E.M.",
    "size": [
     3,
     3
@@ -281,7 +281,7 @@
    "max_health": 9000,
    "tier": "mid",
    "icon_en": "EMP Mags",
-   "icon_ptbr": "Carreg. EMP",
+   "icon_ptbr": "Carregadores P.E.M.",
    "sounds": "emp",
    "overclock": {
     "speed_factor": 3.0,
@@ -822,9 +822,11 @@
     "name_en": "Whirlwind",
     "name_ptbr": "Redemoinho",
     "description": "Whirlwind: the feed governor is pinned open - four barrels hammer at 19.6 rounds/s and the mount spins like the Saci's dust devil.",
+    "description_ptbr": "Redemoinho: o regulador da alimentação fica travado aberto; os quatro canos martelam a 19,6 disparos/s e o reparo gira como o redemoinho do Saci.",
     "fire_rate_factor": 1.4,
     "damage_factor": 1.0,
     "range_factor": 1.0,
+    "half_spread_deg": 2.8,
     "other": "Turret FireInterval BuffRemap Overclock 1/7 -> 1/9.8 s per pair (point_defense pattern); spread +-2.0 -> +-2.8 deg; ammo x1.4. Same shell (Standard only), no OC shot file.",
     "visual_signature": "muzzle particle swap to chaingun_shoot at 130 % + red barrel-heat sprite toggled by IsOverclocked; casing stream doubles.",
     "heat_per_shot": 30,
@@ -932,9 +934,12 @@
     "name_en": "Dragon's Breath",
     "name_ptbr": "Bafo de Dragão",
     "description": "Dragon's Breath: the spin governor is removed - barrels scream to 36 rounds/s, glow red-hot and the tracer stream becomes a solid whip.",
+    "description_ptbr": "Bafo de Dragão: sem o regulador de giro, os canos gritam até 36 disparos/s em 3,5 s, ficam em brasa e o fluxo de traçantes vira um chicote contínuo.",
     "fire_rate_factor": 1.5,
     "damage_factor": 1.0,
     "range_factor": 1.0,
+    "half_spread_deg": 3.5,
+    "spin_up_s": 3.5,
     "other": "RampUpAccumulator MaxValue Replace 8 -> 12 under the Overclock buff (max spin 24 -> 36 rounds/s), AccumulationRate x1.4 (spin-up 5 -> 3.5 s); spread +-2.5 -> +-3.5 deg; ammo use x1.5 (0.72 mag/s). No shell swap, so the 4 selector modes are untouched.",
     "visual_signature": "orange-red barrel glow frames (roof_turrets, toggled by IsOverclocked), muzzle swap to chaingun_shoot 140 % + extra smoke, spin sound pitch +20 %.",
     "heat_per_shot": 30,
@@ -1041,9 +1046,16 @@
     "name_en": "Rapid Salvo",
     "name_ptbr": "Salva Rápida",
     "description": "Rapid Salvo: the autoloader goes to emergency cadence - 'tum, tum, tum' becomes 'TUMTUMTUM' and the deck shakes.",
+    "description_ptbr": "Salva Rápida: o autocarregador entra em cadência de emergência; o 'tum, tum, tum' vira 'TUMTUMTUM' e o convés treme.",
     "fire_rate_factor": 1.5,
     "damage_factor": 1.0,
     "range_factor": 1.0,
+    "half_spread_deg": 1.6,
+    "recoil_factor": 2.0,
+    "crew_stun": {
+     "radius_m": 4.5,
+     "seconds": 0.4
+    },
     "other": "Turret FireInterval { BaseValue = 0.6; BuffRemap Overclock Replace -> 0.4 } (point_defense pattern); spread +-1.2 -> +-1.6 deg; recoil x2; crew stun 3 m/0.25 s -> 4.5 m/0.4 s; ammo use x1.5. Range stays 340 m (no shell swap).",
     "visual_signature": "muzzle swap to cannon_shoot_deck at 90 % (from 70 %) + smoke ring, screen shake 0.05 -> 0.1, brass case ejected every shot.",
     "heat_per_shot": 500,
@@ -1145,10 +1157,12 @@
     "name_en": "Overcharge",
     "name_ptbr": "Sobrecarga",
     "description": "Overcharge: cells are dumped hotter - fatter, faster, white-hot bolts at a slightly lower cadence.",
+    "description_ptbr": "Sobrecarga: as células são descarregadas mais quentes; disparos mais gordos, mais rápidos e incandescentes (50% mais dano no casco, 352 m de alcance), com cadência um pouco menor.",
     "fire_rate_factor": 0.9,
     "damage_factor": 1.5,
     "shield_damage_factor": 1.2333,
     "range_factor": 1.1,
+    "speed_factor": 1.2,
     "other": "No selector, so the vanilla cannon_large ToggleEmitterSelector swap to one OC bolt file is safe: hull 160 -> 240, shield 450 -> 555, range 320 -> 352 m, speed x1.2; spin cap 10 -> 9 bolts/s. Net hull DPS x1.35, shield DPS x1.11 (833/tile, cap 880).",
     "visual_signature": "bolt sprite cyan -> white core with a cyan halo, coil rings glow white, steam vent puffs on spin-down.",
     "heat_per_shot": 100,
@@ -1247,6 +1261,11 @@
     "blast_radius_m": 4.5,
     "damage_vs_shots": 2000
    },
+   "random_offset_radius_m": [
+    0.5,
+    3.5
+   ],
+   "burst_delay_s": 0.08,
    "crew_stun": null,
    "prohibit_ring_tiles": 1,
    "shot_hp": 0,
@@ -1258,6 +1277,7 @@
     "name_en": "Barrage",
     "name_ptbr": "Barragem",
     "description": "Barrage: the rotary runs flat out - a carpet of airbursts at 6.5 per second, at the price of 1.3 magazines per second.",
+    "description_ptbr": "Barragem: o canhão rotativo gira no máximo; um tapete de 6,5 explosões aéreas por segundo, ao custo de 1,3 carregador por segundo.",
     "fire_rate_factor": 1.3,
     "damage_factor": 1.0,
     "range_factor": 1.0,
@@ -1380,9 +1400,12 @@
     "name_en": "Hurricane",
     "name_ptbr": "Vendaval",
     "description": "Hurricane: governor removed - seven barrels wind up to 16.8 rounds/s in 4 s and the gun howls 'BRRRRT'.",
+    "description_ptbr": "Vendaval: sem o regulador, os sete canos chegam a 16,8 disparos/s em 4 s e a arma uiva 'BRRRRT'.",
     "fire_rate_factor": 1.4,
     "damage_factor": 1.0,
     "range_factor": 1.0,
+    "half_spread_deg": 2.2,
+    "spin_up_s": 4,
     "other": "RampUpAccumulator MaxValue 6 -> 8.4 under Overclock, spin-up 6 -> 4 s; spread +-1.5 -> +-2.2 deg; ammo x1.4 (1.68 mag/s). No shell swap.",
     "visual_signature": "barrels glow orange, muzzle swap to chaingun_shoot 160 % + chaingun_shoot_smoke, screen shake 0.03, loop sound pitch +25 %.",
     "heat_per_shot": 120,
@@ -1489,9 +1512,16 @@
     "name_en": "Supercharge",
     "name_ptbr": "Supercarga",
     "description": "Supercharge: double powder bags and the rammer on manual override - the twins alternate every 0.96 s and the shells reach 598 m.",
+    "description_ptbr": "Supercarga: cargas de pólvora dobradas e o soquete no manual; os dois canos se alternam a cada 0,96 s e as granadas chegam a 598 m.",
     "fire_rate_factor": 1.3,
     "damage_factor": 1.0,
     "range_factor": 1.15,
+    "half_spread_deg": 1.4,
+    "recoil_factor": 2.5,
+    "crew_stun": {
+     "radius_m": 9,
+     "seconds": 0.75
+    },
     "other": "cannon_deck alternating FireTimer Duration 1.25 / 130 % = 0.96 s; range 520 -> 598 m WITHOUT a shell swap: every mode's shell has ReceivableBuffs [Overclock] and Range { BaseValue = 520; BuffRemap Overclock -> 598 } (vanilla pd_shot pattern, lifetime auto-computed). Spread +-1.0 -> +-1.4 deg; recoil x2.5; crew stun 6 m/0.5 s -> 9 m/0.75 s; ammo x1.3 (2.08 mag/s).",
     "visual_signature": "muzzle swap to cannon_shoot_deck 130 % + cannon_shoot_deck_flare, screen shake 0.15 -> 0.25, barrels glow dull red between shots.",
     "heat_per_shot": 2200,
@@ -1593,10 +1623,14 @@
     "name_en": "Solar Flare",
     "name_ptbr": "Erupção Solar",
     "description": "Solar Flare: bolts are over-compressed until they burst on impact - 600 m reach and a fiery splash.",
+    "description_ptbr": "Erupção Solar: os disparos são comprimidos até estourar no impacto; 600 m de alcance e um respingo incandescente que atinge as peças em volta.",
     "fire_rate_factor": 0.9,
     "damage_factor": 1.3,
     "shield_damage_factor": 1.3,
     "range_factor": 1.0909,
+    "speed_factor": 1.3,
+    "explosive_damage": 2000,
+    "explosive_radius_m": 3,
     "other": "Emitter swap (cannon_deck Emitters_Overclocked pattern; no selector): hull 3600 -> 4680 + ExplosiveDamage 2000 r3, shield 9600 -> 12480, range 550 -> 600 (cap), speed x1.3; alternating timer 0.667 -> 0.741 s per shot.",
     "visual_signature": "orb sprite swaps to a larger white-cored orb with an orange corona, the hair-vanes on the turret pulse orange, impact adds a fire ring.",
     "heat_per_shot": 1800,
@@ -1694,6 +1728,10 @@
     "blast_radius_m": 7.0,
     "damage_vs_shots": 4000
    },
+   "random_offset_radius_m": [
+    1,
+    6
+   ],
    "crew_stun": null,
    "prohibit_ring_tiles": 2,
    "shot_hp": 0,
@@ -1705,9 +1743,15 @@
     "name_en": "Flak Wall",
     "name_ptbr": "Muralha de Flak",
     "description": "Flak Wall: faster bursts, and every burst leaves a lingering shrapnel cloud that shreds anything flying through it - the tidal bore in front of the flagship.",
+    "description_ptbr": "Muralha de Flak: rajadas mais rápidas, e cada explosão deixa uma nuvem de estilhaços que fica no ar e destrói o que passar por ela: a pororoca na frente da nave capitânia.",
     "fire_rate_factor": 1.25,
     "damage_factor": 1.0,
     "range_factor": 1.0,
+    "cloud": {
+     "lifetime_s": 4,
+     "damage_pool": 500,
+     "radius_m": 5
+    },
     "other": "Emitter swap to an OC beam (no selector) whose HitNothing also SpawnBullets OUR copy of the flak_large_overclock_field (literal LIFETIME 4, DAMAGE_POOL 500, radius 5, own art - never circle_dashed.png); trigger interval 0.667 -> 0.533 s; ammo x1.25. Like the vanilla field it also attenuates beams with AttenuationLimit.",
     "visual_signature": "sparkling teal-grey shrapnel clouds linger 4 s, muzzle flash 130 %, deeper 'WHUMP' sound.",
     "heat_per_shot": 400,
@@ -1825,9 +1869,18 @@
     "name_en": "Fat Boy",
     "name_ptbr": "Fat Boy (carga reforçada)",
     "description": "Fat Boy: boosted-yield charge - a bigger, brighter mushroom and a faster shell.",
+    "description_ptbr": "Fat Boy: carga de rendimento reforçado; um cogumelo maior e mais brilhante e um projétil mais rápido.",
     "fire_rate_factor": 1.0,
     "damage_factor": 1.25,
     "range_factor": 1.0,
+    "speed_factor": 1.25,
+    "explosive_radius_m": 10,
+    "structural_explosive_damage": 50000,
+    "structural_explosive_radius_m": 7,
+    "crew_stun": {
+     "radius_m": 10,
+     "seconds": 2
+    },
     "other": "Emitter swap to one OC shell (no selector): op blast 150000 r8 -> 187500 r10, structural 40000 r6 -> 50000 r7, shell speed 80 -> 100 m/s (harder to intercept); crew stun 8 m/1 s -> 10 m/2 s; reload unchanged (10 s) so 2 howitzers never exceed one nuke per 5 s.",
     "visual_signature": "bespoke mushroom-cloud particle (one of the 4 budgeted effects) at 125 % scale, white flash screen-wide, shell trail turns green.",
     "heat_per_shot": 15000,
@@ -1938,9 +1991,15 @@
     "name_en": "Full Broadside",
     "name_ptbr": "Bordada Total",
     "description": "Full Broadside: all three guns on emergency cycle - a salvo every 2.25 s, the whole flagship rocks.",
+    "description_ptbr": "Bordada Total: os três canhões em ciclo de emergência; uma salva a cada 2,25 s e a nave capitânia inteira balança.",
     "fire_rate_factor": 1.3333,
     "damage_factor": 1.0,
     "range_factor": 1.0,
+    "recoil_factor": 2.0,
+    "crew_stun": {
+     "radius_m": 13,
+     "seconds": 1.5
+    },
     "other": "Synchronized cannon_deck timer Duration 3.0 / 133 % = 2.25 s; recoil x2; crew stun 10 m/1 s -> 13 m/1.5 s; ammo x1.33 (4 mag/s). Range stays at the 600 m cap; same shells.",
     "visual_signature": "bespoke 406 muzzle blast scaled x1.25 with a rolling smoke wall over half the ship, screen shake 0.3 -> 0.5, barrels glow between salvos.",
     "heat_per_shot": 3000,
@@ -2155,8 +2214,9 @@
     "explosive_damage": 0,
     "emp_drain": 0,
     "fire_chance": 0.08,
+    "heat_per_hit": 15,
     "tracer": "#5CF2FF cyan core / #E8FFFF white-hot",
-    "notes": "SimpleHit; separate HitShield block (Damage 450); StatusApplication cosmoteer.heat 15 per hull hit; TargetCategory laser, shot HP 200."
+    "notes": "Laser-bolt hit (pen 0, no ReduceEffectsByPenetration, see ammo_types[plasma]); separate HitShield block (Damage 450); StatusApplication cosmoteer.heat 15 per hull hit; TargetCategory laser, shot HP 200."
    }
   },
   "rafaeltessaro.bs_ciws": {
@@ -2284,8 +2344,9 @@
     "explosive_damage": 0,
     "emp_drain": 0,
     "fire_chance": 0.25,
+    "heat_per_hit": 300,
     "tracer": "#5CF2FF cyan core / #E8FFFF white-hot",
-    "notes": "SimpleHit; separate HitShield block (Damage 9600); StatusApplication cosmoteer.heat 300 per hull hit; TargetCategory laser, shot HP 2500."
+    "notes": "Laser-bolt hit (pen 0, no ReduceEffectsByPenetration, see ammo_types[plasma]); separate HitShield block (Damage 9600); StatusApplication cosmoteer.heat 300 per hull hit; TargetCategory laser, shot HP 2500."
    }
   },
   "rafaeltessaro.bs_flak_heavy": {
@@ -2309,6 +2370,8 @@
     "shield_damage": 40000,
     "explosive_radius_m": 8.0,
     "explosive_damage": 150000,
+    "structural_explosive_damage": 40000,
+    "structural_explosive_radius_m": 6,
     "emp_drain": 0,
     "fire_chance": 0.5,
     "tracer": "#FFE14D glow + smoke trail",

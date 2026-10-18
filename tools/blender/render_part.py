@@ -649,20 +649,31 @@ def render_resource(mod, out, only):
         B.show_only(["item"])
         B.render_set(os.path.join(out, f"stack_{k}"), (PX, PX), glow_halo=True, off=False, normals=False)
         files.append(f"stack_{k}.png")
-    # unidade solta (nugget) com normais, icone e silhueta
+    # icone e silhueta (unidade grande, icon_scale)
     M = fresh(accent)
     B.camera(1, 1, (0, 0))
     samples(64)
     _place_item(mod, M, (0, 0, 0), P.get("icon_scale", 0.8), P.get("icon_rot", 0), "unit_icon")
     warn_empty("item")
     B.show_only(["item"])
-    res = B.render_set(os.path.join(out, "nugget"), (PX, PX), glow_halo=True, off=False, normals=True)
+    res = B.render_set(os.path.join(out, "icon_src"), (PX, PX), glow_halo=True, off=False, normals=False)
     res["on"].save(os.path.join(out, "icon.png"))
+    os.remove(os.path.join(out, "icon_src.png"))
     big = B.render_set(os.path.join(out, "overlay_src"), (128, 128), glow_halo=False, off=False, normals=False)
-    a = np.asarray(big["on"].split()[-1], dtype=np.uint8)
-    Image.fromarray(np.dstack([np.full(a.shape, 255, np.uint8)] * 3 + [a]), "RGBA").save(
-        os.path.join(out, "overlay.png"))
+    # silhueta branca com halo suave, como os overlay.png vanilla (resources/bullet/overlay.png)
+    import art3d as A3
+    A3.overlay_glow(big["on"].split()[-1]).save(os.path.join(out, "overlay.png"))
+    meta["overlay_glow"] = True
     os.remove(os.path.join(out, "overlay_src.png"))
+    # unidade solta (nugget, o que o tripulante carrega) com normais: do tamanho de uma unidade da pilha
+    # (unit_scale), como as pecas vanilla; com icon_scale o carregador crescia ao ser pego do deposito
+    M = fresh(accent)
+    B.camera(1, 1, (0, 0))
+    samples(64)
+    _place_item(mod, M, (0, 0, 0), unit, P.get("icon_rot", 0), "unit_nugget")
+    B.show_only(["item"])
+    B.render_set(os.path.join(out, "nugget"), (PX, PX), glow_halo=True, off=False, normals=True)
+    meta["nugget_scale"] = unit
     files += ["nugget.png", "nugget_normals.png", "icon.png", "overlay.png"]
     meta["files"] = sorted(set(files))
     return meta

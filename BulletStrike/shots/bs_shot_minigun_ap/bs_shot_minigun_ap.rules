@@ -41,7 +41,7 @@ Components
 		HitCrew = &HitOperational
 		PartCategoryPenetrationFactors
 		{
-			armor = 50%
+			armor = 60%
 		}
 		HitShield
 		{
@@ -145,7 +145,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 68
+						BaseValue = 34
 						EffectScaleExponent = 1
 					}
 				}

@@ -171,7 +171,39 @@ Components
 			StructuralDamageRetentionPerHit = 50%
 			MinStructuralDamageScale = 3%
 		}
-		FinishedPenetratingOperational = &PenetratingOperational
+		FinishedPenetratingOperational
+		{
+			HitEffects
+			[
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 80
+						EffectScaleExponent = 1
+					}
+					Radius = 1
+				}
+			]
+			MediaEffects
+			[
+				&<./Data/shots/missile_he/particles/missile_he_hit.rules>
+				&<./Data/shots/missile_he/particles/missile_he_flash.rules>
+				&<./Data/shots/missile_he/particles/missile_he_smoke.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_01.wav"
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_02.wav"
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_03.wav"
+					]
+					Volume = 0.5
+					SpeedVariation = 0.2
+					MaxConcurrent = 20
+				}
+			]
+		}
 		FinishedPenetratingStructural = &PenetratingStructural
 	}
 	Sprite

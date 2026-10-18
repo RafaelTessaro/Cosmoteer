@@ -2,12 +2,12 @@
 // Projetil: bs_flak_flak_heavy
 
 STAT_DAMAGE = 4000
-STAT_SHIP_DAMAGE = 0
+STAT_SHIP_DAMAGE = 1200
 STAT_RADIUS = 7
 Range = 320
 IdealRange = 288
 ClipRangeToTarget = true
-RandomOffsetRadius = [0.5, 5.333333]
+RandomOffsetRadius = [1, 6]
 FriendlyShipLowCollisions = false
 HitNothing
 {
@@ -35,10 +35,10 @@ HitNothing
 			Type = ExplosiveDamage
 			TotalDamage
 			{
-				BaseValue = 0
+				BaseValue = 1200
 				EffectScaleExponent = 1
 			}
-			Radius = 4.2
+			Radius = 4
 			Filter
 			{
 				Ships = true

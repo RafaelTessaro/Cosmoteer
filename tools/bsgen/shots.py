@@ -150,7 +150,11 @@ def _explosion(radius, total, fire_per_n=None, friendly=False, structural=None):
 
 def build_kinetic(s):
     """Projetil penetrante (padrao, perfurante, perfurante-explosivo, plasma, EMP)."""
-    top = {
+    top = {}
+    if s.get("oc_range"):
+        # alcance maior em overclock sem trocar o projetil (pd_shot.rules: OVERCLOCK/RANGE + Range BuffRemap)
+        top["OVERCLOCK"] = {"RANGE": s["oc_range"]}
+    top.update({
         "STAT_DAMAGE": s["damage"],
         "STAT_PENETRATION": s["penetration"],
         "ID": Q(s["id"]),
@@ -158,12 +162,23 @@ def build_kinetic(s):
         "IdealRange": [round(s["range"] * 0.3), "&~/Range"],
         "IdealRadius": [5, 50],
         "Speed": s["speed"],
-    }
+    })
+    if s.get("oc_range"):
+        top["Range"] = {"BaseValue": s["range"], "Modifiers": [
+            {"Type": "BuffRemap", "BuffType": "Overclock", "ModificationMode": "Replace", "RemapFrom": [0, 1],
+             "RemapTo": ["&../../../BaseValue", "&~/OVERCLOCK/RANGE"]}]}
+        top["IdealRange"] = [round(s["range"] * 0.3), s["range"]]
+        top["ReceivableBuffs"] = ["Overclock"]
     preset = s.get("fx", "med")
     hit_op = {"ReduceEffectsByPenetration": True, "Offset": [-0.15, 0],
               "HitEffects": [{"Type": "Damage", "Damage": _val(s["damage"])},
                              {"Type": "Impulse", "Impulse": _val(s.get("impulse", 5))}],
-              "MediaEffects": _media(preset, s.get("volume", 0.6), s.get("max_conc", 30), s.get("shake", 0))}
+              "MediaEffects": _media(preset, s.get("volume", 0.6), s.get("max_conc", 30), s.get("shake", 0),
+                                     extra=s.get("extra_particles"))}
+    if s.get("impact_explosion"):
+        # explosao no impacto (overclock "Erupcao Solar" da Curupira)
+        r, total = s["impact_explosion"]
+        hit_op["HitEffects"].insert(1, _explosion(r, total))
     if s.get("emp_drain"):
         hit_op["HitEffects"].append(_drain_effect(s["emp_drain"]))
     if s.get("heat"):
@@ -174,12 +189,15 @@ def build_kinetic(s):
                   "HitEffects": [{"Type": "Damage", "Damage": _val(s.get("struct_damage", round(s["damage"] / 4)))},
                                  {"Type": "Impulse", "Impulse": _val(max(1, s.get("impulse", 5) / 2))}],
                   "MediaEffects": _media(preset, struct=True)}
+    # pecas atravessadas depois da primeira: perfurante com dano proprio (50% do primeiro acerto), demais repetem
     pen_op = {"ReduceEffectsByPenetration": True,
-              "HitEffects": [{"Type": "Damage", "Damage": _val(s["damage"])},
+              "HitEffects": [{"Type": "Damage", "Damage": _val(s.get("pen_damage", s["damage"]))},
                              {"Type": "StatusApplication", "StatusType": "cosmoteer.fire",
                               "StatusChance": _val(s.get("fire", 0.04)), "ValueType": "Interpolated"},
                              {"Type": "Impulse", "Impulse": _val(s.get("impulse", 5))}],
               "MediaEffects": "&../HitOperational/MediaEffects"}
+    if s.get("bolt"):
+        return _bolt_kinetic(s, top, hit_op, hit_struct)
     hit = {
         "Type": "PenetratingHit",
         "Penetration": s["penetration"],
@@ -222,15 +240,54 @@ def build_kinetic(s):
                             "HitEffects": [{"Type": "Damage", "Damage": _val(s["anti_projectile"])}],
                             "MediaEffects": [f"&<{D}/pd_shot/particles/pd_shot_sparks.rules>"]}
 
+    top["Components"] = _kinetic_components(s, hit)
+    return top
+
+
+def _kinetic_components(s, hit):
     comps = {
         "Physics": {"Type": "CirclePhysics", "Radius": s.get("radius", 0.12), "Density": 0.0001},
         "Death": {"Type": "DeathByLifetime"},
-        "Targetable": {"Type": "Targetable", "Health": s["health"], "TargetCategory": Q("bullet"),
+        "Targetable": {"Type": "Targetable", "Health": s["health"], "TargetCategory": Q(s.get("category", "bullet")),
                        "OnDeath": {"MediaEffects": "&~/Components/Hit/HitOperational/MediaEffects"}},
         "Hit": hit,
     }
     comps.update(_sprite_components(s))
-    top["Components"] = comps
+    return comps
+
+
+def _bolt_kinetic(s, top, hit_op, hit_struct):
+    """Disparo que se gasta no primeiro escudo/peca (plasma; spec ammo_types[plasma]: penetracao 0). Segue o raio
+    laser do jogo base (laser_bolt_small.rules: PenetratingHit sem Penetration e SEM ReduceEffectsByPenetration,
+    Penetrating/FinishedPenetratingOperational sem efeito): com penetracao 0 o ReduceEffectsByPenetration poderia
+    cortar o dano do acerto e a explosao do overclock da Curupira. Nao vira SimpleHit porque o SimpleHit do jogo
+    nunca tem HitStructural proprio (so &HitOperational), e o plasma mantem 1/4 do dano na estrutura, como o
+    raio laser (500/125). HitShield proprio (padrao do railgun); a chance de fogo vai no HitOperational."""
+    hit_op = dict(hit_op)
+    hit_op.pop("ReduceEffectsByPenetration", None)
+    hit_op["HitEffects"] = hit_op["HitEffects"] + [{"Type": "StatusApplication", "StatusType": "cosmoteer.fire",
+                                                    "StatusChance": _val(s.get("fire", 0.04)),
+                                                    "ValueType": "Interpolated"}]
+    hit_struct = dict(hit_struct)
+    hit_struct.pop("ReduceEffectsByPenetration", None)
+    hit = {"Type": "PenetratingHit", "FriendlyShipLowCollisions": False,
+           "CrewCollisions": "{Enemies=true; Junk=true}", "HitCrew": "&HitOperational"}
+    if s.get("shield_damage") is not None:
+        hit["HitShield"] = {"Offset": [-0.15, 0],
+                            "HitEffects": [{"Type": "Damage", "Damage": _val(s["shield_damage"])},
+                                           {"Type": "Impulse", "Impulse": _val(s.get("impulse", 5))}],
+                            "MediaEffects": "&../HitOperational/MediaEffects"}
+    else:
+        hit["HitShield"] = "&HitOperational"
+    hit["HitOperational"] = hit_op
+    hit["HitStructural"] = hit_struct
+    hit["PenetratingOperational"] = {}
+    hit["PenetratingStructural : &HitStructural"] = {
+        "StructuralDamageRetentionPerHit": "50%", "MinStructuralDamageScale": "3%"}
+    hit["FinishedPenetratingOperational"] = {}
+    hit["FinishedPenetratingStructural"] = {}
+    top["STAT_PENETRATION"] = 0
+    top["Components"] = _kinetic_components(s, hit)
     return top
 
 
@@ -282,9 +339,15 @@ def build_explosive(s):
         hit["HitShield"] = {"HitEffects": sh_list, "MediaEffects": "&../HitOperational/MediaEffects"}
     else:
         hit["HitShield"] = "&HitOperational"
+    death = {"Type": "DeathByLifetime"}
+    if s.get("death_blast"):
+        # no fim do alcance o projetil detona (mine_deployed.rules: DeathByLifetime -> OnDeath); so as explosoes,
+        # sem o dano direto nem o impulso, que precisam de uma peca atingida
+        death["OnDeath"] = {"HitEffects": [e for e in fx_list if e["Type"] in ("ExplosiveDamage", "ExplosiveResourceDrain")],
+                            "MediaEffects": "&../../Hit/HitOperational/MediaEffects"}
     comps = {
         "Physics": {"Type": "CirclePhysics", "Radius": s.get("radius", 0.25), "Density": 0.0001},
-        "Death": {"Type": "DeathByLifetime"},
+        "Death": death,
         "Targetable": {"Type": "Targetable", "Health": s["health"], "TargetCategory": Q(s.get("category", "bullet")),
                        # abatido no ar: sem dano em area (como os misseis vanilla)
                        "OnDeath": {"MediaEffects": [f"&<{PARTICLES['flak'][1]}>"]}},

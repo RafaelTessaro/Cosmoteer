@@ -1,78 +1,79 @@
-# Bullet Strike: 3D art style and model contract
+# Bullet Strike: estilo da arte 3D e contrato dos modelos
 
-This guide applies to every 3D sprite in the mod. The reference model is the **76 mm Naval Automatic
-Cannon** (`tools/blender/parts/bs_naval_76.py`), which the user approved with the words "exactly the style I want
-for the mod's weapons". Every new weapon must look like it belongs to the same family.
+Este guia vale para todo sprite 3D do mod. O modelo de referência é o **Canhão Naval Automático 76 mm**
+(`tools/blender/parts/bs_naval_76.py`), que o usuário aprovou com as palavras "exatamente o estilo que eu quero para
+as armas do mod". Toda arma nova precisa parecer da mesma família.
 
-Rendered references (open them before you start):
-- `docs/preview/3d/naval76_ampliado.png` (top view, 4x)
-- `docs/preview/3d/naval76_no_jogo.png` (in-game scale 1x and 3x)
-- `docs/preview/3d/naval76_disparo.gif` (firing animation)
-- `docs/preview/3d/naval76_perspectiva.png` (3/4 view of the model)
+Referências renderizadas (abra antes de começar):
+- `docs/preview/3d/naval76_ampliado.png` (vista de cima, 4x)
+- `docs/preview/3d/naval76_no_jogo.png` (escala do jogo, 1x e 3x)
+- `docs/preview/3d/naval76_disparo.gif` (animação de disparo)
+- `docs/preview/3d/naval76_perspectiva.png` (vista 3/4 do modelo)
 
-Background reading: the style study of the "Redline Orbital Heavy Industries" mod that the user asked us to match is
-`/tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/redline/STYLE_NOTES.md`.
-Game graphics conventions are in
-`/tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/notes/08_graphics_conventions.md`.
+Leitura de apoio: o estudo de estilo do mod "Redline Orbital Heavy Industries", que o usuário pediu para seguir, e as
+notas sobre as convenções gráficas do jogo foram feitos na fase de pesquisa e **não estão no repositório**. O que
+importa deles está resumido nas seções 1 e 2 abaixo.
 
 ---
 
-## 1. Visual language (mandatory)
+## 1. Linguagem visual (obrigatória)
 
-1. **Dark core plus light armor.** Each turret head is a near-black mechanical core (`M["core"]`,
-   `M["core_mid"]`) wrapped in separate light-grey armor shards (`M["armor"]`). Dark gaps of 0.05–0.15 tile run
-   between the shards. The head should read as an exoskeleton, not a box.
-2. **Angular, faceted, aggressive.** Silhouettes are chamfered octagons and wedges that point forward, with
-   stepped notches. Avoid perfect circles on the roof layer; the turret ring is the only exception. Use
-   `B.shard()` (chamfered plate plus a raised inner panel, the double bevel) for every armor piece.
-3. **Mirror symmetry** along the barrel axis. Asymmetry may come only from small details (for example an ammo box on
-   one side, if the art direction asks for it).
-4. **Recurring elements** that give the family its identity. Adapt them to each weapon's size:
-   - forward-sweeping "claws" or "blades" that grip the barrel roots;
-   - a raised central spine with a sensor window (dark recess with a small glowing slit);
-   - a rear vent bay (dark recess, louvers, a row of 3–6 amber pips);
-   - mechanical greebles **only in the dark core gaps**: magazine drums with lit counters, feed chutes, pistons,
-     cables and modules;
-   - panel lines cut into the armor (`B.cut` with thin boxes), LED slots cut into armor (`Mo.slot_with_pips`).
-5. **Barrels** are long faceted sleeves (8-sided cylinders, flat shading) with a dark channel cut along the top,
-   2–3 collars and a muzzle brake or flash hider. The root sits in a dark cradle or mantlet. A rotary weapon has a
-   cluster of barrels plus a front clamp ring.
-6. **Small, scarce emissives.** Glowing area should be under 1–2 % of the sprite. LEDs sit in **dark recesses**,
-   never directly on white armor. Use `M["glow"]` (strong), `M["glow_dim"]` (soft) and `M["ember"]` (heat, very
-   dim). No logos, no large text and no hazard stripes on the turret.
-7. **Factory-clean finish.** No rust and no visible dirt. Wear and grime come only from the materials in
+1. **Núcleo escuro e blindagem clara.** Cada cabeça de torre é um núcleo mecânico quase preto (`M["core"]`,
+   `M["core_mid"]`) envolto em placas de blindagem cinza-claras separadas (`M["armor"]`). Entre as placas correm
+   frestas escuras de 0,05 a 0,15 quadro. A cabeça deve parecer um exoesqueleto, não uma caixa.
+2. **Angular, facetada, agressiva.** As silhuetas são octógonos chanfrados e cunhas apontando para a frente, com
+   recortes em degrau. Evite círculos perfeitos na camada do teto; o anel da torre é a única exceção. Use
+   `B.shard()` (placa chanfrada com um painel interno elevado, o chanfro duplo) em toda peça de blindagem.
+3. **Simetria espelhada** ao longo do eixo do cano. A assimetria só pode vir de detalhes pequenos (por exemplo uma
+   caixa de munição de um lado, se a direção de arte pedir).
+4. **Elementos recorrentes** que dão identidade à família. Adapte-os ao tamanho de cada arma:
+   - "garras" ou "lâminas" inclinadas para a frente que seguram a raiz dos canos;
+   - uma espinha central elevada com uma janela de sensor (recesso escuro com uma fenda pequena acesa);
+   - um compartimento de ventilação traseiro (recesso escuro, venezianas, uma fileira de 3 a 6 luzes âmbar);
+   - detalhes mecânicos **só nas frestas escuras do núcleo**: tambores de munição com contadores acesos, calhas de
+     alimentação, pistões, cabos e módulos;
+   - linhas de painel cortadas na blindagem (`B.cut` com caixas finas) e fendas de LED cortadas na blindagem
+     (`Mo.slot_with_pips`).
+5. **Canos** são luvas longas e facetadas (cilindros de 8 lados, sombreamento plano) com um canal escuro cortado
+   por cima, 2 a 3 colares e um freio de boca ou supressor de clarão. A raiz fica num berço ou mantelete escuro. Uma
+   arma rotativa tem um feixe de canos com um anel de fixação na frente.
+6. **Emissivos pequenos e raros.** A área acesa deve ficar abaixo de 1 a 2% do sprite. Os LEDs ficam em
+   **recessos escuros**, nunca direto sobre a blindagem branca. Use `M["glow"]` (forte), `M["glow_dim"]` (suave) e
+   `M["ember"]` (calor, bem fraco). Nada de logotipos, textos grandes ou faixas de perigo na torre.
+7. **Acabamento limpo de fábrica.** Sem ferrugem e sem sujeira visível. Desgaste e sujeira vêm só dos materiais de
    `Mo.mats()`.
-8. **Detail density.** At 64 px/tile there should be a structural break (gap, step, groove or slot) every
-   0.3–0.5 tile. No flat area larger than about 1x1 tile without a groove or inset.
-9. **Scale with size.** Small weapons (1x1, 1x2, 2x2) are compact, with 1–2 tiers of shards and big readable
-   shapes, because detail disappears at 64 px. Large weapons (4x5 and up) add tiers of shards, more core modules
-   and more LEDs, but keep the same kinds of shapes.
+8. **Densidade de detalhes.** A 64 px/quadro deve haver uma quebra estrutural (fresta, degrau, ranhura ou fenda) a
+   cada 0,3 a 0,5 quadro. Nenhuma área plana maior que cerca de 1x1 quadro sem ranhura ou rebaixo.
+9. **Escala com o tamanho.** Armas pequenas (1x1, 1x2, 2x2) são compactas, com 1 ou 2 camadas de placas e formas
+   grandes e legíveis, porque o detalhe some a 64 px. Armas grandes (4x5 para cima) ganham mais camadas de placas,
+   mais módulos no núcleo e mais LEDs, mas mantêm os mesmos tipos de forma.
 
-### Colors and accents
-- Use **only** the palette in `Mo.mats(accent)`: light naval-grey armor, dark core, steel. Ignore the colors
-  listed in the spec's `art_direction` (olive, rust-red, sand and so on). The user approved a single family
-  look. Take only the **silhouette, barrel count/style and animations** from `art_direction`.
-- Accent (light color) per weapon: `"amber"` by default; `"cyan"` for plasma weapons (Boitatá, Curupira);
-  `"green"` for the nuclear howitzer (Boiúna). A small red radar light (`M["red"]`) is allowed on the CIWS.
-- The hull roof is **pure green** (`B.mat_roof_green()`); the game replaces green with the ship's paint. Anything
-  that should not be painted (vents, hatches, metal) uses non-green materials.
+### Cores e destaques
+- Use **só** a paleta de `Mo.mats(accent)`: blindagem cinza-naval clara, núcleo escuro, aço. Ignore as cores
+  listadas no `art_direction` do spec (oliva, vermelho-ferrugem, areia etc.). O usuário aprovou um visual único
+  para a família. Do `art_direction` tire só **a silhueta, a quantidade e o estilo dos canos e as animações**.
+- Cor de destaque (cor das luzes) por arma: `"amber"` por padrão; `"cyan"` nas armas de plasma (Boitatá, Curupira);
+  `"green"` no obuseiro nuclear (Boiúna). Uma luz pequena de radar vermelha (`M["red"]`) é permitida na CIWS.
+- O teto do casco é **verde puro** (`B.mat_roof_green()`); o jogo troca o verde pela pintura da nave. O que não deve
+  ser pintado (ventilações, escotilhas, metal) usa materiais que não são verdes.
 
-## 2. Coordinates and conventions
+## 2. Coordenadas e convenções
 
-- 1 Blender unit = 1 tile = 64 px. The camera looks straight down.
-- **Head and barrel:** origin at the turret pivot, **+X = right, +Y = forward (barrel direction), +Z = up**.
-  The barrel is modeled with its **root at y = 0** and its muzzle at y = L, centered at x = 0 (height z ≈ 0.4–0.6).
-- **Roof and floor:** coordinates centered on the part (x in [-w/2, w/2], y in [-h/2, h/2], +Y = front of the
-  part). Pivot in part coordinates (x right, y **down**) converts as `px = pivot[0] - w/2`, `py = h/2 - pivot[1]`.
-- The turret sprite is a square of side `turret_box` centered on the pivot. **The whole head must fit inside
-  that square** (keep a margin of about 0.03).
-- The barrel sprite covers from `-pad` to `L` (pad = recoil space) and is `width` wide. The whole barrel,
-  including the muzzle brake, must fit inside that width.
-- **Turret/barrel overlap:** within the same layer the game does not guarantee draw order. Where the barrel root
-  overlaps the head (the cradle/mantlet), make it look right **both with the barrel over the head and under it**.
-  Make that region dark (core_mid/core), and do not let the barrel cover white armor.
+- 1 unidade do Blender = 1 quadro = 64 px. A câmera olha direto para baixo.
+- **Cabeça e cano:** origem no pivô da torre, **+X = direita, +Y = frente (direção do cano), +Z = para cima**.
+  O cano é modelado com a **raiz em y = 0** e a boca em y = L, centrado em x = 0 (altura z ≈ 0,4 a 0,6).
+- **Teto e chão:** coordenadas centradas na peça (x em [-w/2, w/2], y em [-h/2, h/2], +Y = frente da peça). O pivô
+  em coordenadas da peça (x para a direita, y **para baixo**) é convertido com `px = pivot[0] - w/2`,
+  `py = h/2 - pivot[1]`.
+- O sprite da torre é um quadrado de lado `turret_box` centrado no pivô. **A cabeça inteira precisa caber nesse
+  quadrado** (deixe uma margem de uns 0,03).
+- O sprite do cano vai de `-pad` até `L` (pad = espaço do recuo) e tem largura `width`. O cano inteiro, inclusive o
+  freio de boca, precisa caber nessa largura.
+- **Sobreposição torre/cano:** dentro da mesma camada o jogo não garante a ordem de desenho. Onde a raiz do cano
+  cobre a cabeça (o berço/mantelete), faça ficar certo **tanto com o cano por cima da cabeça quanto por baixo**.
+  Deixe essa região escura (core_mid/core) e não deixe o cano cobrir blindagem branca.
 
-## 3. Model contract (`tools/blender/parts/<short_id>.py`)
+## 3. Contrato do modelo (`tools/blender/parts/<id_curto>.py`)
 
 ```python
 import bs3d as B
@@ -80,321 +81,353 @@ import models as Mo
 
 PART = {
     "id": "rafaeltessaro.bs_xxx",
-    "kind": "gun",                     # deck turrets (weapons and defenses)
-    "size": [w, h],                    # MUST match the spec (tools/spec/bullet_strike_spec.json)
-    "pivot": [x, y],                   # part coordinates (x right, y down), in tiles
-    "turret_box": 2.9,                 # side of the turret sprite
-    "ring_r": 1.3,                     # turret ring radius drawn on the roof/floor
+    "kind": "gun",                     # torres de convés (armas e defesas)
+    "size": [w, h],                    # PRECISA bater com o spec (tools/spec/bullet_strike_spec.json)
+    "pivot": [x, y],                   # coordenadas da peça (x para a direita, y para baixo), em quadros
+    "turret_box": 2.9,                 # lado do sprite da torre
+    "ring_r": 1.3,                     # raio do anel da torre desenhado no teto/chão
     "accent": "amber",
-    "collider": 1.3,                   # optional: turret collision radius (default 0.45 * box)
+    "collider": 1.3,                   # opcional: raio de colisão da torre (padrão 0,45 * box)
     "barrels": {
-        "ys": [0.0],                   # lateral offset of each VISIBLE barrel (+ = right). The COUNT is fixed per weapon (table below)
-        "root": 0.88,                  # pivot -> barrel root distance
-        "length": 2.6,                 # root -> muzzle
-        "width": 0.46,                 # barrel sprite width (tiles)
-        "pad": 0.30,                   # recoil space behind the root
+        "ys": [0.0],                   # deslocamento lateral de cada cano VISÍVEL (+ = direita). A QUANTIDADE é fixa por arma (tabela abaixo)
+        "root": 0.88,                  # distância pivô -> raiz do cano
+        "length": 2.6,                 # raiz -> boca
+        "width": 0.46,                 # largura do sprite do cano (quadros)
+        "pad": 0.30,                   # espaço do recuo atrás da raiz
         "anim": "recoil",              # "recoil" | "spin" | "static"
-        "recoil": [0.26, 0.18, 0.10, 0.04],   # recoil per frame (tiles), first = shot
-        "heat": [1.0, 0.9, 0.78, 0.64, 0.5, 0.36, 0.22, 0.1],  # heat glow per frame (cools down afterwards)
-        "interval": 0.06,              # seconds per frame
-        "heat_color": (1.0, 0.13, 0.015),  # optional: heat color (plasma: (0.25, 0.85, 1.0) cyan)
-        # for anim == "spin": "spin_frames": 3 (barrel(M, L, T, phase) with phase in [0,1) = fraction of the
-        # angle between two barrels; the renderer asks for phases 1/4, 2/4, 3/4 and 0 for rest)
+        "recoil": [0.26, 0.18, 0.10, 0.04],   # recuo por quadro de animação (quadros), o primeiro = disparo
+        "heat": [1.0, 0.9, 0.78, 0.64, 0.5, 0.36, 0.22, 0.1],  # brilho de calor por quadro (esfria depois)
+        "interval": 0.06,              # segundos por quadro de animação
+        "heat_color": (1.0, 0.13, 0.015),  # opcional: cor do calor (plasma: (0.25, 0.85, 1.0) ciano)
+        # com anim == "spin": "spin_frames": 3 (barrel(M, L, T, phase) com phase em [0,1) = fração do
+        # ângulo entre dois canos; o renderizador pede as fases 1/4, 2/4, 3/4 e 0 para o repouso)
     },
-    "turret_anim": {"frames": 8, "interval": 0.1},   # optional: looping animation of the head (radar, lights)
-    "lights": [{"at": [x, y], "size": 1.4, "color": [255, 120, 30], "z": 0.8}],  # dynamic lights (head coordinates)
-    "preview_pattern": "single",       # GIF preview: single | alternate | pairs | volley | rotary
-    "preview_fx": "fire",              # optional: "plasma" = cyan flash and no smoke (default by accent)
+    "turret_anim": {"frames": 8, "interval": 0.1},   # opcional: animação em laço da cabeça (radar, luzes)
+    "lights": [{"at": [x, y], "size": 1.4, "color": [255, 120, 30], "z": 0.8}],  # luzes dinâmicas (coordenadas da cabeça)
+    "preview_pattern": "single",       # prévia em GIF: single | alternate | pairs | volley | rotary
+    "preview_fx": "fire",              # opcional: "plasma" = clarão ciano e sem fumaça (padrão pela cor de destaque)
 }
 
-def head(M, T="head", phase=0.0): ...        # turret head; phase in [0,1) when turret_anim exists
-def barrel(M, L, T="barrel", phase=0.0): ... # ONE barrel (or the rotary cluster); root at y=0
-def roof(M, T="roof"): ...                   # optional (default: Mo.hull_roof)
-def floor(M, T="floor"): ...                 # optional (default: Mo.hull_floor, with crew seats)
+def head(M, T="head", phase=0.0): ...        # cabeça da torre; phase em [0,1) quando existe turret_anim
+def barrel(M, L, T="barrel", phase=0.0): ... # UM cano (ou o feixe rotativo); raiz em y=0
+def roof(M, T="roof"): ...                   # opcional (padrão: Mo.hull_roof)
+def floor(M, T="floor"): ...                 # opcional (padrão: Mo.hull_floor, com assentos da tripulação)
 ```
 
-Rules:
-- Every rendered object receives the tag passed in `T` (`tags=(T,)`). Barrel parts that should glow when hot (sleeve, brake,
-  collars) receive `tags=(T, "hot")`.
-- **Never** give tags to boolean cutters (`B.cut` handles them).
-- The number of barrels in `ys` must equal the table (the build fails otherwise):
+Regras:
+- Todo objeto renderizado recebe a etiqueta passada em `T` (`tags=(T,)`). As partes do cano que devem brilhar quando
+  quentes (luva, freio, colares) recebem `tags=(T, "hot")`.
+- **Nunca** dê etiquetas aos cortadores booleanos (o `B.cut` cuida deles).
+- A quantidade de canos em `ys` precisa ser igual à da tabela (senão o build falha):
 
-| weapon | size | crew | visible barrels (`ys`) | anim | pattern | accent |
+| arma | tamanho | tripulação | canos visíveis (`ys`) | anim | padrão | destaque |
 |---|---|---|---|---|---|---|
 | bs_lmg (Marimbondo) | 1x1 | 1 | 1 | recoil | single | amber |
 | bs_hmg (Mangangá) | 1x2 | 1 | 2 | recoil | alternate | amber |
 | bs_autocannon_20 (Carcará) | 2x2 | 1 | 2 | recoil | alternate | amber |
 | bs_flak_light (Tatu) | 2x2 | 1 | 2 | recoil | alternate | amber |
 | bs_quad_hmg (Saci) | 2x2 | 2 | 4 | recoil | pairs (1+3 / 2+4) | amber |
-| bs_minigun (Cigarra) | 2x3 | 2 | 1 (6-barrel cluster) | spin | rotary | amber |
+| bs_minigun (Cigarra) | 2x3 | 2 | 1 (feixe de 6 canos) | spin | rotary | amber |
 | bs_naval_76 (Tambor) | 3x4 | 3 | 1 | recoil | single | amber |
-| bs_plasma_gatling (Boitatá) | 2x3 | 2 | 1 (4-barrel cluster) | spin | rotary | cyan |
-| bs_ciws (Tamanduá) | 3x3 | 2 | 1 (4-barrel cluster) | spin | rotary | amber (+red radar) |
-| bs_rotary_30 (Furacão) | 4x4 | 4 | 1 (7-barrel cluster) | spin | rotary | amber |
+| bs_plasma_gatling (Boitatá) | 2x3 | 2 | 1 (feixe de 4 canos) | spin | rotary | cyan |
+| bs_ciws (Tamanduá) | 3x3 | 2 | 1 (feixe de 4 canos) | spin | rotary | amber (+ radar vermelho) |
+| bs_rotary_30 (Furacão) | 4x4 | 4 | 1 (feixe de 7 canos) | spin | rotary | amber |
 | bs_naval_155 (Trovão) | 4x5 | 5 | 2 | recoil | alternate | amber |
 | bs_plasma_heavy (Curupira) | 4x5 | 4 | 2 | recoil | alternate | cyan |
 | bs_flak_heavy (Pororoca) | 4x4 | 4 | 2 | recoil | alternate | amber |
 | bs_nuke_howitzer (Boiúna) | 5x6 | 6 | 1 | recoil | single | green |
 | bs_naval_406 (Mapinguari) | 6x7 | 10 | 3 | recoil | volley | amber |
 
-- Placement: the head usually covers the front rows; the **back row** of the part (where the crew sits) usually
-  stays visible on the roof (hatch, vents). The crew is placed automatically in the back row; do not set `crew_pos`.
-- Recoil should be proportional to the caliber: small MG 0.04–0.08 tile, autocannon 0.1–0.15, 76 mm 0.26,
-  155 mm 0.4, 406 mm 0.6, howitzer 0.7. Heat glow suits cannons (76 mm and up) and plasma (cyan glow via the
-  `ember`/`glow_dim` materials). Light MGs should use little or no heat.
+- Posicionamento: a cabeça costuma cobrir as fileiras da frente; a **fileira de trás** da peça (onde fica a
+  tripulação) costuma continuar visível no teto (escotilha, ventilações). A tripulação é posicionada
+  automaticamente na fileira de trás; não defina `crew_pos`.
+- O recuo deve ser proporcional ao calibre: metralhadora pequena 0,04 a 0,08 quadro, autocanhão 0,1 a 0,15,
+  76 mm 0,26, 155 mm 0,4, 406 mm 0,6, obuseiro 0,7. O brilho de calor combina com canhões (76 mm para cima) e com o
+  plasma (brilho ciano pelos materiais `ember`/`glow_dim`). Metralhadoras leves devem usar pouco ou nenhum calor.
 
-## 4. Commands
+## 4. Comandos
+
+Rode da raiz do repositório. `<python-com-bpy>` é um Python com o módulo `bpy` do Blender instalado (por exemplo
+um venv próprio) e `<pasta Data do Cosmoteer>` é a pasta `Data` do jogo base (veja o README).
 
 ```bash
-PY=/tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/blendenv/bin/python
-cd /home/user/Cosmoteer
-# quick iteration (low quality), output to a draft folder:
-$PY tools/blender/render_part.py bs_xxx --quick --preview --out /tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/art3d/draft_bs_xxx
-#   (--only turret | barrel | hull renders just one piece)
-# final (goes to art3d/bs_xxx/, which the mod uses):
+PY=<python-com-bpy>
+# iteração rápida (qualidade baixa), saída numa pasta de rascunho fora de art3d/:
+$PY tools/blender/render_part.py bs_xxx --quick --preview --out <pasta de rascunho>/draft_bs_xxx
+#   (--only turret | barrel | hull renderiza só uma parte)
+# versão final (vai para art3d/bs_xxx/, que o mod usa):
 $PY tools/blender/render_part.py bs_xxx --preview
-# check that the mod builds and validates:
-python3 tools/build_mod.py --no-art && python3 tools/rules_lint.py --mod BulletStrike --vanilla /tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/repos/vanilla
+# confere se o mod gera e valida:
+python3 tools/build_mod.py --no-art && python3 tools/rules_lint.py --mod BulletStrike --vanilla <pasta Data do Cosmoteer>
 ```
 
-The `--preview` flag writes `preview_ingame.png` (1x and 3x) and `preview_fire.gif` to the output folder. **Look at the
-images** (Read tool) on every iteration. The machine has only 4 CPUs, so render the final version once.
+A opção `--preview` grava `preview_ingame.png` (1x e 3x) e `preview_fire.gif` na pasta de saída. **Olhe as
+imagens** a cada iteração. A máquina usada tinha só 4 CPUs, então renderize a versão final uma vez só.
 
-## 5. Quality checklist (critique yourself before finishing)
+## 5. Lista de conferência de qualidade (critique o próprio trabalho antes de terminar)
 
-- [ ] At 1x (64 px/tile) the silhouette reads well and differs from the other weapons (see `art_direction`).
-- [ ] It looks like the 76 mm family: dark core plus light shards with gaps, claws, spine, vent bay, LEDs in recesses.
-- [ ] It looks aggressive: forward-pointing shapes and chamfers. Nothing looks "boxy" or "toy-like".
-- [ ] Every armor piece has a double bevel; there are panel lines; no big flat empty areas.
-- [ ] Emissives are small; heat is orange (not white); plasma is cyan; nuclear is green.
-- [ ] The head fits in the `turret_box`; the barrel fits in `width`; nothing is clipped at the sprite edges.
-- [ ] The barrel root/cradle looks right with either draw order.
-- [ ] The roof is green with non-green details; the floor has seats/consoles at the crew positions and visible
-      magazine racks.
-- [ ] `python3 tools/build_mod.py --no-art` plus `rules_lint` give 0 errors.
+- [ ] A 1x (64 px/quadro) a silhueta se lê bem e é diferente das outras armas (veja `art_direction`).
+- [ ] Parece da família do 76 mm: núcleo escuro com placas claras e frestas, garras, espinha, compartimento de
+      ventilação, LEDs em recessos.
+- [ ] Parece agressiva: formas e chanfros apontando para a frente. Nada parece "caixote" ou "de brinquedo".
+- [ ] Toda peça de blindagem tem chanfro duplo; há linhas de painel; nenhuma área plana grande e vazia.
+- [ ] Os emissivos são pequenos; o calor é laranja (não branco); o plasma é ciano; o nuclear é verde.
+- [ ] A cabeça cabe no `turret_box`; o cano cabe em `width`; nada é cortado nas bordas do sprite.
+- [ ] A raiz/berço do cano fica certa nas duas ordens de desenho.
+- [ ] O teto é verde com detalhes não verdes; o chão tem assentos/consoles nas posições da tripulação e
+      porta-munições visíveis.
+- [ ] `python3 tools/build_mod.py --no-art` e o `rules_lint` dão 0 erros.
 
-## 6. Factories (`kind: "factory"`)
+## 6. Fábricas (`kind: "factory"`)
 
-Reference (simple first version): `tools/blender/parts/bs_factory_mag_std.py`.
+Referência (primeira versão, simples): `tools/blender/parts/bs_factory_mag_std.py`.
 
 ```python
 PART = {"id": "rafaeltessaro.bs_factory_xxx", "kind": "factory", "size": [w, h], "accent": "amber",
         "machine_frames": 4, "machine_interval": 0.12}
-def floor(M, T="floor"): ...                  # opaque interior floor (whole part)
-def machine(M, T="machine", phase=0.0): ...   # machinery (animated frame; phase in [0,1)); transparent where empty
-def roof(M, T="roof"): ...                    # green roof + unpainted details
+def floor(M, T="floor"): ...                  # chão interno opaco (a peça inteira)
+def machine(M, T="machine", phase=0.0): ...   # maquinário (quadro animado; phase em [0,1)); transparente onde vazio
+def roof(M, T="roof"): ...                    # teto verde + detalhes sem pintura
 ```
-- Coordinates centered on the part, +Y = front of the part (image top), 1 unit = 1 tile.
-- **Grid layout (fixed by the rules, tools/bsgen/factory.py):**
-  - 2x2 (Magazine Press): top row = machinery (blocked to crew). Bottom row: INPUT at the left tile, OUTPUT at the
-    right tile.
-  - 3x3 (other factories, vanilla `factory_he` layout): top row + center tile (1,1) = machinery. Tiles (0,1)
-    left and (2,1) right = INPUTS (the 2nd input on the right). The whole bottom row (y = 2) = OUTPUT.
-  - The game draws the resource stacks on top of the input/output tiles (`doodads_low` layer). The floor
-    should show marked "pads" there. Keep those tiles free of machinery.
-- The machinery must look like the same family: light chamfered shells with a double bevel, dark core, LEDs in
-  recesses, panel lines. The animation must show work (press ram, conveyor, spinning rotor, pulsing light...).
-  Theme per factory: Magazine Press (packs bullets), AP Magazine Press (tristeel tips), EMP Magazine Charger (copper coils and
-  electric glow), Plasma Cell Factory (cyan, cell tanks), Nuclear Shell Foundry (green, radiation-shielded hot cell).
-- Accent: amber (standard/AP press), blue (EMP), cyan (plasma), green (nuclear).
+- Coordenadas centradas na peça, +Y = frente da peça (topo da imagem), 1 unidade = 1 quadro.
+- **Leiaute da grade (fixado pelas regras, `tools/bsgen/factory.py`):**
+  - 2x2 (Prensa de Carregadores): fileira de cima = maquinário (bloqueado para a tripulação). Fileira de baixo:
+    ENTRADA no quadro da esquerda, SAÍDA no quadro da direita.
+  - 3x3 (as outras fábricas, leiaute da `factory_he` do jogo base): fileira de cima + quadro central (1,1) =
+    maquinário. Quadros (0,1) à esquerda e (2,1) à direita = ENTRADAS (a 2ª entrada à direita). A fileira de baixo
+    inteira (y = 2) = SAÍDA.
+  - O jogo desenha as pilhas de recurso por cima dos quadros de entrada e saída (camada `doodads_low`). O chão
+    deve mostrar "plataformas" marcadas ali. Deixe esses quadros livres de maquinário.
+- O maquinário precisa parecer da mesma família: carcaças claras chanfradas com chanfro duplo, núcleo escuro, LEDs
+  em recessos, linhas de painel. A animação precisa mostrar trabalho (pilão da prensa, esteira, rotor girando, luz
+  pulsando...). Tema por fábrica: Prensa de Carregadores (empacota balas), Prensa de Carregadores Perfurantes
+  (pontas de triaço), Energizador de Carregadores P.E.M. (bobinas de cobre e brilho elétrico), Fábrica de Células
+  de Plasma (ciano, tanques de células), Fundição de Projéteis Nucleares (verde, célula quente com blindagem contra
+  radiação).
+- Destaque: âmbar (prensa padrão/perfurante), azul (P.E.M.), ciano (plasma), verde (nuclear).
 
-## 7. Ammunition (`kind: "resource"`)
+## 7. Munição (`kind: "resource"`)
 
-Reference: `tools/blender/parts/bs_mag_std.py`.
+Referência: `tools/blender/parts/bs_mag_std.py`.
 
 ```python
 PART = {"id": "rafaeltessaro.bs_xxx", "kind": "resource", "accent": "amber", "unit_scale": 0.44,
-        # optional: "stack_layout": {k: [(x, y, z), ...]}, "stack_rot": [...], "icon_scale": 0.8}
-def item(M, T="item"): ...   # ONE unit centered on the origin, fitting in ~1x1 (z up to ~0.5)
+        # opcional: "stack_layout": {k: [(x, y, z), ...]}, "stack_rot": [...], "icon_scale": 0.8}
+def item(M, T="item"): ...   # UMA unidade centrada na origem, cabendo em ~1x1 (z até ~0,5)
 ```
-- The renderer produces `stack_1..N` (N = `max_stack_size` from the spec) at 64x64, the `nugget` (loose item,
-  with normals), `icon.png` 64x64 and `overlay.png` (white silhouette 128x128).
-- The item must be recognizable at 64 px and 1/2 tile: a clear silhouette, a light shell + dark core, and a
-  distinctive detail per type: Standard (amber LEDs, visible brass), AP/APHE (tristeel tips, blue-white band),
-  EMP (blue coils/glow), plasma cell (glowing cyan cylinder), nuclear shell (large shell, green band, radiation
-  symbol made of 3 wedges).
-- Stacks of 5-6 must not look like a jumble: use an organized 2-layer arrangement (`stack_layout`).
+- O renderizador produz `stack_1..N` (N = `max_stack_size` do spec) em 64x64, o `nugget` (item solto, com
+  normais), `icon.png` 64x64 e `overlay.png` (silhueta branca 128x128).
+- O item precisa ser reconhecível a 64 px e a meio quadro: silhueta clara, carcaça clara + núcleo escuro e um
+  detalhe próprio de cada tipo: Padrão (LEDs âmbar, latão à mostra), Perfurante/Perfurante-Explosiva (pontas de
+  triaço, faixa branco-azulada), P.E.M. (bobinas/brilho azul), célula de plasma (cilindro ciano aceso), projétil
+  nuclear (projétil grande, faixa verde, símbolo de radiação feito de 3 cunhas).
+- Pilhas de 5 ou 6 não podem parecer um amontoado: use um arranjo organizado em 2 camadas (`stack_layout`).
 
-## 8. Missile launchers (`kind: "launcher"`)
+## 8. Lança-mísseis (`kind: "launcher"`)
 
-Deck missile launchers (Tocandira 2x2 early, Caipora 3x3 mid, Mula-sem-Cabeça 5x6 late) are deck turrets like the
-guns, but they have **no barrels**. A rotating pod holds a grid of tubes, and the game shows how many missiles are
-loaded by drawing **overlay images on top of the pod** (one image per rack level, a `ResourceSprites` component on
-the rack storage). The design and all numbers are in `tools/spec/bullet_strike_missiles.json` (readable version:
-`docs/MISSEIS_PROJETO.md`); the rules are written by `tools/bsgen/launchers.py`.
+Os lança-mísseis de convés (Tocandira 2x2 no início, Caipora 3x3 no meio, Mula-sem-Cabeça 5x6 no fim) são torres
+de convés como as armas, mas **não têm canos**. Um casulo giratório leva uma grade de tubos, e o jogo mostra
+quantos mísseis estão carregados desenhando **imagens de sobreposição por cima do casulo** (uma imagem por nível de
+carga das células, um componente `ResourceSprites` no armazenamento das células). O projeto e todos os números
+ficam em `tools/spec/bullet_strike_missiles.json` (versão para ler: `docs/MISSEIS_PROJETO.md`); as regras são
+escritas por `tools/bsgen/launchers.py`.
 
-Until a model exists, `tools/bsgen/sprites.py` draws procedural placeholders with **the same files and the same
-geometry**, so a finished model replaces them without changing the rules.
+Enquanto um modelo não existe, `tools/bsgen/sprites.py` desenha substitutos procedurais com **os mesmos arquivos e
+a mesma geometria**, então um modelo pronto os substitui sem mudar as regras.
 
-### 8.1 What the rules reference (the art contract)
+### 8.1 O que as regras referenciam (o contrato da arte)
 
-| image(s) | layer | component | notes |
+| imagem(ns) | camada | componente | observações |
 |---|---|---|---|
-| `turret.png`, `turret_normals.png`, `turret_off.png`, `turret_shadow.png` (+ `turret<n>.png` frames if `turret_anim`) | pod: `roof_doodads`; shadow: `doodads_high` | `TurretGraphics` (ChainedTo Turret, Rotation 90d) | square of side `turret_box` centered on the pivot, forward = image top, exactly like a gun head. **The tube mouths are drawn EMPTY** (dark holes) |
-| `cells_<type>_p<pod>_<n>.png` + `cells_<type>_p<pod>_<n>_normals.png`, n = 0..units of that pod | `roof_turrets` (above the pod) | one `ResourceSprites` per pod and per missile mode (`RangeLow`/`RangeHigh` = the pod's rack units, `HasZeroResourceSprite = true`, `Location` = centre of the pod rectangle, `Size` = its size) | **canvas = the pod's overlay rectangle**, a crop of the `turret.png` canvas (pixels `[x0, y0, x1, y1]` on the turret canvas, forward = image top) computed by `tools/launcher_layout.py` `overlay_rect()`: the bounding box of every nose of that pod in that mode (5 x `tube_r` square per tube; `box` x 1.15 for heavy/torpedo units) + 2 px. Level n shows the loaded noses of the first n rack units of that pod **in fill order**; everything else is transparent. Level 0 is fully transparent. Only pods that hold units in that mode get files (Iara: `p1`, `p2`). The crop keeps the textures small (Mula: 50-70 px per pod instead of 307 x 307, about 8 MiB of overlays for the three launchers instead of 128 MiB) |
-| `shutters_<type>.png` + `_normals.png` | `roof_turrets` | `Shutters` (`Graphics` inside that mode's `Fire_<type>` block, so it shows only in that mode) | only for `*_inner` layouts (Mula Iara): closed shutters over the pods that hold no unit in that mode (the outer pods), same canvas as `turret.png` |
-| `turret_oc.png` (no normals) | `roof_turrets` | `OverclockGlowGraphics` (`OperationalToggle = IsOverclocked`) | launchers with overclock (Caipora, Mula): ONLY the overclock glow on a transparent canvas the size of `turret.png` (Caipora: the dome eye turns orange + vent embers; Mula: the collar recess and the pod vents glow). Optional for a 3D model: without it the rules skip the component |
-| `floor.png`, `walls.png`, `roof.png`, `roof_normals.png`, `lights.png` | hull layers | `Graphics` | same as the guns (green roof, crew seats; launchers should show missile racks/cradles in the floor) |
-| `icon.png`, `blueprints.png` | – | editor | built by `tools/make_art.py` from roof + pod + full rack |
+| `turret.png`, `turret_normals.png`, `turret_off.png`, `turret_shadow.png` (+ quadros `turret<n>.png` se houver `turret_anim`) | casulo: `roof_doodads`; sombra: `doodads_high` | `TurretGraphics` (ChainedTo Turret, Rotation 90d) | quadrado de lado `turret_box` centrado no pivô, frente = topo da imagem, exatamente como a cabeça de uma arma. **As bocas dos tubos são desenhadas VAZIAS** (buracos escuros) |
+| `cells_<tipo>_p<casulo>_<n>.png` + `cells_<tipo>_p<casulo>_<n>_normals.png`, n = 0..unidades daquele casulo | `roof_turrets` (por cima do casulo) | um `ResourceSprites` por casulo e por modo de míssil (`RangeLow`/`RangeHigh` = as unidades das células daquele casulo, `HasZeroResourceSprite = true`, `Location` = centro do retângulo do casulo, `Size` = o tamanho dele) | **tela = o retângulo de sobreposição do casulo**, um recorte da tela de `turret.png` (pixels `[x0, y0, x1, y1]` na tela da torre, frente = topo da imagem) calculado por `overlay_rect()` em `tools/launcher_layout.py`: a caixa que envolve todos os narizes daquele casulo naquele modo (quadrado de 5 x `tube_r` por tubo; `box` x 1,15 nas unidades pesadas/torpedo) + 2 px. O nível n mostra os narizes carregados das n primeiras unidades das células daquele casulo **na ordem de enchimento**; todo o resto é transparente. O nível 0 é todo transparente. Só os casulos que têm unidades naquele modo ganham arquivos (Iara: `p1`, `p2`). O recorte mantém as texturas pequenas (Mula: 50 a 70 px por casulo em vez de 307 x 307, cerca de 8 MiB de sobreposições para os três lançadores em vez de 128 MiB) |
+| `shutters_<tipo>.png` + `_normals.png` | `roof_turrets` | `Shutters` (`Graphics` dentro do bloco `Fire_<tipo>` daquele modo, então só aparece naquele modo) | só nos leiautes `*_inner` (Iara da Mula): persianas fechadas sobre os casulos que não têm unidade naquele modo (os casulos externos), mesma tela de `turret.png` |
+| `turret_oc.png` (sem normais) | `roof_turrets` | `OverclockGlowGraphics` (`OperationalToggle = IsOverclocked`) | lançadores com overclock (Caipora, Mula): SÓ o brilho do overclock numa tela transparente do tamanho de `turret.png` (Caipora: o olho da cúpula fica laranja + brasas nas ventilações; Mula: o recesso do colar e as ventilações dos casulos brilham). Opcional num modelo 3D: sem ele as regras pulam o componente |
+| `floor.png`, `walls.png`, `roof.png`, `roof_normals.png`, `lights.png` | camadas do casco | `Graphics` | igual às armas (teto verde, assentos da tripulação; os lançadores devem mostrar suportes/berços de mísseis no chão) |
+| `icon.png`, `blueprints.png` | – | editor | montados por `tools/make_art.py` a partir do teto + casulo + células cheias |
 
-Launch effects are vanilla particles, not images: the per-tube flash is
-`ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules` (bucket `Upper1`) at each emitter, and
-the backblast puff is `ships/terran/chaingun/particles/chaingun_shoot_smoke.rules` (Tocandira, Caipora) or
-`ships/terran/cannon_deck/particles/cannon_smoke_deck.rules` (Mula, bucket `RoofCannonSmoke`) at the `backblast`
-point of the pod that fired (one point per pod; the Tocandira's single point puffs on every launch). Do not use
-`missile_launcher_shoot.rules` (bucket `Middle3`, it would be hidden under our roof). **No pod recoil**: recoil would
-move the pod but not the overlays.
+Os efeitos de lançamento são partículas do jogo base, não imagens: o clarão de cada tubo é
+`ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules` (bucket `Upper1`) em cada emissor, e a
+baforada de sopro é `ships/terran/chaingun/particles/chaingun_shoot_smoke.rules` (Tocandira, Caipora) ou
+`ships/terran/cannon_deck/particles/cannon_smoke_deck.rules` (Mula, bucket `RoofCannonSmoke`) no ponto `backblast`
+do casulo que disparou (um ponto por casulo; o ponto único da Tocandira solta a baforada em todo lançamento). Não use
+`missile_launcher_shoot.rules` (bucket `Middle3`, ficaria escondido sob o nosso teto). **Sem recuo do casulo**: o
+recuo moveria o casulo, mas não as sobreposições.
 
-Fire order is **LIFO**: the last rack unit loaded fires first, so on every full salvo the overlay that disappears is
-the tube that just fired. Known cosmetic limit (spec test T21): a partial salvo (the magazine stayed dry, DryFlush) or
-the rest of an interrupted salvo after switching back to its missile type starts at the LAST cell of the rack, so one
-empty-looking tube fires while a loaded-looking cell vanishes (the overlays draw the rack level, the cell cycle restarts
-at the top). Counts and damage are not affected; do not try to fix it in the art. The rack unit of each mode is set by the spec (`launchers[].modes[].layout`, computed by
-`tools/launcher_layout.py`); each unit has a **form** that tells the art what to draw:
+A ordem de disparo é **LIFO**: a última unidade carregada nas células dispara primeiro, então em toda salva cheia a
+sobreposição que some é a do tubo que acabou de disparar. Limite cosmético conhecido (teste T21 do spec): uma salva
+parcial (o paiol ficou sem peças, `DryFlush`) ou o resto de uma salva interrompida depois de voltar ao tipo de
+míssil começa pela ÚLTIMA célula, então um tubo que parece vazio dispara enquanto some uma célula que parecia
+carregada (as sobreposições desenham o nível de carga das células, e o ciclo de células recomeça do topo). Contagem
+e dano não mudam; não tente corrigir isso na arte. A unidade das células de cada modo é definida pelo spec
+(`launchers[].modes[].layout`, calculado por `tools/launcher_layout.py`); cada unidade tem uma **forma** que diz à
+arte o que desenhar:
 
-| layout | launcher / modes | rack units | form | what one loaded unit looks like |
+| leiaute | lançador / modos | unidades das células | forma | como fica uma unidade carregada |
 |---|---|---|---|---|
-| `cassette` | Tocandira (all) | 6 twin-tube cassettes (12 tubes) | `tube` | one nose in each of the 2 tubes |
-| `fine16` (pods `pattern: "3-2-3"`) | Caipora he, cluster, limpet, napalm, emp | 16 (2 pods x 8) | `tube` | one nose in the tube |
-| `torpedo2` | Caipora Boto | 2 (one per pod) | `torpedo` | one big capped torpedo nose covering the whole pod face |
-| `fine48` | Mula he | 48 (4 pods x 3x4) | `tube` | one nose in the tube |
-| `heavy16` | Mula cluster, limpet, napalm, emp | 16 (4 rows x 4 pods) | `heavy` | one long double-calibre nose lying over the whole 3-tube row |
-| `torpedo4` | Mula Boto | 4 (one per pod) | `torpedo` | big capped nose over the pod face |
-| `torpedo2_inner` | Mula Iara | 2 (the 2 inner pods) | `torpedo` | big capped nose with a thin green band; the outer pods show `shutters_nuclear.png` |
+| `cassette` | Tocandira (todos) | 6 cassetes de tubo duplo (12 tubos) | `tube` | um nariz em cada um dos 2 tubos |
+| `fine16` (casulos `pattern: "3-2-3"`) | Caipora he, cluster, limpet, napalm, emp | 16 (2 casulos x 8) | `tube` | um nariz no tubo |
+| `torpedo2` | Caipora Boto | 2 (um por casulo) | `torpedo` | um nariz grande de torpedo com tampa cobrindo a face inteira do casulo |
+| `fine48` | Mula he | 48 (4 casulos x 3x4) | `tube` | um nariz no tubo |
+| `heavy16` | Mula cluster, limpet, napalm, emp | 16 (4 fileiras x 4 casulos) | `heavy` | um nariz longo de calibre duplo deitado sobre a fileira inteira de 3 tubos |
+| `torpedo4` | Mula Boto | 4 (um por casulo) | `torpedo` | nariz grande com tampa sobre a face do casulo |
+| `torpedo2_inner` | Mula Iara | 2 (os 2 casulos internos) | `torpedo` | nariz grande com tampa e uma faixa verde fina; os casulos externos mostram `shutters_nuclear.png` |
 
-Fill order: pods one after the other in the order of the spec's `cells.pods` list (Caipora L then R, so the right pod
-empties first; Mula outer-L, inner-L, inner-R, outer-R), rows from the back to the front, left to right inside a
-row. A `heavy`/`torpedo` unit has a `box` = [lateral width, depth] in tiles (heavy: the row; torpedo: the pod face),
-written by the layout and passed to `cell()`.
+Ordem de enchimento: um casulo depois do outro, na ordem da lista `cells.pods` do spec (Caipora: E e depois D, então
+o casulo direito esvazia primeiro; Mula: externo E, interno E, interno D, externo D), fileiras de trás para a frente,
+da esquerda para a direita dentro de uma fileira. Uma unidade `heavy`/`torpedo` tem um `box` = [largura lateral,
+profundidade] em quadros (heavy: a fileira; torpedo: a face do casulo), escrito pelo leiaute e passado para
+`cell()`.
 
-### 8.2 Model file (`tools/blender/parts/bs_msl_<box|twin|quad>.py`)
+### 8.2 Arquivo do modelo (`tools/blender/parts/bs_msl_<box|twin|quad>.py`)
 
 ```python
 PART = {
     "id": "rafaeltessaro.bs_msl_twin", "kind": "launcher",
-    "size": [3, 3], "pivot": [1.5, 1.4],      # MUST match launchers[].size and art.part_meta.pivot in the spec
+    "size": [3, 3], "pivot": [1.5, 1.4],      # PRECISA bater com launchers[].size e art.part_meta.pivot do spec
     "turret_box": 2.8, "ring_r": 1.15, "collider": 1.25, "accent": "amber",
-    "looks": ["he", "cluster", "limpet", "napalm", "emp", "torpedo"],   # every missile mode of the launcher
-    "oc_glow": True,                           # Caipora / Mula: render turret_oc.png with oc_glow()
-    # optional: "cells": {...} overrides art.part_meta.cells (pods: center + cols/rows or pattern "3-2-3", pitch,
-    #           in HEAD coordinates; tube_r; units "pairs" | single); the default reads the spec, so the cells always
-    #           match the rules
-    # optional: "backblast": [[x, y], ...] (head coordinates, one per pod), "lights": [...], "turret_anim": {...}
+    "looks": ["he", "cluster", "limpet", "napalm", "emp", "torpedo"],   # todos os modos de míssil do lançador
+    "oc_glow": True,                           # Caipora / Mula: renderiza turret_oc.png com oc_glow()
+    # opcional: "cells": {...} substitui art.part_meta.cells (casulos: centro + cols/rows ou pattern "3-2-3", pitch,
+    #           em coordenadas da CABEÇA; tube_r; units "pairs" | single); o padrão lê o spec, então as células
+    #           sempre batem com as regras
+    # opcional: "backblast": [[x, y], ...] (coordenadas da cabeça, um por casulo), "lights": [...], "turret_anim": {...}
 }
-def head(M, T="head", phase=0.0): ...   # mount + pod(s); tube mouths EMPTY (dark), at the spec cell positions
+def head(M, T="head", phase=0.0): ...   # suporte + casulo(s); bocas dos tubos VAZIAS (escuras), nas posições de célula do spec
 def cell(M, look, T="cell", form="tube", box=None): ...
-    # form "tube": ONE loaded nose at the origin (tube axis pitched like the pod), with a thin band in the type
-    #              colour; it must fit in a square of 5 x tube_r
-    # form "heavy": one long double-calibre nose lying along x, centred, fitting box[0] x box[1] (tiles)
-    # form "torpedo": one big capped torpedo nose centred, fitting box[0] x box[1] (the pod face)
-def shutter(M, T="shutter", box=None): ...   # Mula only: ONE closed shutter plate centred, fitting box (pod face)
-def oc_glow(M, T="oc"): ...                   # Caipora/Mula: ONLY the emissive overclock parts, in head coordinates
-                                              # (dome eye / collar recess / vents, e.g. M["ember"] boosted); the
-                                              # renderer keeps just their emission + a soft halo
-def roof(M, T="roof"): ...              # optional (default Mo.hull_roof)
-def floor(M, T="floor"): ...            # optional (default Mo.hull_floor)
+    # forma "tube": UM nariz carregado na origem (eixo do tubo inclinado como o casulo), com uma faixa fina na cor
+    #               do tipo; precisa caber num quadrado de 5 x tube_r
+    # forma "heavy": um nariz longo de calibre duplo deitado ao longo de x, centrado, cabendo em box[0] x box[1] (quadros)
+    # forma "torpedo": um nariz grande de torpedo com tampa, centrado, cabendo em box[0] x box[1] (a face do casulo)
+def shutter(M, T="shutter", box=None): ...   # só na Mula: UMA placa de persiana fechada, centrada, cabendo em box (face do casulo)
+def oc_glow(M, T="oc"): ...                   # Caipora/Mula: SÓ as partes emissivas do overclock, em coordenadas da cabeça
+                                              # (olho da cúpula / recesso do colar / ventilações, por exemplo M["ember"]
+                                              # reforçado); o renderizador guarda só a emissão delas + um halo suave
+def roof(M, T="roof"): ...              # opcional (padrão Mo.hull_roof)
+def floor(M, T="floor"): ...            # opcional (padrão Mo.hull_floor)
 ```
 
-Cell positions come from `tools/launcher_layout.py` (shared with the rules generator): head coordinates
-(x right, y forward from the pivot). The renderer renders `cell()` once per look and form and pastes it at every tube
-(`tube`) or at the unit centre (`heavy`, `torpedo`) of the first n units to compose each level, and pastes
-`shutter()` at every shuttered pod, so the noses always sit exactly on the mouths that `head()` draws at the same
-coordinates. A layout with shutters and a model without `shutter()` stops the render with an error.
+As posições das células vêm de `tools/launcher_layout.py` (compartilhado com o gerador das regras): coordenadas da
+cabeça (x para a direita, y para a frente a partir do pivô). O renderizador renderiza `cell()` uma vez por visual e
+forma e cola o resultado em cada tubo (`tube`) ou no centro da unidade (`heavy`, `torpedo`) das n primeiras unidades
+para montar cada nível, e cola `shutter()` em cada casulo com persiana, então os narizes sempre ficam exatamente sobre
+as bocas que `head()` desenha nas mesmas coordenadas. Um leiaute com persianas e um modelo sem `shutter()` param o
+render com erro.
 
-`render_part.py <short> [--quick] [--out DIR] [--only turret,hull,cells]` writes the images and a `meta.json` with
-`kind: "launcher"`, `turret` (as for guns, plus `oc_glow`), `modes.<type>.units` / `tubes` / `unit_pods` (turret
-coordinates, fill order), `modes.<type>.overlays[{range, files, normals, rect}]` (`rect` = the pod rectangle the level
-images are cropped to, from `overlay_rect()`; the rules place the `ResourceSprites` with it) and
-`modes.<type>.shutters{file, normals, pods}`, plus `backblast`, `crew_pos`, `hull`, `lights`. The renderer composes
-each level directly on the pod-rectangle canvas and stops with an error if a nose does not fit in it. `tools/bs_data.py` checks that every mode has as many units as
-the spec's rack and that `*_inner` modes have shutters; `tools/check_art3d.py <short>` checks canvas sizes (turret canvas for `turret*.png` / shutters, pod rectangle for the
-rack levels).
+`render_part.py <id_curto> [--quick] [--out DIR] [--only turret,hull,cells]` grava as imagens e um `meta.json` com
+`kind: "launcher"`, `turret` (como nas armas, mais `oc_glow`), `modes.<tipo>.units` / `tubes` / `unit_pods`
+(coordenadas da torre, ordem de enchimento), `modes.<tipo>.overlays[{range, files, normals, rect}]` (`rect` = o
+retângulo do casulo em que as imagens dos níveis são recortadas, vindo de `overlay_rect()`; as regras posicionam o
+`ResourceSprites` com ele) e `modes.<tipo>.shutters{file, normals, pods}`, mais `backblast`, `crew_pos`, `hull` e
+`lights`. O renderizador monta cada nível direto na tela do retângulo do casulo e para com erro se um nariz não
+couber nela. `tools/bs_data.py` confere se cada modo tem tantas unidades quanto as células do spec e se os modos
+`*_inner` têm persianas; `tools/check_art3d.py <id_curto>` confere os tamanhos das telas (tela da torre para
+`turret*.png` e persianas, retângulo do casulo para os níveis das células).
 
-### 8.3 Style per launcher (same family look as the guns: dark core + light shards, LEDs in recesses)
+### 8.3 Estilo por lançador (o mesmo visual de família das armas: núcleo escuro + placas claras, LEDs em recessos)
 
-| launcher | size | crew | pods / tubes | rack unit | style | accent |
+| lançador | tamanho | tripulação | casulos / tubos | unidade das células | estilo | destaque |
 |---|---|---|---|---|---|---|
-| bs_msl_box (Tocandira) | 2x2 | 1 | 1 box pod, 4x3 = 12 tubes, pitched 35 deg | twin-tube cassette (6) | RAM-style box on a short yoke, side claws, spine with amber IR slit, rear vent bay with 3 pips | amber |
-| bs_msl_twin (Caipora) | 3x3 | 2 | 2 octagonal pods (3-2-3, pitch 0.24) = 16 tubes, pitched 35 deg, + sensor dome | 1 tube (16); torpedo 2 | "two fists": octagonal pods on arms flanking an armored dome with one sensor-eye slit, forward claw blades, four splayed feet on the ring, rear magazine hatch + vent bay with 5 pips; overclock: the eye turns orange and the vents glow | amber |
-| bs_msl_quad (Mula-sem-Cabeça) | 5x6 | 8 | 4 rectangular pods 3x4 (pitch 0.26 x 0.22) = 48 tubes, pitched 40 deg, on hydraulic arms | 1 tube (48); heavy row (16); torpedo 4; nuclear 2 + shutters | headless wide body: an open armored collar with a VERY dim ember recess where the head should be, piston arms, claw blades at the pod roots, armored skirt over the ring, rear vent bay with 6 pips; overclock: collar recess and pod vents glow (alt head: one-eyed giant brow) | amber |
+| bs_msl_box (Tocandira) | 2x2 | 1 | 1 casulo-caixa, 4x3 = 12 tubos, inclinados 35 graus | cassete de tubo duplo (6) | caixa estilo RAM num garfo curto, garras laterais, espinha com fenda infravermelha âmbar, compartimento de ventilação traseiro com 3 luzes | amber |
+| bs_msl_twin (Caipora) | 3x3 | 2 | 2 casulos octogonais (3-2-3, passo 0,24) = 16 tubos, inclinados 35 graus, + cúpula sensora | 1 tubo (16); torpedo 2 | "dois punhos": casulos octogonais em braços ladeando uma cúpula blindada com uma fenda de olho sensor, lâminas-garra à frente, quatro pés abertos sobre o anel, escotilha de paiol traseira + compartimento de ventilação com 5 luzes; overclock: o olho fica laranja e as ventilações brilham | amber |
+| bs_msl_quad (Mula-sem-Cabeça) | 5x6 | 8 | 4 casulos retangulares 3x4 (passo 0,26 x 0,22) = 48 tubos, inclinados 40 graus, em braços hidráulicos | 1 tubo (48); fileira pesada (16); torpedo 4; nuclear 2 + persianas | corpo largo sem cabeça: um colar blindado aberto com um recesso de brasa MUITO fraco onde deveria estar a cabeça, braços de pistão, lâminas-garra na raiz dos casulos, saia blindada sobre o anel, compartimento de ventilação traseiro com 6 luzes; overclock: o recesso do colar e as ventilações dos casulos brilham (cabeça alternativa: sobrancelha de gigante de um olho só) | amber |
 
-Overlay noses: light nose cone + a 2-3 px band in the missile colour (spec `missile_types[].glow`): Jararaca amber,
-Piranha yellow, Carrapato red, Taturana orange, Poraquê blue, Boto white, Iara green. Keep the 1-2 % emissive budget
-(the overclock glow lives in `turret_oc.png`, shown only while overclocked).
+Narizes das sobreposições: cone do nariz claro + uma faixa de 2 a 3 px na cor do míssil (`missile_types[].glow` do
+spec): Jararaca âmbar, Piranha amarela, Carrapato vermelha, Taturana laranja, Poraquê azul, Boto branca, Iara verde.
+Mantenha o orçamento de 1 a 2% de emissivo (o brilho do overclock fica em `turret_oc.png`, mostrado só com o
+overclock ligado).
 
-The procedural placeholders (`tools/bsgen/sprites.py`: `launcher_pod_canvas` (box), `launcher_twin_canvas`,
-`launcher_quad_canvas`, `_nose_big`, `render_launcher_shutters`, `render_launcher_oc_glow`) follow this table and the
-same file contract; a finished model replaces them by adding `art3d/<short>/meta.json`.
+Os substitutos procedurais (`tools/bsgen/sprites.py`: `launcher_pod_canvas` (caixa), `launcher_twin_canvas`,
+`launcher_quad_canvas`, `_nose_big`, `render_launcher_shutters`, `render_launcher_oc_glow`) seguem esta tabela e o
+mesmo contrato de arquivos; um modelo pronto os substitui quando se acrescenta `art3d/<id_curto>/meta.json`.
 
-### 8.4 Missiles in flight (no images to model)
+### 8.4 Mísseis em voo (nenhuma imagem para modelar)
 
-The projectiles reuse vanilla textures, so the 3D team has nothing to render for them (`tools/bsgen/shots.py`):
-every missile, cluster child, torpedo warhead and decoy is `shots/missile_he/missile_he.png` (+ normals) scaled to its
-`BoxPhysics` (vanilla ratio: box [1.5, .5] -> sprite [2, 1]) in `BulletUpper3`, plus a blob glow in the type colour
-and the vanilla `*_thruster_plume_light` (both `BulletUpper4`). The Carrapato charge stuck on the enemy hull is the
-vanilla mine light ring `shots/mine/mine_small_lights.png` (6-frame blink, additive) with a red glow. If own missile
-sprites are made later: top view, nose pointing +x (right), 2:1 canvas, transparent background, one diffuse + one
-normals PNG per body size; never use a Lower/Middle bucket (hidden under our roof).
+Os projéteis reaproveitam texturas do jogo base, então a equipe de 3D não tem nada para renderizar para eles
+(`tools/bsgen/shots.py`): todo míssil, filho de submunição, ogiva de torpedo e isca usa
+`shots/missile_he/missile_he.png` (+ normais) na escala da sua `BoxPhysics` (proporção do jogo base: caixa
+[1.5, .5] -> sprite [2, 1]) em `BulletUpper3`, mais um brilho difuso na cor do tipo e o `*_thruster_plume_light` do
+jogo base (os dois em `BulletUpper4`). A carga do Carrapato grudada no casco inimigo é o anel de luzes da mina do
+jogo base, `shots/mine/mine_small_lights.png` (piscada de 6 quadros, aditiva), com um brilho vermelho. Se um dia
+forem feitos sprites próprios de mísseis: vista de cima, nariz apontando para +x (direita), tela 2:1, fundo
+transparente, um PNG difuso + um de normais por tamanho de corpo; nunca use um bucket Lower/Middle (fica escondido
+sob o nosso teto).
 
-## 9. Known pitfalls (from the agents that already modeled weapons)
+## 9. Armadilhas conhecidas (dos agentes que já modelaram armas)
 
-- **Shallow cuts break the bevel:** `Mo.slot_with_pips`/`B.cut` that reach only about 0.02 into a chamfered plate create black triangles
-  (the bevel is reapplied after the boolean). Use depth >= panel_h + 0.04, and keep cutter walls at least 0.03 inside the edge of the
-  top face.
-- **Self-intersecting offsets:** `offset_ok` only detects edges that flip direction. Polygons with acute vertices next to other
-  edges (fangs, notches) can self-intersect without warning, and the boolean then returns an EMPTY mesh. If a part disappears from the
-  render, simplify the polygon or reduce the slope.
-- **Head ring over the barrels:** on large turrets the turret disk (ring) can cover the barrel roots when the head is drawn on top.
-  Cut the front arc of the disk at the cradle mouths.
-- **Heat on light armor:** tag only brakes/tips/collars as 'hot'. On plasma weapons use a cyan `heat_color` with low heat values.
-- **Cut floor on top of another face:** if the `slot_with_pips` depth equals the panel height, the cutter floor lands exactly on
-  the face of the plate underneath, and the coplanar boolean can leave a "lid" over nearby recesses. Use depth > panel_h.
-- **Thin tips after the chamfer:** concave outlines whose top face (after `slope`) pinches below ~0.02 tile create overlapping
-  triangles that render black (often on the mirrored side only). Widen the tip or draw the inner panel by hand
-  (as the Cigarra and the Tamanduá do).
-- The renderer prints `AVISO: '<obj>' ficou vazio depois das booleanas` when a piece disappears: always check the log.
-- **Inclined launcher pods:** a recess cut perpendicular to a surface tilted around X shows its back wall lit from above, half-filling
-  the dark window. Cut with world-vertical walls (shift the cutter polygon by dz*tan(pitch) in local y).
-- **oc_glow() (launchers with overclock):** draw ONLY emissive objects with the 'oc' tag; anything non-emissive tagged 'oc'
-  comes out black over the turret.
-- **Inclined pods (projection):** anything that sticks out of an inclined face shifts FORWARD in the top view by
-  height*cos(pitch); a tall frame can cover the empty back-row mouths. Keep the frame low (~0.045) and leave
-  ~0.1 of space between the opening and the back-row rims.
-- **Emission saturation:** with the Standard view, glows above ~1.5 of strength saturate (orange turns yellow). An overclock
-  "orange eye" uses strength 1.0-1.5 with color (1, 0.16, 0.01).
-
-- **Recess deeper than the top shard on an inclined pod:** a recess cut into a 40 degree pod top deeper than the top armor shard
-  (~0.07-0.09 thick) reaches the pod's dark body, whose top face then becomes the "vent floor" (and, with `oc_occlude`, hides any
-  overclock glow below it). Keep recess floors just above the body top.
-- **Louvers on inclined tops:** slats built square to an inclined top hide their own gaps in the top view (the grille reads as a
-  solid dark slot). Shear them to world-vertical walls (top shifted by dz*tan(pitch)), like the cutters.
-- **`Mo.slot_with_pips(vertical=False)`:** `x` becomes the slot's y position and `y0/y1` the x range. Use keywords and double-check.
-- **`Mo.slot_with_pips` on a shard:** target `[shard, panel]`, never only the panel (the recess bed ends up buried inside the shard
-  body and the pips disappear).
-- **Narrow blind slots on beveled plates:** `B.cut` re-applies the bevel, which also fillets the concave floor edge of a blind slot
-  and covers the edges of the black bed (on green roof inlays the slot renders green). For slots narrower than ~0.06, cut a
-  through-hole and put the black bed on the piece below (helper `_ledslot` in `parts/bs_factory_mag_ap.py`).
-- **Paint wear on small meshes:** the edge-wear mask of `mat_paint` bleeds over whole faces of small low-poly beveled meshes and
-  makes dark paint render light. Use `wear=0.0` on small dark items (ammo).
-- **`B.rpoly` with negative `sy`** returns a clockwise polygon: the cut does nothing. Keep sizes positive.
-- **Factory light map:** `render_factory` builds `lights.png` from machine frame 1 only; keep the big glows static or accept a static
-  light map.
-- **Floating islands:** check that the turret sprite is ONE connected component (alpha > 100). A plate whose polygon starts beyond
-  the end of the piece under it floats over the hull.
-- **Overclock glow:** never cover a whole housing with an emissive slab (it reads as a flat orange sticker). Put small concentric
-  emitters at the bottom of the recess and let `oc_occlude` (holdout) cut them with the rims and vanes in front.
-- **`B.shard` on short edges:** a polygon edge shorter than about 2*(slope+groove) (blade tips, small chamfers next to long edges)
-  can silently leave the inner panel EMPTY after the booleans, sometimes only on the mirrored side. The "chanfro reduzido" warning
-  is the hint; `render_factory`/`render_resource` now also print "ficou vazio".
-- **Cyan idle glow:** `M["glow_dim"]` is accent x 3.0, which renders near-white for cyan (brighter than a saturated cyan at
-  1.25-1.4). For cyan parts build explicit levels from `Mo.CYAN` (e.g. 0.16 / 0.34 / 0.70 / 1.25) so idle stays dimmer than active.
-- **Fast factory iteration:** `render_part.py <fabrica> --quick --only f1,f8` renders only those machine frames; `--only hull`
-  renders only roof/floor/walls.
-- **Blue accent glows:** `Mo.mats("blue")` puts glow/glow_dim at strength 9/3, which clips to white/cyan in the Standard view.
-  Blue parts define their own low-strength glow materials (~0.5-1.5), as `parts/bs_mag_emp.py` does.
-- **Material cache is per name:** `bs3d` caches materials by name, so two part files that define "silver" or "brass" with different
-  values in the same scene share the first one. Reuse the existing values or pick a unique name.
-- **Copper bands** are the EMP family signature (EMP magazine and charger); other ammo lines should not use them.
-- **Green glows:** above ~1.5 of strength, larger green emissive bands turn lime/yellow in the Standard view (bands look right at
-  ~1.3, cores at ~1.6). Green roof LEDs must keep red well below green and |r - b| >= 64 (0.25), or the game's paint shader keys them
-  as paint: use a color like (0.32, 1, 0) at ~0.75.
+- **Cortes rasos quebram o chanfro:** `Mo.slot_with_pips`/`B.cut` que entram só uns 0,02 numa placa chanfrada criam
+  triângulos pretos (o chanfro é reaplicado depois da booleana). Use profundidade >= panel_h + 0,04 e mantenha as
+  paredes do cortador pelo menos 0,03 para dentro da borda da face de cima.
+- **Contornos deslocados que se cruzam:** `offset_ok` só detecta arestas que invertem de direção. Polígonos com
+  vértices agudos perto de outras arestas (presas, entalhes) podem se cruzar sem aviso, e a booleana devolve uma
+  malha VAZIA. Se uma parte sumir do render, simplifique o polígono ou reduza a inclinação.
+- **Anel da cabeça sobre os canos:** em torres grandes o disco da torre (anel) pode cobrir a raiz dos canos quando
+  a cabeça é desenhada por cima. Corte o arco da frente do disco nas bocas do berço.
+- **Calor na blindagem clara:** marque como 'hot' só freios/pontas/colares. Nas armas de plasma use um `heat_color`
+  ciano com valores de calor baixos.
+- **Fundo do corte sobre outra face:** se a profundidade do `slot_with_pips` for igual à altura do painel, o fundo do
+  cortador cai exatamente na face da placa de baixo, e a booleana coplanar pode deixar uma "tampa" sobre os recessos
+  vizinhos. Use profundidade > panel_h.
+- **Pontas finas depois do chanfro:** contornos côncavos cuja face de cima (depois do `slope`) afina abaixo de
+  ~0,02 quadro criam triângulos sobrepostos que saem pretos (muitas vezes só no lado espelhado). Alargue a ponta ou
+  desenhe o painel interno à mão (como fazem a Cigarra e o Tamanduá).
+- O renderizador imprime `AVISO: '<obj>' ficou vazio depois das booleanas` quando uma peça some: confira sempre o
+  log.
+- **Casulos inclinados dos lançadores:** um recesso cortado perpendicular a uma superfície inclinada em torno de X
+  mostra a parede do fundo iluminada por cima, preenchendo metade da janela escura. Corte com paredes verticais no
+  mundo (desloque o polígono do cortador em dz*tan(pitch) no y local).
+- **oc_glow() (lançadores com overclock):** desenhe SÓ objetos emissivos com a etiqueta 'oc'; qualquer coisa não
+  emissiva marcada com 'oc' sai preta sobre a torre.
+- **Casulos inclinados (projeção):** tudo o que se projeta de uma face inclinada desloca-se para a FRENTE na vista de
+  cima em altura*cos(pitch); uma moldura alta pode cobrir as bocas vazias da fileira de trás. Mantenha a moldura
+  baixa (~0,045) e deixe ~0,1 de espaço entre a abertura e as bordas da fileira de trás.
+- **Saturação da emissão:** com a vista Standard, brilhos acima de ~1,5 de intensidade saturam (o laranja vira
+  amarelo). Um "olho laranja" de overclock usa intensidade 1,0 a 1,5 com a cor (1, 0.16, 0.01).
+- **Recesso mais fundo que a placa de cima num casulo inclinado:** um recesso cortado no topo de um casulo a 40
+  graus mais fundo que a placa de blindagem de cima (~0,07 a 0,09 de espessura) chega ao corpo escuro do casulo,
+  cuja face de cima vira o "fundo da ventilação" (e, com `oc_occlude`, esconde qualquer brilho de overclock abaixo
+  dela). Mantenha o fundo dos recessos logo acima do topo do corpo.
+- **Venezianas em topos inclinados:** lâminas montadas em esquadro com um topo inclinado escondem as próprias
+  frestas na vista de cima (a grade parece uma fenda escura sólida). Incline-as para paredes verticais no mundo
+  (topo deslocado em dz*tan(pitch)), como os cortadores.
+- **`Mo.slot_with_pips(vertical=False)`:** `x` vira a posição y da fenda e `y0/y1` a faixa em x. Use argumentos
+  nomeados e confira duas vezes.
+- **`Mo.slot_with_pips` numa placa:** mire em `[shard, panel]`, nunca só no painel (o leito do recesso acaba
+  enterrado dentro do corpo da placa e as luzes somem).
+- **Fendas cegas estreitas em placas chanfradas:** o `B.cut` reaplica o chanfro, que também arredonda a aresta
+  côncava do fundo de uma fenda cega e cobre as bordas do leito preto (em incrustações no teto verde a fenda sai
+  verde). Em fendas mais estreitas que ~0,06, corte um furo passante e ponha o leito preto na peça de baixo (função
+  auxiliar `_ledslot` em `parts/bs_factory_mag_ap.py`).
+- **Desgaste da pintura em malhas pequenas:** a máscara de desgaste de borda do `mat_paint` vaza por faces inteiras
+  de malhas pequenas, chanfradas e com poucos polígonos, e faz a pintura escura sair clara. Use `wear=0.0` em itens
+  pequenos e escuros (munição).
+- **`B.rpoly` com `sy` negativo** devolve um polígono em sentido horário: o corte não faz nada. Mantenha os tamanhos
+  positivos.
+- **Mapa de luz das fábricas:** `render_factory` monta `lights.png` só a partir do quadro 1 da máquina; mantenha os
+  brilhos grandes estáticos ou aceite um mapa de luz estático.
+- **Ilhas flutuantes:** confira se o sprite da torre é UM componente conectado (alfa > 100). Uma placa cujo polígono
+  começa depois do fim da peça de baixo fica flutuando sobre o casco.
+- **Brilho do overclock:** nunca cubra uma carcaça inteira com uma placa emissiva (parece um adesivo laranja chapado).
+  Ponha emissores pequenos e concêntricos no fundo do recesso e deixe o `oc_occlude` (holdout) recortá-los com as
+  bordas e aletas da frente.
+- **`B.shard` em arestas curtas:** uma aresta de polígono mais curta que cerca de 2*(slope+groove) (pontas de
+  lâmina, chanfros pequenos ao lado de arestas longas) pode deixar o painel interno VAZIO depois das booleanas, sem
+  aviso, às vezes só no lado espelhado. O aviso "chanfro reduzido" é a pista; `render_factory`/`render_resource`
+  agora também imprimem "ficou vazio".
+- **Brilho ciano em repouso:** `M["glow_dim"]` é o destaque x 3,0, que no ciano sai quase branco (mais claro que um
+  ciano saturado a 1,25-1,4). Nas partes cianas, monte níveis explícitos a partir de `Mo.CYAN` (por exemplo 0,16 /
+  0,34 / 0,70 / 1,25) para o repouso ficar mais fraco que o ativo.
+- **Iteração rápida de fábricas:** `render_part.py <fábrica> --quick --only f1,f8` renderiza só esses quadros da
+  máquina; `--only hull` renderiza só teto/chão/paredes.
+- **Brilhos de destaque azul:** `Mo.mats("blue")` põe glow/glow_dim com intensidade 9/3, que estoura para branco/
+  ciano na vista Standard. As partes azuis definem materiais de brilho próprios de baixa intensidade (~0,5 a 1,5),
+  como faz `parts/bs_mag_emp.py`.
+- **O cache de materiais é por nome:** o `bs3d` guarda os materiais pelo nome, então dois arquivos de peça que
+  definem "silver" ou "brass" com valores diferentes na mesma cena compartilham o primeiro. Reaproveite os valores
+  existentes ou escolha um nome único.
+- **Faixas de cobre** são a assinatura da família P.E.M. (o Carregador P.E.M. e o Energizador de Carregadores P.E.M.);
+  as outras linhas de munição não devem usá-las.
+- **Brilhos verdes:** acima de ~1,5 de intensidade, faixas emissivas verdes maiores ficam lima/amarelas na vista
+  Standard (faixas ficam certas a ~1,3, núcleos a ~1,6). LEDs verdes no teto precisam manter o vermelho bem abaixo do
+  verde e |r - b| >= 64 (0,25), senão o shader de pintura do jogo os trata como pintura: use uma cor como
+  (0.32, 1, 0) a ~0,75.

@@ -89,6 +89,7 @@ Techs
 		Icon = &<../parts/bs_factory_mag_ap/bs_factory_mag_ap.rules>/Part/EditorIcon
 		EditorGroup = "BulletStrike"
 		PartsUnlocked = [&<../parts/bs_factory_mag_ap/bs_factory_mag_ap.rules>/Part/ID]
+		ToggleChoicesUnlocked = [[bs_ammo_type, 1]]
 		Cost = 8000
 		Prerequisites = [rafaeltessaro.bs_magazine_press]
 	}
@@ -109,6 +110,7 @@ Techs
 		Icon = &<../parts/bs_factory_mag_emp/bs_factory_mag_emp.rules>/Part/EditorIcon
 		EditorGroup = "BulletStrike"
 		PartsUnlocked = [&<../parts/bs_factory_mag_emp/bs_factory_mag_emp.rules>/Part/ID]
+		ToggleChoicesUnlocked = [[bs_ammo_type, 3]]
 		Cost = 12000
 		Prerequisites = [rafaeltessaro.bs_magazine_press, cosmoteer.factory_emp]
 	}

@@ -2,7 +2,7 @@
 // Projetil: bs_flak_flak_light
 
 STAT_DAMAGE = 1000
-STAT_SHIP_DAMAGE = 0
+STAT_SHIP_DAMAGE = 300
 STAT_RADIUS = 3
 Range = 180
 IdealRange = 162
@@ -35,10 +35,10 @@ HitNothing
 			Type = ExplosiveDamage
 			TotalDamage
 			{
-				BaseValue = 0
+				BaseValue = 300
 				EffectScaleExponent = 1
 			}
-			Radius = 1.8
+			Radius = 2.5
 			Filter
 			{
 				Ships = true
