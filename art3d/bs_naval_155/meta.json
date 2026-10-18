@@ -136,6 +136,8 @@
   }
  ],
  "preview_pattern": "alternate",
+ "accent": "amber",
+ "preview_fx": "fire",
  "files": [
   "barrel1.png",
   "barrel10.png",
