@@ -4,10 +4,11 @@ Mesma familia do 76 mm (nucleo escuro + placas claras com vaos), com identidade 
 planta em losango (mais larga na linha dos olhos, afina para o bico e para a nuca); bico em proa entre os
 canos (cera cinza com narinas escuras + bico claro facetado com crista central, dente tomial de cada lado e
 entalhe do gancho na ponta), bochechas claras facetadas com o olho do carcara (recesso preto em gota com fenda
-fina de lente fraca na cauda), garras em lamina com fenda de luz fraca que avancam ate a raiz de cada cano
-(pistao no vao bochecha/garra), coroa central com canal sensor escuro em seta, penas varridas para tras na nuca
+fina de lente fraca no fundo, na raiz da cauda), garras em lamina com fenda de luz fraca que avancam ate a raiz
+de cada cano (pistao no vao bochecha/garra), coroa central com canal sensor escuro em seta (fenda de luz na
+ponta, bloco sensor de aco atras), penas varridas para tras na nuca
 (lamina de fora com degrau e fenda de pips, nivel de baixo cinza medio por dentro), baia de exaustao entre as penas
-e calhas de alimentacao nos vaos ate as culatras.
+(persianas altas e 3 pips) e calhas de alimentacao nos vaos ate as culatras.
 Canos: culatra escura, camisa escura com fendas e brasa fraca, luva clara facetada com canal, extrator de
 gases facetado e colares, freio leve em ponta de flecha com fendas transversais escuras. Recuo alternado.
 """
@@ -201,7 +202,7 @@ def head(M, T="head", phase=0.0):
                 B.cut(t, [B.loft(f"eye_cut{sd}{t.name}", drop, drop, zt - 0.09, 1.0, K, bevel=0.0)])
         B.loft(f"eye_bed{sd}", drop, drop, zt - 0.10, zt - 0.088, M["black"], bevel=0.0, tags=tags)
         ux, uy = math.cos(math.radians(ang)), math.sin(math.radians(ang))   # eixo da cauda
-        B.rbox(f"eye_lens{sd}", sx * ex + ux * 0.04, ey + uy * 0.04, 0.016, 0.08, zt - 0.075, zt - 0.066,
+        B.rbox(f"eye_lens{sd}", sx * ex + ux * 0.03, ey + uy * 0.03, 0.016, 0.07, zt - 0.075, zt - 0.066,
                M["glow_dim"], rot=sx * 53, bevel=0.0, tags=tags)
 
         # garra em lamina com fenda de luz fraca ao longo do eixo
@@ -258,9 +259,9 @@ def head(M, T="head", phase=0.0):
     B.box("cap_eye", 0, -0.06, 0.07, 0.016, zt - 0.076, zt - 0.068, M["glow_dim"], bevel=0.0, tags=tags)
     # bloco sensor de aco elevado no fundo do canal (eco da espinha com sensor do 76 mm): ponta em seta e
     # janela escura no topo
-    sen = [(-0.052, -0.355), (0.052, -0.355), (0.052, -0.275), (0.0, -0.235), (-0.052, -0.275)]
-    B.plate("cap_sensor", sen, zt - 0.08, zt - 0.035, S, slope=0.012, bevel=0.005, tags=tags)
-    B.box("cap_win", 0, -0.31, 0.062, 0.026, zt - 0.036, zt - 0.031, M["black"], bevel=0.0, tags=tags)
+    sen = [(-0.056, -0.375), (0.056, -0.375), (0.056, -0.275), (0.0, -0.225), (-0.056, -0.275)]
+    B.plate("cap_sensor", sen, zt - 0.08, zt - 0.025, S, slope=0.014, bevel=0.005, tags=tags)
+    B.box("cap_win", 0, -0.315, 0.066, 0.03, zt - 0.026, zt - 0.021, M["black"], bevel=0.0, tags=tags)
 
     # baia de exaustao traseira: persianas altas (sobem acima da baia) com fileira de 3 pips; o do meio forte
     B.box("vent_bay", 0, -0.73, 0.40, 0.18, 0.20, 0.30, M["black"], bevel=0.0, tags=tags)
@@ -354,7 +355,7 @@ def roof(M, T="roof"):
         B.cut(v, [B.rbox(f"cvc{sx}{i}", cx - math.sin(a) * (i - 1) * 0.045, cy + math.cos(a) * (i - 1) * 0.045,
                          0.27, 0.025, 0.09, 0.2, K, rot=sx * 40, bevel=0.0) for i in range(3)])
         B.rbox(f"cvbed{sx}", cx, cy, 0.27, 0.12, 0.086, 0.092, M["black"], rot=sx * 40, bevel=0.0, tags=tags)
-        B.rbox(f"cled{sx}", cx + math.sin(a) * 0.045, cy - math.cos(a) * 0.045, 0.14, 0.018, 0.090, 0.098,
+        B.rbox(f"cled{sx}", cx + math.sin(a) * 0.045, cy - math.cos(a) * 0.045, 0.11, 0.018, 0.090, 0.098,
                M["glow_dim"], rot=sx * 40, bevel=0.0, tags=tags)
         # canto da frente: tampa triangular chanfrada com parafuso
         tri = [(sx * 0.92, 0.92), (sx * 0.64, 0.92), (sx * 0.92, 0.64)]
