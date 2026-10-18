@@ -106,6 +106,8 @@ def hull_roof(M, w, h, pivot, ring_r, T="roof"):
             B.box(f"hatch_h{k}", hx, hy - 0.16, 0.26, 0.05, 0.10, 0.13, M["steel"], bevel=0.01, tags=tags)
     vents = [0.0] if w == 1 else [sx * (w / 2 - 0.5) for sx in (-1, 1)]
     for k, cx in enumerate(vents):
+        if math.hypot(cx - px, hy - py) < ring_r + 0.25:
+            continue  # o respiro cairia dentro do anel da torre (pecas pequenas)
         v = B.box(f"hvent{k}", cx, hy, 0.56, 0.34, 0.05, 0.11, M["core_mid"], bevel=0.01, slope=0.015, tags=tags)
         B.cut(v, [B.box(f"hvc{k}{i}", cx, hy - 0.11 + i * 0.075, 0.46, 0.03, 0.09, 0.2, M["core"], bevel=0.0)
                   for i in range(4)])
@@ -141,6 +143,11 @@ def hull_floor(M, w, h, pivot, ring_r, crew, T="floor"):
     for i, (cx, cy, _r) in enumerate(crew):
         x, y = cx - w / 2, h / 2 - cy
         B.box(f"seat{i}", x, y + 0.02, 0.32, 0.30, 0.0, 0.14, M["armor"], bevel=0.04, tags=tags)
-        B.box(f"console{i}", x, y + 0.30, 0.42, 0.12, 0.0, 0.22, M["core_mid"], bevel=0.02, tags=tags)
-        B.box(f"screen{i}", x, y + 0.30, 0.32, 0.06, 0.22, 0.24, M["screen"],
-              bevel=0.0, tags=tags)
+        # console na frente do assento; se cair sobre o anel do piso, vai para o lado de fora do assento
+        kx, ky, sxz, syz = x, y + 0.30, 0.42, 0.12
+        if math.hypot(kx - px, ky - py) < ring_r * 0.85 + 0.12:
+            side = 1 if x >= px else -1
+            kx, ky, sxz, syz = x + side * 0.30, y + 0.04, 0.12, 0.36
+        B.box(f"console{i}", kx, ky, sxz, syz, 0.0, 0.22, M["core_mid"], bevel=0.02, tags=tags)
+        B.box(f"screen{i}", kx, ky, max(0.06, sxz - 0.10), max(0.06, syz - 0.10) if syz > 0.2 else 0.06, 0.22, 0.24,
+              M["screen"], bevel=0.0, tags=tags)
