@@ -2,14 +2,15 @@
 
 Cabeca baixa e larga em "celula quente" blindada: placas de blindagem anti-radiacao em degraus nos
 flancos e na traseira, glacis em cabeca de serpente partido pelo berco escuro do cano (olhos verdes em
-rebaixos), correntes de escamas segmentadas que avancam pelos lados e terminam em presas longas que se
-fecham sobre a raiz do cano (mandibula aberta), fileiras de escamas pequenas ao longo do berco, espinha
-com janela da celula e trevo nuclear num rebaixo, granadas nucleares grandes (corpo escuro, aneis de aco,
+orbitas rebaixadas), correntes de escamas segmentadas que avancam pelos lados e terminam em presas longas
+serrilhadas que se fecham sobre a raiz do cano (mandibula aberta), fileiras de escamas pequenas ao longo
+do berco, espinha com janela da celula e trevo nuclear num rebaixo, granadas nucleares grandes (corpo escuro, aneis de aco,
 faixa preta com luz verde pequena) nos vaos, respiros verdes, pistoes hidraulicos.
 Cano unico de grosso calibre: treno de recuo escuro com recuperadores (copiado no berco da cabeca, para
 qualquer ordem de desenho), camisa termica escura com fendas, tubo em escamas que crescem para a frente
-(serrilha claro/escuro), extrator de gases facetado e freio de boca claro proprio: camara traseira com
-presas laterais e camara dianteira em focinho de cunha, portas escuras (so o freio e colares esquentam).
+(serrilha claro/escuro, entalhes em V na borda), extrator de gases facetado e freio de boca claro proprio:
+camara traseira com presas laterais serrilhadas e camara dianteira em focinho de cunha, portas escuras de
+lado a lado (so o freio e colares esquentam).
 """
 
 import math
@@ -267,14 +268,15 @@ def chain_polys(gap0=0.09, w=0.21, n=3, gap=0.06, chev=0.13, s_end=S_END):
         mid = lambda a, b: ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)  # noqa: E731
         out.append((poly, mid(pt(sa, -1), pt(sa, 1)), mid(pt(sb, -1), pt(sb, 1))))
     sa = s_end + gap / 2
-    # presa: entalhe em V atras, borda externa curva ate a ponta, borda interna rente ao focinho
-    fang = [pt(sa, -1), pt(sa + chev, 0), pt(sa, 1), (-1.56, 2.06), (-1.32, 2.245), (-1.04, 2.345), (-0.84, 2.38),
-            FANG_TIP, (-0.66, 2.27), (-0.82, 2.17), (-1.00, 2.08)]
+    # presa: entalhe em V atras, borda externa serrilhada (dente para a frente) ate a ponta, borda interna
+    # rente ao focinho
+    fang = [pt(sa, -1), pt(sa + chev, 0), pt(sa, 1), (-1.56, 2.06), (-1.32, 2.245), (-1.20, 2.29), (-1.175, 2.235),
+            (-1.04, 2.345), (-0.84, 2.385), FANG_TIP, (-0.66, 2.27), (-0.82, 2.17), (-1.00, 2.08)]
     out.append((fang, ((fang[0][0] + fang[2][0]) / 2, (fang[0][1] + fang[2][1]) / 2), FANG_TIP))
     return out
 
 
-FANG_TIP = (-0.545, 2.40)
+FANG_TIP = (-0.545, 2.42)
 
 
 def _eye(name, cx, cy, rot, zf, M, tags):
@@ -285,14 +287,17 @@ def _eye(name, cx, cy, rot, zf, M, tags):
     a = math.radians(rot)
     ca, sa = math.cos(a), math.sin(a)
     tr = lambda poly: [(cx + x * ca - y * sa, cy + x * sa + y * ca) for x, y in poly]  # noqa: E731
-    _zloft(f"{name}_rim", tr(B.rpoly(0, 0, 0.21, 0.50, 0, chamfer=0.095)),
-           tr(B.rpoly(0, 0, 0.19, 0.48, 0, chamfer=0.09)), lambda x, y: zf(x, y) - 0.02,
-           lambda x, y: zf(x, y) + 0.045, M["core_mid"], bevel=0.006, tags=tags)
-    _zloft(f"{name}_bed", tr(oval), tr(oval), lambda x, y: zf(x, y) + 0.04, lambda x, y: zf(x, y) + 0.05,
+    rim = _zloft(f"{name}_rim", tr(B.rpoly(0, 0, 0.21, 0.50, 0, chamfer=0.095)),
+                 tr(B.rpoly(0, 0, 0.19, 0.48, 0, chamfer=0.09)), lambda x, y: zf(x, y) - 0.02,
+                 lambda x, y: zf(x, y) + 0.045, M["core_mid"], bevel=0.006, tags=tags)
+    # orbita rebaixada: o aro escuro fica acima da lente (luz so dentro do rebaixo)
+    B.cut(rim, [_zloft(f"{name}_sock", tr(oval), tr(oval), lambda x, y: zf(x, y) + 0.015,
+                       lambda x, y: zf(x, y) + 0.3, M["core"], bevel=0.0)])
+    _zloft(f"{name}_bed", tr(oval), tr(oval), lambda x, y: zf(x, y) + 0.008, lambda x, y: zf(x, y) + 0.02,
            M["black"], bevel=0.0, tags=tags)
-    _zloft(f"{name}_lens", tr(lens), tr(lens), lambda x, y: zf(x, y) + 0.05, lambda x, y: zf(x, y) + 0.056,
+    _zloft(f"{name}_lens", tr(lens), tr(lens), lambda x, y: zf(x, y) + 0.02, lambda x, y: zf(x, y) + 0.026,
            M["glow_dim"], bevel=0.0, tags=tags)
-    _zloft(f"{name}_pupil", tr(pupil), tr(pupil), lambda x, y: zf(x, y) + 0.05, lambda x, y: zf(x, y) + 0.06,
+    _zloft(f"{name}_pupil", tr(pupil), tr(pupil), lambda x, y: zf(x, y) + 0.02, lambda x, y: zf(x, y) + 0.03,
            M["glow"], bevel=0.0, tags=tags)
 
 
@@ -443,7 +448,7 @@ def head(M, T="head", phase=0.0):
         brow = [(-0.76, 0.34), (-1.10, 0.34), (-1.28, 0.52), (-1.24, 0.64), (-0.76, 0.72)]
         _sshard(f"brow{side}", f(brow), lambda x, y: gz(x, y) - 0.01, lambda x, y: gz(x, y) + 0.10, A, slope=0.05,
                 groove=0.026, panel_h=0.02, tags=tags)
-        for i, (bx, by) in enumerate(((0.80, 1.06), (1.22, 0.96))):
+        for i, (bx, by) in enumerate(((0.90, 1.06), (1.22, 0.96))):
             B.bolts(f"gbolt{side}{i}", [(sx * bx, by)], gz(bx, by) + 0.038, 0.02, S, tags=tags)
 
     # ---------------------------------------------------------------- vaos: granadas nucleares
@@ -506,19 +511,18 @@ def head(M, T="head", phase=0.0):
 
 
 # ============================================================================ cano
-def _chamber(name, ya, yb, z, A, K, hot, hw, tip, fw, ports, back=0.10, extra=(), notch=True):
+def _chamber(name, ya, yb, z, A, K, hot, tags, hw, tip, fw, ports, back=0.10, extra=()):
     """Camara do freio de boca (linguagem do 76 mm): corpo claro facetado que aponta para a frente,
-    com portas transversais escuras no topo e entalhes laterais."""
+    portas transversais escuras de lado a lado (serrilha limpa nas laterais) sobre um miolo escuro."""
     poly = [(-hw + back, ya), (hw - back, ya), (hw, ya + back), (hw, yb - tip), (fw, yb), (-fw, yb), (-hw, yb - tip),
             (-hw, ya + back)]
     ch = B.plate(name, poly, z - 0.20, z + 0.20, A, slope=0.05, tags=hot)
-    cuts = []
-    for i, y in enumerate(ports):
-        cuts.append(B.box(f"{name}_p{i}", 0, y, hw * 2 - 0.22, 0.06, z + 0.05, z + 0.4, K, bevel=0.0))
-        if notch:
-            for sx in (-1, 1):
-                cuts.append(B.box(f"{name}_n{i}{sx}", sx * hw, y, 0.10, 0.06, z - 0.3, z + 0.4, K, bevel=0.0))
+    cuts = [B.box(f"{name}_p{i}", 0, y, hw * 2 + 0.04, 0.06, z + 0.02, z + 0.4, K, bevel=0.0)
+            for i, y in enumerate(ports)]
     B.cut(ch, cuts + list(extra))
+    # miolo escuro (fundo das portas e do furo da boca)
+    inner = B.offset_poly(poly, 0.04)
+    B.loft(f"{name}_core", inner, inner, z - 0.16, z + 0.04, K, bevel=0.0, tags=tags)
     return ch
 
 
@@ -546,8 +550,11 @@ def barrel(M, L=3.9, T="barrel", phase=0.0):
     fe0, fe1 = 1.92, 2.16                  # extrator de gases (bojo facetado) entre a 1a e a 2a escama
     tube = []
     for i, (a, b, r0, r1) in enumerate(segs):
-        tube.append(B.cyl(f"b_seg{i}", 0, (a + b) / 2, z, r0, b - a, A, axis="Y", verts=8, bevel=0.008, tags=tags,
-                          r2=r1))
+        sg = B.cyl(f"b_seg{i}", 0, (a + b) / 2, z, r0, b - a, A, axis="Y", verts=8, bevel=0.008, tags=tags, r2=r1)
+        # entalhes em V na borda da frente (pontas de escama sobrepostas; o nucleo escuro aparece no fundo)
+        B.cut(sg, [B.rbox(f"b_segv{i}{sx}", sx * 0.165, b, 0.085, 0.085, z + 0.08, z + 0.6, K, rot=45, bevel=0.0)
+                   for sx in (-1, 1)])
+        tube.append(sg)
     for i, (y, r) in enumerate(rings):
         tube.append(B.cyl(f"b_ring{i}", 0, y, z, r, 0.04, KM, axis="Y", verts=8, bevel=0.004,
                           tags=hot if i == len(rings) - 1 else tags))
@@ -565,25 +572,27 @@ def barrel(M, L=3.9, T="barrel", phase=0.0):
     for o in tube:
         B.cut(o, [B.box(f"{o.name}_c", 0, (c0 + c1) / 2, 0.09, c1 - c0, z + 0.15, z + 0.6, K, bevel=0.0)])
     B.box("b_chbed", 0, (c0 + c1) / 2, 0.09, c1 - c0, z + 0.13, z + 0.16, BLK, bevel=0.0, tags=tags)
-    # freio de boca proprio: camara traseira estreita com presas laterais que apontam para a frente,
-    # pescoco de aco e camara dianteira em focinho de cunha (portas transversais escuras, nariz com crista)
+    # freio de boca proprio (duplo defletor): camara traseira com presas laterais serrilhadas que apontam
+    # para a frente, pescoco de aco e camara dianteira em focinho de cunha; portas escuras de lado a lado
     rb, fa, fb = ra + 0.36, ra + 0.41, L
     B.cyl("b_brakering", 0, ra - 0.02, z, 0.29, 0.05, S, axis="Y", verts=8, bevel=0.006, tags=hot)
-    ports1 = (ra + 0.12, ra + 0.24)
-    _chamber("b_brake1", ra, rb, z, A, K, hot, 0.34, 0.06, 0.28, ports1, back=0.10, notch=False)
+    ports1 = (ra + 0.14, ra + 0.25)
+    _chamber("b_brake1", ra, rb, z, A, K, hot, tags, 0.34, 0.06, 0.28, ports1, back=0.10)
     for sx in (-1, 1):
-        fin = [(-0.30, ra + 0.04), (-0.37, ra + 0.10), (-0.40, ra + 0.22), (-0.39, rb + 0.13), (-0.345, rb + 0.01),
-               (-0.30, rb - 0.04)]
+        # ponta rombuda (~90 graus): o recuo do bisel nao cruza o poligono (malha vazia na booleana)
+        fin = [(-0.30, ra + 0.04), (-0.37, ra + 0.09), (-0.41, ra + 0.18), (-0.41, rb - 0.02), (-0.36, rb + 0.06),
+               (-0.30, rb + 0.02)]
         fin = fin if sx < 0 else Mo.mirror(fin)
         fn = B.plate(f"b_fang{sx}", fin, z - 0.14, z + 0.13, A, slope=0.035, bevel=0.01, tags=hot)
-        B.cut(fn, [B.box(f"b_fangn{sx}{i}", sx * 0.40, y, 0.12, 0.05, z - 0.3, z + 0.4, K, bevel=0.0)
+        # serrilha: as portas da camara continuam pela presa
+        B.cut(fn, [B.box(f"b_fangn{sx}{i}", sx * 0.40, y, 0.12, 0.06, z - 0.3, z + 0.4, K, bevel=0.0)
                    for i, y in enumerate(ports1)])
     B.cyl("b_neck", 0, (rb + fa) / 2, z, 0.29, fa - rb + 0.04, S, axis="Y", verts=8, bevel=0.006, tags=hot)
-    _chamber("b_brake2", fa, fb, z, A, K, hot, 0.40, 0.25, 0.12, (fa + 0.10, fa + 0.18, fa + 0.26), back=0.13,
+    # 2 portas no trecho reto (antes do focinho), espacadas 0.11
+    _chamber("b_brake2", fa, fb, z, A, K, hot, tags, 0.40, 0.22, 0.12, (fa + 0.11, fa + 0.22), back=0.08,
              extra=[B.box("b_bore_c", 0, fb, 0.16, 0.12, z - 0.10, z + 0.4, K, bevel=0.0)])
-    B.box("b_brake_core", 0, (ra + fb - 0.12) / 2, 0.60, fb - ra - 0.20, z - 0.16, z + 0.05, K, bevel=0.0,
-          tags=tags)
-    B.box("b_crest", 0, L - 0.14, 0.04, 0.18, z + 0.13, z + 0.215, AM, bevel=0.004, tags=hot)
+    # crista do nariz: para antes das portas e do furo da boca
+    B.box("b_crest", 0, L - 0.12, 0.04, 0.12, z + 0.13, z + 0.215, AM, bevel=0.004, tags=hot)
 
 
 # ============================================================================ casco
