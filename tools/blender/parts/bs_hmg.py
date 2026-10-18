@@ -2,13 +2,13 @@
 
 Vista de cima le como a mamangava (abelha carpinteira): escudo de canhao chanfrado de frente reta (a "cabeca"),
 com duas canhoneiras escuras onde entram os canos gemeos e uma alca de mira em ponta de flecha no nariz central;
-duas mandibulas (laminas) nos cantos da frente que avancam e fecham sobre as raizes dos canos, com o "olho" (fenda
-de luz fraca num modulo escuro) no vao entre o escudo e a mandibula; caixa de cinta clara (o "torax") com duas
-janelas por onde a cinta de cartuchos de latao corre ate as culatras sob o escudo (contador ambar na espinha da
-caixa); duas asas curtas facetadas com degrau, varridas para tras, com fenda de pips e nervura; abdomen curto em
-faixas em chevron separadas por sulcos escuros (as listras) e ferrao em ponta, com a baia de exaustao (persianas e
-3 pips) no sulco antes do ferrao. Tudo dentro de um raio de ~0.57 do pivo (a cabeca quase nao passa da peca de 1
-tile quando gira). Canos: culatra escura, camisa escura com fendas e brasa fraca, luva clara com canal e colares,
+duas mandibulas (laminas) nos cantos da frente que passam da frente do escudo e fecham em ponta sobre as raizes dos
+canos, com o "olho" (fenda de luz fraca num modulo escuro) no vao entre o escudo e a mandibula; caixa de cinta clara
+(o "torax") com duas janelas por onde a cinta de cartuchos de latao corre ate as culatras sob o escudo (contador
+ambar na espinha da caixa); duas asas curtas facetadas com degrau, varridas para tras, com fenda de pips e nervura;
+abdomen curto em faixas em chevron separadas por sulcos escuros (as listras) e ferrao em ponta, com a baia de
+exaustao (persiana e 3 pips) no sulco antes do ferrao. Em repouso nada passa da largura da peca de 1 tile (so as
+pontas das mandibulas, raio ~0.6, sobram um pouco quando a torre gira). Canos: culatra escura, camisa escura com fendas e brasa fraca, luva clara com canal e colares,
 freio leve facetado em ponta de flecha com fendas transversais escuras. Recuo alternado.
 """
 
@@ -62,14 +62,15 @@ def brass():
 CORE = [(-0.30, -0.45), (0.30, -0.45), (0.45, -0.30), (0.47, 0.28), (0.29, 0.46), (-0.29, 0.46), (-0.47, 0.28),
         (-0.45, -0.30)]
 # escudo: frente reta entre os canos, bochechas em chanfro de 45 graus recuadas (o vao e das mandibulas)
-SHIELD = [(-0.33, 0.18), (0.33, 0.18), (0.37, 0.21), (0.215, 0.365), (0.20, 0.455), (-0.20, 0.455),
-          (-0.215, 0.365), (-0.37, 0.21)]
+SHIELD = [(-0.32, 0.18), (0.32, 0.18), (0.355, 0.205), (0.205, 0.355), (0.19, 0.455), (-0.19, 0.455),
+          (-0.205, 0.355), (-0.355, 0.205)]
 SHIELD_Z = (0.26, 0.56)
-SHIELD_SLOPE = 0.06
+SHIELD_SLOPE = 0.025              # maior que isso as arestas curtas do canto de tras se invertem (safe_offset cortava)
 NOTCH_W, NOTCH_Y0 = 0.16, 0.27     # canhoneiras (largura, fundo)
-# mandibula direita: ombro no canto do escudo, aresta externa facetada no raio ~0.56, ponta para dentro na raiz
-BLADE = [(0.43, 0.22), (0.50, 0.20), (0.505, 0.255), (0.435, 0.35), (0.35, 0.44), (0.29, 0.49), (0.258, 0.472),
-         (0.268, 0.382)]
+# mandibula direita: ombro no canto do escudo (x <= 0.495, dentro da peca de 1 tile), aresta externa facetada e
+# ponta afiada que avanca alem do escudo e fecha sobre a raiz do cano
+BLADE = [(0.42, 0.21), (0.49, 0.19), (0.495, 0.25), (0.44, 0.35), (0.35, 0.44), (0.30, 0.525), (0.27, 0.515),
+         (0.25, 0.47), (0.255, 0.375)]
 BLADE_Z = (0.30, 0.50)
 # caixa de cinta (torax)
 BOX = [(-0.19, -0.23), (0.19, -0.23), (0.23, -0.19), (0.23, 0.03), (0.19, 0.07), (-0.19, 0.07), (-0.23, 0.03),
@@ -81,13 +82,13 @@ WING = [(0.29, 0.13), (0.40, 0.13), (0.49, 0.04), (0.49, -0.12), (0.455, -0.155)
         (0.335, -0.39), (0.32, -0.30), (0.285, -0.24), (0.285, -0.04)]
 WING_Z = (0.22, 0.44)
 WING_SLOPE = 0.035
-# abdomen: meia largura por y (de frente para tras) e segmentos telescopicos
+# abdomen: meia largura por y (de frente para tras) e segmentos telescopicos (fundos o bastante para o chanfro
+# de ~0.02 sobreviver ao safe_offset)
 ABD_W = [(-0.25, 0.20), (-0.30, 0.215), (-0.38, 0.19), (-0.46, 0.13), (-0.53, 0.05)]
-ABD_SEG = [(-0.245, -0.305, 0.44), (-0.335, -0.395, 0.41)]
-# ferrao: frente reta (o sulco antes dele vira cunha, com a baia de exaustao) e ponta para tras
-YTF = -0.475                       # frente do ferrao
-TAIL = [(0.0, -0.545), (0.045, -0.531), (0.105, -0.502), (0.126, -0.487), (0.114, YTF), (-0.114, YTF),
-        (-0.126, -0.487), (-0.105, -0.502), (-0.045, -0.531)]
+ABD_SEG = [(-0.245, -0.32, 0.44, 0.025), (-0.345, -0.405, 0.41, 0.02)]   # (frente, tras, topo, chanfro)
+# ferrao: frente reta (o sulco antes dele vira cunha, com a baia de exaustao) e ponta de flecha para tras
+YTF = -0.48                        # frente do ferrao
+TAIL = [(0.0, -0.552), (0.06, -0.537), (0.135, YTF), (-0.135, YTF), (-0.06, -0.537)]
 TAIL_Z = 0.38
 ABD_V = 0.03                       # flecha do chevron de cada segmento (centro mais atras)
 
@@ -101,10 +102,11 @@ def abd_w(y):
     return ABD_W[0][1] if y > ABD_W[0][0] else ABD_W[-1][1]
 
 
-def abd_seg(ya, yb, ch=0.025, v=ABD_V):
-    """Segmento do abdomen entre ya (frente) e yb (tras): faixa em chevron rasa apontando para tras."""
+def abd_seg(ya, yb, ch=0.02, v=ABD_V):
+    """Segmento do abdomen entre ya (frente) e yb (tras): faixa em chevron rasa apontando para tras, com a ponta
+    lateral facetada (sem chanfros curtos, que limitavam o chanfro da placa a ~0.015)."""
     wa, wb = abd_w(ya), abd_w(yb)
-    right = [(wb - ch, yb), (wb, yb + ch), (wa, ya - ch), (wa - ch, ya)]
+    right = [(wb - ch, yb), (max(wa, wb), (ya + yb) / 2), (wa - ch, ya)]
     return [(0.0, yb - v)] + right + [(0.0, ya - v)] + [(-x, y) for x, y in reversed(right)]
 
 
@@ -129,18 +131,23 @@ def head(M, T="head", phase=0.0):
 
     # ---------------------------------------------------------------- escudo (cabeca da abelha)
     z0, z1 = SHIELD_Z
-    sh, spn = B.shard("shield", SHIELD, z0, z1, A, slope=SHIELD_SLOPE, groove=0.03, panel_h=0.035, tags=tags)
+    # placa do escudo sem painel automatico: as canhoneiras comiam todo o painel interno e a travessa (y 0.18..0.27)
+    # ficava lisa; o painel da travessa e desenhado a mao (bisel duplo, STYLE 9)
+    sh = B.plate("shield", SHIELD, z0, z1, A, slope=SHIELD_SLOPE, tags=tags)
     for i, y in enumerate(YS):
-        cy = (NOTCH_Y0 + 0.62) / 2
-        for t in (sh, spn):
-            if t is not None:
-                B.cut(t, [B.box(f"notch{i}{t.name}", y, cy, NOTCH_W, 0.62 - NOTCH_Y0, 0.20, 0.95, K, bevel=0.0)])
+        B.cut(sh, [B.box(f"notch{i}", y, (NOTCH_Y0 + 0.62) / 2, NOTCH_W, 0.62 - NOTCH_Y0, 0.20, 0.95, K,
+                         bevel=0.0)])
         # mantelete escuro dentro da canhoneira, com colar de aco na boca
         B.box(f"mant{i}", y, (NOTCH_Y0 + 0.47) / 2, NOTCH_W - 0.03, 0.47 - NOTCH_Y0, 0.24, 0.40, KM, bevel=0.01,
               tags=tags)
         B.cyl(f"mcollar{i}", y, 0.455, ZB, 0.078, 0.04, KM, axis="Y", verts=8, bevel=0.006, tags=tags)
         B.cyl(f"mcring{i}", y, 0.478, ZB, 0.074, 0.012, S, axis="Y", verts=8, bevel=0.003, tags=tags)
-    zt = z1 + 0.035                                   # topo do painel do escudo
+    # painel elevado em cada metade da travessa (margem ~0.015 da borda de tras do topo, da canhoneira e do
+    # chanfro da bochecha; ~0.02 da base da alca de mira)
+    for sx in (-1, 1):
+        B.plate(f"shpnl{sx}", side([(0.075, 0.219), (0.272, 0.219), (0.237, 0.255), (0.075, 0.255)], sx),
+                z1 - 0.004, z1 + 0.04, A, slope=0.011, bevel=0.006, tags=tags)
+    zt = z1 + 0.035                                   # altura de referencia da alca de mira (topo dos paineis)
     # alca de mira: aleta em ponta de flecha no nariz central, desce pelo chanfro ate a borda da frente
     hb = [(-0.05, 0.215), (0.05, 0.215), (0.056, 0.30), (0.046, 0.42), (0.0, 0.478), (-0.046, 0.42), (-0.056, 0.30)]
     ht = [(-0.042, 0.222), (0.042, 0.222), (0.047, 0.30), (0.036, 0.375), (0.0, 0.412), (-0.036, 0.375),
@@ -155,17 +162,17 @@ def head(M, T="head", phase=0.0):
     # ---------------------------------------------------------------- mandibulas (laminas que fecham nos canos)
     bz0, bz1 = BLADE_Z
     for sx in (-1, 1):
-        ba, bpn = B.shard(f"blade{sx}", side(BLADE, sx), bz0, bz1, A, slope=0.025, groove=0.013, panel_h=0.025,
-                          tags=tags)
+        # chanfro e sulco estreitos: a lamina tem ~0.11 de largura (raio maximo 0.56) e ainda ganha painel
+        B.shard(f"blade{sx}", side(BLADE, sx), bz0, bz1, A, slope=0.02, groove=0.012, panel_h=0.025, tags=tags)
         # olho: modulo escuro no vao entre o escudo e a mandibula, com fenda de luz fraca
-        ex, ey = sx * 0.335, 0.28
+        ex, ey = sx * 0.325, 0.27
         pod = B.rbox(f"eye{sx}", ex, ey, 0.115, 0.042, 0.24, 0.40, KM, rot=sx * -45, bevel=0.008, tags=tags)
         B.cut(pod, [B.rbox(f"eyec{sx}", ex, ey, 0.085, 0.018, 0.37, 0.6, K, rot=sx * -45, bevel=0.0)])
         B.rbox(f"eyebed{sx}", ex, ey, 0.085, 0.018, 0.36, 0.371, M["black"], rot=sx * -45, bevel=0.0, tags=tags)
         B.rbox(f"eyeled{sx}", ex, ey, 0.062, 0.008, 0.37, 0.378, M["glow_dim"], rot=sx * -45, bevel=0.0, tags=tags)
         # pistao no vao entre a raiz da asa e o ombro da mandibula
-        B.cyl(f"piston{sx}", sx * 0.457, 0.158, 0.33, 0.018, 0.11, S, axis="Y", verts=10, yaw=sx * -8, tags=tags)
-        B.cyl(f"pistonb{sx}", sx * 0.452, 0.115, 0.33, 0.028, 0.05, KM, axis="Y", verts=10, yaw=sx * -8, tags=tags)
+        B.cyl(f"piston{sx}", sx * 0.432, 0.16, 0.33, 0.018, 0.11, S, axis="Y", verts=10, yaw=sx * -8, tags=tags)
+        B.cyl(f"pistonb{sx}", sx * 0.427, 0.118, 0.33, 0.026, 0.05, KM, axis="Y", verts=10, yaw=sx * -8, tags=tags)
 
     # ---------------------------------------------------------------- caixa de cinta (torax) com a cinta de latao
     cz0, cz1 = BOX_Z
@@ -218,20 +225,19 @@ def head(M, T="head", phase=0.0):
         dim_pips(T, f"wslot{sx}_pip", M)
 
     # ---------------------------------------------------------------- abdomen listrado (segmentos + sulcos)
-    for k, (ya, yb, zz) in enumerate(ABD_SEG):
-        B.plate(f"abd{k}", abd_seg(ya, yb), 0.22, zz, A, slope=0.045, tags=tags)
-    B.plate("tail", TAIL, 0.22, TAIL_Z, A, slope=0.035, tags=tags)
-    # baia de exaustao no sulco em cunha antes do ferrao: fundo preto, 3 pips e 2 persianas
-    yb2 = ABD_SEG[1][1]
+    for k, (ya, yb, zz, sl) in enumerate(ABD_SEG):
+        B.plate(f"abd{k}", abd_seg(ya, yb), 0.22, zz, A, slope=sl, tags=tags)
+    B.plate("tail", TAIL, 0.22, TAIL_Z, A, slope=0.02, tags=tags)
+    # baia de exaustao no sulco em cunha antes do ferrao: fundo preto, 3 pips e uma persiana de aco atras deles
+    yb2, ch = ABD_SEG[1][1], 0.02
     bed = [(0.0, yb2 - ABD_V - 0.004), (abd_w(yb2) - 0.01, yb2 - 0.004), (0.13, YTF - 0.004), (-0.13, YTF - 0.004),
            (-(abd_w(yb2) - 0.01), yb2 - 0.004)]
     B.loft("vent_bed", bed, bed, 0.24, 0.265, M["black"], bevel=0.0, tags=tags)
     for i, x in enumerate((-0.07, 0.0, 0.07)):
-        yback = yb2 - ABD_V * (1 - abs(x) / (abd_w(yb2) - 0.025))   # borda de tras do 2o segmento em x
+        yback = yb2 - ABD_V * (1 - abs(x) / (abd_w(yb2) - ch))   # borda de tras do 2o segmento em x
         B.rbox(f"vent_pip{i}", x, yback - 0.011, 0.034, 0.012, 0.265, 0.277, M["glow"],
                rot=math.copysign(6, x) if x else 0, bevel=0.0, tags=tags)
-    for i, y in enumerate((YTF + 0.024, YTF + 0.011)):
-        B.box(f"louver{i}", 0, y, 0.25, 0.008, 0.255, 0.285, KM, bevel=0.002, tags=tags)
+    B.box("louver", 0, YTF + 0.012, 0.22, 0.008, 0.255, 0.29, S, bevel=0.002, tags=tags)
 
 
 # ============================================================================ cano
@@ -289,10 +295,15 @@ def roof(M, T="roof"):
     for ty in range(h):
         cy = h / 2 - ty - 0.5
         poly = B.rpoly(0, cy, 1 - 2 * gap, 1 - 2 * gap, 0, chamfer=0.07)
-        _, pnl = B.shard(f"deck{ty}", poly, 0.0, 0.06, green, slope=0.025, groove=0.05, panel_h=0.02, tags=tags)
-        if ty == 1 and pnl is not None:
-            # linhas de painel dos dois lados da escotilha
-            B.cut(pnl, [B.rbox(f"dl{sx}", sx * 0.355, -0.40, 0.012, 0.26, 0.07, 0.2, K, bevel=0.0) for sx in (-1, 1)])
+        dk, pnl = B.shard(f"deck{ty}", poly, 0.0, 0.06, green, slope=0.025, groove=0.05, panel_h=0.02, tags=tags)
+        if ty == 1:
+            # linhas de painel dos dois lados da escotilha: sulco ate o meio da placa com fundo escuro
+            for t in (dk, pnl):
+                if t is not None:
+                    B.cut(t, [B.rbox(f"dl{sx}{t.name}", sx * 0.355, -0.40, 0.016, 0.26, 0.03, 0.2, K, bevel=0.0)
+                              for sx in (-1, 1)])
+            for sx in (-1, 1):
+                B.rbox(f"dlbed{sx}", sx * 0.355, -0.40, 0.016, 0.26, 0.025, 0.035, K, bevel=0.0, tags=tags)
     B.torus("ringbear", px, py, 0.08, rr + 0.02, 0.05, KM, tags=tags)
     B.cyl("ringhole", px, py, 0.05, rr - 0.01, 0.1, M["black"], axis="Z", verts=64, bevel=0.0, tags=tags)
     pts = [(x, y) for x, y in B.ring_points(px, py, rr + 0.10, 28, math.pi / 28)
@@ -300,7 +311,8 @@ def roof(M, T="roof"):
     B.bolts("rb", pts, 0.1, 0.02, S, tags=tags)
     # cantos da frente: tampas triangulares chanfradas
     for sx in (-1, 1):
-        tri = [(sx * 0.44, 0.94), (sx * 0.30, 0.94), (sx * 0.44, 0.80)]
+        # pequenas e encostadas no canto: ficam ~0.04 fora da aresta da mandibula (vao pintado visivel a 1x)
+        tri = [(sx * 0.43, 0.93), (sx * 0.34, 0.93), (sx * 0.43, 0.84)]
         B.plate(f"chatch{sx}", tri if sx < 0 else list(reversed(tri)), 0.06, 0.10, AM, slope=0.015, tags=tags)
     # tile de tras: escotilha do atirador (moldura escura + tampa octogonal com alca e dobradica) e respiro
     hy = -0.40

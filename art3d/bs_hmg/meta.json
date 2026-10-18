@@ -32,10 +32,10 @@
   ],
   "root": 0.3,
   "length": 1.1,
-  "pad": 0.08,
+  "pad": 0.06,
   "sprite_w": 0.26,
-  "sprite_len": 1.2400000000000002,
-  "center": 0.84,
+  "sprite_len": 1.2200000000000002,
+  "center": 0.85,
   "muzzle": 1.35,
   "anim": "recoil",
   "frames": [
