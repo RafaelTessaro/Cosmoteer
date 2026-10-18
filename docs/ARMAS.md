@@ -133,13 +133,13 @@ No **Build & Battle** a Tocandira já vem liberada (lista branca), mas as peças
 
 ## Fábricas
 
-| Fábrica | Entrada | Saída | Tempo | Energia |
-|---|---|---|---|---|
-| **Prensa de Carregadores** | 5 munição | 1 Carregador Padrão | 1.25 s | não usa |
-| **Prensa de Carregadores Perfurantes** | 2 Carregador Padrão + 0.1 tri-aço | 2 Carregador Perfurante | 4 s | 0.2 bateria/ciclo |
-| **Carregadora de Carregadores EMP** | 2 Carregador Padrão + 0.25 cobre | 2 Carregador EMP | 4 s | 0.4 bateria/ciclo |
-| **Fábrica de Células de Plasma** | 0.5 enxofre + 0.25 bobina | 1 Célula de Plasma | 2 s | 0.4 bateria/ciclo |
-| **Fundição de Projéteis Nucleares** | 0.125 urânio enriquecido + 2 Carregador Padrão | 1 Projétil Nuclear | 8 s | 0.8 bateria/ciclo |
+| Fábrica | Entrada | Saída | Tempo | Energia | Overclock |
+|---|---|---|---|---|---|
+| **Prensa de Carregadores** | 5 munição | 1 Carregador Padrão | 1.25 s | não usa | 3x, 600 MJ/s de calor |
+| **Prensa de Carregadores Perfurantes** | 2 Carregador Padrão + 0.1 tri-aço | 2 Carregador Perfurante | 4 s | 0.2 bateria/ciclo | 3x, 1.100 MJ/s de calor, 1.5x bateria/ciclo |
+| **Carregadora de Carregadores EMP** | 2 Carregador Padrão + 0.25 cobre | 2 Carregador EMP | 4 s | 0.4 bateria/ciclo | 3x, 1.100 MJ/s de calor, 1.5x bateria/ciclo |
+| **Fábrica de Células de Plasma** | 0.5 enxofre + 0.25 bobina | 1 Célula de Plasma | 2 s | 0.4 bateria/ciclo | 3x, 1.100 MJ/s de calor, 1.5x bateria/ciclo |
+| **Fundição de Projéteis Nucleares** | 0.125 urânio enriquecido + 2 Carregador Padrão | 1 Projétil Nuclear | 8 s | 0.8 bateria/ciclo | 3x, 1.100 MJ/s de calor, 1.5x bateria/ciclo |
 
 ## Tipos de munição (seletor das armas de meio/fim de jogo)
 

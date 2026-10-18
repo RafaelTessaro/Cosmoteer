@@ -200,7 +200,7 @@ def build(args):
         elif lch.get("art3d"):
             A3.copy_files(out.root, pdir, lch["short"], lch["art3d"])
     # gui / techs / strings / mod.rules
-    out.text("gui/bs_part_stats.rules", infra.part_stats())
+    out.text("gui/bs_part_stats.rules", infra.part_stats(factory.input_stat_ids(DATA.FACTORIES)))
     out.text("gui/bs_part_toggles.rules", infra.part_toggles(DATA.AMMO_CHOICES, DATA.missile_toggles()))
     car, bb = infra.techs(DATA.career_techs(), DATA.buildbattle_techs(), DATA.BB_WHITELIST)
     out.text("techs/bs_techs_career.rules", car)

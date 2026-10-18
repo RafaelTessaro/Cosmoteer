@@ -227,6 +227,54 @@ Techs
 		Prerequisites = [rafaeltessaro.bs_plasma, rafaeltessaro.bs_naval_155]
 	}
 	{
+		ID = rafaeltessaro.bs_factory_mag_std-overclock
+		Categories = [overclock]
+		NameKey = "Parts/BSFactoryMagStdOverclock"
+		DescriptionKey = "Parts/BSFactoryMagStdOverclockDesc"
+		Icon = &<../parts/bs_factory_mag_std/bs_factory_mag_std.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_factory_mag_std; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 20000
+		Prerequisites = [rafaeltessaro.bs_magazine_press, cosmoteer.heat_management]
+	}
+	{
+		ID = rafaeltessaro.bs_factory_mag_ap-overclock
+		Categories = [overclock]
+		NameKey = "Parts/BSFactoryMagApOverclock"
+		DescriptionKey = "Parts/BSFactoryMagApOverclockDesc"
+		Icon = &<../parts/bs_factory_mag_ap/bs_factory_mag_ap.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_factory_mag_ap; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 75000
+		Prerequisites = [rafaeltessaro.bs_ammo_ap, cosmoteer.heat_management]
+	}
+	{
+		ID = rafaeltessaro.bs_factory_mag_emp-overclock
+		Categories = [overclock]
+		NameKey = "Parts/BSFactoryMagEmpOverclock"
+		DescriptionKey = "Parts/BSFactoryMagEmpOverclockDesc"
+		Icon = &<../parts/bs_factory_mag_emp/bs_factory_mag_emp.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_factory_mag_emp; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 100000
+		Prerequisites = [rafaeltessaro.bs_ammo_emp, cosmoteer.heat_management]
+	}
+	{
+		ID = rafaeltessaro.bs_factory_plasma-overclock
+		Categories = [overclock]
+		NameKey = "Parts/BSFactoryPlasmaOverclock"
+		DescriptionKey = "Parts/BSFactoryPlasmaOverclockDesc"
+		Icon = &<../parts/bs_factory_plasma/bs_factory_plasma.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_factory_plasma; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 90000
+		Prerequisites = [rafaeltessaro.bs_plasma, cosmoteer.heat_management]
+	}
+	{
 		ID = rafaeltessaro.bs_nuclear
 		NameKey = &<../parts/bs_factory_shell_nuke/bs_factory_shell_nuke.rules>/Part/NameKey
 		DescriptionKey = &<../parts/bs_factory_shell_nuke/bs_factory_shell_nuke.rules>/Part/DescriptionKey
@@ -321,6 +369,18 @@ Techs
 		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_naval_406; ToggleID=thermal_overclock; Mode=1; }]
 		Cost = 160000
 		Prerequisites = [rafaeltessaro.bs_naval_406, cosmoteer.heat_management]
+	}
+	{
+		ID = rafaeltessaro.bs_factory_shell_nuke-overclock
+		Categories = [overclock]
+		NameKey = "Parts/BSFactoryShellNukeOverclock"
+		DescriptionKey = "Parts/BSFactoryShellNukeOverclockDesc"
+		Icon = &<../parts/bs_factory_shell_nuke/bs_factory_shell_nuke.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_factory_shell_nuke; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 150000
+		Prerequisites = [rafaeltessaro.bs_nuclear, cosmoteer.heat_management]
 	}
 	{
 		ID = rafaeltessaro.bs_msl_box

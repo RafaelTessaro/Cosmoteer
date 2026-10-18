@@ -77,11 +77,13 @@ def mod_rules(data, part_paths, resource_paths, version, limits=(), status_paths
     return render(top, header)
 
 
-def part_stats():
+def part_stats(extra_ids=()):
+    """extra_ids: linhas proprias a mais (ex.: 'uso de <insumo>' das fabricas, factory.input_stat_ids)."""
     stats = [
         {"ID": "BSShotsPerMag", "FormatKey": Q("Stats/BSShotsPerMagFmt")},
         {"ID": "BSFactoryOutput", "FormatKey": Q("Stats/BSFactoryOutputFmt")},
     ]
+    stats += [{"ID": sid, "FormatKey": Q(f"Stats/{sid}Fmt")} for sid in extra_ids]
     return render({"PartStats": stats}, "Linhas de estatistica do Bullet Strike (adicionadas com AddMany).")
 
 

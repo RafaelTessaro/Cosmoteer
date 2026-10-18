@@ -81,6 +81,64 @@ def gun_art(out, pdir, g, info):
     out.image(f"../docs/preview/{g['short']}.png", icon)
 
 
+def wall_damage_levels(walls, seed, fractions=(0.05, 0.10)):
+    """Paredes danificadas (walls_33 / walls_66) feitas a partir de walls.png, no jeito das vanilla
+    (factory_he/walls_33.png e walls_66.png): rachaduras escuras com a borda clara e lascas, so nos pixels
+    opacos do contorno, alfa intocado e o contorno um pouco mais escuro. Cada nivel contem o dano do anterior;
+    fractions = fracao do contorno alterada em cada nivel (vanilla: ~5% e ~10%)."""
+    import random
+    import numpy as np
+    a = np.asarray(walls.convert("RGBA")).astype(np.float32)
+    H, W = a.shape[:2]
+    rim = a[..., 3] >= 250
+    ys, xs = np.nonzero(rim)
+    total = len(ys)
+    rng = random.Random(seed)
+    hit = np.zeros((H, W), bool)
+    out = []
+    for frac, dim in zip(fractions, (0.99, 0.98)):
+        target = int(total * frac)
+        while hit.sum() < target and total:
+            j = rng.randrange(total)
+            y, x = int(ys[j]), int(xs[j])
+            # rachadura corre ao longo do contorno: vertical nas laterais, horizontal em cima/embaixo
+            vert = min(x, W - 1 - x) < min(y, H - 1 - y)
+            dy, dx = (rng.choice((-1, 1)), 0) if vert else (0, rng.choice((-1, 1)))
+            for _ in range(rng.randint(4, 14)):
+                if not (0 <= y < H and 0 <= x < W) or not rim[y, x]:
+                    break
+                if not hit[y, x]:
+                    a[y, x, :3] *= 0.45
+                    hit[y, x] = True
+                    # borda clara do lado de baixo/direita (luz vinda de cima/esquerda)
+                    hy, hx = (y, x + 1) if vert else (y + 1, x)
+                    if 0 <= hy < H and 0 <= hx < W and rim[hy, hx] and not hit[hy, hx]:
+                        a[hy, hx, :3] = np.minimum(255, a[hy, hx, :3] * 1.25 + 12)
+                        hit[hy, hx] = True
+                y, x = y + dy, x + dx
+                if rng.random() < 0.35:  # zigue-zague
+                    if vert:
+                        x += rng.choice((-1, 1))
+                    else:
+                        y += rng.choice((-1, 1))
+            # lasca solta perto da rachadura
+            if rng.random() < 0.5:
+                j = rng.randrange(total)
+                cy, cx = int(ys[j]), int(xs[j])
+                if not hit[cy, cx]:
+                    a[cy, cx, :3] = np.clip(a[cy, cx, :3] + rng.choice((-28, 24)), 0, 255)
+                    hit[cy, cx] = True
+        lvl = a.copy()
+        lvl[rim, :3] *= dim
+        out.append(Image.fromarray(np.clip(lvl, 0, 255).round().astype(np.uint8), "RGBA"))
+    return out
+
+
+def _wall_damage_files(out, pdir, walls, short):
+    for name, img in zip(("walls_33.png", "walls_66.png"), wall_damage_levels(walls, zlib.crc32(short.encode()))):
+        out.image(f"{pdir}/{name}", img)
+
+
 def factory_art(out, pdir, f, info):
     w, h = info["size"]
     if f.get("art3d"):
@@ -93,12 +151,15 @@ def factory_art(out, pdir, f, info):
         icon.alpha_composite(load("walls.png"))
         out.image(f"{pdir}/icon.png", icon)
         out.image(f"{pdir}/blueprints.png", S.blueprint_from(w, h))
+        # niveis de dano das paredes (bsgen/factory.py WALL_DAMAGE)
+        _wall_damage_files(out, pdir, load("walls.png"), f["short"])
         return
     a = S.ACCENTS[f["art"].get("accent", "ammo")]
     floor, walls, roof, roof_n, frames, off = S.render_factory(w, h, a, f["art"].get("kind", "mag"),
                                                                   seed=zlib.crc32(f["short"].encode()) % 991)
     out.image(f"{pdir}/floor.png", floor)
     out.image(f"{pdir}/walls.png", walls)
+    _wall_damage_files(out, pdir, walls, f["short"])
     out.image(f"{pdir}/roof.png", roof)
     out.image(f"{pdir}/roof_normals.png", roof_n)
     for i, fr in enumerate(frames, start=1):

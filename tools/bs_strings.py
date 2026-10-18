@@ -135,22 +135,7 @@ def strings():
             pt["Parts"][k + "OverclockDesc"] = OC_PT.get(g["short"], "Atira mais rápido e mais forte, mas gera muito calor.") + \
                 " Gera calor residual ao disparar."
 
-    for f in D.FACTORIES:
-        k = f["key"]
-        ins_en = " + ".join(f"{q} {r.split('.')[-1]}" for r, q in f["inputs"])
-        out_r, out_q = f["output"]
-        out_name_en = next((r["name_en"] for r in D.RESOURCES if r["id"] == out_r), out_r)
-        out_name_pt = next((r["name_pt"] for r in D.RESOURCES if r["id"] == out_r), out_r)
-        pw_en = f" and {f['power'] / 1000:g} power" if f.get("power") else " (no power needed)"
-        pw_pt = f" e {f['power'] / 1000:g} de energia" if f.get("power") else " (não usa energia)"
-        en["Parts"][k] = f["name_en"]
-        pt["Parts"][k] = f["name_pt"]
-        en["Parts"][k + "Icon"] = f["name_en"][:18]
-        pt["Parts"][k + "Icon"] = f["name_pt"][:18]
-        en["Parts"][k + "Desc"] = (f"Turns {ins_en}{pw_en} into {out_q} {out_name_en} every {f['interval']:g} s. "
-                                   f"+25% speed for each adjacent factory.<string id='BSModTag'/>")
-        pt["Parts"][k + "Desc"] = (f"Transforma {ins_en}{pw_pt} em {out_q} {out_name_pt} a cada {f['interval']:g} s. "
-                                   f"+25% de velocidade para cada fábrica vizinha.<string id='BSModTag'/>")
+    _factory_strings(D, en, pt)
 
     for r in D.RESOURCES:
         k = r["key"]
@@ -186,8 +171,107 @@ def strings():
     pt["Stats"]["BSShotsPerMagFmt"] = "<white>Disparos por carga:</white> <good>{0:0}</good>"
     en["Stats"]["BSFactoryOutputFmt"] = "<white>Production:</white> <good>{0:0.##}</good><gray>/sec</gray>"
     pt["Stats"]["BSFactoryOutputFmt"] = "<white>Produção:</white> <good>{0:0.##}</good><gray>/s</gray>"
+    _factory_stat_strings(D, en, pt)
     _launcher_strings(D, en, pt)
     return en, pt
+
+
+# ============================================================================= fabricas
+# Recursos vanilla citados nas descricoes: chave em strings/<lingua>.rules Resource/<chave> (nome traduzido pelo
+# proprio jogo) e rotulo da linha "uso de <insumo>" das fabricas (en, pt).
+VANILLA_RES = {
+    "bullet": ("Bullet", "Cannon Ammo Use", "Uso de munição de canhão"),
+    "sulfur": ("Sulfur", "Sulfur Use", "Uso de enxofre"),
+    "coil": ("Coil", "Coil Use", "Uso de bobina"),
+    "copper": ("Copper", "Copper Use", "Uso de cobre"),
+    "tristeel": ("Tristeel", "Tri-Steel Use", "Uso de triaço"),
+    "enriched_uranium": ("EnrichedUranium", "Enriched Uranium Use", "Uso de urânio enriquecido"),
+}
+# Taxa da Fabrica de Municao para Canhao vanilla (factory_ammo.rules: ToQuantity 1 / Interval 0.5 s)
+VANILLA_AMMO_PER_S = 2.0
+
+
+def _res_ref(D, res, qty):
+    """<string id='Resource/X'/> (ou XPlural) do recurso: o jogo mostra o nome traduzido."""
+    own = next((r for r in D.RESOURCES if r["id"] == res), None)
+    key = own["key"] if own else VANILLA_RES[res][0]
+    return f"<string id='Resource/{key}{'Plural' if qty > 1 else ''}'/>"
+
+
+def _factory_strings(D, en, pt):
+    seen = {"en": {}, "pt": {}}
+    for f in D.FACTORIES:
+        k = f["key"]
+        out_r, out_q = f["output"]
+        ins_en = " + ".join(f"{_num_en(q, 3)} {_res_ref(D, r, q)}" for r, q in f["inputs"])
+        ins_pt = " + ".join(f"{_num_pt(q, 3)} {_res_ref(D, r, q)}" for r, q in f["inputs"])
+        out_ref = _res_ref(D, out_r, out_q)
+        pw_en = f" and {_num_en(f['power'] / 1000, 3)} power" if f.get("power") else " (no power needed)"
+        pw_pt = f" e {_num_pt(f['power'] / 1000, 3)} de energia" if f.get("power") else " (não usa energia)"
+        oc = f.get("oc")
+        oc_en = " Can be overclocked." if oc else ""
+        oc_pt = " Aceita overclock." if oc else ""
+        tip_en = tip_pt = ""
+        bullets = sum(q for r, q in f["inputs"] if r == "bullet")
+        if bullets:
+            # dica do spec: quantas Fabricas de Municao vanilla alimentam esta fabrica (mesmos bonus dos dois lados)
+            need = bullets / f["interval"] / VANILLA_AMMO_PER_S
+            if abs(need - round(need)) > 1e-6:
+                raise ValueError(f"{f['short']}: {need:.3f} Fabricas de Municao por prensa nao e um numero inteiro")
+            need = int(round(need))
+            fac_en = "Cannon Ammo Factory" if need == 1 else "Cannon Ammo Factories"
+            fac_pt = "Fábrica de munição para canhão" if need == 1 else "Fábricas de munição para canhão"
+            tip_en = f"\n\nTip: {need} {fac_en} feed{'s' if need == 1 else ''} 1 {f['name_en']}."
+            tip_pt = f"\n\nDica: {need} {fac_pt} alimenta{'m' if need > 1 else ''} 1 {f['name_pt']}."
+        en["Parts"][k] = f["name_en"]
+        pt["Parts"][k] = f["name_pt"]
+        # rotulo do menu de construcao = o produto, como no vanilla (FactoryAmmoIcon = "Ammo")
+        icon_en = f.get("icon_en") or f["name_en"]
+        icon_pt = f.get("icon_pt") or f["name_pt"]
+        for lang, lab in (("en", icon_en), ("pt", icon_pt)):
+            if len(lab) > 24:
+                raise ValueError(f"{f['short']}: rotulo do icone '{lab}' ({lang}) passa de 24 caracteres")
+            if lab in seen[lang]:
+                raise ValueError(f"{f['short']}: rotulo do icone '{lab}' ({lang}) repete o de {seen[lang][lab]}")
+            seen[lang][lab] = f["short"]
+        en["Parts"][k + "Icon"] = icon_en
+        pt["Parts"][k + "Icon"] = icon_pt
+        en["Parts"][k + "Desc"] = (f"Turns {ins_en}{pw_en} into {_num_en(out_q, 3)} {out_ref} every "
+                                   f"{_num_en(f['interval'], 3)} s. +25% speed for each adjacent factory.{oc_en}"
+                                   f"{tip_en}<string id='BSModTag'/>")
+        pt["Parts"][k + "Desc"] = (f"Transforma {ins_pt}{pw_pt} em {_num_pt(out_q, 3)} {out_ref} a cada "
+                                   f"{_num_pt(f['interval'], 3)} s. +25% de velocidade para cada fábrica vizinha."
+                                   f"{oc_pt}{tip_pt}<string id='BSModTag'/>")
+        if oc:
+            sf = oc["speed_factor"]
+            out_pl = _res_ref(D, out_r, 2)
+            pwx_en = (f", using {_num_en(oc['power_use_factor'])}x the power per item" if f.get("power") else "")
+            pwx_pt = (f", com {_num_pt(oc['power_use_factor'])} vez a energia por item" if f.get("power") else "")
+            en["Parts"][k + "Overclock"] = f"Overclocked {f['name_en']}"
+            pt["Parts"][k + "Overclock"] = f"{f['name_pt']} (Overclocking)"
+            en["Parts"][k + "OverclockDesc"] = (f"Produces {_num_en(sf)}x faster{pwx_en}. Produces waste heat while "
+                                                f"producing {out_pl}.")
+            pt["Parts"][k + "OverclockDesc"] = (f"Produz {_num_pt(sf)} vezes mais rápido{pwx_pt}. Produz calor "
+                                                f"enquanto fabrica {out_pl}.")
+
+
+def _factory_stat_strings(D, en, pt):
+    """Linhas 'uso de <insumo>' das fabricas ([por item, por segundo]); mesmo formato de AmmoSulfurUsageFmt."""
+    from bsgen.factory import input_stat_ids, use_stat
+    labels = {}
+    for f in D.FACTORIES:
+        for r, _q in f["inputs"]:
+            own = next((x for x in D.RESOURCES if x["id"] == r), None)
+            if own:
+                labels[use_stat(r)] = (f"{own['name_en']} Use", f"Uso de {own['name_pt'].lower()}")
+            else:
+                labels[use_stat(r)] = VANILLA_RES[r][1:]
+    for sid in input_stat_ids(D.FACTORIES):
+        l_en, l_pt = labels[sid]
+        en["Stats"][sid + "Fmt"] = (f"<white>{l_en}:</white> <good>{{0:0.###}}</good><gray>/ammo (</gray>"
+                                    f"<good>{{1:0.###}}</good><gray>/sec)</gray>")
+        pt["Stats"][sid + "Fmt"] = (f"<white>{l_pt}:</white> <good>{{0:0.###}}</good><gray>/munição (</gray>"
+                                    f"<good>{{1:0.###}}</good><gray>/s)</gray>")
 
 
 # ============================================================================= lancadores de misseis
@@ -396,5 +480,12 @@ RES_DESC_EN = {"mag": "A sealed magazine that crew carry to Bullet Strike guns. 
 RES_DESC_PT = {"mag": "Um carregador lacrado que a tripulação leva até as armas do Bullet Strike. Cada arma o abre em vários disparos.",
                "cell": "Uma célula de plasma selada magneticamente para armas de plasma.",
                "shell": "Um projétil de artilharia nuclear. Cuidado: explode violentamente se o depósito for destruído."}
-PLURAL_PT = {}
+# plural em pt-br: o nucleo do nome vai para o plural ("Carregador Padrao" + "s" daria "Carregador Padraos")
+PLURAL_PT = {
+    "Carregador Padrão": "Carregadores Padrão",
+    "Carregador Perfurante": "Carregadores Perfurantes",
+    "Carregador EMP": "Carregadores EMP",
+    "Célula de Plasma": "Células de Plasma",
+    "Projétil Nuclear": "Projéteis Nucleares",
+}
 OC_PT = {}

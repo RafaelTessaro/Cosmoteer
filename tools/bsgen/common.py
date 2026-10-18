@@ -114,11 +114,13 @@ def standard_toggles(overclock, command_points, defense=False, fire_pref_default
     return c
 
 
-def overclock_machinery(center, w, h, heat_triggers, has_constant_heat=True, shot_heat=True):
+def overclock_machinery(center, w, h, heat_triggers, has_constant_heat=True, shot_heat=True, port_rows=None):
     """Componentes de overclock (calor por tiro, calor constante, portas termicas).
 
     heat_triggers: lista de nomes de triggers que disparam somente em overclock.
     shot_heat=False: sem calor por tiro (lancadores cobram o calor por missil carregado no autoloader).
+    port_rows: fileiras com portas laterais (padrao: todas). As fabricas passam range(1, h): a fileira do
+    maquinario fica sem porta (factory_he.rules l.288-318, factory_ammo.rules l.253-270).
     """
     c = {}
     c["OverclockStateValue"] = {"Type": "ToggleValueSelector", "Toggle": "OverclockModeToggle",
@@ -147,17 +149,16 @@ def overclock_machinery(center, w, h, heat_triggers, has_constant_heat=True, sho
             "Interval": 0.5,
         }
     # Portas termicas nas laterais e embaixo (como o Deck Cannon).
+    rows = list(range(h)) if port_rows is None else list(port_rows)
     first = None
-    idx = 0
-    for y in range(h):
+    for y in rows:
         name = f"Port_Thermal_L{y}"
         if first is None:
             c[f"{name} : ~/Part/^/0/BASE_THERMAL_PORT"] = {"Location": [0, y], "Direction": "Left"}
             first = name
         else:
             c[f"{name} : {first}"] = {"Location": [0, y], "Direction": "Left"}
-        idx += 1
-    for y in range(h):
+    for y in rows:
         c[f"Port_Thermal_R{y} : {first}"] = {"Location": [w - 1, y], "Direction": "Right"}
     for x in range(w):
         c[f"Port_Thermal_D{x} : {first}"] = {"Location": [x, h - 1], "Direction": "Down"}

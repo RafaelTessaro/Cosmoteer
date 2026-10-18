@@ -1,7 +1,14 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
 // Fabrica: Armor-Piercing Magazine Press / Prensa de Carregadores Perfurantes
 
-Part : <./Data/ships/terran/base_large_part_terran.rules>/Part
+OVERCLOCK
+{
+	HEAT_PER_CONVERSION = 1467
+	SPEED_FACTOR = 300%
+	POWER_USE_FACTOR = 150%
+}
+HEAT_TO_RESOURCE = &<./Data/statuses/heat/heat.rules>/STATUS_TO_RESOURCE_RATIO
+Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 {
 	NameKey = "Parts/BSFactoryMagAp"
 	IconNameKey = "Parts/BSFactoryMagApIcon"
@@ -32,7 +39,16 @@ Part : <./Data/ships/terran/base_large_part_terran.rules>/Part
 		IsOperational
 		{
 			Type = MultiToggle
-			Toggles = [PowerToggle, NonJunkToggle, ScorchedToggle, Input0, Input1Splitter, BatteryStorage]
+			Toggles
+			[
+				PowerToggle
+				NonJunkToggle
+				ScorchedToggle
+				Input0
+				Input1Splitter
+				BatteryStorage
+				&~/Part/^/0/OVERCLOCK_OPERATIONAL
+			]
 			Mode = All
 		}
 		NonJunkToggle
@@ -59,6 +75,7 @@ Part : <./Data/ships/terran/base_large_part_terran.rules>/Part
 			StatusType = cosmoteer.scorched
 			MinStatusValue = 1
 			Invert = true
+			IncludeWhenUnderConstruction = true
 		}
 		CommandConsumer
 		{
@@ -128,7 +145,7 @@ Part : <./Data/ships/terran/base_large_part_terran.rules>/Part
 		{
 			Type = ResourceStorage
 			ResourceType = battery
-			MaxResources = 2000
+			MaxResources = 4000
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/PowerDeliver
 		}
 		BatteryConsumer
@@ -156,7 +173,18 @@ Part : <./Data/ships/terran/base_large_part_terran.rules>/Part
 				}
 				{
 					Storage = BatteryStorage
-					Quantity = 200
+					Quantity
+					{
+						BaseValue = 200
+						Modifiers
+						[
+							: ~/MODIFIERS/OVERCLOCK_LERP
+							{
+								MinValue = &../../BaseValue
+								MaxValue = (&MinValue) * (&~/OVERCLOCK/POWER_USE_FACTOR)
+							}
+						]
+					}
 					MinQuantityForConversion = 1
 				}
 			]
@@ -170,6 +198,13 @@ Part : <./Data/ships/terran/base_large_part_terran.rules>/Part
 					{
 						Type = Buff
 						BuffType = Factory
+						ModificationMode = Divide
+					}
+					{
+						Type = BuffRemap
+						BuffType = Overclock
+						RemapFrom = [0, 1]
+						RemapTo = [1, &~/OVERCLOCK/SPEED_FACTOR]
 						ModificationMode = Divide
 					}
 				]
@@ -210,11 +245,135 @@ Part : <./Data/ships/terran/base_large_part_terran.rules>/Part
 			GridDistance = 1
 			OperationalToggle = BatteryStorage
 		}
+		// ---- overclock (factory_he.rules l.261-318 e l.1332-1354) ----
+		OverclockStateValue
+		{
+			Type = ToggleValueSelector
+			Toggle = OverclockModeToggle
+			ToggleOffValue = Zero
+			ToggleOnValue = One
+		}
+		Zero
+		{
+			Type = StaticValue
+			Value = 0
+		}
+		One
+		{
+			Type = StaticValue
+			Value = 1
+		}
+		OverheatEffects : ^/0/OverheatEffects
+		{
+			Location = [1.5, 1.5]
+		}
+		Port_Thermal_L1 : ~/Part/^/0/BASE_THERMAL_PORT
+		{
+			Location = [0, 1]
+			Direction = Left
+		}
+		Port_Thermal_L2 : Port_Thermal_L1
+		{
+			Location = [0, 2]
+			Direction = Left
+		}
+		Port_Thermal_R1 : Port_Thermal_L1
+		{
+			Location = [2, 1]
+			Direction = Right
+		}
+		Port_Thermal_R2 : Port_Thermal_L1
+		{
+			Location = [2, 2]
+			Direction = Right
+		}
+		Port_Thermal_D0 : Port_Thermal_L1
+		{
+			Location = [0, 2]
+			Direction = Down
+		}
+		Port_Thermal_D1 : Port_Thermal_L1
+		{
+			Location = [1, 2]
+			Direction = Down
+		}
+		Port_Thermal_D2 : Port_Thermal_L1
+		{
+			Location = [2, 2]
+			Direction = Down
+		}
+		Overclock_ConversionHeatProducer
+		{
+			Type = ResourceChange
+			OperationalToggle = IsOverclocked
+			ResourceStorage = &~/Part/^/0/HEAT_TARGET_STORAGE
+			Trigger = Overclock_ResourceConverterProxy
+			Amount = (&~/OVERCLOCK/HEAT_PER_CONVERSION) * (&~/HEAT_TO_RESOURCE)
+		}
+		Overclock_ResourceConverterProxy
+		{
+			Type = TriggerProxy
+			ProxyToggle = IsOverclocked
+			ComponentID = ResourceConverter
+		}
+		Overclock_HeatProductionInterval
+		{
+			Type = BuffableValue
+			Value = &~/Part/Components/ResourceConverter/Interval
+			IncludeInBlueprints = true
+		}
+		Overclock_HeatPerConversion
+		{
+			Type = StaticValue
+			Value = &~/OVERCLOCK/HEAT_PER_CONVERSION
+		}
+		HeatGenerationValue
+		{
+			Type = ValueOperation
+			Operator = Divide
+			ValueOne = Overclock_HeatPerConversion
+			ValueTwo = Overclock_HeatProductionInterval
+			NaNFallbackValue = 0
+			IncludeInBlueprints = Normal
+		}
+		HeatGenerationStatProvider
+		{
+			Type = StatProvider
+			Stat = HeatGeneration
+			OperationalToggle = OverclockModeToggle
+			ValueFrom = HeatGenerationValue
+		}
+		// ---- graficos (factory_he.rules l.849-959) ----
+		BeltSpeedFactor
+		{
+			Type = BuffableValue
+			Value
+			{
+				BaseValue = 1
+				Modifiers
+				[
+					{
+						Type = Buff
+						BuffType = Factory
+						ModificationMode = Multiply
+					}
+					{
+						Type = BuffRemap
+						BuffType = Overclock
+						ModificationMode = Multiply
+						RemapFrom = [0, 1]
+						RemapTo = [1, &~/OVERCLOCK/SPEED_FACTOR]
+					}
+				]
+			}
+		}
 		Graphics
 		{
 			Type = Graphics
 			Location = [1.5, 1.5]
 			OperationalToggle = IsOperational
+			AnimationToggle = ResourceConverter
+			AnimationSpeedFactor = BeltSpeedFactor
 			Floor
 			{
 				Layer = "floors"
@@ -246,6 +405,7 @@ Part : <./Data/ships/terran/base_large_part_terran.rules>/Part
 						]
 						Size = [3, 3]
 						AnimationInterval = 0.1
+						AnimationStartTime = WhenSpawned
 					}
 				]
 			}
@@ -268,6 +428,14 @@ Part : <./Data/ships/terran/base_large_part_terran.rules>/Part
 				[
 					{
 						File = "walls.png"
+						Size = [3, 3]
+					}
+					{
+						File = "walls_33.png"
+						Size = [3, 3]
+					}
+					{
+						File = "walls_66.png"
 						Size = [3, 3]
 					}
 				]
@@ -295,6 +463,20 @@ Part : <./Data/ships/terran/base_large_part_terran.rules>/Part
 					}
 				]
 			}
+			OperationalRoofLighting
+			{
+				Layer = "roof_lights_fancy"
+				Offset = [0, -29/64]
+				DamageLevels
+				[
+					{
+						File = "./Data/ships/common/light_blob.png"
+						Size = [4, 4]
+						Z = 0.5
+						VertexColor = [255*1.5, 0, 0]
+					}
+				]
+			}
 		}
 		Blueprints
 		{
@@ -309,13 +491,18 @@ Part : <./Data/ships/terran/base_large_part_terran.rules>/Part
 			Indicators
 			[
 				{
+					Toggle = ScorchedToggle
+					AtlasSprite = &/INDICATORS/Scorched
+					HidesIndicators = [1, 2, 3, 4, 5]
+				}
+				{
 					Toggle = PowerToggle
 					AtlasSprite
 					{
 						File = &/INDICATORS/PowerOff
 						Size = [1, 1]
 					}
-					HidesIndicators = [1, 2, 3]
+					HidesIndicators = [2, 3, 4, 5]
 				}
 				{
 					Toggle = Input0
@@ -341,6 +528,13 @@ Part : <./Data/ships/terran/base_large_part_terran.rules>/Part
 						Size = [1, 1]
 					}
 				}
+				{
+					Toggle = &~/Part/^/0/OVERCLOCK_OPERATIONAL
+					AtlasSprite : /INDICATORS/OverclockReset
+					{
+						Size = [1, 1]
+					}
+				}
 			]
 		}
 		OperationEffects
@@ -351,18 +545,149 @@ Part : <./Data/ships/terran/base_large_part_terran.rules>/Part
 			ToggledOnMediaEffects = &/COMMON_EFFECTS/MachinesOnLarge
 			ToggledOffMediaEffects = &/COMMON_EFFECTS/MachinesOffLarge
 		}
+		OperationSoundLoop
+		{
+			Type = ContinuousEffects
+			Location = [1.5, 1.5]
+			OperationalToggle = IsOperational
+			MaxMediaEffectsZoom = 4
+			MediaEffects
+			[
+				: /BASE_SOUNDS/AudioInterior
+				{
+					Sound = "./Data/ships/terran/factory_ammo/sounds/cannon_ammo_factory_idle.wav"
+					Volume = 1
+					MaxConcurrentVolume = 1
+					Speed = 1
+					MaxConcurrent = 1
+				}
+			]
+		}
+		ScorchedTrigger
+		{
+			Type = ToggleTrigger
+			Toggle = ScorchedToggle
+			TriggerWhenOn = false
+			TriggerWhenOff = true
+		}
+		ScorchedEffects
+		{
+			Type = TriggeredEffects
+			Trigger = ScorchedTrigger
+			Location = &~/Part/Components/DestroyedEffects/Location
+			MediaEffects = &~/Part/Components/DestroyedEffects_UnderConstruction/MediaEffects
+			HitEffects = &~/Part/Components/DestroyedEffects/HitEffects
+			FactorHitEffectsWith = Output
+			IncludeWhenUnderConstruction = false
+		}
 		DestroyedEffects
 		{
 			Type = DeathEffects
-			MediaEffects = &/COMMON_EFFECTS/BigPartDestroyed
+			OperationalToggle = ScorchedToggle
+			FactorHitEffectsWith = Output
 			Location = [1.5, 1.5]
+			IncludeWhenUnderConstruction = false
+			HitEffects
+			[
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 64500
+						EffectScaleExponent = 1
+					}
+					Radius = 5
+					Delay = 0.05
+					StatusType = cosmoteer.fire
+					StatusChancePerNDamage = 100%
+					StatusValue = 1
+					StatusValueType = Interpolated
+					NDamage = 1000
+					CrewKillChance = 50%
+					Filter
+					{
+						OperationalHealth = true
+						StructuralHealth = false
+						Friendlies = true
+					}
+				}
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 20000
+						EffectScaleExponent = 1
+					}
+					Radius = 4
+					Delay = 0.05
+					Filter
+					{
+						OperationalHealth = false
+						StructuralHealth = true
+						Friendlies = true
+						Crew = false
+					}
+				}
+			]
+		}
+		DestroyedEffects_UnderConstruction
+		{
+			Type = DeathEffects
+			Location = &~/Part/Components/DestroyedEffects/Location
+			MediaEffects = &/COMMON_EFFECTS/BigPartDestroyed
 		}
 	}
 	Stats
 	{
 		BSFactoryOutput = (&~/Part/Components/ResourceConverter/ToQuantity) / (&~/Part/Components/ResourceConverter/Interval/BaseValue)
-		FactoryBuff = (&~/Part/Components/BuffProvider/BuffAmount) * 100
-		PowerPerSecond = (&~/Part/Components/ResourceConverter/From/2/Quantity) / (&~/Part/Components/ResourceConverter/Interval/BaseValue) / 1000
+		AmmoCapacity = (&~/Part/Components/Output/GridRect/2) * (&~/Part/Components/Output/GridRect/3) * (&<../../resources/bs_mag_ap/bs_mag_ap.rules>/MaxStackSize)
+		Input0PerAmmo = (&~/Part/Components/ResourceConverter/From/0/Quantity) / (&~/Part/Components/ResourceConverter/ToQuantity)
+		Input0PerSecond = (&~/Part/Components/ResourceConverter/From/0/Quantity) / (&~/Part/Components/ResourceConverter/Interval/BaseValue)
+		BSAmmoMagStdUsage = [&../Input0PerAmmo, &../Input0PerSecond]
+		Input1PerAmmo = (&~/Part/Components/Input1Splitter/FromQuantity) / (&~/Part/Components/Input1Splitter/ToQuantity) / (&~/Part/Components/ResourceConverter/ToQuantity)
+		Input1PerSecond = (&~/Part/Components/Input1Splitter/FromQuantity) / (&~/Part/Components/Input1Splitter/ToQuantity) / (&~/Part/Components/ResourceConverter/Interval/BaseValue)
+		BSAmmoTristeelUsage = [&../Input1PerAmmo, &../Input1PerSecond]
+		PowerPerAmmo = (&~/Part/Components/ResourceConverter/From/2/Quantity/BaseValue) / (&~/Part/Components/ResourceConverter/ToQuantity) / 1000
+		PowerPerSecond = (&~/Part/Components/ResourceConverter/From/2/Quantity/BaseValue) / (&~/Part/Components/ResourceConverter/Interval/BaseValue) / 1000
+		AmmoPowerUsage = [&../PowerPerAmmo, &../PowerPerSecond]
 		PowerCapacity = (&~/Part/Components/BatteryStorage/MaxResources) / 1000
+		FactoryBuff = (&~/Part/Components/BuffProvider/BuffAmount) * 100
+		RecPower = &PowerPerSecond
+		RecCrew = (&RecPower) * 4
+	}
+	SecondaryToolTip
+	{
+		TitleKey = "StatCategories/Overclocked"
+		DescriptionKey = "Parts/BSFactoryMagApOverclockDesc"
+		Stats
+		{
+			BSFactoryOutput = (&~/Part/Stats/BSFactoryOutput) * (&~/OVERCLOCK/SPEED_FACTOR)
+			BSAmmoMagStdUsage
+			[
+				(&~/Part/Stats/BSAmmoMagStdUsage/0)
+				(&~/Part/Stats/BSAmmoMagStdUsage/1) * (&~/OVERCLOCK/SPEED_FACTOR)
+			]
+			BSAmmoTristeelUsage
+			[
+				(&~/Part/Stats/BSAmmoTristeelUsage/0)
+				(&~/Part/Stats/BSAmmoTristeelUsage/1) * (&~/OVERCLOCK/SPEED_FACTOR)
+			]
+			POWER_PER_AMMO = (&~/Part/Stats/AmmoPowerUsage/0) * (&~/OVERCLOCK/POWER_USE_FACTOR)
+			POWER_PER_SECOND = (&~/Part/Stats/AmmoPowerUsage/1) * (&~/OVERCLOCK/POWER_USE_FACTOR) * (&~/OVERCLOCK/SPEED_FACTOR)
+			AmmoPowerUsage = [&../POWER_PER_AMMO, &../POWER_PER_SECOND]
+			AMMO_PER_CONVERSION = (&~/Part/Components/ResourceConverter/ToQuantity)
+			HEAT_PER_AMMO = (&~/OVERCLOCK/HEAT_PER_CONVERSION) / (&AMMO_PER_CONVERSION)
+			HEAT_PER_SECOND = (&~/OVERCLOCK/HEAT_PER_CONVERSION) / (&~/Part/Components/ResourceConverter/Interval/BaseValue) * (&~/OVERCLOCK/SPEED_FACTOR)
+			AmmoHeatGeneration = [&../HEAT_PER_AMMO, &../HEAT_PER_SECOND]
+		}
+	}
+}
+MODIFIERS
+{
+	OVERCLOCK_LERP
+	{
+		Type = Buff
+		BuffType = Overclock
+		ModificationMode = Lerp
 	}
 }

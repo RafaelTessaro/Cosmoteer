@@ -160,12 +160,22 @@ def main():
     lines += ["## Munições", "", "| Recurso | Pilha por tile | Observação |", "|---|---|---|"]
     for r in D.RESOURCES:
         lines.append(f"| **{r['name_pt']}** | {r['max_stack']} | {r['note']} |")
-    lines += ["", "## Fábricas", "", "| Fábrica | Entrada | Saída | Tempo | Energia |", "|---|---|---|---|---|"]
+    lines += ["", "## Fábricas", "", "| Fábrica | Entrada | Saída | Tempo | Energia | Overclock |",
+              "|---|---|---|---|---|---|"]
     for f in D.FACTORIES:
         ins = " + ".join(f"{q} {RES_NAME.get(r, r)}" for r, q in f["inputs"])
         out = f"{f['output'][1]} {RES_NAME.get(f['output'][0], f['output'][0])}"
         pw = f"{f['power'] / 1000:g} bateria/ciclo" if f.get("power") else "não usa"
-        lines.append(f"| **{f['name_pt']}** | {ins} | {out} | {f['interval']:g} s | {pw} |")
+        oc = f.get("oc")
+        if oc:
+            # calor/s em overclock = calor por ciclo x fator de velocidade / intervalo (factory_he.rules SecondaryToolTip)
+            hs = oc["heat_per_conversion"] * oc["speed_factor"] / f["interval"]
+            ocs = f"{oc['speed_factor']:g}x, {fmt(round(hs))} MJ/s de calor"
+            if f.get("power"):
+                ocs += f", {oc['power_use_factor']:g}x bateria/ciclo"
+        else:
+            ocs = "-"
+        lines.append(f"| **{f['name_pt']}** | {ins} | {out} | {f['interval']:g} s | {pw} | {ocs} |")
     lines += ["", "## Tipos de munição (seletor das armas de meio/fim de jogo)", "",
               "| Tipo | Para que serve |", "|---|---|"]
     from bs_strings import AMMO_DESC, AMMO_NAMES

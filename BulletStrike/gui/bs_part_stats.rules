@@ -10,4 +10,28 @@ PartStats
 		ID = BSFactoryOutput
 		FormatKey = "Stats/BSFactoryOutputFmt"
 	}
+	{
+		ID = BSAmmoBulletUsage
+		FormatKey = "Stats/BSAmmoBulletUsageFmt"
+	}
+	{
+		ID = BSAmmoMagStdUsage
+		FormatKey = "Stats/BSAmmoMagStdUsageFmt"
+	}
+	{
+		ID = BSAmmoTristeelUsage
+		FormatKey = "Stats/BSAmmoTristeelUsageFmt"
+	}
+	{
+		ID = BSAmmoCopperUsage
+		FormatKey = "Stats/BSAmmoCopperUsageFmt"
+	}
+	{
+		ID = BSAmmoCoilUsage
+		FormatKey = "Stats/BSAmmoCoilUsageFmt"
+	}
+	{
+		ID = BSAmmoEnrichedUraniumUsage
+		FormatKey = "Stats/BSAmmoEnrichedUraniumUsageFmt"
+	}
 ]

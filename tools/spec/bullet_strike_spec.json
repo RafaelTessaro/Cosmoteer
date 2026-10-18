@@ -164,7 +164,22 @@
     ]
    ],
    "max_health": 4000,
-   "tier": "mid"
+   "tier": "mid",
+   "icon_en": "Std Mags",
+   "icon_ptbr": "Carreg. Padrão",
+   "sounds": "ammo",
+   "overclock": {
+    "speed_factor": 3.0,
+    "heat_per_conversion": 250,
+    "note": "factory_ammo pattern (base_part_terran_overclock): SPEED_FACTOR 300%; no battery, so no POWER_USE_FACTOR and the overclock costs heat only. HEAT_PER_CONVERSION sized to the overclocked heat of vanilla factory_ammo (same 2x2 footprint): 600 MJ/s = 250 x 3 / 1.25 s."
+   },
+   "cookoff": {
+    "op_damage": 40000,
+    "op_radius": 4,
+    "st_damage": 11250,
+    "st_radius": 3,
+    "note": "vanilla factory_ammo (2x2 ammo factory), scaled by Output fill"
+   }
   },
   {
    "id": "rafaeltessaro.bs_factory_mag_ap",
@@ -206,7 +221,23 @@
     ]
    ],
    "max_health": 9000,
-   "tier": "mid"
+   "tier": "mid",
+   "icon_en": "AP Mags",
+   "icon_ptbr": "Carreg. Perfurante",
+   "sounds": "ammo",
+   "overclock": {
+    "speed_factor": 3.0,
+    "power_use_factor": 1.5,
+    "heat_per_conversion": 1467,
+    "note": "factory_he pattern (base_med_part_terran_overclock): SPEED_FACTOR 300%, POWER_USE_FACTOR 150% (battery per cycle Lerp). HEAT_PER_CONVERSION sized to the overclocked heat of vanilla factory_he (same 3x3 footprint and layout): 1100 MJ/s = H x 3 / interval_s."
+   },
+   "cookoff": {
+    "op_damage": 64500,
+    "op_radius": 5,
+    "st_damage": 20000,
+    "st_radius": 4,
+    "note": "vanilla factory_he (3x3 ammo factory), scaled by Output fill"
+   }
   },
   {
    "id": "rafaeltessaro.bs_factory_mag_emp",
@@ -248,7 +279,23 @@
     ]
    ],
    "max_health": 9000,
-   "tier": "mid"
+   "tier": "mid",
+   "icon_en": "EMP Mags",
+   "icon_ptbr": "Carreg. EMP",
+   "sounds": "emp",
+   "overclock": {
+    "speed_factor": 3.0,
+    "power_use_factor": 1.5,
+    "heat_per_conversion": 1467,
+    "note": "factory_he pattern (base_med_part_terran_overclock): SPEED_FACTOR 300%, POWER_USE_FACTOR 150% (battery per cycle Lerp). HEAT_PER_CONVERSION sized to the overclocked heat of vanilla factory_he (same 3x3 footprint and layout): 1100 MJ/s = H x 3 / interval_s."
+   },
+   "cookoff": {
+    "op_damage": 64500,
+    "op_radius": 5,
+    "st_damage": 20000,
+    "st_radius": 4,
+    "note": "vanilla factory_he (3x3 ammo factory), scaled by Output fill"
+   }
   },
   {
    "id": "rafaeltessaro.bs_factory_plasma",
@@ -290,7 +337,23 @@
     ]
    ],
    "max_health": 9000,
-   "tier": "mid"
+   "tier": "mid",
+   "icon_en": "Plasma Cells",
+   "icon_ptbr": "Células de Plasma",
+   "sounds": "he",
+   "overclock": {
+    "speed_factor": 3.0,
+    "power_use_factor": 1.5,
+    "heat_per_conversion": 733,
+    "note": "factory_he pattern (base_med_part_terran_overclock): SPEED_FACTOR 300%, POWER_USE_FACTOR 150% (battery per cycle Lerp). HEAT_PER_CONVERSION sized to the overclocked heat of vanilla factory_he (same 3x3 footprint and layout): 1100 MJ/s = H x 3 / interval_s."
+   },
+   "cookoff": {
+    "op_damage": 64500,
+    "op_radius": 5,
+    "st_damage": 20000,
+    "st_radius": 4,
+    "note": "vanilla factory_he (3x3 ammo factory), scaled by Output fill"
+   }
   },
   {
    "id": "rafaeltessaro.bs_factory_shell_nuke",
@@ -331,8 +394,24 @@
      2
     ]
    ],
-   "max_health": 16000,
-   "tier": "late"
+   "max_health": 9000,
+   "tier": "late",
+   "icon_en": "Nuke Shells",
+   "icon_ptbr": "Projéteis Nucleares",
+   "sounds": "nuke",
+   "overclock": {
+    "speed_factor": 3.0,
+    "power_use_factor": 1.5,
+    "heat_per_conversion": 2933,
+    "note": "factory_he pattern (base_med_part_terran_overclock): SPEED_FACTOR 300%, POWER_USE_FACTOR 150% (battery per cycle Lerp). HEAT_PER_CONVERSION sized to the overclocked heat of vanilla factory_he (same 3x3 footprint and layout): 1100 MJ/s = H x 3 / interval_s."
+   },
+   "cookoff": {
+    "op_damage": 90000,
+    "op_radius": 6,
+    "st_damage": 27000,
+    "st_radius": 5,
+    "note": "3 full stacks x the Nuclear Shell's own cook-off (30000); the shells' stack DeathHitEffects come on top, like vanilla bullet + factory_ammo"
+   }
   }
  ],
  "weapons": [
@@ -2540,6 +2619,54 @@
    ]
   },
   {
+   "id": "rafaeltessaro.bs_factory_mag_std-overclock",
+   "tier": 3,
+   "unlocks": [
+    "overclock:rafaeltessaro.bs_factory_mag_std"
+   ],
+   "cost_credits": 20000,
+   "prerequisites": [
+    "rafaeltessaro.bs_magazine_press",
+    "cosmoteer.heat_management"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_factory_mag_ap-overclock",
+   "tier": 3,
+   "unlocks": [
+    "overclock:rafaeltessaro.bs_factory_mag_ap"
+   ],
+   "cost_credits": 75000,
+   "prerequisites": [
+    "rafaeltessaro.bs_ammo_ap",
+    "cosmoteer.heat_management"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_factory_mag_emp-overclock",
+   "tier": 3,
+   "unlocks": [
+    "overclock:rafaeltessaro.bs_factory_mag_emp"
+   ],
+   "cost_credits": 100000,
+   "prerequisites": [
+    "rafaeltessaro.bs_ammo_emp",
+    "cosmoteer.heat_management"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_factory_plasma-overclock",
+   "tier": 3,
+   "unlocks": [
+    "overclock:rafaeltessaro.bs_factory_plasma"
+   ],
+   "cost_credits": 90000,
+   "prerequisites": [
+    "rafaeltessaro.bs_plasma",
+    "cosmoteer.heat_management"
+   ]
+  },
+  {
    "id": "rafaeltessaro.bs_nuclear",
    "tier": 4,
    "unlocks": [
@@ -2634,6 +2761,18 @@
    "cost_credits": 160000,
    "prerequisites": [
     "rafaeltessaro.bs_naval_406",
+    "cosmoteer.heat_management"
+   ]
+  },
+  {
+   "id": "rafaeltessaro.bs_factory_shell_nuke-overclock",
+   "tier": 4,
+   "unlocks": [
+    "overclock:rafaeltessaro.bs_factory_shell_nuke"
+   ],
+   "cost_credits": 150000,
+   "prerequisites": [
+    "rafaeltessaro.bs_nuclear",
     "cosmoteer.heat_management"
    ]
   }
@@ -2936,7 +3075,9 @@
    "vanilla_patterns": [
     "factory_ammo 2x2 geometry",
     "factory_mine / factory_processor direct Quantity input (bullet 5 from a grid tile of 20)",
-    "power-free derivation by deletion (note 05 s5.3: drop BatteryStorage/Consumer/sprites/battery From/uses_power; BuffProvider OperationalToggle = IsOperational)"
+    "power-free derivation by deletion (note 05 s5.3: drop BatteryStorage/Consumer/sprites/battery From/uses_power; BuffProvider OperationalToggle = CommandConsumptionToggle, the closest match to vanilla's BatteryStorage gate, so the +25% to the neighbours does not drop while the press waits for bullets)",
+    "factory_ammo overclock (base_part_terran_overclock, OVERCLOCK_OPERATIONAL, Interval BuffRemap Overclock Divide, Overclock_ConversionHeatProducer + TriggerProxy, thermal ports on the crew row only); heat only, no POWER_USE_FACTOR",
+    "factory_ammo cook-off (DeathEffects FactorHitEffectsWith = Output, ScorchedEffects reuses its HitEffects)"
    ],
    "notes": "Description string carries the tip '2 Cannon Ammo Factories feed 1 Magazine Press'."
   },
@@ -2947,9 +3088,12 @@
     "factory_he 3x3 geometry",
     "factory_processor direct Quantity (2 Standard Magazines; grid tile holds 6)",
     "InlineResourceConverter splitters for fractional inputs (tristeel 1:10, copper 1:4, sulfur 1:2, coil 1:4, enriched_uranium 1:8; all <= vanilla 1:50)",
-    "vanilla Factory adjacency GridBuffProvider kept"
+    "vanilla Factory adjacency GridBuffProvider kept",
+    "factory_he overclock (base_med_part_terran_overclock, battery Quantity Lerp x POWER_USE_FACTOR, Interval BuffRemap Overclock Divide, Overclock_ConversionHeatProducer + TriggerProxy, 7 thermal ports off the machine row, HeatGenerationStatProvider, OverclockReset indicator, Overclocked SecondaryToolTip)",
+    "factory_he graphics: AnimationToggle = ResourceConverter, AnimationSpeedFactor = BeltSpeedFactor (Factory buff x Overclock), OperationalRoofLighting light_blob, walls damage levels; idle OperationSoundLoop",
+    "factory_he cook-off (DeathEffects FactorHitEffectsWith = Output + DestroyedEffects_UnderConstruction media only)"
    ],
-   "notes": "All crewless, all vanilla footprints, powered (except the press)."
+   "notes": "All crewless, all vanilla footprints, powered (except the press). 1000 HP per tile like every vanilla factory (the foundry too). Every factory overclocks (SPEED_FACTOR 300%); the overclocked heat matches the vanilla factory of the same footprint (2x2 factory_ammo 600 MJ/s, 3x3 factory_he 1100 MJ/s). Overclock techs cost the same as the vanilla analog (factory_ammo / he / emp / thermal / nuke)."
   },
   {
    "scope": "shared",

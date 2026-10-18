@@ -447,6 +447,11 @@ for f in SPEC["factories"]:
         "inputs": [[r, q] for r, q in f["inputs"]], "output": f["output"], "interval": f["interval_s"],
         "power": f.get("power_per_cycle_battery") or None, "tier": f.get("tier", "mid"),
         "art": {"kind": kind, "accent": acc}, "spec": f, "size": f.get("size"),
+        # overclock no padrao vanilla das fabricas (factory_ammo / factory_he): {speed_factor, power_use_factor,
+        # heat_per_conversion}; None = sem overclock
+        "oc": f.get("overclock"),
+        "icon_en": f.get("icon_en"), "icon_pt": f.get("icon_ptbr"),
+        "sounds": f.get("sounds", "ammo"), "cookoff": f.get("cookoff"), "base_part": f.get("base_part"),
         "art3d": A3.load_meta(short),
     })
 
