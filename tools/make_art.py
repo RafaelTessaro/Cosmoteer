@@ -132,15 +132,22 @@ def launcher_art(out, pdir, lch, info):
         m0 = lch["modes"][0]
         units0 = geo["modes"][m0["type"]]["units"]
         tube_r = m0["geo"]["tube_r"]
-        on, off, nrm, shadow = S.render_launcher_pod(ts, units0, tube_r, pitch, a)
+        style = lch["art"]["style"].split("_", 1)[1]          # box / twin / quad
+        on, off, nrm, shadow = S.render_launcher_pod(ts, units0, tube_r, pitch, a, style)
         out.image(f"{pdir}/turret.png", on)
         out.image(f"{pdir}/turret_off.png", off)
         out.image(f"{pdir}/turret_normals.png", nrm)
         out.image(f"{pdir}/turret_shadow.png", shadow)
+        if geo.get("oc_glow"):
+            out.image(f"{pdir}/{geo['oc_glow']}", S.render_launcher_oc_glow(ts, units0, tube_r, pitch, a, style))
         full = None
         for m in lch["modes"]:
             gm = geo["modes"][m["type"]]
             band = tuple(m["glow"])
+            if gm.get("shutters"):
+                img, nimg = S.render_launcher_shutters(ts, m["geo"]["shutters"])
+                out.image(f"{pdir}/{gm['shutters']['file']}", img)
+                out.image(f"{pdir}/{gm['shutters']['normals']}", nimg)
             for ov in gm["overlays"]:
                 lo, hi = ov["range"]
                 pod_units = gm["units"][lo:hi]

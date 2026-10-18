@@ -92,6 +92,16 @@ Parts
 	BSMslBox = "Deck Micro-Missile Box"
 	BSMslBoxIcon = "Tocandira"
 	BSMslBoxDesc = "A RAM-style micro-missile box: the gunner cranks it around and twelve micro-missiles hiss out, pair by pair. \"Tocandira\"\n\nEarly-game deck missile launcher. A full rack ripples 12 missiles in 0.73 s, then a crewed autoloader refills it one cassette at a time (1.39 s each; reloading stops while nobody mans it): one salvo every 9.1 s. Range 300 m. Missiles: Muriçoca (High-Explosive), Taturana-mirim (Napalm).\n\nNeeds no power: 1 crew and vanilla H.E. Missile Parts / T.C. Missile Parts carried into its internal magazines (12 parts each). Switching the missile type costs one full reload; a dry magazine still fires the partial rack. The missiles fly over your own deck and can be shot down by point defense. A loaded launcher cooks off when it burns or is destroyed.<string id='BSModTag'/>"
+	BSMslTwin = "Twin-Pod Deck Missile Launcher"
+	BSMslTwinIcon = "Caipora"
+	BSMslTwinDesc = "Two octagonal pods flank an armored sensor dome; a full rack is a two-second drum-roll of sixteen missiles, right pod first. \"Caipora\"\n\nMid-game deck missile launcher. A full rack ripples 16 missiles in 2 s, then a crewed autoloader refills it one cell at a time (1.06 s each; reloading stops while nobody mans it): one salvo every 19 s. Range 400 m. Missiles: Jararaca (High-Explosive), Piranha (Cluster), Carrapato (Limpet), Taturana (Napalm), Poraquê (EMP), Boto (Decoy Torpedo). Missiles per salvo: Jararaca, Piranha, Carrapato, Taturana, Poraquê 16; Boto 2.\n\nNeeds no power: 2 crew and vanilla H.E. Missile Parts / T.C. Missile Parts / E.M.P. Missile Parts carried into its internal magazines (64 parts each). Switching the missile type costs one full reload; a dry magazine still fires the partial rack. The missiles fly over your own deck and can be shot down by point defense. A loaded launcher cooks off when it burns or is destroyed. Can be overclocked.<string id='BSModTag'/>"
+	BSMslTwinOverclock = "Overclocked Twin-Pod Deck Missile Launcher"
+	BSMslTwinOverclockDesc = "\"Caipora's Fury\": the autoloader works 1.5x faster (Poraquê: 1.2x); ripple, damage and range stay the same. Costs 425 heat per missile part loaded plus 100 heat/s (needs radiators). About 1 in 16 missiles is vented from the magazine every salvo (torpedoes exempt). Switching it off pauses the launcher for 3 s, and the magazine empties faster. Without enough cooling it overheats, catches fire and cooks off with its stock."
+	BSMslQuad = "Quad-Pod Heavy Missile Battery"
+	BSMslQuadIcon = "Mula-sem-Cabeça"
+	BSMslQuadDesc = "A headless armored body carries four long pods on hydraulic arms: a stampede of 48 heavy missiles in three seconds. Loaded, it is the most dangerous part of your ship. \"Mula-sem-Cabeça\"\n\nLate-game deck missile launcher. A full rack ripples 48 missiles in 3.13 s, then a crewed autoloader refills it one cell at a time (0.26 s each; reloading stops while nobody mans it): one salvo every 15.8 s. Range 600 m. Missiles: Jararaca (High-Explosive), Piranha (Cluster), Carrapato (Limpet), Taturana (Napalm), Poraquê (EMP), Boto (Decoy Torpedo), Iara (Nuclear Torpedo). Missiles per salvo: Jararaca 48; Piranha, Carrapato, Taturana, Poraquê 16; Boto 4; Iara 2.\n\nNeeds no power: 8 crew and vanilla H.E. Missile Parts / T.C. Missile Parts / E.M.P. Missile Parts / Nuclear Missile Parts carried into its internal magazines (H.E. 192, thermal 192, EMP 96, nuclear 32 parts). Switching the missile type costs one full reload; a dry magazine still fires the partial rack. The missiles fly over your own deck and can be shot down by point defense. A loaded launcher cooks off when it burns or is destroyed. Can be overclocked.\n\nLimit: 2 per ship, shared with the Boiúna nuclear howitzer (nuclear weapons, any mix).<string id='BSModTag'/>"
+	BSMslQuadOverclock = "Overclocked Quad-Pod Heavy Missile Battery"
+	BSMslQuadOverclockDesc = "\"Stampede\": the autoloader works 1.5x faster (Poraquê: 1.2x); ripple, damage and range stay the same. It never speeds up the reload of the Iara nuclear torpedo. Costs 400 heat per missile part loaded plus 150 heat/s (needs radiators). About 1 in 16 missiles is vented from the magazine every salvo (torpedoes exempt). Switching it off pauses the launcher for 3 s, and the magazine empties faster. Without enough cooling it overheats, catches fire and cooks off with its stock."
 }
 PartToggles
 {
@@ -146,6 +156,19 @@ StatCategories
 	BSFlak = "Airburst Flak"
 	BSMslBox_he = "Micro-Missile \"Muriçoca\""
 	BSMslBox_napalm = "Incendiary Micro-Missile \"Taturana-mirim\""
+	BSMslTwin_he = "High-Explosive Missile \"Jararaca\""
+	BSMslTwin_cluster = "Cluster Missile (Transformer) \"Piranha\""
+	BSMslTwin_limpet = "Limpet Missile \"Carrapato\""
+	BSMslTwin_napalm = "Napalm Missile \"Taturana\""
+	BSMslTwin_emp = "EMP Missile \"Poraquê\""
+	BSMslTwin_torpedo = "Decoy Torpedo \"Boto\""
+	BSMslQuad_he = "High-Explosive Missile \"Jararaca\""
+	BSMslQuad_cluster = "Cluster Missile (Transformer) \"Piranha\""
+	BSMslQuad_limpet = "Limpet Missile \"Carrapato\""
+	BSMslQuad_napalm = "Napalm Missile \"Taturana\""
+	BSMslQuad_emp = "EMP Missile \"Poraquê\""
+	BSMslQuad_torpedo = "Decoy Torpedo \"Boto\""
+	BSMslQuad_nuclear = "Nuclear Torpedo \"Iara\""
 }
 Resource
 {
@@ -167,8 +190,8 @@ Resource
 }
 CategoryNouns
 {
-	BSLimitNukeSingular = "Nuclear Howitzer"
-	BSLimitNukePlural = "Nuclear Howitzers"
+	BSLimitNukeSingular = "Nuclear Weapon"
+	BSLimitNukePlural = "Nuclear Weapons"
 	BSLimitFlagshipSingular = "Battleship Turret"
 	BSLimitFlagshipPlural = "Battleship Turrets"
 }

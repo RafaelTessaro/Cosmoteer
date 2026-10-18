@@ -229,60 +229,94 @@ geometry**, so a finished model replaces them without changing the rules.
 | image(s) | layer | component | notes |
 |---|---|---|---|
 | `turret.png`, `turret_normals.png`, `turret_off.png`, `turret_shadow.png` (+ `turret<n>.png` frames if `turret_anim`) | pod: `roof_doodads`; shadow: `doodads_high` | `TurretGraphics` (ChainedTo Turret, Rotation 90d) | square of side `turret_box` centered on the pivot, forward = image top, exactly like a gun head. **The tube mouths are drawn EMPTY** (dark holes) |
-| `cells_<type>_p<pod>_<n>.png` + `cells_<type>_p<pod>_<n>_normals.png`, n = 0..units of that pod | `roof_turrets` (above the pod) | one `ResourceSprites` per pod and per missile mode (`RangeLow`/`RangeHigh` = the pod's rack units, `HasZeroResourceSprite = true`) | **same canvas as `turret.png`** (side `turret_box`, pivot at the center, zero offset). Level n shows the loaded noses of the first n rack units of that pod **in fill order**; everything else is transparent. Level 0 is fully transparent |
+| `cells_<type>_p<pod>_<n>.png` + `cells_<type>_p<pod>_<n>_normals.png`, n = 0..units of that pod | `roof_turrets` (above the pod) | one `ResourceSprites` per pod and per missile mode (`RangeLow`/`RangeHigh` = the pod's rack units, `HasZeroResourceSprite = true`) | **same canvas as `turret.png`** (side `turret_box`, pivot at the center, zero offset). Level n shows the loaded noses of the first n rack units of that pod **in fill order**; everything else is transparent. Level 0 is fully transparent. Only pods that hold units in that mode get files (Iara: `p1`, `p2`) |
+| `shutters_<type>.png` + `_normals.png` | `roof_turrets` | `Shutters` (`Graphics` inside that mode's `Fire_<type>` block, so it shows only in that mode) | only for `*_inner` layouts (Mula Iara): closed shutters over the pods that hold no unit in that mode (the outer pods), same canvas as `turret.png` |
+| `turret_oc.png` (no normals) | `roof_turrets` | `OverclockGlowGraphics` (`OperationalToggle = IsOverclocked`) | launchers with overclock (Caipora, Mula): ONLY the overclock glow on a transparent canvas the size of `turret.png` (Caipora: the dome eye turns orange + vent embers; Mula: the collar recess and the pod vents glow). Optional for a 3D model: without it the rules skip the component |
 | `floor.png`, `walls.png`, `roof.png`, `roof_normals.png`, `lights.png` | hull layers | `Graphics` | same as the guns (green roof, crew seats; launchers should show missile racks/cradles in the floor) |
 | `icon.png`, `blueprints.png` | – | editor | built by `tools/make_art.py` from roof + pod + full rack |
 
 Launch effects are vanilla particles, not images: the per-tube flash is
 `ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules` (bucket `Upper1`) at each emitter, and
-the backblast puff is `ships/terran/chaingun/particles/chaingun_shoot_smoke.rules` at each `backblast` point. Do not
-use `missile_launcher_shoot.rules` (bucket `Middle3`, it would be hidden under our roof). **No pod recoil**: recoil
-would move the pod but not the overlays.
+the backblast puff is `ships/terran/chaingun/particles/chaingun_shoot_smoke.rules` (Tocandira, Caipora) or
+`ships/terran/cannon_deck/particles/cannon_smoke_deck.rules` (Mula, bucket `RoofCannonSmoke`) at the `backblast`
+point of the pod that fired (one point per pod; the Tocandira's single point puffs on every launch). Do not use
+`missile_launcher_shoot.rules` (bucket `Middle3`, it would be hidden under our roof). **No pod recoil**: recoil would
+move the pod but not the overlays.
 
 Fire order is **LIFO**: the last rack unit loaded fires first, so the overlay that disappears is always the tube that
-just fired. The rack unit of each mode is set by the spec (`launchers[].modes[]`): one tube (`fine*` layouts), a
-twin-tube cassette (`cassette`, Tocandira: 6 units = 12 tubes, 2 micro-missiles per unit) and, in stage 2, heavy
-rows and torpedo cassettes.
+just fired. The rack unit of each mode is set by the spec (`launchers[].modes[].layout`, computed by
+`tools/launcher_layout.py`); each unit has a **form** that tells the art what to draw:
+
+| layout | launcher / modes | rack units | form | what one loaded unit looks like |
+|---|---|---|---|---|
+| `cassette` | Tocandira (all) | 6 twin-tube cassettes (12 tubes) | `tube` | one nose in each of the 2 tubes |
+| `fine16` (pods `pattern: "3-2-3"`) | Caipora he, cluster, limpet, napalm, emp | 16 (2 pods x 8) | `tube` | one nose in the tube |
+| `torpedo2` | Caipora Boto | 2 (one per pod) | `torpedo` | one big capped torpedo nose covering the whole pod face |
+| `fine48` | Mula he | 48 (4 pods x 3x4) | `tube` | one nose in the tube |
+| `heavy16` | Mula cluster, limpet, napalm, emp | 16 (4 rows x 4 pods) | `heavy` | one long double-calibre nose lying over the whole 3-tube row |
+| `torpedo4` | Mula Boto | 4 (one per pod) | `torpedo` | big capped nose over the pod face |
+| `torpedo2_inner` | Mula Iara | 2 (the 2 inner pods) | `torpedo` | big capped nose with a thin green band; the outer pods show `shutters_nuclear.png` |
+
+Fill order: pods one after the other in the order of the spec's `cells.pods` list (Caipora L then R, so the right pod
+empties first; Mula outer-L, inner-L, inner-R, outer-R), rows from the back to the front, left to right inside a
+row. A `heavy`/`torpedo` unit has a `box` = [lateral width, depth] in tiles (heavy: the row; torpedo: the pod face),
+written by the layout and passed to `cell()`.
 
 ### 8.2 Model file (`tools/blender/parts/bs_msl_<box|twin|quad>.py`)
 
 ```python
 PART = {
-    "id": "rafaeltessaro.bs_msl_box", "kind": "launcher",
-    "size": [2, 2], "pivot": [1.0, 0.95],     # MUST match launchers[].size and art.part_meta.pivot in the spec
-    "turret_box": 1.9, "ring_r": 0.8, "collider": 0.85, "accent": "amber",
-    "looks": ["he", "napalm"],                 # must cover every missile mode of the launcher (spec modes[])
-    # optional: "cells": {...} overrides art.part_meta.cells (pods: center/cols/rows/pitch in HEAD coordinates,
-    #           tube_r, units "pairs" | single); the default reads the spec, so the cells always match the rules
-    # optional: "backblast": [[x, y], ...] (head coordinates), "lights": [...], "turret_anim": {...}
+    "id": "rafaeltessaro.bs_msl_twin", "kind": "launcher",
+    "size": [3, 3], "pivot": [1.5, 1.4],      # MUST match launchers[].size and art.part_meta.pivot in the spec
+    "turret_box": 2.8, "ring_r": 1.15, "collider": 1.25, "accent": "amber",
+    "looks": ["he", "cluster", "limpet", "napalm", "emp", "torpedo"],   # every missile mode of the launcher
+    "oc_glow": True,                           # Caipora / Mula: render turret_oc.png with oc_glow()
+    # optional: "cells": {...} overrides art.part_meta.cells (pods: center + cols/rows or pattern "3-2-3", pitch,
+    #           in HEAD coordinates; tube_r; units "pairs" | single); the default reads the spec, so the cells always
+    #           match the rules
+    # optional: "backblast": [[x, y], ...] (head coordinates, one per pod), "lights": [...], "turret_anim": {...}
 }
-def head(M, T="head", phase=0.0): ...   # mount/yoke + pod(s); tube mouths EMPTY (dark), at the spec cell positions
-def cell(M, look, T="cell"): ...        # ONE loaded nose at the origin (tube axis pitched like the pod), with a
-                                        # thin band in the type colour; it must fit in a square of 5 x tube_r
+def head(M, T="head", phase=0.0): ...   # mount + pod(s); tube mouths EMPTY (dark), at the spec cell positions
+def cell(M, look, T="cell", form="tube", box=None): ...
+    # form "tube": ONE loaded nose at the origin (tube axis pitched like the pod), with a thin band in the type
+    #              colour; it must fit in a square of 5 x tube_r
+    # form "heavy": one long double-calibre nose lying along x, centred, fitting box[0] x box[1] (tiles)
+    # form "torpedo": one big capped torpedo nose centred, fitting box[0] x box[1] (the pod face)
+def shutter(M, T="shutter", box=None): ...   # Mula only: ONE closed shutter plate centred, fitting box (pod face)
+def oc_glow(M, T="oc"): ...                   # Caipora/Mula: ONLY the emissive overclock parts, in head coordinates
+                                              # (dome eye / collar recess / vents, e.g. M["ember"] boosted); the
+                                              # renderer keeps just their emission + a soft halo
 def roof(M, T="roof"): ...              # optional (default Mo.hull_roof)
 def floor(M, T="floor"): ...            # optional (default Mo.hull_floor)
 ```
 
 Cell positions come from `tools/launcher_layout.py` (shared with the rules generator): head coordinates
-(x right, y forward from the pivot), pods filled one after the other, rows from the back to the front, left to right.
-The renderer renders `cell()` once per look and pastes it at every tube of the first n units to compose each level,
-so the noses always sit exactly on the mouths that `head()` draws at the same coordinates.
+(x right, y forward from the pivot). The renderer renders `cell()` once per look and form and pastes it at every tube
+(`tube`) or at the unit centre (`heavy`, `torpedo`) of the first n units to compose each level, and pastes
+`shutter()` at every shuttered pod, so the noses always sit exactly on the mouths that `head()` draws at the same
+coordinates. A layout with shutters and a model without `shutter()` stops the render with an error.
 
 `render_part.py <short> [--quick] [--out DIR] [--only turret,hull,cells]` writes the images and a `meta.json` with
-`kind: "launcher"`, `turret` (as for guns), `modes.<type>.units` / `tubes` / `unit_pods` (turret coordinates,
-fill order) and `modes.<type>.overlays[{range, files, normals}]`, plus `backblast`, `crew_pos`, `hull`, `lights`.
-`tools/bs_data.py` checks that every mode has as many units as the spec's rack.
+`kind: "launcher"`, `turret` (as for guns, plus `oc_glow`), `modes.<type>.units` / `tubes` / `unit_pods` (turret
+coordinates, fill order), `modes.<type>.overlays[{range, files, normals}]` and `modes.<type>.shutters{file, normals,
+pods}`, plus `backblast`, `crew_pos`, `hull`, `lights`. `tools/bs_data.py` checks that every mode has as many units as
+the spec's rack and that `*_inner` modes have shutters; `tools/check_art3d.py <short>` checks canvas sizes.
 
 ### 8.3 Style per launcher (same family look as the guns: dark core + light shards, LEDs in recesses)
 
 | launcher | size | crew | pods / tubes | rack unit | style | accent |
 |---|---|---|---|---|---|---|
 | bs_msl_box (Tocandira) | 2x2 | 1 | 1 box pod, 4x3 = 12 tubes, pitched 35 deg | twin-tube cassette (6) | RAM-style box on a short yoke, side claws, spine with amber IR slit, rear vent bay with 3 pips | amber |
-| bs_msl_twin (Caipora) | 3x3 | 2 | 2 octagonal pods (3-2-3) = 16 tubes + sensor dome | 1 tube (16); torpedo 2 | twin pods on arms, central dome with a sensor eye | amber |
-| bs_msl_quad (Mula-sem-Cabeça) | 5x6 | 8 | 4 pods 3x4 = 48 tubes on hydraulic arms, headless body | 1 tube (48); heavy row (16); torpedo 4; nuclear 2 | headless quad battery, collar recess with a very dim ember | amber |
+| bs_msl_twin (Caipora) | 3x3 | 2 | 2 octagonal pods (3-2-3, pitch 0.24) = 16 tubes, pitched 35 deg, + sensor dome | 1 tube (16); torpedo 2 | "two fists": octagonal pods on arms flanking an armored dome with one sensor-eye slit, forward claw blades, four splayed feet on the ring, rear magazine hatch + vent bay with 5 pips; overclock: the eye turns orange and the vents glow | amber |
+| bs_msl_quad (Mula-sem-Cabeça) | 5x6 | 8 | 4 rectangular pods 3x4 (pitch 0.26 x 0.22) = 48 tubes, pitched 40 deg, on hydraulic arms | 1 tube (48); heavy row (16); torpedo 4; nuclear 2 + shutters | headless wide body: an open armored collar with a VERY dim ember recess where the head should be, piston arms, claw blades at the pod roots, armored skirt over the ring, rear vent bay with 6 pips; overclock: collar recess and pod vents glow (alt head: one-eyed giant brow) | amber |
 
 Overlay noses: light nose cone + a 2-3 px band in the missile colour (spec `missile_types[].glow`): Jararaca amber,
-Piranha yellow, Carrapato red, Taturana orange, Poraquê blue, Boto white, Iara green. Keep the 1-2 % emissive budget.
+Piranha yellow, Carrapato red, Taturana orange, Poraquê blue, Boto white, Iara green. Keep the 1-2 % emissive budget
+(the overclock glow lives in `turret_oc.png`, shown only while overclocked).
+
+The procedural placeholders (`tools/bsgen/sprites.py`: `launcher_pod_canvas` (box), `launcher_twin_canvas`,
+`launcher_quad_canvas`, `_nose_big`, `render_launcher_shutters`, `render_launcher_oc_glow`) follow this table and the
+same file contract; a finished model replaces them by adding `art3d/<short>/meta.json`.
 
 ### 8.4 Missiles in flight (no images to model)
 

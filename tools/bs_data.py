@@ -466,10 +466,11 @@ with open(MSPEC_PATH, encoding="utf-8") as fh:
     MSPEC = json.load(fh)
 
 # Estagio do gerador: quais lancadores e quais cargas ja sao gerados. Os demais continuam so no spec.
-BUILD_LAUNCHERS = ["rafaeltessaro.bs_msl_box"]          # estagio 1: Tocandira (inicio de jogo)
-# estagio 2: todas as cargas, em todos os niveis de lancador do spec (Caipora e Mula entram no estagio 3)
+# estagio 1: Tocandira (inicio de jogo); estagio 3: Caipora (meio) e Mula-sem-Cabeca (fim)
+BUILD_LAUNCHERS = ["rafaeltessaro.bs_msl_box", "rafaeltessaro.bs_msl_twin", "rafaeltessaro.bs_msl_quad"]
+# estagio 2: todas as cargas, em todos os niveis de lancador do spec
 BUILD_PAYLOADS = {"he", "cluster", "limpet", "napalm", "emp", "torpedo", "nuclear"}
-GENERATOR_STAGE = 2
+GENERATOR_STAGE = 3
 
 
 def _variants():
@@ -524,6 +525,14 @@ FX["launch_s"] = {
     "reload": [f"{T}/missile_launcher/sounds/launcher_reload_0{i}.wav" for i in (1, 2, 3)],
     "ready": [f"{T}/missile_launcher/sounds/launcher_ready_0{i}.wav" for i in (1, 2, 3)],
 }
+# meio (Caipora): clarao + fumaca de ripple por celula, tremor 0.01 por lancamento (spec launchers[].art.animations);
+# torpedos com o som do lancador nuclear vanilla
+FX["launch_m"] = dict(FX["launch_s"], volume=0.6, max_concurrent=16, shake=0.01,
+                      sound_heavy=[f"{T}/missile_launcher/nuke/sounds/launcher_launch_nuke.wav"])
+# fim (Mula): leque de fumaca do canhao de convés (RoofCannonSmoke), tremor 0.02 por lancamento e uma pancada
+# de 0.15 quando o rack esvazia (ultimo missil da salva)
+FX["launch_l"] = dict(FX["launch_m"], volume=0.7, shake=0.02, thump=0.15,
+                      backblast=[f"{T}/cannon_deck/particles/cannon_smoke_deck.rules"])
 
 MISSILES = []          # especificacao de cada arquivo de missil (shots.build_missile), um por (tipo, lancador)
 MISSILE_STATUSES = []  # status proprios (so com limpet_anchor=F2): registrados por AddMany no statuses.rules
@@ -745,6 +754,8 @@ def _attach_art3d_launcher(lch):
         mm = meta["modes"].get(m["type"])
         if not mm or len(mm["units"]) != m["cells"]:
             raise ValueError(f"art3d/{lch['short']}: modo {m['type']} precisa de {m['cells']} unidades no meta")
+        if m["geo"].get("shutters") and not mm.get("shutters"):
+            raise ValueError(f"art3d/{lch['short']}: modo {m['type']} ({m['layout']}) precisa das persianas no meta")
     if meta.get("crew_pos"):
         lch["crew_pos"] = [tuple(c) for c in meta["crew_pos"]]
 
@@ -777,6 +788,7 @@ def _convert_launchers():
             shot = MISSILE_BY_ID[m["shot_id"]]
             fam = FAMILY_OF[m["resource"]]
             oc_c = m["computed"].get("oc") or {}
+            dec = shot.get("decoy_emitter")       # so com torpedo_decoys=emitter (fallback T17)
             mode = {"type": m["missile_type"], "index": m["toggle_index"], "codename": m["codename"],
                     "name_en": shot["name_en"], "name_pt": shot["name_pt"], "shot": shot["file"],
                     "res": m["resource"], "family": fam, "cells": int(m["rack_units"]),
@@ -785,6 +797,8 @@ def _convert_launchers():
                     "vent": int((oc_spec.get("costs", {}).get("vent_parts_per_salvo") or {}).get(m["missile_type"], 0)),
                     "oc_factor": (oc_c.get("reload_factor") if m.get("overclock_affects", True) else None),
                     "computed": m["computed"], "glow": shot["glow_color"]}
+            if dec:
+                mode["decoy"] = {"file": dec["file"], "burst": int(dec["burst"]), "burst_delay": dec["burst_delay"]}
             mode["geo"] = _cell_layout(L, m)
             modes.append(mode)
             fams.setdefault(fam, {"key": fam, "res": m["resource"], "modes": [],
@@ -806,8 +820,10 @@ def _convert_launchers():
             "geo": {"pivot": list(pm["pivot"]), "turret_size": pm["turret_box"], "collider": pm["collider"],
                     "ring_r": pm["ring_r"], "backblast": [[b[1], b[0]] for b in pm.get("backblast", [])],
                     "accent": pm.get("accent", "amber"), "pitch_deg": pm.get("pitch_deg", 35)},
-            "fx": dict(FX["launch_s"]),          # estagio 2: presets launch_m / launch_l
+            "fx": dict(FX[f"launch_{_TIER_LETTER[L['tier']]}"]),
             "art": {"style": f"launcher_{short.rsplit('_', 1)[-1]}", "accent": "ammo"},
+            # brilho de overclock (olho da cupula / colar), so nos lancadores com overclock de projeto
+            "oc_glow": bool(oc_spec.get("enabled")),
             "desc": L.get("visual_concept", ""), "spec": L, "variants": MISSILE_VARIANTS,
         }
         if oc_on:
@@ -842,9 +858,31 @@ def _check_launcher(lch, L):
     if len(lch["modes"]) == len(L["modes"]):
         for f in lch["families"]:
             ck = lch["cookoff"].get(f["res"])
-            stock = f["mag"] + sum(m["cells"] for m in lch["modes"] if m["family"] == f["key"])
+            # estoque cheio do spec = carregador + o maior rack da familia, em pecas (cookoff[].parts_full)
+            stock = f["mag"] + max(m["cells"] * m["parts"] for m in lch["modes"] if m["family"] == f["key"])
             if ck and ck.get("parts_full") != stock:
                 errs.append(f"cook-off {f['key']}: estoque {stock}, spec parts_full {ck.get('parts_full')}")
+            if not ck:
+                errs.append(f"cook-off {f['key']}: familia sem cook-off no spec")
+        # um emissor por unidade do rack em cada modo (spec emitter_components)
+        n_em = sum(m["cells"] for m in lch["modes"])
+        if n_em != L.get("emitter_components", n_em):
+            errs.append(f"{n_em} emissores, spec emitter_components {L['emitter_components']}")
+    if lch["oc"]:
+        for m in lch["modes"]:
+            oc = (m["computed"].get("oc") or {})
+            if m["oc_factor"] and oc.get("cycle_s") is not None:
+                salvo = (m["cells"] - 1) * lch["ripple_s"] + (m["mpu"] - 1) * burst
+                cyc = m["cells"] * m["reload"] / m["oc_factor"] + salvo
+                if abs(cyc - oc["cycle_s"]) > 0.01:
+                    errs.append(f"{m['type']}: ciclo em overclock {cyc:.4f} s, spec {oc['cycle_s']}")
+            if m["type"] == "nuclear" and m["oc_factor"]:
+                errs.append("o overclock nunca pode acelerar a recarga nuclear")
+            # respiro = pecas de CELLS/16 misseis por rack cheio; torpedo/nuclear e salvas < 16 isentos
+            exempt = m["type"] in ("torpedo", "nuclear") or m["cells"] * m["mpu"] < 16
+            vent = 0 if exempt else m["parts"] * m["cells"] / 16
+            if abs(m["vent"] - vent) > 1e-9:
+                errs.append(f"{m['type']}: respiro {m['vent']} pecas, regra CELLS/16 da {vent}")
     if errs:
         raise ValueError(f"{lch['codename']}: regras divergem do spec: " + "; ".join(errs))
 
@@ -1005,10 +1043,14 @@ def buildbattle_techs():
     for lch in LAUNCHERS:
         if lch["tier"] == "early":
             continue
+        # as pecas de missil vanilla da familia vem junto (no B&B o lancador vanilla libera o recurso com a tech,
+        # techs_buildbattle.rules: ResourcesUnlocked = [missile_part_*]); sem isso o lancador nao teria municao
         out.append({"ID": f"{AUTHOR}.bs_bb_{lch['short']}", "NameKey": _part_ref(lch["short"], "NameKey"),
                     "DescriptionKey": _part_ref(lch["short"], "DescriptionKey"),
                     "Icon": _part_ref(lch["short"], "EditorIcon"), "Category": ["weapons"],
-                    "PartsUnlocked": [_part_ref(lch["short"], "ID")], "Cost": 5000,
+                    "PartsUnlocked": [_part_ref(lch["short"], "ID")],
+                    "ResourcesUnlocked": [f"&<./Data/resources/{f['res']}/{f['res']}.rules>/ID" for f in lch["families"]],
+                    "Cost": 5000,
                     "FundsThresholdBeforeOffered": 0 if lch["tier"] == "mid" else 200000})
         if lch.get("oc"):
             out.append({"ID": f"{AUTHOR}.bs_bb_{lch['short']}-overclock", "NameKey": Q(f"Parts/{lch['key']}Overclock"),

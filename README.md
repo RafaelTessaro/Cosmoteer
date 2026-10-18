@@ -37,20 +37,57 @@ traçantes, clarões de boca, granadas explodindo, flak enchendo o céu. É *tir
   **Padrão**, **Perfurante** (atravessa blindagem), **Perfurante-Explosiva** (atravessa e explode dentro do
   casco) e **EMP** (drena um pouco de escudo e bateria a cada acerto).
 - **Munições especiais:** **células de plasma** (ótimas contra escudos) e **projéteis nucleares**.
-- **Lança-mísseis de convés** (em construção): a **Tocandira** (início, 2x2) já está no mod: uma caixa de
-  micromísseis estilo RAM que dispara 12 micromísseis em sequência. A tripulação enche um paiol interno com as
-  peças de míssil do jogo base; um autocarregador recarrega as células **só enquanto há tripulação no posto**.
-  Mísseis Muriçoca (alto-explosivo) e Taturana-mirim (incendiário). Os mísseis do meio e do fim de jogo já são
-  gerados (Jararaca, Piranha de submunições, Carrapato grudento, Taturana, Poraquê PEM, Boto com iscas e o torpedo
-  nuclear Iara); os lançadores Caipora (meio) e Mula-sem-Cabeça (fim) vêm na próxima etapa. Projeto completo em
-  [docs/MISSEIS_PROJETO.md](docs/MISSEIS_PROJETO.md).
+- **Lança-mísseis de convés:** três lançadores (início, meio e fim de jogo) que disparam salvas de mísseis por
+  cima do casco, com 7 tipos de míssil. Veja [Mísseis](#mísseis) abaixo.
 - **Overclock** nas armas de meio e fim de jogo: mais cadência, dano ou alcance em troca de calor.
 - **Aba própria "Bullet Strike"** no menu de construção, techs no modo **Carreira** e no **Build & Battle**.
-- **Limite por nave:** no máximo 2 obuseiros nucleares e 2 torres de 406 mm (a arma do encouraçado),
-  para não ficar roubado.
+- **Limite por nave:** no máximo 2 armas nucleares (obuseiro nuclear Boiúna e bateria de mísseis
+  Mula-sem-Cabeça, em qualquer combinação) e 2 torres de 406 mm (a arma do encouraçado), para não ficar roubado.
 - **Arma de fim de jogo muito forte, mas muito cara:** a torre tripla de 406 mm causa ~16.000 de dano por
   segundo a 600 m, mas exige 10 tripulantes, 20 pontos de comando e uma linha de munição pesada
   (~30 viagens de carregadores por minuto).
+
+## Mísseis
+
+Três lança-mísseis de convés, todos operados só pela tripulação e **sem energia**. Os mísseis usam as **peças de
+míssil do jogo base** (A.E., T.C./térmica, PEM e nuclear), então as fábricas de mísseis vanilla abastecem os
+lançadores (e os do SW:ACD usam as mesmas peças).
+
+**Como funciona (igual nos três):**
+- **Paiol interno:** cada lançador tem um paiol por família de peça. A tripulação leva as peças até ele. Paiol
+  cheio = 3 salvas.
+- **Recarga automática só com tripulação:** um autocarregador passa um míssil por vez do paiol para as células
+  visíveis (dá para ver as ogivas carregadas no casulo). Sem tripulação no posto, a recarga para.
+- **Salva em sequência:** com todas as células cheias, sai a salva inteira em ripple (a última célula carregada
+  dispara primeiro); depois a recarga recomeça. Se o paiol acabar, a salva parcial sai mesmo assim.
+- **Trocar de míssil não dá salva grátis:** o tipo novo espera uma recarga completa.
+- **Overclock (meio e fim):** recarga 1,5 vez mais rápida (PEM 1,2 vez; o torpedo nuclear nunca acelera). Custa
+  calor por peça carregada mais calor constante (precisa de radiador), descarta cerca de 1 em cada 16 mísseis por
+  salva, dá uma pausa de 3 s ao desligar e esvazia o paiol mais rápido.
+- **Lançador cheio é uma bomba:** destruído ou queimado, explode proporcional ao estoque de cada família.
+
+| Lançador | Fase | Tamanho | Tripulação | Salva | Alcance | Mísseis | Overclock | Limite |
+|---|---|---|---|---|---|---|---|---|
+| **Tocandira** (Caixa de Micromísseis de Convés) | início | 2x2 | 1 | 12 micromísseis em 0,73 s a cada 9,1 s | 300 m | Muriçoca, Taturana-mirim | - | - |
+| **Caipora** (Lançador de Mísseis de Convés de Casulo Duplo) | meio | 3x3 | 2 | 16 mísseis em 2 s a cada 19 s | 400 m | Jararaca, Piranha, Carrapato, Taturana, Poraquê, Boto | Fúria da Caipora | - |
+| **Mula-sem-Cabeça** (Bateria Pesada de Mísseis Quádrupla) | fim | 5x6 | 8 | 48 mísseis em 3,1 s a cada 15,8 s | 600 m | os 6 da Caipora + Iara | Estouro da Boiada | 2 por nave (vaga nuclear, com a Boiúna) |
+
+**Os mísseis** (seletor no lançador; cada tipo é liberado por uma tech na Carreira):
+- **Jararaca / Muriçoca (alto-explosivo):** explosão direta; em salva grande, satura a defesa de ponto.
+- **Piranha (submunições):** abre a 25 m do casco inimigo e solta 4 (meio) ou 6 (fim) minimísseis que se espalham
+  por várias peças. O contra é flak de área.
+- **Carrapato (grudento):** gruda no casco, pisca e explode 2,5 s depois, com 50 % de chance de matar a tripulação
+  que vier consertar. Abatido no voo, se perde; num escudo só estoura.
+- **Taturana / Taturana-mirim (napalm):** explosão pequena, fogo garantido na peça atingida e calor em volta que
+  continua acendendo incêndios.
+- **Poraquê (PEM):** drena bateria e escudos em área. As armas do Bullet Strike não usam bateria e são imunes.
+- **Boto (torpedo com iscas):** torpedo lento e resistente que solta iscas para enganar a defesa de ponto.
+- **Iara (torpedo nuclear, só na Mula):** 120.000 + 40.000 de dano. Sozinho morre para flak: dispare o Iara primeiro
+  e uma salva pesada 1 a 3 s depois para os dois chegarem juntos.
+
+Números completos (recarga, ciclo, DPS, paiol, techs) em [docs/ARMAS.md](docs/ARMAS.md#mísseis-de-convés) e o
+projeto inteiro em [docs/MISSEIS_PROJETO.md](docs/MISSEIS_PROJETO.md). A arte dos lançadores ainda é provisória
+(procedural); o contrato para os modelos 3D está em `tools/blender/STYLE.md`, seção 8.
 
 A tabela completa de armas, munições e fábricas (com alcance, DPS, tripulação e receitas) está em
 **[docs/ARMAS.md](docs/ARMAS.md)**. As imagens de cada peça ficam em [docs/preview](docs/preview).
@@ -78,6 +115,11 @@ A tabela completa de armas, munições e fábricas (com alcance, DPS, tripulaç�
    - [ ] A minigun e o canhão rotativo **aceleram** enquanto atiram.
    - [ ] A flak/CIWS derruba mísseis e projéteis (teste no modo Defender).
    - [ ] As fábricas (prensas) produzem carregadores, células de plasma e projéteis nucleares.
+   - [ ] **Lança-mísseis:** a tripulação enche o paiol; as células do casulo enchem uma a uma só com tripulação
+     no posto; a salva sai inteira e as ogivas somem do casulo na ordem certa; trocar o tipo de míssil espera uma
+     recarga; os mísseis passam por cima do próprio casco sem explodir nele.
+   - [ ] **Mula-sem-Cabeça:** não deixa ter mais de 2 junto com a Boiúna; no modo Iara os casulos externos
+     fecham as persianas; o overclock não acelera o Iara.
 
 ## Compatibilidade com Star Wars: A Cosmos Divided
 
@@ -85,7 +127,9 @@ A tabela completa de armas, munições e fábricas (com alcance, DPS, tripulaç�
   techs e textos (ações `AddMany`/`Add`).
 - Todos os IDs têm prefixo próprio (`rafaeltessaro.bs_*`, `BS*`), então não há colisão de nomes.
 - As defesas miram também a categoria `ion_shot` (tiros iônicos do SW:ACD) e `laser` (turbolasers).
-- O limite de obuseiros nucleares usa o mesmo método em duas etapas do SW:ACD, então os dois mods convivem.
+- O limite de armas nucleares usa o mesmo método em duas etapas do SW:ACD, então os dois mods convivem.
+- Os mísseis usam a categoria de alvo `missile`, então as defesas de ponto e flak do jogo e do SW:ACD os
+  derrubam; o seletor de míssil é próprio (`bs_missile_type`) e não mexe no do jogo nem no do SW:ACD.
 - As armas do Bullet Strike não usam bateria, então os canhões iônicos do SW:ACD quase não as afetam. Em
   troca, a munição **EMP** é forte contra as naves do SW:ACD, que dependem de energia.
 
@@ -111,11 +155,13 @@ python3 tools/rules_lint.py --mod BulletStrike --vanilla <pasta Data do Cosmotee
 | `BulletStrike/` | **O mod pronto** (copie esta pasta para o jogo) |
 | `tools/spec/bullet_strike_spec.json` | Números de balanceamento |
 | `tools/spec/bullet_strike_missiles.json` | Projeto e números dos lança-mísseis (com as variantes de mecânica) |
+| `tools/bsgen/launchers.py`, `tools/launcher_layout.py` | Gerador dos lança-mísseis e posição das células |
 | `tools/build_mod.py` | Gera o mod inteiro |
 | `tools/bsgen/` | Geradores de peças, projéteis, fábricas, recursos e arte procedural |
 | `tools/rules_lint.py` | Validador de arquivos `.rules` (referências, caminhos, imagens, textos) |
 | `tools/schema_check.py` | Compara os campos usados pelo mod com os do jogo base |
-| `docs/ARMAS.md` | Tabela de armas, munições e fábricas |
+| `docs/ARMAS.md` | Tabela de armas, mísseis, munições e fábricas |
+| `docs/MISSEIS_PROJETO.md` | Projeto completo dos lança-mísseis (números, testes, planos B) |
 
 ## Créditos
 

@@ -236,7 +236,17 @@ LAUNCHER_FLAVOR = {
                    "pair by pair.",
                    "Uma caixa de micromísseis estilo RAM: o atirador gira a caixa e doze micromísseis saem chiando, "
                    "de dois em dois."),
+    "bs_msl_twin": ("Two octagonal pods flank an armored sensor dome; a full rack is a two-second drum-roll of sixteen "
+                    "missiles, right pod first.",
+                    "Dois casulos octogonais ladeiam uma cúpula blindada com olho sensor; o rack cheio vira um rufar de "
+                    "dezesseis mísseis em dois segundos, o casulo direito primeiro."),
+    "bs_msl_quad": ("A headless armored body carries four long pods on hydraulic arms: a stampede of 48 heavy missiles "
+                    "in three seconds. Loaded, it is the most dangerous part of your ship.",
+                    "Um corpo blindado sem cabeça carrega quatro casulos longos em braços hidráulicos: um estouro de 48 "
+                    "mísseis pesados em três segundos. Carregada, é a peça mais perigosa da sua nave."),
 }
+FAMILY_WORD = {"missile_part_he": ("H.E.", "A.E."), "missile_part_thermal": ("thermal", "térmica"),
+               "missile_part_emp": ("EMP", "PEM"), "missile_part_nuke": ("nuclear", "nuclear")}
 
 
 def _low(s):
@@ -270,18 +280,38 @@ def _launcher_strings(D, en, pt):
         salvo_t = (m0["cells"] - 1) * lch["ripple_s"] + (m0["mpu"] - 1) * (2 / 30)
         cycle = m0["cells"] * m0["reload"] + salvo_t
         unit_en = "cassette" if m0["mpu"] > 1 else "cell"
-        unit_pt = "cassete" if m0["mpu"] > 1 else "célula"
+        unit_pt = "um cassete" if m0["mpu"] > 1 else "uma célula"
         rng = lch["spec"]["range_m"][m0["type"]]
         mis_en = ", ".join(f"{m['codename']} ({MISSILE_TXT[m['type']][0]})" for m in lch["modes"])
         mis_pt = ", ".join(f"{m['codename']} ({_low(MISSILE_TXT[m['type']][1])})" for m in lch["modes"])
         res_en = " / ".join(RES_WORD[f["res"]][0] for f in lch["families"])
         res_pt = " / ".join(RES_WORD[f["res"]][1] for f in lch["families"])
-        mag = lch["families"][0]["mag"]
+        mags = [f["mag"] for f in lch["families"]]
+        if len(set(mags)) == 1:
+            mag_en, mag_pt = f"{mags[0]} parts each", f"{mags[0]} peças cada"
+        else:
+            mag_en = ", ".join(f"{FAMILY_WORD[f['res']][0]} {f['mag']}" for f in lch["families"]) + " parts"
+            mag_pt = ", ".join(f"{FAMILY_WORD[f['res']][1]} {f['mag']}" for f in lch["families"]) + " peças"
         crew_en = f"{lch['crew']} crew"
         crew_pt = f"{lch['crew']} tripulante" + ("s" if lch["crew"] > 1 else "")
         fl_en, fl_pt = LAUNCHER_FLAVOR.get(lch["short"], ("Deck missile launcher.", "Lança-mísseis de convés."))
         oc_en = " Can be overclocked." if lch.get("oc") else ""
         oc_pt = " Aceita overclock." if lch.get("oc") else ""
+        # salvas de tamanhos diferentes por modo (Mula: 48 finos, 16 pesados, 4 torpedos, 2 Iara)
+        sizes = {}
+        for m in lch["modes"]:
+            sizes.setdefault(m["cells"] * m["mpu"], []).append(m["codename"])
+        var_en = var_pt = ""
+        if len(sizes) > 1:
+            var_en = " Missiles per salvo: " + "; ".join(f"{', '.join(v)} {n}" for n, v in sizes.items()) + "."
+            var_pt = " Mísseis por salva: " + "; ".join(f"{', '.join(v)} {n}" for n, v in sizes.items()) + "."
+        lim_en = lim_pt = ""
+        lims = [c for c in lch["categories"] if c.startswith("bs_limit_")]
+        if "bs_limit_nuke" in lims:
+            mx = next(l_[1] for l_ in D.LIMITS if l_[0] == "bs_limit_nuke")
+            lim_en = (f"\n\nLimit: {mx} per ship, shared with the Boiúna nuclear howitzer (nuclear weapons, any mix).")
+            lim_pt = (f"\n\nLimite: {mx} por nave, junto com o obuseiro nuclear Boiúna (armas nucleares, em qualquer "
+                      f"combinação).")
         en["Parts"][k] = lch["name_en"]
         pt["Parts"][k] = lch["name_pt"]
         en["Parts"][k + "Icon"] = lch["codename"][:18]
@@ -290,29 +320,48 @@ def _launcher_strings(D, en, pt):
             f"{fl_en} \"{lch['codename']}\"\n\n{TIER_EN[lch['tier']]} deck missile launcher. A full rack ripples "
             f"{n} missiles in {_num_en(salvo_t)} s, then a crewed autoloader refills it one {unit_en} at a time "
             f"({_num_en(m0['reload'])} s each; reloading stops while nobody mans it): one salvo every "
-            f"{_num_en(cycle, 1)} s. Range {rng} m. Missiles: {mis_en}.\n\nNeeds no power: {crew_en} and vanilla "
-            f"{res_en} carried into its internal magazines ({mag} parts each). Switching the missile type costs one "
+            f"{_num_en(cycle, 1)} s. Range {rng} m. Missiles: {mis_en}.{var_en}\n\nNeeds no power: {crew_en} and vanilla "
+            f"{res_en} carried into its internal magazines ({mag_en}). Switching the missile type costs one "
             f"full reload; a dry magazine still fires the partial rack. The missiles fly over your own deck and can "
-            f"be shot down by point defense. A loaded launcher cooks off when it burns or is destroyed.{oc_en}"
+            f"be shot down by point defense. A loaded launcher cooks off when it burns or is destroyed.{oc_en}{lim_en}"
             "<string id='BSModTag'/>")
         pt["Parts"][k + "Desc"] = (
             f"{fl_pt} \"{lch['codename']}\"\n\n{TIER_PT[lch['tier']]} - lança-mísseis de convés. Com o rack cheio, "
             f"dispara {n} mísseis em sequência em {_num_pt(salvo_t)} s; depois um autocarregador tripulado recarrega "
-            f"um {unit_pt} por vez ({_num_pt(m0['reload'])} s cada; sem tripulação no posto a recarga para): uma "
-            f"salva a cada {_num_pt(cycle, 1)} s. Alcance {rng} m. Mísseis: {mis_pt}.\n\nNão usa energia: "
-            f"{crew_pt} e {res_pt} do jogo base levadas até os paióis internos ({mag} peças cada). Trocar o tipo de "
+            f"{unit_pt} por vez ({_num_pt(m0['reload'])} s cada; sem tripulação no posto a recarga para): uma "
+            f"salva a cada {_num_pt(cycle, 1)} s. Alcance {rng} m. Mísseis: {mis_pt}.{var_pt}\n\nNão usa energia: "
+            f"{crew_pt} e {res_pt} do jogo base levadas até os paióis internos ({mag_pt}). Trocar o tipo de "
             f"míssil custa uma recarga completa; com o paiol vazio, o rack parcial dispara mesmo assim. Os mísseis "
             f"passam por cima do próprio convés e podem ser abatidos pela defesa de ponto. Carregado, o lançador "
-            f"explode quando pega fogo ou é destruído.{oc_pt}<string id='BSModTag'/>")
+            f"explode quando pega fogo ou é destruído.{oc_pt}{lim_pt}<string id='BSModTag'/>")
         if lch.get("oc"):
             o = lch["spec"]["overclock"]
             en["Parts"][k + "Overclock"] = f"Overclocked {lch['name_en']}"
             pt["Parts"][k + "Overclock"] = f"{lch['name_pt']} (Overclocking)"
-            en["Parts"][k + "OverclockDesc"] = (f"\"{o.get('name_en', '')}\": the autoloader works 1.5x faster. Costs heat "
-                                                f"per missile loaded plus constant heat, and drains the magazine faster.")
-            pt["Parts"][k + "OverclockDesc"] = (f"\"{o.get('name_ptbr', '')}\": o autocarregador trabalha 1,5 vez mais "
-                                                f"rápido. Gera calor por míssil carregado e calor constante, e esvazia o "
-                                                f"paiol mais rápido.")
+            oc = lch["oc"]
+            fac = sorted({m["oc_factor"] for m in lch["modes"] if m["oc_factor"]}, reverse=True)
+            emp = [m for m in lch["modes"] if m["oc_factor"] and m["oc_factor"] != fac[0]]
+            no_oc = [m for m in lch["modes"] if not m["oc_factor"]]
+            vent = any(m["vent"] for m in lch["modes"])
+            ex_en = "".join(f" ({m['codename']}: {_num_en(m['oc_factor'])}x)" for m in emp)
+            ex_pt = "".join(f" ({m['codename']}: {_num_pt(m['oc_factor'])} vez)" for m in emp)
+            nn_en = "".join(f" It never speeds up the reload of the {m['codename']} {m['name_en'].lower()}." for m in no_oc)
+            nn_pt = "".join(f" Nunca acelera a recarga do {m['name_pt'].lower()} {m['codename']}." for m in no_oc)
+            vent_en = " About 1 in 16 missiles is vented from the magazine every salvo (torpedoes exempt)." if vent else ""
+            vent_pt = (" Cerca de 1 em cada 16 mísseis é descartado do paiol a cada salva (torpedos isentos)."
+                       if vent else "")
+            en["Parts"][k + "OverclockDesc"] = (
+                f"\"{o.get('name_en', '')}\": the autoloader works {_num_en(fac[0])}x faster{ex_en}; ripple, damage and "
+                f"range stay the same.{nn_en} Costs {oc['heat_per_part']} heat per missile part loaded plus "
+                f"{oc['heat_per_second']} heat/s (needs radiators).{vent_en} Switching it off pauses the launcher for 3 s, "
+                f"and the magazine empties faster. Without enough cooling it overheats, catches fire and cooks off with "
+                f"its stock.")
+            pt["Parts"][k + "OverclockDesc"] = (
+                f"\"{o.get('name_ptbr', '')}\": o autocarregador trabalha {_num_pt(fac[0])} vez mais rápido{ex_pt}; "
+                f"ripple, dano e alcance não mudam.{nn_pt} Custa {oc['heat_per_part']} de calor por peça de míssil "
+                f"carregada mais {oc['heat_per_second']} de calor/s (precisa de radiador).{vent_pt} Desligar dá uma "
+                f"pausa de 3 s e o paiol esvazia mais rápido. Sem refrigeração suficiente, esquenta, pega fogo e explode "
+                f"junto com o estoque.")
         for m in lch["modes"]:
             en["StatCategories"][f"{k}_{m['type']}"] = f"{m['name_en']} \"{m['codename']}\""
             pt["StatCategories"][f"{k}_{m['type']}"] = f"{m['name_pt']} \"{m['codename']}\""

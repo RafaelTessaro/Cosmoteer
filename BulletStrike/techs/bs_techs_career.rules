@@ -343,5 +343,99 @@ Techs
 		Cost = 9000
 		Prerequisites = [rafaeltessaro.bs_msl_box, cosmoteer.factory_thermal]
 	}
+	{
+		ID = rafaeltessaro.bs_msl_twin
+		NameKey = &<../parts/bs_msl_twin/bs_msl_twin.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_msl_twin/bs_msl_twin.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_msl_twin/bs_msl_twin.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked = [&<../parts/bs_msl_twin/bs_msl_twin.rules>/Part/ID]
+		Cost = 14000
+		Prerequisites = [rafaeltessaro.bs_msl_box, cosmoteer.factory_he]
+	}
+	{
+		ID = rafaeltessaro.bs_msl_cluster
+		NameKey = "PartToggles/BSMissile_ClusterName"
+		DescriptionKey = "PartToggles/BSMissile_ClusterDesc"
+		Icon = &<../parts/bs_msl_twin/bs_msl_twin.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [[bs_missile_type, 1]]
+		Cost = 16000
+		Prerequisites = [rafaeltessaro.bs_msl_twin]
+	}
+	{
+		ID = rafaeltessaro.bs_msl_emp
+		NameKey = "PartToggles/BSMissile_EmpName"
+		DescriptionKey = "PartToggles/BSMissile_EmpDesc"
+		Icon = &<../parts/bs_msl_twin/bs_msl_twin.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [[bs_missile_type, 4]]
+		Cost = 12000
+		Prerequisites = [rafaeltessaro.bs_msl_twin, cosmoteer.factory_emp]
+	}
+	{
+		ID = rafaeltessaro.bs_msl_limpet
+		NameKey = "PartToggles/BSMissile_LimpetName"
+		DescriptionKey = "PartToggles/BSMissile_LimpetDesc"
+		Icon = &<../parts/bs_msl_twin/bs_msl_twin.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [[bs_missile_type, 2]]
+		Cost = 22000
+		Prerequisites = [rafaeltessaro.bs_msl_cluster, rafaeltessaro.bs_ammo_aphe]
+	}
+	{
+		ID = rafaeltessaro.bs_msl_torpedo
+		NameKey = "PartToggles/BSMissile_TorpedoName"
+		DescriptionKey = "PartToggles/BSMissile_TorpedoDesc"
+		Icon = &<../parts/bs_msl_twin/bs_msl_twin.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [[bs_missile_type, 5]]
+		Cost = 25000
+		Prerequisites = [rafaeltessaro.bs_msl_cluster]
+	}
+	{
+		ID = rafaeltessaro.bs_msl_twin-overclock
+		Categories = [overclock]
+		NameKey = "Parts/BSMslTwinOverclock"
+		DescriptionKey = "Parts/BSMslTwinOverclockDesc"
+		Icon = &<../parts/bs_msl_twin/bs_msl_twin.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_msl_twin; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 40000
+		Prerequisites = [rafaeltessaro.bs_msl_twin, cosmoteer.heat_management]
+	}
+	{
+		ID = rafaeltessaro.bs_msl_quad
+		NameKey = &<../parts/bs_msl_quad/bs_msl_quad.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_msl_quad/bs_msl_quad.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_msl_quad/bs_msl_quad.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		PartsUnlocked = [&<../parts/bs_msl_quad/bs_msl_quad.rules>/Part/ID]
+		Cost = 150000
+		Prerequisites = [rafaeltessaro.bs_msl_torpedo, cosmoteer.control_room_large]
+	}
+	{
+		ID = rafaeltessaro.bs_msl_nuclear
+		NameKey = "PartToggles/BSMissile_NuclearName"
+		DescriptionKey = "PartToggles/BSMissile_NuclearDesc"
+		Icon = &<../parts/bs_msl_quad/bs_msl_quad.rules>/Part/EditorIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [[bs_missile_type, 6]]
+		Cost = 110000
+		Prerequisites = [rafaeltessaro.bs_msl_quad, rafaeltessaro.bs_nuclear, cosmoteer.factory_nuke]
+	}
+	{
+		ID = rafaeltessaro.bs_msl_quad-overclock
+		Categories = [overclock]
+		NameKey = "Parts/BSMslQuadOverclock"
+		DescriptionKey = "Parts/BSMslQuadOverclockDesc"
+		Icon = &<../parts/bs_msl_quad/bs_msl_quad.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		EditorGroup = "BulletStrike"
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_msl_quad; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 160000
+		Prerequisites = [rafaeltessaro.bs_msl_quad, cosmoteer.heat_management]
+	}
 ]
 OverclockIcon = &<./Data/modes/career/techs.rules>/OverclockIcon

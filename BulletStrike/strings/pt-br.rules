@@ -92,6 +92,16 @@ Parts
 	BSMslBox = "Caixa de Micromísseis de Convés"
 	BSMslBoxIcon = "Tocandira"
 	BSMslBoxDesc = "Uma caixa de micromísseis estilo RAM: o atirador gira a caixa e doze micromísseis saem chiando, de dois em dois. \"Tocandira\"\n\nInício de jogo - lança-mísseis de convés. Com o rack cheio, dispara 12 mísseis em sequência em 0,73 s; depois um autocarregador tripulado recarrega um cassete por vez (1,39 s cada; sem tripulação no posto a recarga para): uma salva a cada 9,1 s. Alcance 300 m. Mísseis: Muriçoca (alto-explosivo), Taturana-mirim (napalm).\n\nNão usa energia: 1 tripulante e peças de míssil A.E. / peças de míssil T.C. do jogo base levadas até os paióis internos (12 peças cada). Trocar o tipo de míssil custa uma recarga completa; com o paiol vazio, o rack parcial dispara mesmo assim. Os mísseis passam por cima do próprio convés e podem ser abatidos pela defesa de ponto. Carregado, o lançador explode quando pega fogo ou é destruído.<string id='BSModTag'/>"
+	BSMslTwin = "Lançador de Mísseis de Convés de Casulo Duplo"
+	BSMslTwinIcon = "Caipora"
+	BSMslTwinDesc = "Dois casulos octogonais ladeiam uma cúpula blindada com olho sensor; o rack cheio vira um rufar de dezesseis mísseis em dois segundos, o casulo direito primeiro. \"Caipora\"\n\nMeio de jogo - lança-mísseis de convés. Com o rack cheio, dispara 16 mísseis em sequência em 2 s; depois um autocarregador tripulado recarrega uma célula por vez (1,06 s cada; sem tripulação no posto a recarga para): uma salva a cada 19 s. Alcance 400 m. Mísseis: Jararaca (alto-explosivo), Piranha (submunições), Carrapato (grudento), Taturana (napalm), Poraquê (PEM), Boto (torpedo com iscas). Mísseis por salva: Jararaca, Piranha, Carrapato, Taturana, Poraquê 16; Boto 2.\n\nNão usa energia: 2 tripulantes e peças de míssil A.E. / peças de míssil T.C. / peças de míssil PEM do jogo base levadas até os paióis internos (64 peças cada). Trocar o tipo de míssil custa uma recarga completa; com o paiol vazio, o rack parcial dispara mesmo assim. Os mísseis passam por cima do próprio convés e podem ser abatidos pela defesa de ponto. Carregado, o lançador explode quando pega fogo ou é destruído. Aceita overclock.<string id='BSModTag'/>"
+	BSMslTwinOverclock = "Lançador de Mísseis de Convés de Casulo Duplo (Overclocking)"
+	BSMslTwinOverclockDesc = "\"Fúria da Caipora\": o autocarregador trabalha 1,5 vez mais rápido (Poraquê: 1,2 vez); ripple, dano e alcance não mudam. Custa 425 de calor por peça de míssil carregada mais 100 de calor/s (precisa de radiador). Cerca de 1 em cada 16 mísseis é descartado do paiol a cada salva (torpedos isentos). Desligar dá uma pausa de 3 s e o paiol esvazia mais rápido. Sem refrigeração suficiente, esquenta, pega fogo e explode junto com o estoque."
+	BSMslQuad = "Bateria Pesada de Mísseis Quádrupla"
+	BSMslQuadIcon = "Mula-sem-Cabeça"
+	BSMslQuadDesc = "Um corpo blindado sem cabeça carrega quatro casulos longos em braços hidráulicos: um estouro de 48 mísseis pesados em três segundos. Carregada, é a peça mais perigosa da sua nave. \"Mula-sem-Cabeça\"\n\nFim de jogo - lança-mísseis de convés. Com o rack cheio, dispara 48 mísseis em sequência em 3,13 s; depois um autocarregador tripulado recarrega uma célula por vez (0,26 s cada; sem tripulação no posto a recarga para): uma salva a cada 15,8 s. Alcance 600 m. Mísseis: Jararaca (alto-explosivo), Piranha (submunições), Carrapato (grudento), Taturana (napalm), Poraquê (PEM), Boto (torpedo com iscas), Iara (torpedo nuclear). Mísseis por salva: Jararaca 48; Piranha, Carrapato, Taturana, Poraquê 16; Boto 4; Iara 2.\n\nNão usa energia: 8 tripulantes e peças de míssil A.E. / peças de míssil T.C. / peças de míssil PEM / peças de míssil nuclear do jogo base levadas até os paióis internos (A.E. 192, térmica 192, PEM 96, nuclear 32 peças). Trocar o tipo de míssil custa uma recarga completa; com o paiol vazio, o rack parcial dispara mesmo assim. Os mísseis passam por cima do próprio convés e podem ser abatidos pela defesa de ponto. Carregado, o lançador explode quando pega fogo ou é destruído. Aceita overclock.\n\nLimite: 2 por nave, junto com o obuseiro nuclear Boiúna (armas nucleares, em qualquer combinação).<string id='BSModTag'/>"
+	BSMslQuadOverclock = "Bateria Pesada de Mísseis Quádrupla (Overclocking)"
+	BSMslQuadOverclockDesc = "\"Estouro da Boiada\": o autocarregador trabalha 1,5 vez mais rápido (Poraquê: 1,2 vez); ripple, dano e alcance não mudam. Nunca acelera a recarga do torpedo nuclear Iara. Custa 400 de calor por peça de míssil carregada mais 150 de calor/s (precisa de radiador). Cerca de 1 em cada 16 mísseis é descartado do paiol a cada salva (torpedos isentos). Desligar dá uma pausa de 3 s e o paiol esvazia mais rápido. Sem refrigeração suficiente, esquenta, pega fogo e explode junto com o estoque."
 }
 PartToggles
 {
@@ -146,6 +156,19 @@ StatCategories
 	BSFlak = "Flak de explosão aérea"
 	BSMslBox_he = "Micromíssil \"Muriçoca\""
 	BSMslBox_napalm = "Micromíssil Incendiário \"Taturana-mirim\""
+	BSMslTwin_he = "Míssil Alto-Explosivo \"Jararaca\""
+	BSMslTwin_cluster = "Míssil de Submunições (Transformer) \"Piranha\""
+	BSMslTwin_limpet = "Míssil Grudento \"Carrapato\""
+	BSMslTwin_napalm = "Míssil de Napalm \"Taturana\""
+	BSMslTwin_emp = "Míssil PEM \"Poraquê\""
+	BSMslTwin_torpedo = "Torpedo com Iscas \"Boto\""
+	BSMslQuad_he = "Míssil Alto-Explosivo \"Jararaca\""
+	BSMslQuad_cluster = "Míssil de Submunições (Transformer) \"Piranha\""
+	BSMslQuad_limpet = "Míssil Grudento \"Carrapato\""
+	BSMslQuad_napalm = "Míssil de Napalm \"Taturana\""
+	BSMslQuad_emp = "Míssil PEM \"Poraquê\""
+	BSMslQuad_torpedo = "Torpedo com Iscas \"Boto\""
+	BSMslQuad_nuclear = "Torpedo Nuclear \"Iara\""
 }
 Resource
 {
@@ -167,8 +190,8 @@ Resource
 }
 CategoryNouns
 {
-	BSLimitNukeSingular = "Obuseiro Nuclear"
-	BSLimitNukePlural = "Obuseiros Nucleares"
+	BSLimitNukeSingular = "Arma Nuclear"
+	BSLimitNukePlural = "Armas Nucleares"
 	BSLimitFlagshipSingular = "Torre de Encouraçado"
 	BSLimitFlagshipPlural = "Torres de Encouraçado"
 }

@@ -255,6 +255,65 @@ Techs
 		FundsThresholdBeforeOffered = 200000
 		Prerequisites = [rafaeltessaro.bs_bb_bs_flak_heavy]
 	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_msl_twin
+		NameKey = &<../parts/bs_msl_twin/bs_msl_twin.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_msl_twin/bs_msl_twin.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_msl_twin/bs_msl_twin.rules>/Part/EditorIcon
+		Category = [weapons]
+		PartsUnlocked = [&<../parts/bs_msl_twin/bs_msl_twin.rules>/Part/ID]
+		ResourcesUnlocked
+		[
+			&<./Data/resources/missile_part_he/missile_part_he.rules>/ID
+			&<./Data/resources/missile_part_thermal/missile_part_thermal.rules>/ID
+			&<./Data/resources/missile_part_emp/missile_part_emp.rules>/ID
+		]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 0
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_msl_twin-overclock
+		NameKey = "Parts/BSMslTwinOverclock"
+		DescriptionKey = "Parts/BSMslTwinOverclockDesc"
+		Icon = &<../parts/bs_msl_twin/bs_msl_twin.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		Category = [overclocks]
+		PartsUnlocked = &<./Data/modes/pvp/pvp_buildbattle/techs_buildbattle.rules>/ThermalParts
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_msl_twin; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 0
+		Prerequisites = [rafaeltessaro.bs_bb_bs_msl_twin]
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_msl_quad
+		NameKey = &<../parts/bs_msl_quad/bs_msl_quad.rules>/Part/NameKey
+		DescriptionKey = &<../parts/bs_msl_quad/bs_msl_quad.rules>/Part/DescriptionKey
+		Icon = &<../parts/bs_msl_quad/bs_msl_quad.rules>/Part/EditorIcon
+		Category = [weapons]
+		PartsUnlocked = [&<../parts/bs_msl_quad/bs_msl_quad.rules>/Part/ID]
+		ResourcesUnlocked
+		[
+			&<./Data/resources/missile_part_he/missile_part_he.rules>/ID
+			&<./Data/resources/missile_part_thermal/missile_part_thermal.rules>/ID
+			&<./Data/resources/missile_part_emp/missile_part_emp.rules>/ID
+			&<./Data/resources/missile_part_nuke/missile_part_nuke.rules>/ID
+		]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 200000
+	}
+	{
+		ID = rafaeltessaro.bs_bb_bs_msl_quad-overclock
+		NameKey = "Parts/BSMslQuadOverclock"
+		DescriptionKey = "Parts/BSMslQuadOverclockDesc"
+		Icon = &<../parts/bs_msl_quad/bs_msl_quad.rules>/Part/EditorIcon
+		SecondaryIcon = &~/OverclockIcon
+		Category = [overclocks]
+		PartsUnlocked = &<./Data/modes/pvp/pvp_buildbattle/techs_buildbattle.rules>/ThermalParts
+		ToggleChoicesUnlocked = [{ PartID=rafaeltessaro.bs_msl_quad; ToggleID=thermal_overclock; Mode=1; }]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 200000
+		Prerequisites = [rafaeltessaro.bs_bb_bs_msl_quad]
+	}
 ]
 PartsWhitelist
 [

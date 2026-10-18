@@ -723,10 +723,222 @@ def launcher_pod_canvas(T, units, tube_r, pitch_deg, accent, lamps_on=True):
     return c
 
 
-def render_launcher_pod(ts_tiles, units, tube_r, pitch_deg, accent):
+def _pods_px(T, units):
+    """Por casulo (ordem do indice): (x0, x1, y0, y1) dos tubos em pixels do quadro da torre."""
+    pods = {}
+    for u in units:
+        pods.setdefault(u["pod"], []).extend(u["tubes"])
+    out = []
+    for _p, tubes in sorted(pods.items()):
+        xs = [_tp(T, *t)[0] for t in tubes]
+        ys = [_tp(T, *t)[1] for t in tubes]
+        out.append((min(xs), max(xs), min(ys), max(ys)))
+    return out
+
+
+def _octagon(x0, y0, x1, y1, ch):
+    return [(x0 + ch, y0), (x1 - ch, y0), (x1, y0 + ch), (x1, y1 - ch), (x1 - ch, y1), (x0 + ch, y1), (x0, y1 - ch),
+            (x0, y0 + ch)]
+
+
+def _rot_pts(pts, cx, cy, ang):
+    ca, sa = math.cos(ang), math.sin(ang)
+    return [(cx + (x - cx) * ca - (y - cy) * sa, cy + (x - cx) * sa + (y - cy) * ca) for x, y in pts]
+
+
+def _tube_holes(c, T, units, r, ry):
+    for u in units:
+        for (fwd, lat) in u["tubes"]:
+            x, y = _tp(T, fwd, lat)
+            c.fill(c.mask_ellipse(x, y, r * 1.18, ry * 1.25), METAL_DARK, height=0.52, bevel=0.6, mode="set")
+            c.fill(c.mask_ellipse(x, y, r, ry), BLACK, height=0.3, bevel=0.4, mode="set")
+
+
+def _vent_bay(c, x0, x1, y0, y1, n_pips, accent, lamps_on, slats=6):
+    c.fill(c.mask_rect(x0, y0, x1, y1, r=2), BLACK, height=0.5, bevel=0.6, mode="set")
+    for i in range(slats):
+        lx = x0 + (x1 - x0) * (i + 0.5) / slats
+        c.groove([(lx, y0 + 2), (lx, y1 - 2)], 0.8, 0.04, (70, 74, 80))
+    cx = (x0 + x1) / 2
+    step = min((x1 - x0) / (n_pips + 1), (y1 - y0) * 1.4)
+    for i in range(n_pips):
+        px = cx + (i - (n_pips - 1) / 2) * step
+        pip = c.mask_ellipse(px, (y0 + y1) / 2, max(1.2, (y1 - y0) * 0.17))
+        c.fill(pip, shade(accent, 0.45), height=0.55, bevel=0.2)
+        if lamps_on:
+            c.glow(pip, accent, 0.9, blur=1.2)
+
+
+def launcher_twin_canvas(T, units, tube_r, pitch_deg, accent, lamps_on=True, oc_glow=False):
+    """Caipora: dois casulos OCTOGONAIS inclinados ladeando uma cupula blindada com um olho sensor ambar,
+    garras na frente dos casulos, quatro pes abertos sobre o anel, escotilha de carregador e baia de respiro
+    traseira com 5 pips. oc_glow=True devolve so o brilho de overclock (olho laranja + brasas do respiro)."""
+    c = Canvas(T, T)
+    cx = cy = T / 2
+    _tubes, r, ry, *_ = _tube_extent(T, units, tube_r, pitch_deg)
+    pods = _pods_px(T, units)
+    pad_x, pad_y = r * 2.2, ry * 3.2
+    dome_y, dome_r = cy + T * 0.02, T * 0.15
+    eye = c.mask_rect(cx - dome_r * 0.55, dome_y - dome_r * 0.72, cx + dome_r * 0.55, dome_y - dome_r * 0.5, r=1.5)
+    vy0, vy1 = cy + T * 0.27, cy + T * 0.33
+    if oc_glow:
+        c.glow(eye, (255, 110, 20), 1.6, blur=2.5)
+        for i in range(5):                                  # brasas nas fendas do respiro
+            ex = cx + (i - 2) * T * 0.05
+            c.glow(c.mask_rect(ex - T * 0.008, vy0 + 2, ex + T * 0.008, vy1 - 2), (255, 90, 20), 0.8, blur=1.5)
+        return c
+    _base_ring(c, cx, cy, T * 0.41, accent)
+    # quatro pes abertos (ref. 3) desenhados sobre o anel
+    for k in range(4):
+        a = math.radians(45 + 90 * k)
+        fx, fy = cx + math.cos(a) * T * 0.33, cy + math.sin(a) * T * 0.33
+        foot = [(fx - T * 0.035, fy - T * 0.08), (fx + T * 0.035, fy - T * 0.08), (fx + T * 0.05, fy + T * 0.07),
+                (fx - T * 0.05, fy + T * 0.07)]
+        _plate(c, c.mask_poly(_rot_pts(foot, fx, fy, a + math.pi / 2)), GUNMETAL, 0.4, 1)
+    # corpo traseiro: escotilha do carregador e baia de respiro
+    body = _octagon(cx - T * 0.2, cy - T * 0.02, cx + T * 0.2, cy + T * 0.36, T * 0.06)
+    _plate(c, c.mask_poly(body), STEEL, 0.55, 2.5, gradient=(METAL_LIGHT, METAL_DARK))
+    c.fill(c.mask_rect(cx - T * 0.1, cy + T * 0.17, cx + T * 0.1, cy + T * 0.25, r=2), shade(STEEL, 0.9), height=0.6,
+           bevel=1)
+    c.groove([(cx - T * 0.09, cy + T * 0.21), (cx + T * 0.09, cy + T * 0.21)], 0.8, 0.05, shade(METAL, 0.5))
+    _vent_bay(c, cx - T * 0.13, cx + T * 0.13, vy0, vy1, 5, accent, lamps_on)
+    # glacis frontal entre os casulos (protege a cupula)
+    gl = _octagon(cx - T * 0.16, cy - T * 0.36, cx + T * 0.16, cy - T * 0.06, T * 0.07)
+    _plate(c, c.mask_poly(gl), shade(STEEL, 0.95), 0.58, 2, gradient=(METAL_LIGHT, METAL))
+    c.groove([(cx - T * 0.12, cy - T * 0.27), (cx + T * 0.12, cy - T * 0.27)], 0.8, 0.05, shade(METAL, 0.5))
+    _rivet_row(c, cx - T * 0.12, cy - T * 0.32, cx + T * 0.12, cy - T * 0.32, 5)
+    # bracos entre a cupula e os casulos
+    for (x0, x1, y0, y1) in pods:
+        side = -1 if (x0 + x1) / 2 < cx else 1
+        ax0, ax1 = sorted([cx, (x0 + x1) / 2])
+        ay = (y0 + y1) / 2 + pad_y * 0.6
+        _plate(c, c.mask_rect(ax0, ay - T * 0.035, ax1, ay + T * 0.035, r=2), GUNMETAL, 0.5, 1)
+        c.groove([(ax0 + 3, ay), (ax1 - 3, ay)], 0.7, 0.04, shade(METAL, 0.5))
+        del side
+    # casulos: corpo inclinado atras da face + face octogonal com os tubos
+    for (x0, x1, y0, y1) in pods:
+        fx0, fx1, fy0, fy1 = x0 - pad_x, x1 + pad_x, y0 - pad_y, y1 + pad_y
+        ch = min(fx1 - fx0, fy1 - fy0) * 0.3
+        tail = _octagon(fx0 + T * 0.012, fy0 + T * 0.06, fx1 - T * 0.012, fy1 + T * 0.13, ch)
+        _plate(c, c.mask_poly(tail), shade(STEEL, 0.85), 0.55, 2, gradient=(METAL, METAL_DARK))
+        face = _octagon(fx0, fy0, fx1, fy1, ch)
+        _plate(c, c.mask_poly(face), STEEL, 0.66, 2, gradient=(METAL_LIGHT, METAL))
+        inner = _octagon(fx0 + 2.5, fy0 + 2.5, fx1 - 2.5, fy1 - 2.5, ch * 0.85)
+        c.fill(c.mask_poly(inner), GUNMETAL, height=0.5, bevel=1.0, mode="set")
+        # garras na frente, do lado de fora
+        out_x = fx0 if (fx0 + fx1) / 2 < cx else fx1
+        sgn = -1 if out_x == fx0 else 1
+        reach = max(1.5, min(T * 0.035, (out_x if sgn < 0 else T - out_x) - 2))   # nunca sai do quadro
+        claw = [(out_x - sgn * 2, fy0 + ch * 0.2), (out_x + sgn * reach, fy0 - T * 0.01),
+                (out_x + sgn * reach * 0.8, fy0 + ch * 1.4), (out_x - sgn * 2, fy1 - ch * 0.4)]
+        _plate(c, c.mask_poly(claw), shade(STEEL, 1.1), 0.72, 1.2, gradient=(METAL_LIGHT, METAL))
+    _tube_holes(c, T, units, r, ry)
+    # cupula blindada com o olho sensor
+    c.fill(c.mask_ellipse(cx, dome_y, dome_r * 1.08), METAL_DARK, height=0.6, bevel=1.5)
+    c.fill(c.mask_ellipse(cx, dome_y, dome_r), STEEL, height=0.9, bevel=dome_r * 0.6,
+           gradient=(WHITE, METAL))
+    c.fill(c.mask_rect(cx - dome_r * 0.62, dome_y - dome_r * 0.78, cx + dome_r * 0.62, dome_y - dome_r * 0.44, r=2),
+           BLACK, height=0.75, bevel=0.4, mode="set")
+    c.fill(eye, shade(accent, 0.5), height=0.78, bevel=0.2)
+    if lamps_on:
+        c.glow(eye, accent, 0.9, blur=1.6)
+    _rivet_row(c, cx - dome_r * 0.7, dome_y + dome_r * 0.55, cx + dome_r * 0.7, dome_y + dome_r * 0.55, 5)
+    return c
+
+
+def launcher_quad_canvas(T, units, tube_r, pitch_deg, accent, lamps_on=True, oc_glow=False):
+    """Mula-sem-Cabeca: corpo largo e baixo SEM cabeca, um colar blindado aberto com um recesso de brasa muito
+    fraca no lugar da cabeca, quatro casulos retangulares (face 3x4) em bracos hidraulicos, garras na raiz dos
+    casulos, saia blindada sobre o anel e baia de respiro traseira com 6 pips. oc_glow=True devolve so o
+    brilho de overclock (recesso do colar e respiros dos casulos em brasa)."""
+    c = Canvas(T, T)
+    cx = cy = T / 2
+    _tubes, r, ry, *_ = _tube_extent(T, units, tube_r, pitch_deg)
+    pods = _pods_px(T, units)
+    pad_x, pad_y = r * 1.7, ry * 2.6
+    col_y, col_r = cy + T * 0.05, T * 0.085
+    recess = c.mask_ellipse(cx, col_y, col_r * 0.62, col_r * 0.55)
+    pod_vents = []
+    for (x0, x1, y0, y1) in pods:
+        vy = y1 + pad_y + T * 0.07
+        pod_vents.append(c.mask_rect((x0 + x1) / 2 - T * 0.035, vy, (x0 + x1) / 2 + T * 0.035, vy + T * 0.012, r=1))
+    if oc_glow:
+        c.glow(c.mask_ellipse(cx, col_y, col_r * 0.32, col_r * 0.28), (255, 100, 20), 1.6, blur=col_r * 0.25)
+        for m in pod_vents:
+            c.glow(m, (255, 110, 30), 1.0, blur=1.8)
+        return c
+    _base_ring(c, cx, cy, T * 0.415, accent)
+    # saia blindada sobre o anel + corpo largo e baixo
+    skirt = _octagon(cx - T * 0.44, cy - T * 0.06, cx + T * 0.44, cy + T * 0.36, T * 0.09)
+    _plate(c, c.mask_poly(skirt), shade(STEEL, 0.8), 0.45, 2.5, gradient=(METAL, METAL_DARK))
+    body = _octagon(cx - T * 0.40, cy - T * 0.02, cx + T * 0.40, cy + T * 0.30, T * 0.07)
+    _plate(c, c.mask_poly(body), STEEL, 0.6, 3, gradient=(METAL_LIGHT, METAL_DARK))
+    _panel_lines(c, cx - T * 0.38, cy, cx + T * 0.38, cy + T * 0.28, nx=4, ny=1)
+    # escotilhas dos carregadores das familias e rebites do corpo
+    for sx in (-1, 1):
+        hx = cx + sx * T * 0.25
+        c.fill(c.mask_rect(hx - T * 0.075, cy + T * 0.17, hx + T * 0.075, cy + T * 0.27, r=2.5), shade(STEEL, 0.92),
+               height=0.66, bevel=1.2, gradient=(METAL_LIGHT, METAL))
+        c.groove([(hx - T * 0.06, cy + T * 0.22), (hx + T * 0.06, cy + T * 0.22)], 0.8, 0.05, shade(METAL, 0.5))
+        c.hazard(hx - T * 0.06, cy + T * 0.245, hx + T * 0.06, cy + T * 0.258, (220, 170, 40), BLACK, 5, height=0.68)
+    _rivet_row(c, cx - T * 0.37, cy + T * 0.29, cx + T * 0.37, cy + T * 0.29, 12)
+    _vent_bay(c, cx - T * 0.17, cx + T * 0.17, cy + T * 0.31, cy + T * 0.355, 6, accent, lamps_on, slats=8)
+    # bracos hidraulicos (dois pistoes por casulo) e casulos
+    for (x0, x1, y0, y1) in pods:
+        fx0, fx1, fy0, fy1 = x0 - pad_x, x1 + pad_x, y0 - pad_y, y1 + pad_y
+        mx = (fx0 + fx1) / 2
+        for dx in (-0.25, 0.25):
+            px = mx + dx * (fx1 - fx0)
+            _plate(c, c.mask_rect(px - T * 0.011, fy1, px + T * 0.011, cy + T * 0.08, r=1), METAL_LIGHT, 0.62, 0.6)
+            _plate(c, c.mask_rect(px - T * 0.017, fy1 + T * 0.09, px + T * 0.017, cy + T * 0.08, r=1.5), GUNMETAL,
+                   0.64, 0.8)
+        tail = [(fx0 + 2, fy0 + T * 0.04), (fx1 - 2, fy0 + T * 0.04), (fx1 - 3, fy1 + T * 0.09),
+                (fx0 + 3, fy1 + T * 0.09)]
+        _plate(c, c.mask_poly(tail), shade(STEEL, 0.85), 0.58, 2, gradient=(METAL, METAL_DARK))
+        _plate(c, c.mask_rect(fx0, fy0, fx1, fy1, r=T * 0.012), STEEL, 0.7, 2, gradient=(METAL_LIGHT, METAL))
+        c.fill(c.mask_rect(fx0 + 2.5, fy0 + 2.5, fx1 - 2.5, fy1 - 2.5, r=T * 0.008), GUNMETAL, height=0.55, bevel=1.0,
+               mode="set")
+        # garras na raiz do casulo
+        for sgn, ex in ((-1, fx0), (1, fx1)):
+            claw = [(ex, fy1 - T * 0.03), (ex + sgn * T * 0.022, fy1 + T * 0.01), (ex + sgn * T * 0.012, fy1 + T * 0.06),
+                    (ex, fy1 + T * 0.04)]
+            _plate(c, c.mask_poly(claw), shade(STEEL, 1.12), 0.74, 1, gradient=(METAL_LIGHT, METAL))
+    for m in pod_vents:
+        c.fill(m, BLACK, height=0.62, bevel=0.3, mode="set")
+    _tube_holes(c, T, units, r, ry)
+    # colar aberto (o "pescoco") com um recesso de brasa muito fraca: quase nada de area emissiva
+    c.fill(c.mask_ellipse(cx, col_y, col_r * 1.15), METAL_DARK, height=0.66, bevel=1.5)
+    c.fill(c.mask_ellipse(cx, col_y, col_r), shade(STEEL, 1.05), height=0.82, bevel=col_r * 0.35,
+           gradient=(WHITE, METAL))
+    c.fill(c.mask_ellipse(cx, col_y, col_r * 0.66, col_r * 0.6), BLACK, height=0.4, bevel=1.0, mode="set")
+    # brasa muito fraca (STYLE.md 1.6: orcamento emissivo): so cor escura, sem halo
+    c.fill(recess, (52, 24, 16) if lamps_on else (34, 22, 18), height=0.38, bevel=0.6)
+    if lamps_on:
+        c.fill(c.mask_ellipse(cx, col_y + col_r * 0.08, col_r * 0.3, col_r * 0.22), (96, 38, 18), height=0.36, bevel=0.6)
+    n = 10
+    for k in range(n):
+        a = k / n * math.tau
+        c.rivet(cx + math.cos(a) * col_r * 0.86, col_y + math.sin(a) * col_r * 0.86, 1.0, METAL_LIGHT, 0.06)
+    return c
+
+
+_POD_CANVAS = {"box": None, "twin": launcher_twin_canvas, "quad": launcher_quad_canvas}
+
+
+def render_launcher_oc_glow(ts_tiles, units, tube_r, pitch_deg, accent, style):
+    """turret_oc.png: so o brilho do overclock (camada roof_turrets, ligada por IsOverclocked)."""
+    fn = _POD_CANVAS.get(style)
+    if not fn:
+        return None
     T = int(round(ts_tiles * PX))
-    on = launcher_pod_canvas(T, units, tube_r, pitch_deg, accent, lamps_on=True)
-    off = launcher_pod_canvas(T, units, tube_r, pitch_deg, accent, lamps_on=False)
+    return fn(T, units, tube_r, pitch_deg, accent, oc_glow=True).render(bake=False)
+
+
+def render_launcher_pod(ts_tiles, units, tube_r, pitch_deg, accent, style="box"):
+    T = int(round(ts_tiles * PX))
+    fn = _POD_CANVAS.get(style) or launcher_pod_canvas
+    on = fn(T, units, tube_r, pitch_deg, accent, lamps_on=True)
+    off = fn(T, units, tube_r, pitch_deg, accent, lamps_on=False)
     img_on = drop_shadow(on.render(), 2, 45)
     img_off = drop_shadow(off.render(), 2, 45)
     off_arr = np.asarray(img_off, dtype=np.float32)
@@ -737,12 +949,40 @@ def render_launcher_pod(ts_tiles, units, tube_r, pitch_deg, accent):
     return img_on, img_off, nrm, shadow
 
 
+def _nose_big(c, T, u, pitch_deg, band, form):
+    """Nariz de uma unidade "heavy" (missil de calibre duplo deitado na fileira) ou "torpedo" (ogiva grande
+    tampada cobrindo a face do casulo), no retangulo u["box"] (tiles) centrado na unidade."""
+    x, y = _tp(T, *u["pos"])
+    bw, bh = u["box"][0] * PX, u["box"][1] * PX
+    k = max(0.35, math.sin(math.radians(pitch_deg)))
+    if form == "heavy":
+        w2, h2 = bw * 0.48, bh * 0.42
+        c.fill(c.mask_rect(x - w2, y - h2, x + w2, y + h2, r=h2), shade(band, 0.95), height=0.62, bevel=0.5)
+        c.fill(c.mask_rect(x - w2 * 0.86, y - h2 * 0.78, x + w2 * 0.5, y + h2 * 0.78, r=h2 * 0.78), (196, 200, 206),
+               height=0.76, bevel=0.6, gradient=((236, 238, 240), (150, 154, 160)))
+        c.fill(c.mask_ellipse(x - w2 * 0.86, y, h2 * 0.8, h2 * 0.78), (226, 228, 232), height=0.82, bevel=0.4)
+        c.fill(c.mask_ellipse(x - w2 * 0.88, y - h2 * 0.25, h2 * 0.28, h2 * 0.22), (250, 250, 250), height=0.86,
+               bevel=0.2)
+        return
+    rx, rr = bw * 0.44, bh * 0.44 * (0.75 + 0.25 * k)
+    c.fill(c.mask_ellipse(x, y, rx * 1.06, rr * 1.06), METAL_DARK, height=0.55, bevel=0.6)
+    c.fill(c.mask_ellipse(x, y, rx, rr), shade(band, 0.92), height=0.66, bevel=0.8)
+    c.fill(c.mask_ellipse(x, y - rr * 0.08, rx * 0.8, rr * 0.8), (206, 210, 214), height=0.8, bevel=rx * 0.25,
+           gradient=((240, 242, 244), (150, 154, 160)))
+    c.fill(c.mask_ellipse(x, y - rr * 0.08, rx * 0.36, rr * 0.36), shade(band, 1.0), height=0.86, bevel=0.6)
+    c.fill(c.mask_ellipse(x - rx * 0.22, y - rr * 0.38, rx * 0.16, rr * 0.13), (250, 250, 250), height=0.9, bevel=0.2)
+
+
 def render_launcher_cells(ts_tiles, units, loaded, tube_r, pitch_deg, band):
-    """Sobreposicao de um nivel do rack: narizes (cone claro + anel na cor do tipo) nas unidades `loaded`."""
+    """Sobreposicao de um nivel do rack: narizes (cone claro + anel na cor do tipo) nas unidades `loaded`.
+    Unidades "heavy"/"torpedo" (layout heavy16 / torpedo*) ganham um nariz unico do tamanho de u["box"]."""
     T = int(round(ts_tiles * PX))
     c = Canvas(T, T)
     _tubes, r, ry, *_ = _tube_extent(T, units, tube_r, pitch_deg)
     for u in loaded:
+        if u.get("form") in ("heavy", "torpedo"):
+            _nose_big(c, T, u, pitch_deg, band, u["form"])
+            continue
         for (fwd, lat) in u["tubes"]:
             x, y = _tp(T, fwd, lat)
             c.fill(c.mask_ellipse(x, y, r * 0.98, ry * 1.02), shade(band, 0.95), height=0.62, bevel=0.4)
@@ -750,6 +990,23 @@ def render_launcher_cells(ts_tiles, units, loaded, tube_r, pitch_deg, band):
                    gradient=((236, 238, 240), (150, 154, 160)))
             c.fill(c.mask_ellipse(x - r * 0.18, y - ry * 0.32, r * 0.24, ry * 0.26), (250, 250, 250), height=0.82,
                    bevel=0.2)
+    return c.render(), c.final_normals()
+
+
+def render_launcher_shutters(ts_tiles, shutters):
+    """Persianas fechadas (casulos sem celula no modo, ex.: Iara nos casulos externos), no quadro da torre."""
+    T = int(round(ts_tiles * PX))
+    c = Canvas(T, T)
+    for sh in shutters:
+        x, y = _tp(T, *sh["center"])
+        w2, h2 = sh["box"][0] * PX * 0.56, sh["box"][1] * PX * 0.56
+        c.fill(c.mask_rect(x - w2, y - h2, x + w2, y + h2, r=2), GUNMETAL, height=0.72, bevel=1.2,
+               gradient=((92, 96, 104), (40, 42, 48)))
+        n = max(3, int(h2 * 2 / 5))
+        for i in range(1, n):
+            yy = y - h2 + 2 * h2 * i / n
+            c.groove([(x - w2 + 2, yy), (x + w2 - 2, yy)], 0.9, 0.06, (24, 24, 26))
+        c.hazard(x - w2 + 2, y + h2 - 4, x + w2 - 2, y + h2 - 1.5, (220, 170, 40), BLACK, 5, height=0.74)
     return c.render(), c.final_normals()
 
 

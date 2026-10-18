@@ -12,7 +12,8 @@ Tipos de peca (PART["kind"]):
   "factory"  fabrica: floor(M, T), machine(M, T, phase), roof(M, T)
   "resource" municao: item(M, T) (uma unidade, centrada na origem, cabe num tile)
   "launcher" lancador de misseis de convés: head(M, T, phase) = casulo com as bocas VAZIAS +
-             cell(M, look, T) = UM nariz carregado na origem; os niveis do rack sao compostos aqui
+             cell(M, look, T[, form, box]) = UM nariz carregado na origem; os niveis do rack sao compostos aqui;
+             shutter(M, T, box) = persiana fechada (layouts *_inner); oc_glow(M, T) = brilho do overclock (opcional)
 
 Contrato completo e convencoes: tools/blender/STYLE.md.
 """
@@ -361,49 +362,102 @@ def render_launcher(mod, out, only):
     looks = P.get("looks", pm.get("looks", []))
     noses = {}
     modes = {}
+    tmp = []
+
+    def piece(key, fn_draw, tag, wh):
+        """Renderiza uma peca solta (nariz / persiana) num quadro wh (tiles) e devolve (img, normais, px)."""
+        stem = os.path.join(out, key)
+        px = (max(8, int(round(wh[0] * PX))), max(8, int(round(wh[1] * PX))))
+        if not only or "cells" in only:
+            M = fresh(accent)
+            B.camera(wh[0], wh[1], (0, 0))
+            samples(48)
+            fn_draw(M)
+            B.show_only([tag])
+            B.render_set(stem, px, glow_halo=False, normals=True, off=False)
+        tmp.append(stem)
+        if not os.path.exists(stem + ".png"):
+            return None
+        return Image.open(stem + ".png").convert("RGBA"), Image.open(stem + "_normals.png").convert("RGBA"), px
+
+    def paste(cv, nv, pc, pos):
+        img, nrm, px = pc
+        x, y = int(round(T / 2 + pos[1] * PX - px[0] / 2)), int(round(T / 2 - pos[0] * PX - px[1] / 2))
+        cv.alpha_composite(img, (x, y))
+        nv.alpha_composite(nrm, (x, y))
+
     for m in L["modes"]:
         look = m["missile_type"]
         if look not in looks:
             raise SystemExit(f"{P['id']}: PART['looks'] precisa cobrir o modo {look}")
         lay = cell_layout(cells, m["layout"], m["rack_units"], f"{P['id']}/{look}")
-        stem = os.path.join(out, f"cell_{look}")
-        if look not in noses:
-            if not only or "cells" in only:
-                M = fresh(accent)
-                B.camera(cw, cw, (0, 0))
-                samples(48)
-                mod.cell(M, look, "cell")
-                B.show_only(["cell"])
-                B.render_set(stem, (cpx, cpx), glow_halo=False, normals=True, off=False)
-            if os.path.exists(stem + ".png"):
-                noses[look] = (Image.open(stem + ".png").convert("RGBA"),
-                               Image.open(stem + "_normals.png").convert("RGBA"))
+        form = lay["form"]
+        if form == "tube":
+            key = (look, form)
+            if key not in noses:
+                noses[key] = piece(f"cell_{look}", lambda M: mod.cell(M, look, "cell"), "cell", (cw, cw))
+        else:
+            # nariz "heavy" (fileira inteira, calibre duplo) ou "torpedo" (face do casulo): cell(..., form, box)
+            box = lay["units"][0]["box"]
+            key = (look, form)
+            if key not in noses:
+                fr = (box[0] * 1.15, box[1] * 1.15)
+                noses[key] = piece(f"cell_{look}_{form}",
+                                   lambda M: mod.cell(M, look, "cell", form=form, box=box), "cell", fr)
+        nose = noses[key]
         overlays = []
         for pod in lay["pods"]:
             a, b = pod["range"]
             fn = [f"cells_{look}_p{pod['index']}_{j}.png" for j in range(b - a + 1)]
             nn = [f"cells_{look}_p{pod['index']}_{j}_normals.png" for j in range(b - a + 1)]
-            if look in noses:
-                img, nrm = noses[look]
+            if nose:
                 for j in range(b - a + 1):
                     cv = Image.new("RGBA", (T, T), (0, 0, 0, 0))
                     nv = Image.new("RGBA", (T, T), (0, 0, 0, 0))
                     for u in lay["units"][a:a + j]:
-                        for fwd, lat in u["tubes"]:
-                            x, y = int(round(T / 2 + lat * PX - cpx / 2)), int(round(T / 2 - fwd * PX - cpx / 2))
-                            cv.alpha_composite(img, (x, y))
-                            nv.alpha_composite(nrm, (x, y))
+                        for t in (u["tubes"] if form == "tube" else [u["pos"]]):
+                            paste(cv, nv, nose, t)
                     cv.save(os.path.join(out, fn[j]))
                     nv.save(os.path.join(out, nn[j]))
             overlays.append({"range": [a, b], "files": fn, "normals": nn})
             files += fn + nn
         modes[look] = {"units": [u["pos"] for u in lay["units"]], "unit_pods": [u["pod"] for u in lay["units"]],
                        "tubes": [u["tubes"] for u in lay["units"]], "overlays": overlays}
-    for look in noses:
+        if lay["shutters"]:
+            # casulos sem celula neste modo (Iara: casulos externos): persiana fechada, uma imagem por modo
+            if not hasattr(mod, "shutter"):
+                raise SystemExit(f"{P['id']}: o layout {m['layout']} precisa de shutter(M, T, box) no modelo")
+            sbox = lay["shutters"][0]["box"]
+            sp = piece(f"shutter_{look}", lambda M: mod.shutter(M, "shutter", box=sbox), "shutter",
+                       (sbox[0] * 1.15, sbox[1] * 1.15))
+            sf, sn = f"shutters_{look}.png", f"shutters_{look}_normals.png"
+            if sp:
+                cv = Image.new("RGBA", (T, T), (0, 0, 0, 0))
+                nv = Image.new("RGBA", (T, T), (0, 0, 0, 0))
+                for sh in lay["shutters"]:
+                    paste(cv, nv, sp, sh["center"])
+                cv.save(os.path.join(out, sf))
+                nv.save(os.path.join(out, sn))
+            modes[look]["shutters"] = {"file": sf, "normals": sn, "pods": [sh["pod"] for sh in lay["shutters"]]}
+            files += [sf, sn]
+    for stem in tmp:
         for suf in (".png", "_normals.png"):
-            p = os.path.join(out, f"cell_{look}{suf}")
-            if os.path.exists(p):
-                os.remove(p)
+            if os.path.exists(stem + suf):
+                os.remove(stem + suf)
+    if P.get("oc_glow") and hasattr(mod, "oc_glow"):
+        # brilho do overclock (olho/colar em brasa) no quadro da torre, so emissao + halo (roof_turrets)
+        if not only or "turret" in only:
+            M = fresh(accent)
+            B.camera(ts, ts, (0, 0))
+            samples(32)
+            mod.head(M, "head", 0.0)
+            mod.oc_glow(M, "oc")
+            B.show_only(["oc"])
+            em = emission_pass(os.path.join(out, "oc_raw.png"), (T, T))
+            halo = em.filter(ImageFilter.GaussianBlur(3))
+            Image.alpha_composite(halo, em).save(os.path.join(out, "turret_oc.png"))
+        meta["turret"]["oc_glow"] = "turret_oc.png"
+        files.append("turret_oc.png")
     meta["modes"] = modes
     meta["crew_pos"], meta["hull"], hfiles = _render_hull(mod, out, P, only)
     files += hfiles

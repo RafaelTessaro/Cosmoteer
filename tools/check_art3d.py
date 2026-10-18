@@ -74,11 +74,15 @@ def main():
             errs.append(f"o casulo encosta na borda do sprite (bbox {bb} em {im.size}): aumente turret_box")
         for m in lch["modes"]:
             mm = meta["modes"][m["type"]]
-            for ov in mm["overlays"]:
-                for f in ov["files"]:
-                    o = Image.open(A3.path(short, f))
-                    if o.size != im.size:
-                        errs.append(f"{f}: {o.size} difere do quadro do casulo {im.size}")
+            extra = [mm["shutters"]["file"]] if mm.get("shutters") else []
+            if m["geo"].get("shutters") and not extra:
+                errs.append(f"modo {m['type']}: o layout {m['layout']} pede shutters_{m['type']}.png (shutter())")
+            for f in [f for ov in mm["overlays"] for f in ov["files"]] + extra:
+                o = Image.open(A3.path(short, f))
+                if o.size != im.size:
+                    errs.append(f"{f}: {o.size} difere do quadro do casulo {im.size}")
+        if lch.get("oc_glow") and not meta["turret"].get("oc_glow"):
+            print("aviso: sem turret_oc.png (oc_glow); as regras ficam sem o brilho de overclock")
         for f in meta["files"]:
             if f.endswith(".png"):
                 Image.open(A3.path(short, f)).verify()

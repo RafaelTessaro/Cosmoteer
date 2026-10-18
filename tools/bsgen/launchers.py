@@ -18,8 +18,13 @@ docs/MISSEIS_PROJETO.md. So tipos de componente vanilla:
   (7) COOK-OFF por familia (DeathEffects escalado pelo estoque, fora dos blocos alternados).
 
 Variantes de mecanica (spec mechanic_variants, sem mudar numeros): rack_gate, loader_crew_gate,
-mode_switch_delay, dry_flush, cassette, cell_sync, overlays, ai_firepower.
+mode_switch_delay, dry_flush, cassette, cell_sync, overlays, ai_firepower, torpedo_decoys (emissor de iscas).
+
+Layouts das celulas (tools/launcher_layout.py): cassette (Tocandira), fine16 3-2-3 / torpedo2 (Caipora),
+fine48 / heavy16 / torpedo4 / torpedo2_inner com persianas nos casulos externos (Mula-sem-Cabeca).
 """
+
+import posixpath
 
 from rules_dsl import Q, VOID, Inh, comment
 from bsgen import common as C
@@ -57,6 +62,7 @@ def launcher_geometry(lch):
                 u["tubes"] = [list(t) for t in tubes[i]] if tubes else [u["pos"]]
             overlays = [{"range": list(o["range"]), "files": list(o["files"]), "normals": list(o["normals"])}
                         for o in mm["overlays"]]
+            shutters = dict(mm["shutters"]) if mm.get("shutters") else None
         else:
             units = m["geo"]["units"]
             if combined:
@@ -68,8 +74,17 @@ def launcher_geometry(lch):
                     a, b = pod["range"]
                     f, n = overlay_files(lch, m["type"], pod["index"], b - a)
                     overlays.append({"range": [a, b], "files": f, "normals": n, "pod": pod["index"]})
-        modes[m["type"]] = {"units": units, "overlays": overlays}
+            shutters = None
+            if m["geo"].get("shutters"):
+                # casulos sem celula neste modo (Iara: casulos externos) mostram a persiana fechada
+                shutters = {"file": f"shutters_{m['type']}.png", "normals": f"shutters_{m['type']}_normals.png",
+                            "pods": [sh["pod"] for sh in m["geo"]["shutters"]]}
+        modes[m["type"]] = {"units": units, "overlays": overlays, "shutters": shutters}
     g["modes"] = modes
+    if a3:
+        g["oc_glow"] = a3["turret"].get("oc_glow") if lch.get("oc_glow") else None
+    else:
+        g["oc_glow"] = "turret_oc.png" if lch.get("oc_glow") else None
     return g
 
 
@@ -175,6 +190,13 @@ def _mode_logic(lch, m, comp, v, all_modes):
                                  "MediaEffects": [_media_sounds(fx["reload"], 0.6)]}
     comp[f"RackFullEffect_{k}"] = {"Type": "ToggleEffects", "Toggle": full,
                                    "ToggledOnMediaEffects": [_media_sounds(fx["ready"], 0.7)]}
+    if fx.get("thump"):
+        # pancada no ultimo missil da salva: o rack acabou de esvaziar (RackAny desliga)
+        comp[f"RackEmptied_{k}"] = {"Type": "ToggleTrigger", "Toggle": f"RackAny_{k}", "TriggerWhenOn": False,
+                                    "TriggerWhenOff": True}
+        comp[f"SalvoEndEffect_{k}"] = {"Type": "TriggeredEffects", "Trigger": f"RackEmptied_{k}",
+                                       "Location": "&../DestroyedEffects/Location",
+                                       "MediaEffects": [Inh("/BASE_SHAKE", {"ShakeAmount": fx["thump"], "Duration": 0.6})]}
     # (5) troca de modo: atraso = uma recarga inteira do modo de DESTINO
     comp[f"ModeOn_{k}"] = {"Type": "ToggleTrigger", "Toggle": f"ModeToggle_{k}", "TriggerWhenOn": True,
                            "TriggerWhenOff": False}
@@ -259,7 +281,18 @@ def _fire_block(lch, m, geo, shot_path, v):
         inner["ShootCycle"] = _cycle(m["cells"])
     inner["TargetEmitter"] = base
     flash = [f"&<{p}>" for p in fx["flash"]]
-    snd = _media_sounds(fx["sound"], fx.get("volume", 0.6), interior=False, max_conc=fx.get("max_concurrent", 12))
+    heavy = m["geo"].get("form") == "torpedo" and fx.get("sound_heavy")
+    snd = _media_sounds(fx["sound_heavy"] if heavy else fx["sound"], fx.get("volume", 0.6), interior=False,
+                        max_conc=fx.get("max_concurrent", 12))
+    if fx.get("shake"):
+        snd = [snd, Inh("/BASE_SHAKE", {"ShakeAmount": fx["shake"] * (3 if heavy else 1), "Duration": 0.4})]
+    else:
+        snd = [snd]
+    dec = m.get("decoy")
+    if dec:
+        # fallback T17 (torpedo_decoys=emitter): torpedo de estagio unico + iscas de um 2o emissor por celula,
+        # disparado junto (Burst = iscas, BurstDelay 0.1, sem ResourceStorage: nao gasta o rack)
+        dec_path = posixpath.join(posixpath.dirname(shot_path), f"{dec['file']}.rules")
     for i in range(n):
         u = units[n - 1 - i]                         # LIFO: o 1o disparo da salva sai da ultima unidade carregada
         if sync == "free_cycle":
@@ -270,13 +303,18 @@ def _fire_block(lch, m, geo, shot_path, v):
         loc = list(u["tubes"][0]) if twin else list(u["pos"])
         inner[f"Emitter_{i} : TargetEmitter"] = {"Location": loc, "FireTrigger": trig}
         inner[f"LaunchEffect_{i}"] = {"Type": "TriggeredEffects", "ChainedTo": f"Emitter_{i}", "Trigger": f"Emitter_{i}",
-                                      "MediaEffects": flash + [snd]}
+                                      "MediaEffects": flash + snd}
+        if dec:
+            de = {k2: v2 for k2, v2 in base.items() if k2 not in ("ResourceStorage", "ResourcesUsed")}
+            de.update({"Location": loc, "FireTrigger": trig, "Bullet": f"&<{dec_path}>", "Burst": dec["burst"],
+                       "BurstDelay": dec["burst_delay"], "Spread": ["-12d", "12d"]})
+            inner[f"DecoyEmitter_{i}"] = de
         if twin:
             eb = {k2: v2 for k2, v2 in base.items() if k2 not in ("ResourceStorage", "ResourcesUsed")}
             eb.update({"Location": list(u["tubes"][-1]), "FireTrigger": trig, "FireDelay": "&~/BURST_DELAY"})
             inner[f"EmitterB_{i}"] = eb
             inner[f"LaunchEffectB_{i}"] = {"Type": "TriggeredEffects", "ChainedTo": f"EmitterB_{i}",
-                                           "Trigger": f"EmitterB_{i}", "MediaEffects": flash + [snd]}
+                                           "Trigger": f"EmitterB_{i}", "MediaEffects": flash + snd}
     ts = geo["turret_size"]
     for j, ov in enumerate(gm["overlays"]):
         a, b = ov["range"]
@@ -285,6 +323,28 @@ def _fire_block(lch, m, geo, shot_path, v):
             "Type": "ResourceSprites", "ChainedTo": "Turret", "Location": [0, 0], "Rotation": "90d",
             "Layer": Q("roof_turrets"), "ResourceStorage": f"ReadyRack_{k}", "RangeLow": a, "RangeHigh": b,
             "HasZeroResourceSprite": True, "ResourceLevels": levels}
+    bbs = geo.get("backblast") or []
+    if len(bbs) > 1:
+        # varios casulos: o sopro sai atras do casulo que disparou (um ponto por casulo, o mais proximo na lateral)
+        by_pod = {}
+        for i in range(n):
+            by_pod.setdefault(units[n - 1 - i]["pod"], []).append(i)
+        for p_i, idxs in sorted(by_pod.items()):
+            lat = sum(units[n - 1 - i]["pos"][1] for i in idxs) / len(idxs)
+            bb = min(bbs, key=lambda b: abs(b[1] - lat))
+            trig = [f"Emitter_{i}" for i in idxs] + ([f"EmitterB_{i}" for i in idxs] if twin else [])
+            inner[f"PodFired_{p_i}"] = {"Type": "MultiTrigger", "Triggers": trig}
+            inner[f"Backblast_{p_i}"] = {"Type": "TriggeredEffects", "ChainedTo": "Turret", "Trigger": f"PodFired_{p_i}",
+                                         "Location": list(bb), "Rotation": "180d",
+                                         "MediaEffects": [f"&<{q}>" for q in fx["backblast"]]}
+    sh = gm.get("shutters")
+    if sh:
+        # persianas fechadas nos casulos sem celula neste modo (Iara: casulos externos), spec layout_note
+        img = {"File": Q(sh["file"]), "NormalsFile": Q(sh["normals"]), "Size": [ts, ts]}
+        inner["Shutters"] = {"Type": "Graphics", "ChainedTo": "Turret", "Location": [0, 0], "Rotation": "90d",
+                             "OperationalToggle": "IsOperational",
+                             "OperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [img]},
+                             "NonOperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [dict(img)]}}
     inner["ReloadProgressBar"] = {"Type": "ProgressBar", "OperationalToggle": "IsOperational",
                                   "ShowProgressFor": f"ReadyRack_{k}", "ValueRange": [0, f"&~/MODE_{k}/CELLS"]}
     return {"Type": "ToggledComponents", "Toggle": f"ModeToggle_{k}", "IncludeInBlueprints": True,
@@ -443,10 +503,12 @@ def build_launcher(lch, shot_paths):
     for m in modes:
         comp[f"Fire_{m['type']}"] = _fire_block(lch, m, geo, shot_paths[m["type"]], v)
     comp["TargetEmitterProxy"] = {"Type": "EmitterProxy", "ComponentID": "TargetEmitter", "ChainedTo": "Turret"}
-    for i, bb in enumerate(geo.get("backblast") or []):
-        comp[f"Backblast_{i}"] = {"Type": "TriggeredEffects", "ChainedTo": "Turret", "Trigger": "Turret",
-                                  "Location": list(bb), "Rotation": "180d",
-                                  "MediaEffects": [f"&<{p}>" for p in lch["fx"]["backblast"]]}
+    bbs = geo.get("backblast") or []
+    if len(bbs) == 1:
+        # um casulo so: o sopro sai a cada disparo da torre
+        comp["Backblast_0"] = {"Type": "TriggeredEffects", "ChainedTo": "Turret", "Trigger": "Turret",
+                               "Location": list(bbs[0]), "Rotation": "180d",
+                               "MediaEffects": [f"&<{p}>" for p in lch["fx"]["backblast"]]}
 
     _cookoff(lch, comp, center)
 
@@ -471,6 +533,14 @@ def build_launcher(lch, shot_paths):
     deck_hull_graphics(comp, lch)
     deck_turret_graphics(comp, lch, geo, layer="roof_doodads")
     deck_light_graphics(comp, lch)
+    if oc and geo.get("oc_glow"):
+        # assinatura visual do overclock (olho da cupula / colar em brasa): so com IsOverclocked
+        ts = geo["turret_size"]
+        comp["OverclockGlowGraphics"] = {
+            "Type": "Graphics", "ChainedTo": "Turret", "Location": [0, 0], "Rotation": "90d",
+            "OperationalToggle": "IsOverclocked",
+            "OperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [{"File": Q(geo["oc_glow"]),
+                                                                                 "Size": [ts, ts]}]}}
     comp["Indicators"] = C.weapon_indicators(center, "HasMissiles", bool(oc), f"&~/MODE_{modes[0]['type']}/RELOAD",
                                              no_ammo_sprite="&/INDICATORS/NoMissiles")
     comp["Blueprints"] = C.blueprint(w, h)

@@ -74,6 +74,8 @@ Actions
 			&<parts/bs_factory_plasma/bs_factory_plasma.rules>/Part
 			&<parts/bs_factory_shell_nuke/bs_factory_shell_nuke.rules>/Part
 			&<parts/bs_msl_box/bs_msl_box.rules>/Part
+			&<parts/bs_msl_twin/bs_msl_twin.rules>/Part
+			&<parts/bs_msl_quad/bs_msl_quad.rules>/Part
 		]
 	}
 	{
