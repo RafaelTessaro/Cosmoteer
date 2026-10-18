@@ -90,18 +90,24 @@ def hull_roof(M, w, h, pivot, ring_r, T="roof"):
     # anel da torre (sem pintura): colar escuro com parafusos
     B.torus("ringbear", px, py, 0.08, ring_r + 0.02, 0.055, M["core_mid"], tags=tags)
     B.cyl("ringhole", px, py, 0.05, ring_r - 0.01, 0.1, M["black"], axis="Z", verts=64, bevel=0.0, tags=tags)
-    B.bolts("rb", B.ring_points(px, py, ring_r + 0.11, 32), 0.1, 0.022, M["steel"], tags=tags)
-    # fileira de tras: escotilha da tripulacao no meio, respiros com luz nos cantos
+    # parafusos do anel: so os que ficam dentro da peca (pecas estreitas)
+    pts = [(x, y) for x, y in B.ring_points(px, py, ring_r + 0.11, 32)
+           if abs(x) < w / 2 - 0.06 and abs(y) < h / 2 - 0.06]
+    B.bolts("rb", pts, 0.1, 0.022, M["steel"], tags=tags)
+    if h < 2:
+        return  # peca de 1 fileira: nao sobra fileira de tras livre
+    # fileira de tras: escotilha no meio (pecas com 3+ de largura) e respiros com luz nos tiles das pontas
     hy = -h / 2 + 0.5
-    hatch = B.rpoly(0, hy, 0.62, 0.62, 0, chamfer=0.12)
-    B.plate("hatch", hatch, 0.06, 0.10, M["armor_mid"], slope=0.02, tags=tags)
-    B.box("hatch_h", 0, hy - 0.16, 0.26, 0.05, 0.10, 0.13, M["steel"], bevel=0.01, tags=tags)
-    for sx in (-1, 1):
-        cx = sx * (w / 2 - 0.5)
-        v = B.box(f"hvent{sx}", cx, hy, 0.56, 0.34, 0.05, 0.11, M["core_mid"], bevel=0.01, slope=0.015, tags=tags)
-        B.cut(v, [B.box(f"hvc{sx}{i}", cx, hy - 0.11 + i * 0.075, 0.46, 0.03, 0.09, 0.2, M["core"], bevel=0.0)
+    if w >= 3:
+        hatch = B.rpoly(0, hy, 0.62, 0.62, 0, chamfer=0.12)
+        B.plate("hatch", hatch, 0.06, 0.10, M["armor_mid"], slope=0.02, tags=tags)
+        B.box("hatch_h", 0, hy - 0.16, 0.26, 0.05, 0.10, 0.13, M["steel"], bevel=0.01, tags=tags)
+    vents = [0.0] if w == 1 else [sx * (w / 2 - 0.5) for sx in (-1, 1)]
+    for k, cx in enumerate(vents):
+        v = B.box(f"hvent{k}", cx, hy, 0.56, 0.34, 0.05, 0.11, M["core_mid"], bevel=0.01, slope=0.015, tags=tags)
+        B.cut(v, [B.box(f"hvc{k}{i}", cx, hy - 0.11 + i * 0.075, 0.46, 0.03, 0.09, 0.2, M["core"], bevel=0.0)
                   for i in range(4)])
-        B.box(f"hled{sx}", cx, hy + 0.23, 0.14, 0.03, 0.06, 0.09, M["glow_dim"], bevel=0.0, tags=tags)
+        B.box(f"hled{k}", cx, hy + 0.23, 0.14, 0.03, 0.06, 0.09, M["glow_dim"], bevel=0.0, tags=tags)
 
 
 def hull_floor(M, w, h, pivot, ring_r, crew, T="floor"):

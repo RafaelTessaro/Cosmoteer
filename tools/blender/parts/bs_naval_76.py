@@ -5,6 +5,8 @@ com sensor, tambores de carregador nos vaos, baia de exaustao traseira. Cano uni
 de resfriamento, extrator de gases e freio de boca em ponta.
 """
 
+import math
+
 import bs3d as B
 import models as Mo
 
@@ -80,8 +82,11 @@ def head(M, T="head", phase=0.0):
         B.cyl(f"recup{sx}", sx * 0.19, 0.90, 0.50, 0.045, 0.50, S, axis="Y", verts=12, tags=tags)
         # calhas de alimentacao: dos tambores ate a culatra
         B.cyl(f"chute{sx}", sx * 0.42, 0.36, 0.44, 0.05, 0.42, KM, axis="Y", verts=8, yaw=sx * -18, tags=tags)
+        # aneis ao longo do eixo da calha (direcao (-sin(yaw), cos(yaw)) com yaw = sx*-18)
+        ux, uy = -math.sin(math.radians(sx * -18)), math.cos(math.radians(sx * -18))
         for i in range(3):
-            B.cyl(f"chuter{sx}{i}", sx * (0.47 - i * 0.04), 0.22 + i * 0.12, 0.44, 0.058, 0.025, S, axis="Y",
+            t = -0.14 + i * 0.14
+            B.cyl(f"chuter{sx}{i}", sx * 0.42 + ux * t, 0.36 + uy * t, 0.44, 0.058, 0.025, S, axis="Y",
                   verts=8, yaw=sx * -18, tags=tags)
 
     # espinha central em seta, com sensor

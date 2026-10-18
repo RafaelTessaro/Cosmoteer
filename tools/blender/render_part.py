@@ -86,16 +86,20 @@ def emission_pass(path, size, keep_tag=None):
     return im
 
 
-def shadow_from(img, offset_px=5, blur_px=4, opacity=0.55):
+SHADOW_MARGIN = 8  # px de cada lado: a sombra fica maior que a torre e nao e cortada
+
+
+def shadow_from(img, offset_px=5, blur_px=4, opacity=0.55, margin=SHADOW_MARGIN):
+    """Sombra projetada (deslocada para baixo-direita, borrada) num quadro com margem extra."""
     a = np.asarray(img.split()[-1], dtype=np.float32)
     w, h = img.size
-    pad = int(offset_px + blur_px * 3)
-    big = np.zeros((h + pad * 2, w + pad * 2), np.float32)
-    big[pad + offset_px:pad + offset_px + h, pad + offset_px:pad + offset_px + w] = a
+    W, H = w + 2 * margin, h + 2 * margin
+    big = np.zeros((H, W), np.float32)
+    big[margin + offset_px:margin + offset_px + h, margin + offset_px:margin + offset_px + w] = a[:H - margin - offset_px,
+                                                                                                    :W - margin - offset_px]
     im = Image.fromarray(big.astype(np.uint8), "L").filter(ImageFilter.GaussianBlur(blur_px))
-    im = im.crop((pad, pad, pad + w, pad + h))
     sa = (np.asarray(im, dtype=np.float32) * opacity).astype(np.uint8)
-    return Image.fromarray(np.dstack([np.zeros((h, w, 3), np.uint8), sa]), "RGBA")
+    return Image.fromarray(np.dstack([np.zeros((H, W, 3), np.uint8), sa]), "RGBA")
 
 
 def walls_png(w, h, color=(64, 67, 71)):
@@ -118,7 +122,8 @@ def heat_composite(frame, heat_rgba, f):
     a = np.asarray(frame, dtype=np.float32)
     h = np.asarray(heat_rgba, dtype=np.float32)
     ha = h[..., 3:4] / 255.0 * f
-    rgb = a[..., :3] * (1 - ha * 0.55) + h[..., :3] * ha * 0.55 + h[..., :3] * ha * 0.6
+    # puxa a cor para o laranja do calor (sem clarear demais armaduras claras) e soma um pouco de luz
+    rgb = a[..., :3] * (1 - ha * 0.7) + h[..., :3] * ha * 0.7 + h[..., :3] * ha * 0.22
     out = np.dstack([np.clip(rgb, 0, 255), a[..., 3]])
     return Image.fromarray(out.astype(np.uint8), "RGBA")
 
@@ -158,13 +163,15 @@ def render_gun(mod, out, only):
         tnames.append("turret.png" if nfr == 1 else f"turret{i + 1}.png")
         tnorms.append("turret_normals.png" if nfr == 1 else f"turret{i + 1}_normals.png")
     meta["turret"] = {"frames": tnames, "normals": tnorms, "interval": tanim["interval"] if tanim else 0,
-                      "off": "turret_off.png", "off_normals": tnorms[0], "shadow": "turret_shadow.png"}
+                      "off": "turret_off.png", "off_normals": tnorms[0], "shadow": "turret_shadow.png",
+                      "shadow_size": round(ts + 2 * SHADOW_MARGIN / PX, 4)}
     files += tnames + tnorms + ["turret_off.png", "turret_shadow.png"]
 
     # ---------------------------------------------------------------- cano(s)
     L, root, pad, bw = bar["length"], bar["root"], bar.get("pad", 0.3), bar["width"]
+    top = bar.get("top_margin", 0.06)   # folga acima da boca (o bisel do freio nao e cortado)
     anim = bar.get("anim", "recoil")
-    hlen = L + pad
+    hlen = L + pad + top
     bsz = (int(round(bw * PX)), int(round(hlen * PX)))
     if anim == "spin":
         nspin = bar.get("spin_frames", 3)
@@ -195,7 +202,7 @@ def render_gun(mod, out, only):
             key = round(ph, 4)
             if key not in done_phase:
                 M = fresh(accent)
-                B.camera(bw, hlen, (0, (L - pad) / 2))
+                B.camera(bw, hlen, (0, (L + top - pad) / 2))
                 samples(48)
                 mod.barrel(M, L, "barrel", ph)
                 objs = B.objects_with("barrel")
@@ -217,7 +224,7 @@ def render_gun(mod, out, only):
                 o.location.y = base_y[o.name]
     meta["barrel"] = {
         "ys": list(bar["ys"]), "root": root, "length": L, "pad": pad, "sprite_w": bw, "sprite_len": hlen,
-        "center": round(root + (L - pad) / 2, 4), "muzzle": round(root + L - 0.05, 4), "anim": anim,
+        "center": round(root + (L + top - pad) / 2, 4), "muzzle": round(root + L - 0.05, 4), "anim": anim,
         "frames": names[:-1] + [names[-1]] if anim != "static" else names, "normals": norms,
         "interval": bar.get("interval", 0.05 if anim == "spin" else 0.06), "rest": "barrel1.png",
         "rest_normals": "barrel_normals1.png",
@@ -270,7 +277,7 @@ def render_gun(mod, out, only):
 
 def _heat_layer(stem, size, L):
     """Brilho de calor das partes marcadas 'hot', mais forte perto da boca."""
-    heat_m = B.mat_glow("__heat", (1.0, 0.26, 0.03), 1.6)
+    heat_m = B.mat_glow("__heat", (1.0, 0.13, 0.015), 1.25)
     sc = bpy.context.scene
     hot = [o for o in sc.objects if o.get("hot") and not o.hide_render]
     keep = {o.name: list(o.data.materials) for o in hot}

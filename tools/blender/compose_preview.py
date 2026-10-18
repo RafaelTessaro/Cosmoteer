@@ -262,7 +262,7 @@ def make_all(d, paint=(46, 58, 74), scale=2):
         shot_fx = [x for x in shot_fx if x[1] < 3]
         smokes = [x for x in smokes if x[1] < 9]
         if spin and t < len(groups) * gap:
-            bnames = [seq[t % (len(seq) - 1)]] * nb
+            bnames = [seq[t % len(seq)]] * nb   # giro uniforme: quadros borrados + repouso, como no jogo
         else:
             bnames = [seq[min(st, len(seq) - 1)] for st in state]
         frames.append(assemble(d, meta, roof, bframes=bnames, tframe=tf, angle=aim, fx=fx, scale=scale))

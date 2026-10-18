@@ -92,7 +92,7 @@ def _fire_block_toggle(g, k, oc_state):
     return None, False
 
 
-def deck_graphics(comp, g, geo, reset_triggers, spin=False, recoil_interval=0.06):
+def deck_graphics(comp, g, geo, reset_triggers, spin=False, recoil_interval=0.06, spin_speed=None):
     """Componentes de grafico de uma torre de convés (casco, torre, canos, luzes).
 
     Com arte 3D usa os quadros/normais do meta.json (recuo com calor, giro, torre animada, luzes
@@ -121,14 +121,16 @@ def deck_graphics(comp, g, geo, reset_triggers, spin=False, recoil_interval=0.06
             on = {"File": Q(t["frames"][0]), "NormalsFile": Q(t["normals"][0]), "Size": [ts, ts]}
         off = {"File": Q(t["off"]), "NormalsFile": Q(t["off_normals"]), "Size": [ts, ts]}
         shadow = t["shadow"]
+        shadow_size = t.get("shadow_size", ts)
     else:
         on = {"File": Q("turret.png"), "NormalsFile": Q("turret_normals.png"), "Size": [ts, ts]}
         off = {"File": Q("turret_off.png"), "NormalsFile": Q("turret_normals.png"), "Size": [ts, ts]}
         shadow = "turret_shadow.png"
+        shadow_size = ts
     comp["TurretGraphics"] = {
         "Type": "Graphics", "ChainedTo": "Turret", "Location": [0, 0], "Rotation": "90d",
         "OperationalToggle": "IsOperational",
-        "Floor": {"Layer": Q("doodads_high"), "DamageLevels": [{"File": Q(shadow), "Size": [ts, ts]}]},
+        "Floor": {"Layer": Q("doodads_high"), "DamageLevels": [{"File": Q(shadow), "Size": [shadow_size, shadow_size]}]},
         "OperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [on]},
         "NonOperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [off]},
     }
@@ -137,6 +139,7 @@ def deck_graphics(comp, g, geo, reset_triggers, spin=False, recoil_interval=0.06
         bl, bw = br["sprite_len"], br["sprite_w"]
         frames, nframes, interval = br["frames"], br["normals"], br["interval"]
         rest, rest_n = br["rest"], br["rest_normals"]
+        spin = br["anim"] == "spin"
     else:
         bl = geo["barrel_len"]
         bw = geo["barrel_sprite_w"] if "barrel_sprite_w" in geo else max(0.5, round(geo["barrel_w"] * 2, 3))
@@ -150,6 +153,10 @@ def deck_graphics(comp, g, geo, reset_triggers, spin=False, recoil_interval=0.06
             nframes = ["barrel_normals1.png"] * 5
             interval = recoil_interval
         rest, rest_n = "barrel1.png", "barrel_normals1.png"
+    if spin and spin_speed:
+        # giro: os quadros borrados ocupam exatamente 1 intervalo de tiro (chaingun.rules l.1174-1212):
+        # AnimationInterval = 1/n com AnimationSpeedFactor = 1/intervalo atual (acompanha o spin-up)
+        interval = round(1 / max(1, len(frames) - 1), 4)
     for i, y in enumerate(geo["ys"]):
         anim = {"Size": [bw, bl]}
         if len(frames) > 1:
@@ -165,6 +172,8 @@ def deck_graphics(comp, g, geo, reset_triggers, spin=False, recoil_interval=0.06
             "NonOperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [
                 {"File": Q(rest), "NormalsFile": Q(rest_n), "Size": [bw, bl]}]},
         }
+        if spin and spin_speed:
+            comp[f"Barrel{i + 1}Graphics"]["AnimationSpeedFactor"] = spin_speed
     # luzes dinamicas (iluminam o casco com normal map; so com "iluminacao sofisticada" ligada)
     for i, l in enumerate((a3 or {}).get("lights", [])):
         comp[f"Light{i + 1}Graphics"] = {
@@ -503,8 +512,14 @@ def build_gun(g, shot_paths):
 
     # ------------------------------------------------------------------ graficos
     comp[C.comment("---- graficos ----")] = None
+    if spin:
+        # intervalo de tiro atual (com spin-up e overclock) e seu inverso, para a velocidade do giro dos canos
+        comp["FireIntervalValue"] = {"Type": "BuffableValue", "Value": fi_val}
+        comp["InverseShotInterval"] = {"Type": "MultiValue", "Values": ["FireIntervalValue"], "OneOver": True,
+                                       "Mode": "Add"}
     deck_graphics(comp, g, geo, proxies_all, spin=bool(spin),
-                  recoil_interval=g["barrels"].get("recoil_frame", 0.06))
+                  recoil_interval=g["barrels"].get("recoil_frame", 0.06),
+                  spin_speed="InverseShotInterval" if spin else None)
 
     # ------------------------------------------------------------------ efeitos / UI
     comp.update(C.destroyed_effects(center, w, h))
