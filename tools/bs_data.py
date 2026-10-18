@@ -9,6 +9,7 @@ import json
 import os
 
 from rules_dsl import Q
+import art3d as A3
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SPEC_PATH = os.path.join(HERE, "spec", "bullet_strike_spec.json")
@@ -314,6 +315,7 @@ def _convert():
             "hybrid": bool(ap and ap.get("blast_radius_m", 0) == 0),
             "desc": w.get("visual_concept", ""), "spec": w,
         }
+        _attach_art3d(g)
         if nb > 1 and not spin:
             g["barrels"]["count"] = min(nb, 4)
             if nb > 4:
@@ -333,6 +335,17 @@ def _convert():
             if spin:
                 g["oc"]["max_spin"] = g["spin"]["max"]
         GUNS.append(g)
+
+
+def _attach_art3d(g):
+    """Se existir arte 3D (art3d/<id>/meta.json), a geometria e a tripulacao vem dela."""
+    meta = A3.load_meta(g["short"])
+    g["art3d"] = meta
+    if meta and len(meta["barrel"]["ys"]) != g["barrels"]["count"]:
+        raise ValueError(f"art3d/{g['short']}: o render tem {len(meta['barrel']['ys'])} cano(s) visiveis, mas as "
+                         f"regras esperam {g['barrels']['count']}. Ajuste PART['barrels']['ys'].")
+    if meta and meta.get("crew_pos"):
+        g["crew_pos"] = [tuple(c) for c in meta["crew_pos"]]
 
 
 def _defense(w, hint, short, oc, ap):
@@ -362,6 +375,7 @@ def _defense(w, hint, short, oc, ap):
         "art": {"style": hint["style"], "barrel": hint["barrel"], "accent": hint["accent"]},
         "desc": w.get("visual_concept", ""), "spec": w,
     }
+    _attach_art3d(d)
     if oc:
         cloud = {"kind": "cloud", "file": f"bs_cloud_{short.replace('bs_', '')}", "dir": short,
                  "id": f"{AUTHOR}.bs_cloud_{short.replace('bs_', '')}",
@@ -416,6 +430,7 @@ for r in SPEC["resources"]:
         "max_stack": int(r["max_stack_size"]), "cookoff": cook,
         "death_fx": "BigPartDestroyed" if kind == "shell" else "MedPartDestroyed",
         "art": {"kind": kind, "accent": acc}, "note": r.get("shots_note", ""),
+        "art3d": A3.load_meta(short),
     })
 
 FACTORIES = []
@@ -430,7 +445,8 @@ for f in SPEC["factories"]:
         "name_en": f["name_en"], "name_pt": f["name_ptbr"], "cp": 1, "hp": f["max_health"], "cost": f["build_cost"],
         "inputs": [[r, q] for r, q in f["inputs"]], "output": f["output"], "interval": f["interval_s"],
         "power": f.get("power_per_cycle_battery") or None, "tier": f.get("tier", "mid"),
-        "art": {"kind": kind, "accent": acc}, "spec": f,
+        "art": {"kind": kind, "accent": acc}, "spec": f, "size": f.get("size"),
+        "art3d": A3.load_meta(short),
     })
 
 AMMO_CHOICES = [

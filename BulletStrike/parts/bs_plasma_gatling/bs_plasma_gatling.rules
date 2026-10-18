@@ -621,9 +621,9 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 				DamageLevels
 				[
 					{
+						Size = [0.56, 1.564]
 						AnimationFiles = ["barrel_spin1.png", "barrel_spin2.png", "barrel_spin3.png", "barrel1.png"]
 						NormalsAnimationFiles = ["barrel_normals1.png", "barrel_normals1.png", "barrel_normals1.png", "barrel_normals1.png"]
-						Size = [0.56, 1.564]
 						AnimationInterval = 0.05
 						AnimationStartTime = MinValue
 						ClampAnimation = true

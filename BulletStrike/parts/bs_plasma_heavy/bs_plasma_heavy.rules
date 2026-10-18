@@ -697,6 +697,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				DamageLevels
 				[
 					{
+						Size = [0.8, 3.68]
 						AnimationFiles = ["barrel2.png", "barrel3.png", "barrel4.png", "barrel5.png", "barrel1.png"]
 						NormalsAnimationFiles
 						[
@@ -706,7 +707,6 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 							"barrel_normals1.png"
 							"barrel_normals1.png"
 						]
-						Size = [0.8, 3.68]
 						AnimationInterval = 0.06
 						AnimationStartTime = MinValue
 						ClampAnimation = true
@@ -740,6 +740,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				DamageLevels
 				[
 					{
+						Size = [0.8, 3.68]
 						AnimationFiles = ["barrel2.png", "barrel3.png", "barrel4.png", "barrel5.png", "barrel1.png"]
 						NormalsAnimationFiles
 						[
@@ -749,7 +750,6 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 							"barrel_normals1.png"
 							"barrel_normals1.png"
 						]
-						Size = [0.8, 3.68]
 						AnimationInterval = 0.06
 						AnimationStartTime = MinValue
 						ClampAnimation = true

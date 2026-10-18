@@ -39,8 +39,20 @@ def _barrel_ys(g):
 
 
 def geometry(g):
-    """Calcula geometria (pivo, torre, canos, cano) a partir do tamanho; o gerador de sprites usa a mesma."""
+    """Calcula geometria (pivo, torre, canos, cano) a partir do tamanho; o gerador de sprites usa a mesma.
+
+    Com arte 3D (g["art3d"] = meta.json do render), a geometria vem do proprio render."""
     w, h = g["size"]
+    a3 = g.get("art3d")
+    if a3:
+        br = a3["barrel"]
+        geo = {"pivot": list(a3["pivot"]), "turret_size": a3["turret_size"], "front": br["root"],
+               "barrel_len": br["sprite_len"], "barrel_w": br["sprite_w"] / 2, "barrel_sprite_w": br["sprite_w"],
+               "barrel_center": br["center"], "muzzle": br["muzzle"], "collider": a3.get("collider"),
+               "ys": list(br["ys"])}
+        overhang = geo["muzzle"] - geo["pivot"][1]
+        geo["overhang"] = max(0, int(-(-overhang // 1)))
+        return geo
     geo = dict(g.get("geom", {}))
     # area acima da fileira de tras (onde fica a tripulacao)
     top_h = h - 1 if h >= 2 else h
@@ -80,6 +92,90 @@ def _fire_block_toggle(g, k, oc_state):
     return None, False
 
 
+def deck_graphics(comp, g, geo, reset_triggers, spin=False, recoil_interval=0.06):
+    """Componentes de grafico de uma torre de convés (casco, torre, canos, luzes).
+
+    Com arte 3D usa os quadros/normais do meta.json (recuo com calor, giro, torre animada, luzes
+    dinamicas roof_lights_fancy e brilho interno lights_add); sem ela, o formato da arte procedural."""
+    w, h = g["size"]
+    center = [w / 2, h / 2]
+    a3 = g.get("art3d")
+    hull = {
+        "Type": "Graphics", "Location": center, "OperationalToggle": "IsOperational",
+        "Floor": {"Layer": Q("floors"), "DamageLevels": [{"File": Q("floor.png"), "Size": [w, h]}]},
+        "Walls": {"Layer": Q("walls"), "DamageLevels": [{"File": Q("walls.png"), "Size": [w, h]}]},
+        "Roof": {"Layer": Q("roofs"), "DamageLevels": [{"File": Q("roof.png"), "NormalsFile": Q("roof_normals.png"),
+                                                          "Size": [w, h]}]},
+    }
+    if a3 and a3.get("hull", {}).get("lights"):
+        hull["OperationalLighting"] = {"Layer": Q("lights_add"), "DamageLevels": [
+            {"File": Q(a3["hull"]["lights"]), "Size": [w, h]}]}
+    comp["Graphics"] = hull
+    ts = geo["turret_size"]
+    if a3:
+        t = a3["turret"]
+        if len(t["frames"]) > 1:
+            on = {"AnimationFiles": [Q(f) for f in t["frames"]], "NormalsAnimationFiles": [Q(f) for f in t["normals"]],
+                  "Size": [ts, ts], "AnimationInterval": t["interval"]}
+        else:
+            on = {"File": Q(t["frames"][0]), "NormalsFile": Q(t["normals"][0]), "Size": [ts, ts]}
+        off = {"File": Q(t["off"]), "NormalsFile": Q(t["off_normals"]), "Size": [ts, ts]}
+        shadow = t["shadow"]
+    else:
+        on = {"File": Q("turret.png"), "NormalsFile": Q("turret_normals.png"), "Size": [ts, ts]}
+        off = {"File": Q("turret_off.png"), "NormalsFile": Q("turret_normals.png"), "Size": [ts, ts]}
+        shadow = "turret_shadow.png"
+    comp["TurretGraphics"] = {
+        "Type": "Graphics", "ChainedTo": "Turret", "Location": [0, 0], "Rotation": "90d",
+        "OperationalToggle": "IsOperational",
+        "Floor": {"Layer": Q("doodads_high"), "DamageLevels": [{"File": Q(shadow), "Size": [ts, ts]}]},
+        "OperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [on]},
+        "NonOperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [off]},
+    }
+    if a3:
+        br = a3["barrel"]
+        bl, bw = br["sprite_len"], br["sprite_w"]
+        frames, nframes, interval = br["frames"], br["normals"], br["interval"]
+        rest, rest_n = br["rest"], br["rest_normals"]
+    else:
+        bl = geo["barrel_len"]
+        bw = geo["barrel_sprite_w"] if "barrel_sprite_w" in geo else max(0.5, round(geo["barrel_w"] * 2, 3))
+        geo["barrel_sprite_w"] = bw
+        if spin:
+            frames = ["barrel_spin1.png", "barrel_spin2.png", "barrel_spin3.png", "barrel1.png"]
+            nframes = ["barrel_normals1.png"] * 4
+            interval = 0.05
+        else:
+            frames = ["barrel2.png", "barrel3.png", "barrel4.png", "barrel5.png", "barrel1.png"]
+            nframes = ["barrel_normals1.png"] * 5
+            interval = recoil_interval
+        rest, rest_n = "barrel1.png", "barrel_normals1.png"
+    for i, y in enumerate(geo["ys"]):
+        anim = {"Size": [bw, bl]}
+        if len(frames) > 1:
+            anim.update({"AnimationFiles": [Q(f) for f in frames], "NormalsAnimationFiles": [Q(f) for f in nframes],
+                         "AnimationInterval": interval, "AnimationStartTime": "MinValue", "ClampAnimation": True})
+        else:
+            anim.update({"File": Q(frames[0]), "NormalsFile": Q(nframes[0])})
+        comp[f"Barrel{i + 1}Graphics"] = {
+            "Type": "Graphics", "ChainedTo": "Turret", "Location": [geo["barrel_center"], y], "Rotation": "90d",
+            "OperationalToggle": "IsOperational",
+            "ResetAnimationTrigger": reset_triggers[i % len(reset_triggers)],
+            "OperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [anim]},
+            "NonOperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [
+                {"File": Q(rest), "NormalsFile": Q(rest_n), "Size": [bw, bl]}]},
+        }
+    # luzes dinamicas (iluminam o casco com normal map; so com "iluminacao sofisticada" ligada)
+    for i, l in enumerate((a3 or {}).get("lights", [])):
+        comp[f"Light{i + 1}Graphics"] = {
+            "Type": "Graphics", "ChainedTo": "Turret", "Location": [round(l["loc"][0], 4), round(l["loc"][1], 4)],
+            "OperationalToggle": "IsOperational",
+            "OperationalRoofLighting": {"Layer": Q("roof_lights_fancy"), "DamageLevels": [{
+                "File": Q("./Data/ships/common/light_blob.png"), "Size": [l["size"], l["size"]], "Z": l["z"],
+                "VertexColor": list(l["color"])}]},
+        }
+
+
 def _barrels_per_trigger(pattern, nb):
     if nb == 1:
         return 1
@@ -99,7 +195,7 @@ def build_gun(g, shot_paths):
     geo = geometry(g)
     center = [w / 2, h / 2]
     modes = _modes(g)
-    nb = g["barrels"]["count"]
+    nb = len(geo["ys"]) if g.get("art3d") else g["barrels"]["count"]
     pattern = g["barrels"].get("pattern", "alternate" if nb > 1 else "single")
     burst = g.get("burst")
     fi_val, fi_path = _fi_value(g)
@@ -407,46 +503,8 @@ def build_gun(g, shot_paths):
 
     # ------------------------------------------------------------------ graficos
     comp[C.comment("---- graficos ----")] = None
-    comp["Graphics"] = {
-        "Type": "Graphics", "Location": center, "OperationalToggle": "IsOperational",
-        "Floor": {"Layer": Q("floors"), "DamageLevels": [{"File": Q("floor.png"), "Size": [w, h]}]},
-        "Walls": {"Layer": Q("walls"), "DamageLevels": [{"File": Q("walls.png"), "Size": [w, h]}]},
-        "Roof": {"Layer": Q("roofs"), "DamageLevels": [{"File": Q("roof.png"), "NormalsFile": Q("roof_normals.png"),
-                                                          "Size": [w, h]}]},
-    }
-    ts = geo["turret_size"]
-    comp["TurretGraphics"] = {
-        "Type": "Graphics", "ChainedTo": "Turret", "Location": [0, 0], "Rotation": "90d",
-        "OperationalToggle": "IsOperational",
-        "Floor": {"Layer": Q("doodads_high"), "DamageLevels": [{"File": Q("turret_shadow.png"), "Size": [ts, ts]}]},
-        "OperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [
-            {"File": Q("turret.png"), "NormalsFile": Q("turret_normals.png"), "Size": [ts, ts]}]},
-        "NonOperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [
-            {"File": Q("turret_off.png"), "NormalsFile": Q("turret_normals.png"), "Size": [ts, ts]}]},
-    }
-    bl, bw = geo["barrel_len"], geo["barrel_sprite_w"] if "barrel_sprite_w" in geo else max(0.5, round(geo["barrel_w"] * 2, 3))
-    geo["barrel_sprite_w"] = bw
-    if spin:
-        frames = ["barrel_spin1.png", "barrel_spin2.png", "barrel_spin3.png", "barrel1.png"]
-        nframes = ["barrel_normals1.png"] * 4
-        anim_interval = 0.05
-    else:
-        frames = ["barrel2.png", "barrel3.png", "barrel4.png", "barrel5.png", "barrel1.png"]
-        nframes = ["barrel_normals1.png"] * 5
-        anim_interval = g["barrels"].get("recoil_frame", 0.06)
-    for i, y in enumerate(geo["ys"]):
-        comp[f"Barrel{i + 1}Graphics"] = {
-            "Type": "Graphics", "ChainedTo": "Turret", "Location": [geo["barrel_center"], y], "Rotation": "90d",
-            "OperationalToggle": "IsOperational",
-            "ResetAnimationTrigger": proxies_all[i],
-            "OperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [{
-                "AnimationFiles": [Q(f) for f in frames],
-                "NormalsAnimationFiles": [Q(f) for f in nframes],
-                "Size": [bw, bl], "AnimationInterval": anim_interval,
-                "AnimationStartTime": "MinValue", "ClampAnimation": True}]},
-            "NonOperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [{
-                "File": Q("barrel1.png"), "NormalsFile": Q("barrel_normals1.png"), "Size": [bw, bl]}]},
-        }
+    deck_graphics(comp, g, geo, proxies_all, spin=bool(spin),
+                  recoil_interval=g["barrels"].get("recoil_frame", 0.06))
 
     # ------------------------------------------------------------------ efeitos / UI
     comp.update(C.destroyed_effects(center, w, h))

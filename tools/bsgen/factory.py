@@ -143,18 +143,27 @@ def build_factory(f, own_stack):
     }
     comp["BuffProvider"] = {"Type": "GridBuffProvider", "BuffType": "Factory", "BuffAmount": "25%", "GridDistance": 1,
                             "OperationalToggle": "BatteryStorage" if power else "IsOperational"}
+    a3 = f.get("art3d")
+    if a3:
+        mm = a3["machine"]
+        frames, off_png, msize, moff, mint = mm["frames"], mm["off"], mm["size"], mm["offset"], mm["interval"]
+    else:
+        frames = ["machine_on1.png", "machine_on2.png", "machine_on3.png", "machine_on4.png"]
+        off_png, msize, moff, mint = "machine_off.png", [w, 1], [0, -0.5], 0.12
     comp["Graphics"] = {
         "Type": "Graphics", "Location": [w / 2, h / 2], "OperationalToggle": "IsOperational",
         "Floor": {"Layer": Q("floors"), "DamageLevels": [{"File": Q("floor.png"), "Size": [w, h]}]},
-        "OperationalDoodad": {"Layer": Q("doodads_low"), "Offset": [0, -0.5], "DamageLevels": [{
-            "AnimationFiles": [Q("machine_on1.png"), Q("machine_on2.png"), Q("machine_on3.png"), Q("machine_on4.png")],
-            "Size": [w, 1], "AnimationInterval": 0.12}]},
-        "NonOperationalDoodad": {"Layer": Q("doodads_low"), "Offset": [0, -0.5],
-                                 "DamageLevels": [{"File": Q("machine_off.png"), "Size": [w, 1]}]},
+        "OperationalDoodad": {"Layer": Q("doodads_low"), "Offset": moff, "DamageLevels": [{
+            "AnimationFiles": [Q(x) for x in frames], "Size": msize, "AnimationInterval": mint}]},
+        "NonOperationalDoodad": {"Layer": Q("doodads_low"), "Offset": moff,
+                                 "DamageLevels": [{"File": Q(off_png), "Size": msize}]},
         "Walls": {"Layer": Q("walls"), "DamageLevels": [{"File": Q("walls.png"), "Size": [w, h]}]},
         "Roof": {"Layer": Q("roofs"), "DamageLevels": [{"File": Q("roof.png"), "NormalsFile": Q("roof_normals.png"),
                                                           "Size": [w, h]}]},
     }
+    if a3 and a3.get("hull", {}).get("lights"):
+        comp["Graphics"]["OperationalLighting"] = {"Layer": Q("lights_add"), "DamageLevels": [
+            {"File": Q(a3["hull"]["lights"]), "Size": [w, h]}]}
     comp["Blueprints"] = C.blueprint(w, h)
     inds = [{"Toggle": "PowerToggle", "AtlasSprite": {"File": "&/INDICATORS/PowerOff", "Size": [1, 1]},
              "HidesIndicators": list(range(1, n + 1 + (1 if power else 0)))}]

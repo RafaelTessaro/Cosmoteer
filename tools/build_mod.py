@@ -24,6 +24,7 @@ from rules_dsl import render  # noqa: E402
 from bsgen import common as C  # noqa: E402
 from bsgen import guns, ciws, shots, factory, resources, infra  # noqa: E402
 import bs_data as DATA  # noqa: E402
+import art3d as A3  # noqa: E402
 
 ROOT = os.path.normpath(os.path.join(HERE, "..", "BulletStrike"))
 HEADER = "Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py)."
@@ -115,6 +116,8 @@ def build(args):
         own_stack[r["id"]] = r["max_stack"]
         if art:
             art.resource_art(out, r)
+        elif r.get("art3d"):
+            A3.copy_files(out.root, f"resources/{r['dir']}", r["dir"], r["art3d"])
 
     # projeteis
     shot_rel = {}
@@ -136,6 +139,8 @@ def build(args):
         part_paths.append(rel)
         if art:
             art.gun_art(out, pdir, g, info)
+        elif g.get("art3d"):
+            A3.copy_files(out.root, pdir, g["short"], g["art3d"])
     # defesas
     for cdef in DATA.DEFENSES:
         pdir = f"parts/{cdef['short']}"
@@ -147,6 +152,8 @@ def build(args):
         part_paths.append(rel)
         if art:
             art.gun_art(out, pdir, cdef, info)
+        elif cdef.get("art3d"):
+            A3.copy_files(out.root, pdir, cdef["short"], cdef["art3d"])
     # fabricas
     for f in DATA.FACTORIES:
         pdir = f"parts/{f['short']}"
@@ -156,6 +163,8 @@ def build(args):
         part_paths.append(rel)
         if art:
             art.factory_art(out, pdir, f, info)
+        elif f.get("art3d"):
+            A3.copy_files(out.root, pdir, f["short"], f["art3d"])
 
     # gui / techs / strings / mod.rules
     out.text("gui/bs_part_stats.rules", infra.part_stats())

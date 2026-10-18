@@ -8,6 +8,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from bsgen import sprites as S
 from bsgen.art import PX, Canvas, flat_normals
+import art3d as A3
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -16,7 +17,27 @@ def _accent(g):
     return S.ACCENTS[g["art"].get("accent", "ammo")]
 
 
+def gun_art3d(out, pdir, g, info):
+    """Arma com arte 3D: copia os PNGs renderizados e monta icone/blueprint com eles."""
+    geo = info["geo"]
+    w, h = g["size"]
+    meta = g["art3d"]
+    A3.copy_files(out.root, pdir, g["short"], meta)
+    load = lambda n: Image.open(A3.path(g["short"], n)).convert("RGBA")  # noqa: E731
+    roof = load(meta["hull"]["roof"])
+    turret = load(meta["turret"]["frames"][0])
+    rest = load(meta["barrel"]["rest"])
+    icon = S.compose_weapon(w, h, roof, turret, [rest], geo, geo["overhang"])
+    out.image(f"{pdir}/icon.png", icon)
+    sil = S.compose_weapon(w, h, Image.new("RGBA", roof.size, (0, 0, 0, 0)), turret, [rest], geo, 0)
+    sil = sil.crop((0, 0, w * PX, h * PX))
+    out.image(f"{pdir}/blueprints.png", S.blueprint_from(w, h, sil))
+    out.image(f"../docs/preview/{g['short']}.png", icon)
+
+
 def gun_art(out, pdir, g, info):
+    if g.get("art3d"):
+        return gun_art3d(out, pdir, g, info)
     geo = info["geo"]
     w, h = g["size"]
     a = _accent(g)
@@ -62,6 +83,17 @@ def gun_art(out, pdir, g, info):
 
 def factory_art(out, pdir, f, info):
     w, h = info["size"]
+    if f.get("art3d"):
+        meta = f["art3d"]
+        A3.copy_files(out.root, pdir, f["short"], meta)
+        load = lambda n: Image.open(A3.path(f["short"], n)).convert("RGBA")  # noqa: E731
+        icon = Image.new("RGBA", (w * PX, h * PX), (0, 0, 0, 0))
+        icon.alpha_composite(load("floor.png"))
+        icon.alpha_composite(load(meta["machine"]["frames"][0]))
+        icon.alpha_composite(load("walls.png"))
+        out.image(f"{pdir}/icon.png", icon)
+        out.image(f"{pdir}/blueprints.png", S.blueprint_from(w, h))
+        return
     a = S.ACCENTS[f["art"].get("accent", "ammo")]
     floor, walls, roof, roof_n, frames, off = S.render_factory(w, h, a, f["art"].get("kind", "mag"),
                                                                   seed=zlib.crc32(f["short"].encode()) % 991)
@@ -83,6 +115,10 @@ def factory_art(out, pdir, f, info):
 
 def resource_art(out, r):
     d = f"resources/{r['dir']}"
+    if r.get("art3d"):
+        A3.copy_files(out.root, d, r["dir"], r["art3d"])
+        out.image(f"../docs/preview/res_{r['dir']}.png", Image.open(A3.path(r["dir"], "icon.png")).convert("RGBA"))
+        return
     icon, overlay, nugget, nugget_n, stacks = S.render_resource(r["art"]["kind"], S.ACCENTS[r["art"]["accent"]],
                                                                r["max_stack"])
     out.image(f"{d}/icon.png", icon)

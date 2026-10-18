@@ -7,7 +7,7 @@ de uma vez, os mais proximos do centro primeiro). Overclock: nuvem de estilhacos
 
 from rules_dsl import Q, VOID, Inh
 from bsgen import common as C
-from bsgen.guns import geometry
+from bsgen.guns import geometry, deck_graphics
 
 
 def build_ciws(c, beam_path, beam_oc_path):
@@ -15,7 +15,7 @@ def build_ciws(c, beam_path, beam_oc_path):
     oc = c.get("oc")
     geo = geometry(c)
     center = [w / 2, h / 2]
-    nb = c["barrels"]["count"]
+    nb = len(geo["ys"]) if c.get("art3d") else c["barrels"]["count"]
     m = c["ammo"]
 
     top = {}
@@ -178,37 +178,7 @@ def build_ciws(c, beam_path, beam_oc_path):
                                               "ValueFrom": "PeakHeatGenerationValue"}
 
     comp[C.comment("---- graficos ----")] = None
-    comp["Graphics"] = {
-        "Type": "Graphics", "Location": center, "OperationalToggle": "IsOperational",
-        "Floor": {"Layer": Q("floors"), "DamageLevels": [{"File": Q("floor.png"), "Size": [w, h]}]},
-        "Walls": {"Layer": Q("walls"), "DamageLevels": [{"File": Q("walls.png"), "Size": [w, h]}]},
-        "Roof": {"Layer": Q("roofs"), "DamageLevels": [{"File": Q("roof.png"), "NormalsFile": Q("roof_normals.png"),
-                                                          "Size": [w, h]}]},
-    }
-    ts = geo["turret_size"]
-    comp["TurretGraphics"] = {
-        "Type": "Graphics", "ChainedTo": "Turret", "Location": [0, 0], "Rotation": "90d",
-        "OperationalToggle": "IsOperational",
-        "Floor": {"Layer": Q("doodads_high"), "DamageLevels": [{"File": Q("turret_shadow.png"), "Size": [ts, ts]}]},
-        "OperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [
-            {"File": Q("turret.png"), "NormalsFile": Q("turret_normals.png"), "Size": [ts, ts]}]},
-        "NonOperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [
-            {"File": Q("turret_off.png"), "NormalsFile": Q("turret_normals.png"), "Size": [ts, ts]}]},
-    }
-    bl = geo["barrel_len"]
-    bw = max(0.5, round(geo["barrel_w"] * 2, 3))
-    geo["barrel_sprite_w"] = bw
-    for i, y in enumerate(geo["ys"]):
-        comp[f"Barrel{i + 1}Graphics"] = {
-            "Type": "Graphics", "ChainedTo": "Turret", "Location": [geo["barrel_center"], y], "Rotation": "90d",
-            "OperationalToggle": "IsOperational", "ResetAnimationTrigger": f"Emitter{i + 1}Trigger",
-            "OperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [{
-                "AnimationFiles": [Q(f) for f in ["barrel2.png", "barrel3.png", "barrel4.png", "barrel5.png", "barrel1.png"]],
-                "NormalsAnimationFiles": [Q("barrel_normals1.png")] * 5,
-                "Size": [bw, bl], "AnimationInterval": 0.03, "AnimationStartTime": "MinValue", "ClampAnimation": True}]},
-            "NonOperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [
-                {"File": Q("barrel1.png"), "NormalsFile": Q("barrel_normals1.png"), "Size": [bw, bl]}]},
-        }
+    deck_graphics(comp, c, geo, [f"Emitter{i + 1}Trigger" for i in range(nb)], recoil_interval=0.03)
 
     comp.update(C.destroyed_effects(center, w, h))
     comp["Indicators"] = C.weapon_indicators(center, "AmmoPrereq", bool(oc), "&~/FIRE_INTERVAL")
