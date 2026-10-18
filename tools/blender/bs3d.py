@@ -423,8 +423,9 @@ def cyl(name, x, y, z, r, length, mat, axis="Y", verts=32, bevel=0.01, tags=(), 
         md.segments = 2
         md.limit_method = "ANGLE"
     ob.data.materials.append(mat)
+    # suaviza so a lateral; as tampas (normal no eixo local Z) ficam planas, senao o mapa de normais vira cupula
     for p in ob.data.polygons:
-        p.use_smooth = verts >= 16
+        p.use_smooth = verts >= 16 and abs(p.normal.z) < 0.5
     for t in tags:
         ob[t] = True
     return ob

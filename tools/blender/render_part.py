@@ -174,13 +174,16 @@ def render_gun(mod, out, only):
     hlen = L + pad + top
     bsz = (int(round(bw * PX)), int(round(hlen * PX)))
     if anim == "spin":
-        nspin = bar.get("spin_frames", 3)
+        # nspin+1 quadros de giro (fases 1/(n+1) .. 1 = volta completa entre canos) todos "quentes", e o
+        # repouso frio separado: em tiro continuo o jogo reinicia a animacao a cada tiro e o repouso nunca aparece,
+        # entao o calor nao pisca
+        nspin = bar.get("spin_frames", 3) + 1
         names = [f"barrel_spin{i + 1}.png" for i in range(nspin)] + ["barrel1.png"]
         norms = [f"barrel_spin_normals{i + 1}.png" for i in range(nspin)] + ["barrel_normals1.png"]
-        phases = [(i + 1) / (nspin + 1) for i in range(nspin)] + [0.0]
+        phases = [(i + 1) / nspin for i in range(nspin)] + [0.0]
         recoils = [bar.get("spin_recoil", 0.0)] * nspin + [0.0]
-        heats = list(bar.get("heat", [])) + [0.0] * (nspin + 1)
-        heats = heats[:nspin] + [0.0]
+        hl = list(bar.get("heat", [])) or [0.0]
+        heats = [hl[min(i, len(hl) - 1)] for i in range(nspin)] + [0.0]
     elif anim == "recoil":
         rec = list(bar["recoil"])
         heat = list(bar.get("heat", []))
