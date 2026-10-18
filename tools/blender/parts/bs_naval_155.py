@@ -6,7 +6,8 @@ rebaixo escuro), cunha frontal larga (garras laterais + bercos em cunha + proa c
 orelhas de telemetro: casulos blindados que saem dos flancos e giram (animacao da torre), tambores de
 municao nos vaos, baia de exaustao traseira e faixa de carregadores com 4 escotilhas emolduradas no teto.
 Dois canos pesados: bolsa de culatra escura, luva de recuo com aros, tubo em dois estagios (tubo A +
-cano fino) com extrator de gases e freio de boca de duas camaras escuras com defletores claros, que
+cano fino) com extrator de gases e freio de boca em dois estagios na linguagem do 76 mm: camaras claras
+facetadas apontando para a frente (a da frente em ponta de flecha) com janelas transversais escuras, que
 brilham de calor (o calor escorre um pouco para o fim do cano fino).
 """
 
@@ -265,12 +266,16 @@ def head(M, T="head", phase=0.0):
         B.cyl(f"hoistb{sx}", sx * 1.14, -1.16, 0.44, 0.055, 0.26, KM, axis="Y", verts=10, tags=tags)
 
 
-def _chamber(name, ya, yb, z, BR, hot, nose):
-    """Camara do freio de boca: corpo escuro (brilha de calor) com defletores claros transversais."""
-    tip = 0.11 if nose else 0.05
-    poly = [(-0.23, ya), (0.23, ya), (0.265, ya + 0.05), (0.265, yb - tip), (0.17 if nose else 0.23, yb),
-            (-0.17 if nose else -0.23, yb), (-0.265, yb - tip), (-0.265, ya + 0.05)]
-    return B.plate(name, poly, z - 0.145, z + 0.145, BR, slope=0.035, tags=hot)
+def _chamber(name, ya, yb, z, A, K, hot, tip, fw, ports, extra=()):
+    """Camara do freio de boca (como o freio do 76 mm): corpo claro facetado que aponta para a frente
+    (chanfro frontal 'tip' ate a meia largura 'fw'), brilha de calor, com janelas transversais escuras
+    recortadas no topo (o nucleo escuro b_brake_core aparece no fundo de cada janela)."""
+    poly = [(-0.23, ya), (0.23, ya), (0.265, ya + 0.05), (0.265, yb - tip), (fw, yb), (-fw, yb), (-0.265, yb - tip),
+            (-0.265, ya + 0.05)]
+    ch = B.plate(name, poly, z - 0.145, z + 0.145, A, slope=0.035, tags=hot)
+    cuts = [B.box(f"{name}_p{i}", 0, y, 0.60, 0.045, z + 0.03, z + 0.3, K, bevel=0.0) for i, y in enumerate(ports)]
+    B.cut(ch, cuts + list(extra))
+    return ch
 
 
 def barrel(M, L=3.0, T="barrel", phase=0.0):
@@ -278,7 +283,6 @@ def barrel(M, L=3.0, T="barrel", phase=0.0):
     tags = (T,)
     hot = (T, "hot")  # partes que brilham de calor depois do tiro
     A, AM, K, KM, S = M["armor"], M["armor_mid"], M["core"], M["core_mid"], M["steel"]
-    BR = B.mat_metal("brake_dark", (0.04, 0.041, 0.046), rough=0.4, metal=0.85)   # corpo escuro do freio
     z = 0.6
     # bolsa de culatra (lona) escura com pregas
     B.cyl("b_bag", 0, 0.26, z, 0.22, 0.52, KM, axis="Y", verts=8, bevel=0.012, tags=tags)
@@ -324,24 +328,20 @@ def barrel(M, L=3.0, T="barrel", phase=0.0):
     B.cyl("b_fumecone0", 0, ye - 0.19, z, 0.165, 0.08, A, axis="Y", verts=8, bevel=0.0, tags=tags, r2=0.225)
     B.cyl("b_fumecone1", 0, ye + 0.19, z, 0.225, 0.08, A, axis="Y", verts=8, bevel=0.0, tags=tags, r2=0.16)
     B.cyl("b_collar1", 0, L - 0.77, z, 0.178, 0.05, AM, axis="Y", verts=8, bevel=0.008, tags=hot)
-    # freio de boca de duas camaras escuras (multi-defletor) com defletores claros
+    # freio de boca em dois estagios (linguagem do 76 mm): camaras claras apontando para a frente, com
+    # janelas transversais escuras (ritmo 0.09, barras claras de 0.045)
     B.cyl("b_brakering", 0, L - 0.71, z, 0.20, 0.04, S, axis="Y", verts=8, bevel=0.006, tags=hot)
     ra, rb = L - 0.69, L - 0.41
     fa, fb = L - 0.345, L
-    _chamber("b_brake1", ra, rb, z, BR, hot, False)
+    _chamber("b_brake1", ra, rb, z, A, K, hot, 0.07, 0.20, (ra + 0.09, ra + 0.18))
     B.cyl("b_neck", 0, (rb + fa) / 2, z, 0.17, fa - rb + 0.02, S, axis="Y", verts=8, bevel=0.006, tags=hot)
-    f1 = _chamber("b_brake2", fa, fb, z, BR, hot, True)
-    # defletores (placas claras transversais) - camara traseira: 3; frontal: 2 + nariz
-    for i, (y, w) in enumerate(((ra + 0.025, 0.47), ((ra + rb) / 2, 0.55), (rb - 0.025, 0.47),
-                                (fa + 0.025, 0.47), (fa + 0.155, 0.55))):
-        B.rbox(f"b_baffle{i}", 0, y, w, 0.05, z - 0.155, z + 0.165, AM, chamfer=0.012, slope=0.012, bevel=0.006,
-               tags=tags)
-    nose = [(-0.265, fb - 0.10), (0.265, fb - 0.10), (0.265, fb - 0.075), (0.17, fb), (-0.17, fb),
-            (-0.265, fb - 0.075)]
-    nc = B.plate("b_nose", nose, z - 0.155, z + 0.165, AM, slope=0.02, bevel=0.006, tags=tags)
-    B.cut(nc, [B.box("b_bore_c", 0, fb, 0.12, 0.10, z - 0.07, z + 0.3, K, bevel=0.0)])
-    B.cut(f1, [B.box("b_bore_c2", 0, fb, 0.12, 0.10, z - 0.07, z + 0.3, K, bevel=0.0)])
-    B.box("b_brake_core", 0, (ra + fb) / 2, 0.40, fb - ra - 0.04, z - 0.12, z + 0.02, K, bevel=0.0, tags=tags)
+    # camara frontal em ponta de flecha (como (+-0.12, yb+0.21) do 76 mm), com a boca recortada na ponta
+    _chamber("b_brake2", fa, fb, z, A, K, hot, 0.13, 0.12, (fa + 0.08, fa + 0.17),
+             extra=[B.box("b_bore_c2", 0, fb, 0.12, 0.10, z - 0.07, z + 0.3, K, bevel=0.0)])
+    # nucleo escuro: topo logo acima do fundo das janelas (aparece nelas); termina antes da ponta de flecha
+    # para nao alargar a silhueta do nariz
+    B.box("b_brake_core", 0, (ra + fb - 0.08) / 2, 0.40, fb - ra - 0.12, z - 0.12, z + 0.035, K, bevel=0.0,
+          tags=tags)
 
 
 def roof(M, T="roof"):
