@@ -51,6 +51,12 @@ def main():
             bbx = solid(b).getbbox()
             if bbx and (bbx[0] <= 0 or bbx[2] >= b.width):
                 errs.append(f"{f}: o cano encosta nas laterais do sprite (bbox {bbx}, largura {b.width}): aumente width")
+            if bbx and bbx[3] >= b.height:
+                errs.append(f"{f}: o cano encosta embaixo do sprite no recuo (bbox {bbx}): aumente pad")
+        ys = sorted(br["ys"])
+        for a, b2 in zip(ys, ys[1:]):
+            if b2 - a < br["sprite_w"] - 1e-6:
+                errs.append(f"canos sobrepostos: ys {a} e {b2} estao a {b2 - a:.3f} e o sprite tem {br['sprite_w']} de largura")
         for f in meta["files"]:
             if f.endswith(".png"):
                 Image.open(A3.path(short, f)).verify()
@@ -93,6 +99,13 @@ def main():
                     errs.append(f"{f}: {o.size} difere do quadro do casulo {im.size}")
         if lch.get("oc_glow") and not meta["turret"].get("oc_glow"):
             print("aviso: sem turret_oc.png (oc_glow); as regras ficam sem o brilho de overclock")
+        if meta["turret"].get("oc_glow"):
+            # OverclockGlowGraphics desenha a imagem com Size = [turret_size, turret_size]: mesmo quadro da torre
+            o = Image.open(A3.path(short, meta["turret"]["oc_glow"]))
+            if o.size != im.size:
+                errs.append(f"{meta['turret']['oc_glow']}: {o.size} difere do quadro do casulo {im.size}")
+            elif not o.split()[-1].getbbox():
+                errs.append(f"{meta['turret']['oc_glow']}: imagem vazia (oc_glow sem objetos emissivos)")
         for f in meta["files"]:
             if f.endswith(".png"):
                 Image.open(A3.path(short, f)).verify()

@@ -33,7 +33,7 @@
    "turret7_normals.png",
    "turret8_normals.png"
   ],
-  "interval": 0.1,
+  "interval": 0.18,
   "off": "turret_off.png",
   "off_normals": "turret1_normals.png",
   "shadow": "turret_shadow.png",
@@ -87,7 +87,7 @@
  "lights": [
   {
    "loc": [
-    -0.74,
+    -0.78,
     0.0
    ],
    "size": 0.9,
