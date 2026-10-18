@@ -1,19 +1,19 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
 // Projetil: 406mm Triple Naval Turret - emp
 
-STAT_DAMAGE = 4200
+STAT_DAMAGE = 8000
 STAT_PENETRATION = 1
 ID = "rafaeltessaro.bs_shot_naval_406_emp"
 Range = 600
 IdealRange = [180, &~/Range]
 IdealRadius = [5, 50]
-Speed = 220
+Speed = 200
 Components
 {
 	Physics
 	{
 		Type = CirclePhysics
-		Radius = 0.3
+		Radius = 0.45
 		Density = 0.0001
 	}
 	Death
@@ -23,7 +23,7 @@ Components
 	Targetable
 	{
 		Type = Targetable
-		Health = 5000
+		Health = 6000
 		TargetCategory = "bullet"
 		OnDeath
 		{
@@ -49,7 +49,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 4200
+						BaseValue = 13200
 						EffectScaleExponent = 1
 					}
 				}
@@ -66,7 +66,7 @@ Components
 					ResourceType = battery
 					Amount
 					{
-						BaseValue = 4720
+						BaseValue = 2250
 						EffectScaleExponent = 1
 					}
 					TreatShieldAsPart = true
@@ -89,7 +89,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 4200
+						BaseValue = 8000
 						EffectScaleExponent = 1
 					}
 				}
@@ -106,7 +106,7 @@ Components
 					ResourceType = battery
 					Amount
 					{
-						BaseValue = 2832
+						BaseValue = 1350
 						EffectScaleExponent = 1
 					}
 					MediaEffectsOnDrain
@@ -130,13 +130,13 @@ Components
 						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_03.wav"
 						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_04.wav"
 					]
-					Volume = 0.8
+					Volume = 1
 					SpeedVariation = 0.2
-					MaxConcurrent = 12
+					MaxConcurrent = 8
 				}
 				: /BASE_SHAKE
 				{
-					ShakeAmount = 0.04
+					ShakeAmount = 0.08
 					Duration = 0.5
 				}
 			]
@@ -151,7 +151,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 1050
+						BaseValue = 2000
 						EffectScaleExponent = 1
 					}
 				}
@@ -180,7 +180,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 4200
+						BaseValue = 8000
 						EffectScaleExponent = 1
 					}
 				}
@@ -229,7 +229,7 @@ Components
 					SampleMode = Linear
 					MipLevels = max
 				}
-				Size = [0.7, 0.7]
+				Size = [1.05, 1.05]
 			}
 			FrameCount = 16
 			FrameSize = [256, 256]
@@ -246,7 +246,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		Offset = [-1.25, 0]
+		Offset = [-2, 0]
 		Sprite
 		{
 			Texture
@@ -255,7 +255,7 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [10, 5]
+			Size = [16, 8]
 			VertexColor = [80, 150, 255]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"
@@ -269,6 +269,6 @@ Components
 	Trail
 	{
 		Type = MediaEffects
-		MediaEffects = [&<./Data/shots/bullet_large/particles/bullet_trail_large.rules>]
+		MediaEffects = [&<./Data/shots/bullet_deck/particles/bullet_trail_deck.rules>]
 	}
 }

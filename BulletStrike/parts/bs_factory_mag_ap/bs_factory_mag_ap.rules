@@ -1,5 +1,5 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
-// Fabrica: AP Magazine Line / Linha de Carregadores Perfurantes
+// Fabrica: Armor-Piercing Magazine Press / Prensa de Carregadores Perfurantes
 
 Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 {
@@ -8,7 +8,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 	DescriptionKey = "Parts/BSFactoryMagApDesc"
 	ID = rafaeltessaro.bs_factory_mag_ap
 	EditorGroups = ["BulletStrike", "Production"]
-	Resources = [[steel, 76], [coil2, 20], [tristeel, 4]]
+	Resources = [[steel, 76], [coil2, 24], [tristeel, 8]]
 	Size = [3, 2]
 	IsFlippable = true
 	SelectionPriority = 1
@@ -32,7 +32,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 		IsOperational
 		{
 			Type = MultiToggle
-			Toggles = [PowerToggle, NonJunkToggle, ScorchedToggle, Input0, Input1, BatteryStorage]
+			Toggles = [PowerToggle, NonJunkToggle, ScorchedToggle, Input0, Input1Splitter, BatteryStorage]
 			Mode = All
 		}
 		NonJunkToggle
@@ -69,18 +69,18 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 		Input0
 		{
 			Type = TypedResourceGrid
-			ResourceType = bullet
+			ResourceType = rafaeltessaro.bs_mag_std
 			GridRect = [0, 1, 1, 1]
 			Layer = "doodads_low"
 			SpriteInset = [8/64, 6/64, 8/64, 9/64]
-			ToggleOnResources = 12
-			ToggleOffResources = 11
 			AllowExternalPickupAndDelivery = true
+			ToggleOnResources = 2
+			ToggleOffResources = 1
 		}
 		Input0Consumer
 		{
 			Type = TypedResourceGridConsumer
-			ResourceType = bullet
+			ResourceType = rafaeltessaro.bs_mag_std
 			Storage = Input0
 			DefaultPriority = &/PRIORITIES/Factory_Supply
 			OperationalToggle = CommandConsumptionToggle
@@ -89,22 +89,28 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 		Input1
 		{
 			Type = TypedResourceGrid
-			ResourceType = iron
+			ResourceType = tristeel
 			GridRect = [1, 1, 1, 1]
 			Layer = "doodads_low"
 			SpriteInset = [8/64, 6/64, 8/64, 9/64]
-			ToggleOnResources = 1
-			ToggleOffResources = 0
 			AllowExternalPickupAndDelivery = true
 		}
 		Input1Consumer
 		{
 			Type = TypedResourceGridConsumer
-			ResourceType = iron
+			ResourceType = tristeel
 			Storage = Input1
 			DefaultPriority = &/PRIORITIES/Factory_Supply
 			OperationalToggle = CommandConsumptionToggle
 			ConsumptionToggleButtonOffset = [0, -0.4]
+		}
+		Input1Splitter
+		{
+			Type = InlineResourceConverter
+			ResourceType = tristeel
+			FromStorage = Input1
+			FromQuantity = 1
+			ToQuantity = 10
 		}
 		Output
 		{
@@ -142,15 +148,15 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			[
 				{
 					Storage = Input0
-					Quantity = 12
+					Quantity = 2
 				}
 				{
-					Storage = Input1
+					Storage = Input1Splitter
 					Quantity = 1
 				}
 				{
 					Storage = BatteryStorage
-					Quantity = 150
+					Quantity = 200
 					MinQuantityForConversion = 1
 				}
 			]
@@ -158,7 +164,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			ToQuantity = 2
 			Interval
 			{
-				BaseValue = 2
+				BaseValue = 4
 				Modifiers
 				[
 					{
@@ -299,7 +305,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					}
 				}
 				{
-					Toggle = Input1
+					Toggle = Input1Splitter
 					AtlasSprite
 					{
 						File = &/INDICATORS/NoResource

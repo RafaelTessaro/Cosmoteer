@@ -1,7 +1,7 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
 // Projetil: Heavy Plasma Cannon - plasma
 
-STAT_DAMAGE = 4800
+STAT_DAMAGE = 3600
 STAT_PENETRATION = 0
 ID = "rafaeltessaro.bs_shot_plasma_heavy_plasma"
 Range = 550
@@ -23,45 +23,75 @@ Components
 	Targetable
 	{
 		Type = Targetable
-		Health = 3000
+		Health = 2500
 		TargetCategory = "bullet"
 		OnDeath
 		{
-			MediaEffects = [&<./Data/shots/flak_large/particles/flak_large_flash.rules>]
+			MediaEffects = &~/Components/Hit/HitOperational/MediaEffects
 		}
 	}
 	Hit
 	{
-		Type = SimpleHit
+		Type = PenetratingHit
+		Penetration = 0
+		PenetrationSpeed = 25
 		FriendlyShipLowCollisions = false
-		HitOperational
+		CrewCollisions = {Enemies=true; Junk=true}
+		PenetratesCrew = true
+		HitCrew = &HitOperational
+		HitShield
 		{
+			ReduceEffectsByPenetration = true
+			Offset = [-0.15, 0]
 			HitEffects
 			[
 				{
 					Type = Damage
 					Damage
 					{
-						BaseValue = 3200
+						BaseValue = 9600
 						EffectScaleExponent = 1
 					}
-				}
-				{
-					Type = ExplosiveDamage
-					TotalDamage
-					{
-						BaseValue = 1600
-						EffectScaleExponent = 1
-					}
-					Radius = 2
 				}
 				{
 					Type = Impulse
 					Impulse
 					{
-						BaseValue = 30
+						BaseValue = 5
 						EffectScaleExponent = 1
 					}
+				}
+			]
+			MediaEffects = &../HitOperational/MediaEffects
+		}
+		HitOperational
+		{
+			ReduceEffectsByPenetration = true
+			Offset = [-0.15, 0]
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
+					{
+						BaseValue = 3600
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 5
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = StatusApplication
+					StatusType = cosmoteer.heat
+					StatusValue = 288
+					ApplyToAllHitPartTiles = true
+					DivideValueByPartArea = true
 				}
 			]
 			MediaEffects
@@ -88,38 +118,76 @@ Components
 				}
 			]
 		}
-		HitStructural = &HitOperational
-		HitCrew = &HitOperational
-		CrewCollisions = {Enemies=true; Junk=true}
-		HitShield
+		HitStructural
 		{
+			ReduceEffectsByPenetration = true
+			Offset = [0.15, 0]
 			HitEffects
 			[
 				{
 					Type = Damage
 					Damage
 					{
-						BaseValue = 7200
+						BaseValue = 900
 						EffectScaleExponent = 1
 					}
 				}
 				{
-					Type = ExplosiveDamage
-					TotalDamage
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 2.5
+						EffectScaleExponent = 1
+					}
+				}
+			]
+			MediaEffects
+			[
+				&<./Data/shots/bullet_railgun/particles/bullet_hit_struct_railgun.rules>
+				&<./Data/shots/bullet_railgun/particles/bullet_hit_struct_railgun_sparks.rules>
+			]
+		}
+		PenetratingOperational
+		{
+			ReduceEffectsByPenetration = true
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
 					{
 						BaseValue = 3600
 						EffectScaleExponent = 1
 					}
-					Radius = 2
-					Filter
+				}
+				{
+					Type = StatusApplication
+					StatusType = cosmoteer.fire
+					StatusChance
 					{
-						Ships = true
-						Shields = true
+						BaseValue = 0.25
+						EffectScaleExponent = 1
+					}
+					ValueType = Interpolated
+				}
+				{
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 5
+						EffectScaleExponent = 1
 					}
 				}
 			]
 			MediaEffects = &../HitOperational/MediaEffects
 		}
+		PenetratingStructural : &HitStructural
+		{
+			StructuralDamageRetentionPerHit = 50%
+			MinStructuralDamageScale = 3%
+		}
+		FinishedPenetratingOperational = &PenetratingOperational
+		FinishedPenetratingStructural = &PenetratingStructural
 	}
 	Sprite
 	{

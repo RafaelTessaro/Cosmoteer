@@ -264,9 +264,8 @@ PartsWhitelist
 	rafaeltessaro.bs_flak_light
 	rafaeltessaro.bs_factory_mag_std
 	rafaeltessaro.bs_factory_mag_ap
-	rafaeltessaro.bs_factory_mag_aphe
 	rafaeltessaro.bs_factory_mag_emp
 	rafaeltessaro.bs_factory_plasma
-	rafaeltessaro.bs_factory_nuke_shell
+	rafaeltessaro.bs_factory_shell_nuke
 ]
 OverclockIcon = &<./Data/modes/career/techs.rules>/OverclockIcon

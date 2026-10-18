@@ -1,13 +1,13 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
 // Projetil: bs_flak_ciws
 
-STAT_DAMAGE = 1500
+STAT_DAMAGE = 2000
 STAT_SHIP_DAMAGE = 0
-STAT_RADIUS = 4
-Range = 240
-IdealRange = 216
+STAT_RADIUS = 4.5
+Range = 250
+IdealRange = 225
 ClipRangeToTarget = true
-RandomOffsetRadius = [0.5, 4]
+RandomOffsetRadius = [0.5, 4.166667]
 FriendlyShipLowCollisions = false
 HitNothing
 {
@@ -17,10 +17,10 @@ HitNothing
 			Type = ExplosiveDamage
 			TotalDamage
 			{
-				BaseValue = 1500
+				BaseValue = 2000
 				EffectScaleExponent = 1
 			}
-			Radius = 4
+			Radius = 4.5
 			Slices = 1
 			Filter
 			{
@@ -38,7 +38,7 @@ HitNothing
 				BaseValue = 0
 				EffectScaleExponent = 1
 			}
-			Radius = 2.4
+			Radius = 2.7
 			Filter
 			{
 				Ships = true

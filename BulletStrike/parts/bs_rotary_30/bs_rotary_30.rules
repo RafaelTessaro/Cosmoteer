@@ -3,20 +3,20 @@
 
 OVERCLOCK
 {
-	FIRE_INTERVAL_FACTOR = 0.7273
-	HALF_SPREAD = 1.0d
+	FIRE_INTERVAL_FACTOR = 0.7143
+	HALF_SPREAD = 1.875d
 	RECOIL_FACTOR = 160%
-	HEAT_PER_SHOT = 90
+	HEAT_PER_SHOT = 120
 	HEAT_PER_SECOND = 100
-	MAX_SPIN = 4
+	MAX_SPIN = 6
 }
 HEAT_TO_RESOURCE = &<./Data/statuses/heat/heat.rules>/STATUS_TO_RESOURCE_RATIO
-FIRE_INTERVAL = 0.25
+FIRE_INTERVAL = 0.5
 SPIN
 {
-	MAX = 4
-	UP_TIME = 5
-	DOWN_TIME = 2.5
+	MAX = 6
+	UP_TIME = 6
+	DOWN_TIME = 3
 }
 Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 {
@@ -25,10 +25,10 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 	DescriptionKey = "Parts/BSRotary30Desc"
 	ID = rafaeltessaro.bs_rotary_30
 	EditorGroups = ["BulletStrike", "WeaponsProjectile"]
-	Resources = [[steel, 200], [coil2, 36], [tristeel, 40]]
+	Resources = [[steel, 200], [coil2, 45], [tristeel, 40]]
 	Size = [4, 4]
 	SelectionPriority = 1
-	MaxHealth = 20000
+	MaxHealth = 22000
 	TypeCategories = [weapon, uses_ammo, is_crewed]
 	SignificanceToggle = ScorchedToggle
 	ReceivableBuffs : ^/0/ReceivableBuffs [RateOfFire]
@@ -150,7 +150,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = ResourceStorage
 			ResourceType = rafaeltessaro.bs_mag_std
-			MaxResources = 12
+			MaxResources = 24
 			UITileRect = [0 + 7/64, 3 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true
@@ -161,7 +161,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			ResourceType = rafaeltessaro.bs_mag_std
 			FromStorage = MagStorage_0
 			FromQuantity = 1
-			ToQuantity = 15
+			ToQuantity = 10
 		}
 		MagConsumer_0
 		{
@@ -194,7 +194,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = ResourceStorage
 			ResourceType = rafaeltessaro.bs_mag_ap
-			MaxResources = 12
+			MaxResources = 24
 			UITileRect = [1 + 7/64, 3 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true
@@ -205,7 +205,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			ResourceType = rafaeltessaro.bs_mag_ap
 			FromStorage = MagStorage_1
 			FromQuantity = 1
-			ToQuantity = 15
+			ToQuantity = 10
 		}
 		MagConsumer_1
 		{
@@ -237,8 +237,8 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		MagStorage_2
 		{
 			Type = ResourceStorage
-			ResourceType = rafaeltessaro.bs_mag_aphe
-			MaxResources = 12
+			ResourceType = rafaeltessaro.bs_mag_ap
+			MaxResources = 24
 			UITileRect = [2 + 7/64, 3 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true
@@ -246,15 +246,15 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		Splitter_2
 		{
 			Type = InlineResourceConverter
-			ResourceType = rafaeltessaro.bs_mag_aphe
+			ResourceType = rafaeltessaro.bs_mag_ap
 			FromStorage = MagStorage_2
 			FromQuantity = 1
-			ToQuantity = 15
+			ToQuantity = 10
 		}
 		MagConsumer_2
 		{
 			Type = ResourceConsumer
-			ResourceType = rafaeltessaro.bs_mag_aphe
+			ResourceType = rafaeltessaro.bs_mag_ap
 			Storage = MagStorage_2
 			DefaultPriority = &/PRIORITIES/Weapon_Supply
 			OperationalToggle = ConsumeToggle_2
@@ -282,7 +282,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = ResourceStorage
 			ResourceType = rafaeltessaro.bs_mag_emp
-			MaxResources = 12
+			MaxResources = 24
 			UITileRect = [3 + 7/64, 3 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true
@@ -293,7 +293,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			ResourceType = rafaeltessaro.bs_mag_emp
 			FromStorage = MagStorage_3
 			FromQuantity = 1
-			ToQuantity = 15
+			ToQuantity = 10
 		}
 		MagConsumer_3
 		{
@@ -438,7 +438,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					}
 				]
 			}
-			FiringArc = 270d
+			FiringArc = 300d
 			RotateSpeed = 40d
 			FireThresholdAngle = 2d
 			AIFirepowerRating = &~/Part/StatsByCategory/0/Stats/DamagePerSecond
@@ -490,10 +490,10 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Location = [4.299, 0]
 					OperationalToggle = IsOperational
 					Bullet = &<../../shots/bs_shot_rotary_30_std/bs_shot_rotary_30_std.rules>
-					Spread = [-0.8d, 0.8d]
+					Spread = [-1.5d, 1.5d]
 					ResourceStorage = Splitter_0
 					ResourcesUsed = 1
-					Recoil = 10
+					Recoil = 15
 					AntiPhasingRaycastDistance = 2
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
@@ -519,11 +519,11 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					GetTargetFrom = Turret
 					Location = [4.299, 0]
 					OperationalToggle = IsOperational
-					Bullet = &<../../shots/bs_shot_rotary_30_std_oc/bs_shot_rotary_30_std_oc.rules>
+					Bullet = &<../../shots/bs_shot_rotary_30_std/bs_shot_rotary_30_std.rules>
 					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
 					ResourceStorage = Splitter_0
 					ResourcesUsed = 1
-					Recoil = 10 * (&~/OVERCLOCK/RECOIL_FACTOR)
+					Recoil = 15 * (&~/OVERCLOCK/RECOIL_FACTOR)
 					AntiPhasingRaycastDistance = 2
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
@@ -550,10 +550,10 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Location = [4.299, 0]
 					OperationalToggle = IsOperational
 					Bullet = &<../../shots/bs_shot_rotary_30_ap/bs_shot_rotary_30_ap.rules>
-					Spread = [-0.8d, 0.8d]
+					Spread = [-1.5d, 1.5d]
 					ResourceStorage = Splitter_1
 					ResourcesUsed = 1
-					Recoil = 10
+					Recoil = 15
 					AntiPhasingRaycastDistance = 2
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
@@ -579,11 +579,11 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					GetTargetFrom = Turret
 					Location = [4.299, 0]
 					OperationalToggle = IsOperational
-					Bullet = &<../../shots/bs_shot_rotary_30_ap_oc/bs_shot_rotary_30_ap_oc.rules>
+					Bullet = &<../../shots/bs_shot_rotary_30_ap/bs_shot_rotary_30_ap.rules>
 					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
 					ResourceStorage = Splitter_1
 					ResourcesUsed = 1
-					Recoil = 10 * (&~/OVERCLOCK/RECOIL_FACTOR)
+					Recoil = 15 * (&~/OVERCLOCK/RECOIL_FACTOR)
 					AntiPhasingRaycastDistance = 2
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
@@ -610,10 +610,10 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Location = [4.299, 0]
 					OperationalToggle = IsOperational
 					Bullet = &<../../shots/bs_shot_rotary_30_aphe/bs_shot_rotary_30_aphe.rules>
-					Spread = [-0.8d, 0.8d]
+					Spread = [-1.5d, 1.5d]
 					ResourceStorage = Splitter_2
 					ResourcesUsed = 1
-					Recoil = 10
+					Recoil = 15
 					AntiPhasingRaycastDistance = 2
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
@@ -639,11 +639,11 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					GetTargetFrom = Turret
 					Location = [4.299, 0]
 					OperationalToggle = IsOperational
-					Bullet = &<../../shots/bs_shot_rotary_30_aphe_oc/bs_shot_rotary_30_aphe_oc.rules>
+					Bullet = &<../../shots/bs_shot_rotary_30_aphe/bs_shot_rotary_30_aphe.rules>
 					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
 					ResourceStorage = Splitter_2
 					ResourcesUsed = 1
-					Recoil = 10 * (&~/OVERCLOCK/RECOIL_FACTOR)
+					Recoil = 15 * (&~/OVERCLOCK/RECOIL_FACTOR)
 					AntiPhasingRaycastDistance = 2
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
@@ -670,10 +670,10 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Location = [4.299, 0]
 					OperationalToggle = IsOperational
 					Bullet = &<../../shots/bs_shot_rotary_30_emp/bs_shot_rotary_30_emp.rules>
-					Spread = [-0.8d, 0.8d]
+					Spread = [-1.5d, 1.5d]
 					ResourceStorage = Splitter_3
 					ResourcesUsed = 1
-					Recoil = 10
+					Recoil = 15
 					AntiPhasingRaycastDistance = 2
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
@@ -699,11 +699,11 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					GetTargetFrom = Turret
 					Location = [4.299, 0]
 					OperationalToggle = IsOperational
-					Bullet = &<../../shots/bs_shot_rotary_30_emp_oc/bs_shot_rotary_30_emp_oc.rules>
+					Bullet = &<../../shots/bs_shot_rotary_30_emp/bs_shot_rotary_30_emp.rules>
 					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
 					ResourceStorage = Splitter_3
 					ResourcesUsed = 1
-					Recoil = 10 * (&~/OVERCLOCK/RECOIL_FACTOR)
+					Recoil = 15 * (&~/OVERCLOCK/RECOIL_FACTOR)
 					AntiPhasingRaycastDistance = 2
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
@@ -1165,7 +1165,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Stats
 			{
 				DamagePerShot = &~/Part/Components/Fire_0_N/Components/TargetEmitter/Bullet/STAT_DAMAGE
-				ShotsPerSecond = 1 * 4.0 / (&~/Part/Components/Turret/FireInterval/BaseValue)
+				ShotsPerSecond = 1 * 6.0 / (&~/Part/Components/Turret/FireInterval/BaseValue)
 				DamagePerSecond = (&DamagePerShot) * (&ShotsPerSecond)
 				Damage = [&../DamagePerShot, &../DamagePerSecond]
 				Penetration = &~/Part/Components/Fire_0_N/Components/TargetEmitter/Bullet/STAT_PENETRATION
@@ -1186,7 +1186,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Stats
 			{
 				DamagePerShot = &~/Part/Components/Fire_1_N/Components/TargetEmitter/Bullet/STAT_DAMAGE
-				ShotsPerSecond = 1 * 4.0 / (&~/Part/Components/Turret/FireInterval/BaseValue)
+				ShotsPerSecond = 1 * 6.0 / (&~/Part/Components/Turret/FireInterval/BaseValue)
 				DamagePerSecond = (&DamagePerShot) * (&ShotsPerSecond)
 				Damage = [&../DamagePerShot, &../DamagePerSecond]
 				Penetration = &~/Part/Components/Fire_1_N/Components/TargetEmitter/Bullet/STAT_PENETRATION
@@ -1207,7 +1207,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Stats
 			{
 				DamagePerShot = &~/Part/Components/Fire_2_N/Components/TargetEmitter/Bullet/STAT_DAMAGE
-				ShotsPerSecond = 1 * 4.0 / (&~/Part/Components/Turret/FireInterval/BaseValue)
+				ShotsPerSecond = 1 * 6.0 / (&~/Part/Components/Turret/FireInterval/BaseValue)
 				DamagePerSecond = (&DamagePerShot) * (&ShotsPerSecond)
 				Damage = [&../DamagePerShot, &../DamagePerSecond]
 				Penetration = &~/Part/Components/Fire_2_N/Components/TargetEmitter/Bullet/STAT_PENETRATION
@@ -1228,7 +1228,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Stats
 			{
 				DamagePerShot = &~/Part/Components/Fire_3_N/Components/TargetEmitter/Bullet/STAT_DAMAGE
-				ShotsPerSecond = 1 * 4.0 / (&~/Part/Components/Turret/FireInterval/BaseValue)
+				ShotsPerSecond = 1 * 6.0 / (&~/Part/Components/Turret/FireInterval/BaseValue)
 				DamagePerSecond = (&DamagePerShot) * (&ShotsPerSecond)
 				Damage = [&../DamagePerShot, &../DamagePerSecond]
 				Penetration = &~/Part/Components/Fire_3_N/Components/TargetEmitter/Bullet/STAT_PENETRATION
@@ -1256,7 +1256,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				Stats
 				{
 					DamagePerShot = &~/Part/Components/Fire_0_OC/Components/TargetEmitter/Bullet/STAT_DAMAGE
-					ShotsPerSecond = 1 * 4.0 / ((&~/Part/Components/Turret/FireInterval/BaseValue) * (&~/OVERCLOCK/FIRE_INTERVAL_FACTOR))
+					ShotsPerSecond = 1 * 6.0 / ((&~/Part/Components/Turret/FireInterval/BaseValue) * (&~/OVERCLOCK/FIRE_INTERVAL_FACTOR))
 					DamagePerSecond = (&DamagePerShot) * (&ShotsPerSecond)
 					Damage = [&../DamagePerShot, &../DamagePerSecond]
 					ROF = &ShotsPerSecond

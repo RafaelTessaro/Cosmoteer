@@ -1,11 +1,11 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
-// Recurso: AP Magazine
+// Recurso: Armor-Piercing Magazine
 
 ID = rafaeltessaro.bs_mag_ap
 NameKey = "Resource/BSMagAp"
 PluralNameKey = "Resource/BSMagApPlural"
 DescriptionKey = "Resource/BSMagApDesc"
-BuyPrice = 40
+BuyPrice = 36
 SellPrice = (&BuyPrice) / 2
 MaxPerNugget = 1
 MaxStackSize = 4

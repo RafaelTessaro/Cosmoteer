@@ -1,15 +1,15 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
-// Arma: Nuclear Howitzer / Obuseiro Nuclear
+// Arma: Nuclear Deck Howitzer / Obuseiro Nuclear de Convés
 
 OVERCLOCK
 {
-	FIRE_INTERVAL_FACTOR = 0.7143
-	HALF_SPREAD = 1.0d
+	FIRE_INTERVAL_FACTOR = 1
+	HALF_SPREAD = 0.625d
 	RECOIL_FACTOR = 160%
-	HEAT_PER_SHOT = 12000
+	HEAT_PER_SHOT = 15000
 	HEAT_PER_SECOND = 200
-	CREW_STUN_DURATION = 1.2
-	CREW_STUN_RADIUS = 9.1
+	CREW_STUN_DURATION = 1.5
+	CREW_STUN_RADIUS = 10.4
 }
 HEAT_TO_RESOURCE = &<./Data/statuses/heat/heat.rules>/STATUS_TO_RESOURCE_RATIO
 FIRE_INTERVAL = 10
@@ -20,10 +20,10 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 	DescriptionKey = "Parts/BSNukeHowitzerDesc"
 	ID = rafaeltessaro.bs_nuke_howitzer
 	EditorGroups = ["BulletStrike", "WeaponsProjectile"]
-	Resources = [[steel, 360], [coil2, 60], [tristeel, 60], [enriched_uranium, 2]]
+	Resources = [[steel, 300], [coil2, 80], [tristeel, 60], [enriched_uranium, 4]]
 	Size = [5, 6]
 	SelectionPriority = 1
-	MaxHealth = 30000
+	MaxHealth = 36000
 	TypeCategories = [weapon, uses_ammo, is_crewed, bs_limit_nuke]
 	SignificanceToggle = ScorchedToggle
 	ReceivableBuffs : ^/0/ReceivableBuffs []
@@ -100,7 +100,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = CommandConsumer
 			OperationalToggle = CommandConsumptionToggle
-			CommandPoints = 10
+			CommandPoints = 12
 		}
 		FireModeToggle
 		{
@@ -183,8 +183,8 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					}
 				]
 			}
-			FiringArc = 240d
-			RotateSpeed = 12d
+			FiringArc = 270d
+			RotateSpeed = 10d
 			FireThresholdAngle = 2d
 			AIFirepowerRating = &~/Part/StatsByCategory/0/Stats/DamagePerSecond
 			Emitter = TargetEmitterProxy
@@ -236,7 +236,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Location = [5.946, 0]
 					OperationalToggle = IsOperational
 					Bullet = &<../../shots/bs_shot_nuke_howitzer_nuclear/bs_shot_nuke_howitzer_nuclear.rules>
-					Spread = [-0.8d, 0.8d]
+					Spread = [-0.5d, 0.5d]
 					ResourceStorage = Splitter_0
 					ResourcesUsed = 1
 					Recoil = 400
@@ -367,7 +367,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Type = AreaCrewStun
 					Duration
 					{
-						BaseValue = 0.8
+						BaseValue = 1
 						BuffType = Overclock
 						BuffMode = Lerp
 						MinValue = &BaseValue
@@ -376,7 +376,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Falloff = 1
 					Radius
 					{
-						BaseValue = 7
+						BaseValue = 8
 						BuffType = Overclock
 						BuffMode = Lerp
 						MinValue = &BaseValue
@@ -396,37 +396,43 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		CrewLocation1
 		{
 			Type = CrewLocation
-			Location = [0.5, 5.55]
+			Location = [0.417, 5.55]
 			Rotation = 0d
 		}
 		CrewLocation2
 		{
 			Type = CrewLocation
-			Location = [1.5, 5.55]
+			Location = [1.25, 5.55]
 			Rotation = 0d
 		}
 		CrewLocation3
 		{
 			Type = CrewLocation
-			Location = [2.5, 5.55]
+			Location = [2.083, 5.55]
 			Rotation = 0d
 		}
 		CrewLocation4
 		{
 			Type = CrewLocation
-			Location = [3.5, 5.55]
+			Location = [2.917, 5.55]
 			Rotation = 0d
 		}
 		CrewLocation5
 		{
 			Type = CrewLocation
-			Location = [4.5, 5.55]
+			Location = [3.75, 5.55]
+			Rotation = 0d
+		}
+		CrewLocation6
+		{
+			Type = CrewLocation
+			Location = [4.583, 5.55]
 			Rotation = 0d
 		}
 		PartCrew
 		{
 			Type = PartCrew
-			Crew = 5
+			Crew = 6
 			DefaultPriority = &/PRIORITIES/Weapon_Crew
 			PrerequisitesBeforeCrewing = [PowerToggle, ScorchedToggle]
 			HighPriorityPrerequisites = [AmmoPrereq]
@@ -437,8 +443,9 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				&../../CrewLocation3/Location
 				&../../CrewLocation4/Location
 				&../../CrewLocation5/Location
+				&../../CrewLocation6/Location
 			]
-			CrewLocations = [CrewLocation1, CrewLocation2, CrewLocation3, CrewLocation4, CrewLocation5]
+			CrewLocations = [CrewLocation1, CrewLocation2, CrewLocation3, CrewLocation4, CrewLocation5, CrewLocation6]
 		}
 		// ---- overclock (base_part_overclock.rules + cannon_deck.rules l.323-413) ----
 		OverclockStateValue

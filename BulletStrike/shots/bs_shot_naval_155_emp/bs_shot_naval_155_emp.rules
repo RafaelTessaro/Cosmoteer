@@ -1,19 +1,19 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
 // Projetil: 155mm Twin Naval Gun - emp
 
-STAT_DAMAGE = 2040
+STAT_DAMAGE = 4750
 STAT_PENETRATION = 1
 ID = "rafaeltessaro.bs_shot_naval_155_emp"
 Range = 520
 IdealRange = [156, &~/Range]
 IdealRadius = [5, 50]
-Speed = 230
+Speed = 220
 Components
 {
 	Physics
 	{
 		Type = CirclePhysics
-		Radius = 0.15
+		Radius = 0.3
 		Density = 0.0001
 	}
 	Death
@@ -49,7 +49,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 2040
+						BaseValue = 7800
 						EffectScaleExponent = 1
 					}
 				}
@@ -66,7 +66,7 @@ Components
 					ResourceType = battery
 					Amount
 					{
-						BaseValue = 2256
+						BaseValue = 1500
 						EffectScaleExponent = 1
 					}
 					TreatShieldAsPart = true
@@ -89,7 +89,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 2040
+						BaseValue = 4750
 						EffectScaleExponent = 1
 					}
 				}
@@ -106,7 +106,7 @@ Components
 					ResourceType = battery
 					Amount
 					{
-						BaseValue = 1354
+						BaseValue = 900
 						EffectScaleExponent = 1
 					}
 					MediaEffectsOnDrain
@@ -130,9 +130,14 @@ Components
 						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_03.wav"
 						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_04.wav"
 					]
-					Volume = 0.6
+					Volume = 0.8
 					SpeedVariation = 0.2
-					MaxConcurrent = 20
+					MaxConcurrent = 12
+				}
+				: /BASE_SHAKE
+				{
+					ShakeAmount = 0.04
+					Duration = 0.5
 				}
 			]
 		}
@@ -146,7 +151,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 510
+						BaseValue = 1188
 						EffectScaleExponent = 1
 					}
 				}
@@ -175,7 +180,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 2040
+						BaseValue = 4750
 						EffectScaleExponent = 1
 					}
 				}
@@ -210,20 +215,30 @@ Components
 	}
 	Sprite
 	{
-		Type = Sprite
+		Type = AnimatedSprite
 		RenderBucket = BulletUpper3
 		ReduceScaleWith = Hit
 		ReduceScaleExponent = 0.5
-		Sprite
+		Animation
 		{
-			Texture
+			AtlasSprite
 			{
-				File = "./Data/shots/bullet_med/bullet_med.png"
-				SampleMode = Linear
-				MipLevels = max
+				Texture
+				{
+					File = "./Data/shots/bullet_large/bullet_large.png"
+					SampleMode = Linear
+					MipLevels = max
+				}
+				Size = [0.7, 0.7]
 			}
-			Size = [0.32, 0.32]
+			FrameCount = 16
+			FrameSize = [256, 256]
+			FramesPerRow = 4
+			FramesPerSecond = 120
 		}
+		NormalsTexture = &Animation/AtlasSprite/Texture
+		DiffuseShader = "./Data/default.shader"
+		NormalsShader = "./Data/no_normals.shader"
 	}
 	GlowSprite
 	{
@@ -231,7 +246,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		Offset = [-0.625, 0]
+		Offset = [-1.25, 0]
 		Sprite
 		{
 			Texture
@@ -240,7 +255,7 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [5, 2.5]
+			Size = [10, 5]
 			VertexColor = [80, 150, 255]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"
@@ -250,5 +265,10 @@ Components
 			_litAdditiveStrength = 0.05
 			_unlitAdditiveStrength = 0.125
 		}
+	}
+	Trail
+	{
+		Type = MediaEffects
+		MediaEffects = [&<./Data/shots/bullet_large/particles/bullet_trail_large.rules>]
 	}
 }

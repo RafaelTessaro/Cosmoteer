@@ -4,10 +4,10 @@
 ID = "rafaeltessaro.bs_cloud_ciws"
 Range = 0
 Speed = 0
-RADIUS = 3
-REPULSE_RANGE = 6
+RADIUS = 3.375
+REPULSE_RANGE = 6.75
 LIFETIME = 3
-DAMAGE_POOL = 750
+DAMAGE_POOL = 1000
 MAX_BULLET_DAMAGE = ceil((&DAMAGE_POOL) / ((&RADIUS) * 2))
 Components
 {

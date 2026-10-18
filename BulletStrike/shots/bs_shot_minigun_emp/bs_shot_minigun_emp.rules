@@ -1,13 +1,13 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
 // Projetil: Deck Minigun - emp
 
-STAT_DAMAGE = 54
+STAT_DAMAGE = 42
 STAT_PENETRATION = 1
 ID = "rafaeltessaro.bs_shot_minigun_emp"
-Range = 310
-IdealRange = [93, &~/Range]
+Range = 300
+IdealRange = [90, &~/Range]
 IdealRadius = [5, 50]
-Speed = 330
+Speed = 320
 Components
 {
 	Physics
@@ -49,7 +49,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 54
+						BaseValue = 51
 						EffectScaleExponent = 1
 					}
 				}
@@ -66,7 +66,7 @@ Components
 					ResourceType = battery
 					Amount
 					{
-						BaseValue = 36
+						BaseValue = 15
 						EffectScaleExponent = 1
 					}
 					TreatShieldAsPart = true
@@ -89,7 +89,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 54
+						BaseValue = 42
 						EffectScaleExponent = 1
 					}
 				}
@@ -106,7 +106,7 @@ Components
 					ResourceType = battery
 					Amount
 					{
-						BaseValue = 22
+						BaseValue = 9
 						EffectScaleExponent = 1
 					}
 					MediaEffectsOnDrain
@@ -146,7 +146,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 14
+						BaseValue = 10
 						EffectScaleExponent = 1
 					}
 				}
@@ -175,7 +175,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 54
+						BaseValue = 42
 						EffectScaleExponent = 1
 					}
 				}

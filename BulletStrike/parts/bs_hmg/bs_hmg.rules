@@ -1,7 +1,7 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
-// Arma: Heavy Deck MG / Metralhadora Pesada de Convés
+// Arma: Heavy Deck Machine Gun / Metralhadora Pesada de Convés
 
-FIRE_INTERVAL = 0.2
+FIRE_INTERVAL = 0.1667
 Part : <./Data/ships/terran/base_part_terran.rules>/Part
 {
 	NameKey = "Parts/BSHmg"
@@ -96,7 +96,7 @@ Part : <./Data/ships/terran/base_part_terran.rules>/Part
 			ResourceType = bullet
 			FromStorage = MagStorage_0
 			FromQuantity = 1
-			ToQuantity = 8
+			ToQuantity = 10
 		}
 		MagConsumer_0
 		{
@@ -158,6 +158,25 @@ Part : <./Data/ships/terran/base_part_terran.rules>/Part
 			OperationalToggle = IsOperational
 			ShowProgressFor = Turret
 		}
+		ShootCycle
+		{
+			Type = ModeCycle
+			ModeRange = [0, 1]
+			IncrementTrigger = Turret
+			StartingMode = 1
+		}
+		ShootTrigger1
+		{
+			Type = ModeTrigger
+			Mode = ShootCycle
+			TriggerInModes = [0]
+		}
+		ShootTrigger2
+		{
+			Type = ModeTrigger
+			Mode = ShootCycle
+			TriggerInModes = [1]
+		}
 		// ---- emissores: um bloco por tipo de municao (e por estado de overclock) ----
 		TargetEmitter
 		{
@@ -171,14 +190,19 @@ Part : <./Data/ships/terran/base_part_terran.rules>/Part
 			Spread = [-2.0d, 2.0d]
 			ResourceStorage = Splitter_0
 			ResourcesUsed = 1
-			Recoil = 3
+			Recoil = 2
 			AntiPhasingRaycastDistance = 2
 			AntiPhasingRaycastIgnoreLowCollisions = true
 		}
 		Emitter1 : TargetEmitter
 		{
-			Location = [0.951, 0]
-			FireTrigger = Turret
+			Location = [0.951, -0.118]
+			FireTrigger = ShootTrigger1
+		}
+		Emitter2 : TargetEmitter
+		{
+			Location = [0.951, 0.118]
+			FireTrigger = ShootTrigger2
 		}
 		TargetEmitterProxy
 		{
@@ -191,13 +215,46 @@ Part : <./Data/ships/terran/base_part_terran.rules>/Part
 			Type = EmitterProxy
 			ComponentID = Emitter1
 			ChainedTo = Turret
-			Location = [0.951, 0]
+			Location = [0.951, -0.118]
+		}
+		Emitter2Proxy
+		{
+			Type = EmitterProxy
+			ComponentID = Emitter2
+			ChainedTo = Turret
+			Location = [0.951, 0.118]
 		}
 		FireEffect1
 		{
 			Type = TriggeredEffects
 			ChainedTo = Emitter1Proxy
 			Trigger = Emitter1Proxy
+			Location = [-0.3, 0]
+			MediaEffects
+			[
+				&<./Data/ships/terran/chaingun/particles/chaingun_shoot.rules>
+				&<./Data/ships/terran/chaingun/particles/chaingun_shoot_flash.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/ships/terran/chaingun/sounds/chain_gun_shot_01.wav"
+						"./Data/ships/terran/chaingun/sounds/chain_gun_shot_02.wav"
+						"./Data/ships/terran/chaingun/sounds/chain_gun_shot_03.wav"
+						"./Data/ships/terran/chaingun/sounds/chain_gun_shot_04.wav"
+						"./Data/ships/terran/chaingun/sounds/chain_gun_shot_05.wav"
+					]
+					Volume = 0.55
+					SpeedVariation = 0.15
+					MaxConcurrent = 40
+				}
+			]
+		}
+		FireEffect2
+		{
+			Type = TriggeredEffects
+			ChainedTo = Emitter2Proxy
+			Trigger = Emitter2Proxy
 			Location = [-0.3, 0]
 			MediaEffects
 			[
@@ -324,10 +381,53 @@ Part : <./Data/ships/terran/base_part_terran.rules>/Part
 		{
 			Type = Graphics
 			ChainedTo = Turret
-			Location = [0.681, 0]
+			Location = [0.681, -0.118]
 			Rotation = 90d
 			OperationalToggle = IsOperational
 			ResetAnimationTrigger = Emitter1Proxy
+			OperationalDoodad
+			{
+				Layer = "roof_turrets"
+				DamageLevels
+				[
+					{
+						AnimationFiles = ["barrel2.png", "barrel3.png", "barrel4.png", "barrel5.png", "barrel1.png"]
+						NormalsAnimationFiles
+						[
+							"barrel_normals1.png"
+							"barrel_normals1.png"
+							"barrel_normals1.png"
+							"barrel_normals1.png"
+							"barrel_normals1.png"
+						]
+						Size = [0.5, 0.7]
+						AnimationInterval = 0.06
+						AnimationStartTime = MinValue
+						ClampAnimation = true
+					}
+				]
+			}
+			NonOperationalDoodad
+			{
+				Layer = "roof_turrets"
+				DamageLevels
+				[
+					{
+						File = "barrel1.png"
+						NormalsFile = "barrel_normals1.png"
+						Size = [0.5, 0.7]
+					}
+				]
+			}
+		}
+		Barrel2Graphics
+		{
+			Type = Graphics
+			ChainedTo = Turret
+			Location = [0.681, 0.118]
+			Rotation = 90d
+			OperationalToggle = IsOperational
+			ResetAnimationTrigger = Emitter2Proxy
 			OperationalDoodad
 			{
 				Layer = "roof_turrets"

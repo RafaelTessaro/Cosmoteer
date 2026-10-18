@@ -3,12 +3,12 @@
 
 OVERCLOCK
 {
-	FIRE_INTERVAL_FACTOR = 0.8
-	HEAT_PER_SHOT = 110
-	HEAT_PER_SECOND = 40
+	FIRE_INTERVAL_FACTOR = 0.7692
+	HEAT_PER_SHOT = 100
+	HEAT_PER_SECOND = 60
 }
 HEAT_TO_RESOURCE = &<./Data/statuses/heat/heat.rules>/STATUS_TO_RESOURCE_RATIO
-FIRE_INTERVAL = 0.1667
+FIRE_INTERVAL = 0.6
 Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 {
 	NameKey = "Parts/BSCiws"
@@ -16,10 +16,10 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 	DescriptionKey = "Parts/BSCiwsDesc"
 	ID = rafaeltessaro.bs_ciws
 	EditorGroups = ["BulletStrike", "Defenses", "WeaponsProjectile"]
-	Resources = [[steel, 110], [coil2, 20], [tristeel, 8]]
+	Resources = [[steel, 110], [coil2, 25], [tristeel, 6]]
 	Size = [3, 3]
 	SelectionPriority = 1
-	MaxHealth = 13500
+	MaxHealth = 12000
 	TypeCategories = [defense, uses_ammo, is_crewed]
 	SignificanceToggle = ScorchedToggle
 	ReceivableBuffs : ^/0/ReceivableBuffs []
@@ -148,7 +148,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = ResourceStorage
 			ResourceType = rafaeltessaro.bs_mag_std
-			MaxResources = 8
+			MaxResources = 12
 			UITileRect = [0 + 7/64, 2 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true
@@ -159,7 +159,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			ResourceType = rafaeltessaro.bs_mag_std
 			FromStorage = MagStorage
 			FromQuantity = 1
-			ToQuantity = 8
+			ToQuantity = 5
 		}
 		MagConsumer
 		{
@@ -199,7 +199,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				]
 			}
 			FiringArc = 360d
-			RotateSpeed = 360d
+			RotateSpeed = 240d
 			FireThresholdAngle = 10d
 			TargetSearchesPerSecond = 8
 			AIFirepowerRating = &~/Part/StatsByCategory/0/Stats/DamagePerSecond
@@ -258,7 +258,9 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			OperationalToggle = IsOperationalNonOverclocked
 			ResourcesUsed = 1
 			Recoil = 4
-			Burst = 1
+			Burst = 3
+			BurstDelay = 0.03
+			UseResourcePerShotInBurst = true
 		}
 		FlakEmitter1 : BaseFlakEmitter
 		{
@@ -650,7 +652,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			{
 				DamagePerShotVsShots = &~/Part/Components/BaseFlakEmitter/STAT_DAMAGE
 				DamagePerShot = &~/Part/Components/BaseFlakEmitter/STAT_SHIP_DAMAGE
-				ROF = 1 / (&~/Part/Components/Turret/FireInterval/BaseValue)
+				ROF = 3 / (&~/Part/Components/Turret/FireInterval/BaseValue)
 				DamagePerSecond = (&DamagePerShot) * (&ROF)
 				DamagePerSecondVsShots = (&DamagePerShotVsShots) * (&ROF)
 				MaxDamage = [&../DamagePerShot, &../DamagePerSecond]
@@ -676,7 +678,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				NameKey = "StatCategories/BSFlak"
 				Stats
 				{
-					ROF = 1 / ((&~/Part/Components/Turret/FireInterval/BaseValue) * (&~/OVERCLOCK/FIRE_INTERVAL_FACTOR))
+					ROF = 3 / ((&~/Part/Components/Turret/FireInterval/BaseValue) * (&~/OVERCLOCK/FIRE_INTERVAL_FACTOR))
 					ShrapnelFieldRadius = &~/Part/Components/Overclock_BaseFlakEmitter/STAT_CLOUD_RADIUS
 					ShrapnelFieldDamagePool = &~/Part/Components/Overclock_BaseFlakEmitter/STAT_CLOUD_POOL
 					ShrapnelFieldLifetime = &~/Part/Components/Overclock_BaseFlakEmitter/STAT_CLOUD_LIFETIME

@@ -1,5 +1,5 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
-// Projetil: Light Deck MG - bullet
+// Projetil: Light Deck Machine Gun - bullet
 
 STAT_DAMAGE = 40
 STAT_PENETRATION = 2
@@ -7,7 +7,7 @@ ID = "rafaeltessaro.bs_shot_lmg_bullet"
 Range = 220
 IdealRange = [66, &~/Range]
 IdealRadius = [5, 50]
-Speed = 260
+Speed = 280
 Components
 {
 	Physics
@@ -23,7 +23,7 @@ Components
 	Targetable
 	{
 		Type = Targetable
-		Health = 50
+		Health = 60
 		TargetCategory = "bullet"
 		OnDeath
 		{

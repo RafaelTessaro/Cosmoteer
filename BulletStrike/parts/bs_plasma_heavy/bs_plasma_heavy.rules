@@ -3,14 +3,14 @@
 
 OVERCLOCK
 {
-	FIRE_INTERVAL_FACTOR = 1
-	HALF_SPREAD = 0.625d
+	FIRE_INTERVAL_FACTOR = 1.1111
+	HALF_SPREAD = 1.0d
 	RECOIL_FACTOR = 160%
-	HEAT_PER_SHOT = 2400
-	HEAT_PER_SECOND = 120
+	HEAT_PER_SHOT = 1800
+	HEAT_PER_SECOND = 150
 }
 HEAT_TO_RESOURCE = &<./Data/statuses/heat/heat.rules>/STATUS_TO_RESOURCE_RATIO
-FIRE_INTERVAL = 0.8333
+FIRE_INTERVAL = 0.6667
 Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 {
 	NameKey = "Parts/BSPlasmaHeavy"
@@ -18,7 +18,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 	DescriptionKey = "Parts/BSPlasmaHeavyDesc"
 	ID = rafaeltessaro.bs_plasma_heavy
 	EditorGroups = ["BulletStrike", "WeaponsProjectile"]
-	Resources = [[steel, 240], [coil2, 50], [tristeel, 40], [processor, 2]]
+	Resources = [[steel, 220], [coil2, 60], [tristeel, 30], [processor, 2]]
 	Size = [4, 5]
 	SelectionPriority = 1
 	MaxHealth = 24000
@@ -94,7 +94,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = CommandConsumer
 			OperationalToggle = CommandConsumptionToggle
-			CommandPoints = 8
+			CommandPoints = 10
 		}
 		FireModeToggle
 		{
@@ -126,7 +126,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = ResourceStorage
 			ResourceType = rafaeltessaro.bs_plasma_cell
-			MaxResources = 24
+			MaxResources = 16
 			UITileRect = [0 + 7/64, 4 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true
@@ -137,7 +137,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			ResourceType = rafaeltessaro.bs_plasma_cell
 			FromStorage = MagStorage_0
 			FromQuantity = 1
-			ToQuantity = 1
+			ToQuantity = 2
 		}
 		MagConsumer_0
 		{
@@ -178,7 +178,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				]
 			}
 			FiringArc = 270d
-			RotateSpeed = 25d
+			RotateSpeed = 20d
 			FireThresholdAngle = 2d
 			AIFirepowerRating = &~/Part/StatsByCategory/0/Stats/DamagePerSecond
 			Emitter = TargetEmitterProxy
@@ -249,10 +249,10 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Location = [4.925, 0]
 					OperationalToggle = IsOperational
 					Bullet = &<../../shots/bs_shot_plasma_heavy_plasma/bs_shot_plasma_heavy_plasma.rules>
-					Spread = [-0.5d, 0.5d]
+					Spread = [-0.8d, 0.8d]
 					ResourceStorage = Splitter_0
 					ResourcesUsed = 1
-					Recoil = 120
+					Recoil = 90
 					AntiPhasingRaycastDistance = 2
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
@@ -287,7 +287,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
 					ResourceStorage = Splitter_0
 					ResourcesUsed = 1
-					Recoil = 120 * (&~/OVERCLOCK/RECOIL_FACTOR)
+					Recoil = 90 * (&~/OVERCLOCK/RECOIL_FACTOR)
 					AntiPhasingRaycastDistance = 2
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
@@ -866,6 +866,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				ShotsPerSecond = 1 * 1 / (&~/Part/Components/Turret/FireInterval/BaseValue)
 				DamagePerSecond = (&DamagePerShot) * (&ShotsPerSecond)
 				Damage = [&../DamagePerShot, &../DamagePerSecond]
+				Penetration = &~/Part/Components/Fire_0_N/Components/TargetEmitter/Bullet/STAT_PENETRATION
 				ROF = &ShotsPerSecond
 				Range = &~/Part/Components/Fire_0_N/Components/TargetEmitter/Bullet/Range
 				Arc = deg(&~/Part/Components/Turret/FiringArc)
@@ -899,6 +900,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					ShotSpeed = &~/Part/Components/Fire_0_OC/Components/TargetEmitter/Bullet/Speed
 					HeatPerShot = (&~/OVERCLOCK/HEAT_PER_SHOT)
 					HeatGeneration = (&~/OVERCLOCK/HEAT_PER_SECOND)
+					Penetration = &~/Part/Components/Fire_0_OC/Components/TargetEmitter/Bullet/STAT_PENETRATION
 				}
 			}
 		]

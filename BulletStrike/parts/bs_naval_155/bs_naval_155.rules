@@ -3,8 +3,8 @@
 
 OVERCLOCK
 {
-	FIRE_INTERVAL_FACTOR = 1
-	HALF_SPREAD = 0.75d
+	FIRE_INTERVAL_FACTOR = 0.7692
+	HALF_SPREAD = 1.25d
 	RECOIL_FACTOR = 160%
 	HEAT_PER_SHOT = 2200
 	HEAT_PER_SECOND = 120
@@ -12,7 +12,7 @@ OVERCLOCK
 	CREW_STUN_RADIUS = 7.8
 }
 HEAT_TO_RESOURCE = &<./Data/statuses/heat/heat.rules>/STATUS_TO_RESOURCE_RATIO
-FIRE_INTERVAL = 0.75
+FIRE_INTERVAL = 1.25
 Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 {
 	NameKey = "Parts/BSNaval155"
@@ -20,7 +20,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 	DescriptionKey = "Parts/BSNaval155Desc"
 	ID = rafaeltessaro.bs_naval_155
 	EditorGroups = ["BulletStrike", "WeaponsProjectile"]
-	Resources = [[steel, 260], [coil2, 40], [tristeel, 50]]
+	Resources = [[steel, 240], [coil2, 40], [tristeel, 50]]
 	Size = [4, 5]
 	SelectionPriority = 1
 	MaxHealth = 26000
@@ -96,7 +96,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = CommandConsumer
 			OperationalToggle = CommandConsumptionToggle
-			CommandPoints = 8
+			CommandPoints = 10
 		}
 		FireModeToggle
 		{
@@ -147,7 +147,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = ResourceStorage
 			ResourceType = rafaeltessaro.bs_mag_std
-			MaxResources = 16
+			MaxResources = 24
 			UITileRect = [0 + 7/64, 4 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true
@@ -191,7 +191,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = ResourceStorage
 			ResourceType = rafaeltessaro.bs_mag_ap
-			MaxResources = 16
+			MaxResources = 24
 			UITileRect = [1 + 7/64, 4 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true
@@ -234,8 +234,8 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		MagStorage_2
 		{
 			Type = ResourceStorage
-			ResourceType = rafaeltessaro.bs_mag_aphe
-			MaxResources = 16
+			ResourceType = rafaeltessaro.bs_mag_ap
+			MaxResources = 24
 			UITileRect = [2 + 7/64, 4 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true
@@ -243,7 +243,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		Splitter_2
 		{
 			Type = InlineResourceConverter
-			ResourceType = rafaeltessaro.bs_mag_aphe
+			ResourceType = rafaeltessaro.bs_mag_ap
 			FromStorage = MagStorage_2
 			FromQuantity = 1
 			ToQuantity = 1
@@ -251,7 +251,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		MagConsumer_2
 		{
 			Type = ResourceConsumer
-			ResourceType = rafaeltessaro.bs_mag_aphe
+			ResourceType = rafaeltessaro.bs_mag_ap
 			Storage = MagStorage_2
 			DefaultPriority = &/PRIORITIES/Weapon_Supply
 			OperationalToggle = ConsumeToggle_2
@@ -279,7 +279,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = ResourceStorage
 			ResourceType = rafaeltessaro.bs_mag_emp
-			MaxResources = 16
+			MaxResources = 24
 			UITileRect = [3 + 7/64, 4 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true
@@ -385,7 +385,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				]
 			}
 			FiringArc = 270d
-			RotateSpeed = 22d
+			RotateSpeed = 20d
 			FireThresholdAngle = 2d
 			AIFirepowerRating = &~/Part/StatsByCategory/0/Stats/DamagePerSecond
 			Emitter = TargetEmitterProxy
@@ -455,21 +455,21 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Location = [4.925, 0]
 					OperationalToggle = IsOperational
 					Bullet = &<../../shots/bs_shot_naval_155_std/bs_shot_naval_155_std.rules>
-					Spread = [-0.6d, 0.6d]
+					Spread = [-1.0d, 1.0d]
 					ResourceStorage = Splitter_0
-					ResourcesUsed = 1
-					Recoil = 155
+					ResourcesUsed = 2
+					Recoil = 325
 					AntiPhasingRaycastDistance = 2
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
 				Emitter1 : TargetEmitter
 				{
-					Location = [4.925, -0.2795]
+					Location = [4.925, -0.387]
 					FireTrigger = ShootTrigger1
 				}
 				Emitter2 : TargetEmitter
 				{
-					Location = [4.925, 0.2795]
+					Location = [4.925, 0.387]
 					FireTrigger = ShootTrigger2
 				}
 			}
@@ -489,22 +489,22 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					GetTargetFrom = Turret
 					Location = [4.925, 0]
 					OperationalToggle = IsOperational
-					Bullet = &<../../shots/bs_shot_naval_155_std_oc/bs_shot_naval_155_std_oc.rules>
+					Bullet = &<../../shots/bs_shot_naval_155_std/bs_shot_naval_155_std.rules>
 					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
 					ResourceStorage = Splitter_0
-					ResourcesUsed = 1
-					Recoil = 155 * (&~/OVERCLOCK/RECOIL_FACTOR)
+					ResourcesUsed = 2
+					Recoil = 325 * (&~/OVERCLOCK/RECOIL_FACTOR)
 					AntiPhasingRaycastDistance = 2
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
 				Emitter1 : TargetEmitter
 				{
-					Location = [4.925, -0.2795]
+					Location = [4.925, -0.387]
 					FireTrigger = ShootTrigger1
 				}
 				Emitter2 : TargetEmitter
 				{
-					Location = [4.925, 0.2795]
+					Location = [4.925, 0.387]
 					FireTrigger = ShootTrigger2
 				}
 			}
@@ -525,21 +525,21 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Location = [4.925, 0]
 					OperationalToggle = IsOperational
 					Bullet = &<../../shots/bs_shot_naval_155_ap/bs_shot_naval_155_ap.rules>
-					Spread = [-0.6d, 0.6d]
+					Spread = [-1.0d, 1.0d]
 					ResourceStorage = Splitter_1
-					ResourcesUsed = 1
-					Recoil = 155
+					ResourcesUsed = 2
+					Recoil = 325
 					AntiPhasingRaycastDistance = 2
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
 				Emitter1 : TargetEmitter
 				{
-					Location = [4.925, -0.2795]
+					Location = [4.925, -0.387]
 					FireTrigger = ShootTrigger1
 				}
 				Emitter2 : TargetEmitter
 				{
-					Location = [4.925, 0.2795]
+					Location = [4.925, 0.387]
 					FireTrigger = ShootTrigger2
 				}
 			}
@@ -559,22 +559,22 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					GetTargetFrom = Turret
 					Location = [4.925, 0]
 					OperationalToggle = IsOperational
-					Bullet = &<../../shots/bs_shot_naval_155_ap_oc/bs_shot_naval_155_ap_oc.rules>
+					Bullet = &<../../shots/bs_shot_naval_155_ap/bs_shot_naval_155_ap.rules>
 					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
 					ResourceStorage = Splitter_1
-					ResourcesUsed = 1
-					Recoil = 155 * (&~/OVERCLOCK/RECOIL_FACTOR)
+					ResourcesUsed = 2
+					Recoil = 325 * (&~/OVERCLOCK/RECOIL_FACTOR)
 					AntiPhasingRaycastDistance = 2
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
 				Emitter1 : TargetEmitter
 				{
-					Location = [4.925, -0.2795]
+					Location = [4.925, -0.387]
 					FireTrigger = ShootTrigger1
 				}
 				Emitter2 : TargetEmitter
 				{
-					Location = [4.925, 0.2795]
+					Location = [4.925, 0.387]
 					FireTrigger = ShootTrigger2
 				}
 			}
@@ -595,21 +595,21 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Location = [4.925, 0]
 					OperationalToggle = IsOperational
 					Bullet = &<../../shots/bs_shot_naval_155_aphe/bs_shot_naval_155_aphe.rules>
-					Spread = [-0.6d, 0.6d]
+					Spread = [-1.0d, 1.0d]
 					ResourceStorage = Splitter_2
-					ResourcesUsed = 1
-					Recoil = 155
+					ResourcesUsed = 2
+					Recoil = 325
 					AntiPhasingRaycastDistance = 2
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
 				Emitter1 : TargetEmitter
 				{
-					Location = [4.925, -0.2795]
+					Location = [4.925, -0.387]
 					FireTrigger = ShootTrigger1
 				}
 				Emitter2 : TargetEmitter
 				{
-					Location = [4.925, 0.2795]
+					Location = [4.925, 0.387]
 					FireTrigger = ShootTrigger2
 				}
 			}
@@ -629,22 +629,22 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					GetTargetFrom = Turret
 					Location = [4.925, 0]
 					OperationalToggle = IsOperational
-					Bullet = &<../../shots/bs_shot_naval_155_aphe_oc/bs_shot_naval_155_aphe_oc.rules>
+					Bullet = &<../../shots/bs_shot_naval_155_aphe/bs_shot_naval_155_aphe.rules>
 					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
 					ResourceStorage = Splitter_2
-					ResourcesUsed = 1
-					Recoil = 155 * (&~/OVERCLOCK/RECOIL_FACTOR)
+					ResourcesUsed = 2
+					Recoil = 325 * (&~/OVERCLOCK/RECOIL_FACTOR)
 					AntiPhasingRaycastDistance = 2
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
 				Emitter1 : TargetEmitter
 				{
-					Location = [4.925, -0.2795]
+					Location = [4.925, -0.387]
 					FireTrigger = ShootTrigger1
 				}
 				Emitter2 : TargetEmitter
 				{
-					Location = [4.925, 0.2795]
+					Location = [4.925, 0.387]
 					FireTrigger = ShootTrigger2
 				}
 			}
@@ -665,21 +665,21 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Location = [4.925, 0]
 					OperationalToggle = IsOperational
 					Bullet = &<../../shots/bs_shot_naval_155_emp/bs_shot_naval_155_emp.rules>
-					Spread = [-0.6d, 0.6d]
+					Spread = [-1.0d, 1.0d]
 					ResourceStorage = Splitter_3
-					ResourcesUsed = 1
-					Recoil = 155
+					ResourcesUsed = 2
+					Recoil = 325
 					AntiPhasingRaycastDistance = 2
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
 				Emitter1 : TargetEmitter
 				{
-					Location = [4.925, -0.2795]
+					Location = [4.925, -0.387]
 					FireTrigger = ShootTrigger1
 				}
 				Emitter2 : TargetEmitter
 				{
-					Location = [4.925, 0.2795]
+					Location = [4.925, 0.387]
 					FireTrigger = ShootTrigger2
 				}
 			}
@@ -699,22 +699,22 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					GetTargetFrom = Turret
 					Location = [4.925, 0]
 					OperationalToggle = IsOperational
-					Bullet = &<../../shots/bs_shot_naval_155_emp_oc/bs_shot_naval_155_emp_oc.rules>
+					Bullet = &<../../shots/bs_shot_naval_155_emp/bs_shot_naval_155_emp.rules>
 					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
 					ResourceStorage = Splitter_3
-					ResourcesUsed = 1
-					Recoil = 155 * (&~/OVERCLOCK/RECOIL_FACTOR)
+					ResourcesUsed = 2
+					Recoil = 325 * (&~/OVERCLOCK/RECOIL_FACTOR)
 					AntiPhasingRaycastDistance = 2
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
 				Emitter1 : TargetEmitter
 				{
-					Location = [4.925, -0.2795]
+					Location = [4.925, -0.387]
 					FireTrigger = ShootTrigger1
 				}
 				Emitter2 : TargetEmitter
 				{
-					Location = [4.925, 0.2795]
+					Location = [4.925, 0.387]
 					FireTrigger = ShootTrigger2
 				}
 			}
@@ -730,7 +730,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Type = EmitterProxy
 			ComponentID = Emitter1
 			ChainedTo = Turret
-			Location = [4.925, -0.2795]
+			Location = [4.925, -0.387]
 		}
 		Emitter1Proxy_OC : Emitter1Proxy
 		{
@@ -745,7 +745,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Type = EmitterProxy
 			ComponentID = Emitter2
 			ChainedTo = Turret
-			Location = [4.925, 0.2795]
+			Location = [4.925, 0.387]
 		}
 		Emitter2Proxy_OC : Emitter2Proxy
 		{
@@ -1159,7 +1159,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = Graphics
 			ChainedTo = Turret
-			Location = [3.165, -0.2795]
+			Location = [3.165, -0.387]
 			Rotation = 90d
 			OperationalToggle = IsOperational
 			ResetAnimationTrigger = Emitter1Proxy
@@ -1178,7 +1178,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 							"barrel_normals1.png"
 							"barrel_normals1.png"
 						]
-						Size = [0.52, 3.68]
+						Size = [0.72, 3.68]
 						AnimationInterval = 0.06
 						AnimationStartTime = MinValue
 						ClampAnimation = true
@@ -1193,7 +1193,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					{
 						File = "barrel1.png"
 						NormalsFile = "barrel_normals1.png"
-						Size = [0.52, 3.68]
+						Size = [0.72, 3.68]
 					}
 				]
 			}
@@ -1202,7 +1202,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = Graphics
 			ChainedTo = Turret
-			Location = [3.165, 0.2795]
+			Location = [3.165, 0.387]
 			Rotation = 90d
 			OperationalToggle = IsOperational
 			ResetAnimationTrigger = Emitter2Proxy
@@ -1221,7 +1221,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 							"barrel_normals1.png"
 							"barrel_normals1.png"
 						]
-						Size = [0.52, 3.68]
+						Size = [0.72, 3.68]
 						AnimationInterval = 0.06
 						AnimationStartTime = MinValue
 						ClampAnimation = true
@@ -1236,7 +1236,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					{
 						File = "barrel1.png"
 						NormalsFile = "barrel_normals1.png"
-						Size = [0.52, 3.68]
+						Size = [0.72, 3.68]
 					}
 				]
 			}

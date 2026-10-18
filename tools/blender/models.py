@@ -33,7 +33,7 @@ def mats(accent=AMBER):
         "glow": B.mat_glow("glow", accent, 9.0),
         "glow_dim": B.mat_glow("glow_dim", accent, 3.0),
         "lens": B.mat_glow("lens", (1.0, 0.18, 0.05), 6.0),
-        "ember": B.mat_glow("ember", (1.0, 0.20, 0.03), 1.4),
+        "ember": B.mat_glow("ember", (1.0, 0.16, 0.02), 0.35),
     }
 
 

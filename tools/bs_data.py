@@ -256,7 +256,8 @@ def _convert():
         if sel:
             for i, a in enumerate(sel):
                 t = _ammo_table(w, a)
-                res = RES_BY_AMMO.get(a, w["ammo_resource"])
+                # a tabela de municao diz qual carregador alimenta cada modo (AP e APHE dividem o mesmo)
+                res = t.get("resource") or RES_BY_AMMO.get(a, w["ammo_resource"])
                 modes.append((i, a, res, t))
         else:
             res = w["ammo_resource"]
@@ -271,7 +272,10 @@ def _convert():
                  "units_per_shot": int(w.get("resource_units_per_shot") or 1),
                  "storage": int(w.get("internal_storage_units") or 4), "shot": s["file"],
                  "show_pen": s["kind"] == "kinetic"}
-            if oc:
+            if oc and sel:
+                # armas com seletor: o overclock so muda cadencia/dispersao/calor, o projetil e o mesmo
+                m["shot_oc"] = s["file"]
+            elif oc:
                 so = _shot_spec(w, a, t, oc)
                 SHOTS.append(so)
                 m["shot_oc"] = so["file"]
@@ -279,10 +283,13 @@ def _convert():
         nb = int(w.get("barrels") or 1)
         burst = int(w.get("burst") or 1)
         visual_barrels = 1 if spin else nb
+        fp = w.get("fire_pattern", "")
         pattern = "alternate"
-        if burst > 1 and burst == nb:
+        if fp.startswith("salvo") or (burst > 1 and burst == nb):
             pattern = "volley"
-        shots_per_trigger = (visual_barrels if pattern == "volley" else 1)
+        elif fp == "alternate_pairs":
+            pattern = "pairs"
+        shots_per_trigger = int(w.get("shots_per_trigger") or (visual_barrels if pattern == "volley" else 1))
         if spin:
             fire_interval = 1.0 / spin["min_rate"]
         else:
@@ -343,7 +350,8 @@ def _defense(w, hint, short, oc, ap):
         "name_en": w["name_en"], "name_pt": w["name_ptbr"], "codename": w.get("codename", ""), "tier": w["tier"],
         "size": w["size"], "crew": w["crew"], "cp": w["command_points"], "hp": w["max_health"], "cost": w["build_cost"],
         "ring": w.get("prohibit_ring_tiles", 1), "arc": w["firing_arc_deg"], "rotate": w["rotate_speed_deg_s"],
-        "fire_interval": round(1.0 / w["fire_rate_shots_per_s"], 4), "beam": beam["file"],
+        "fire_interval": round(int(w.get("shots_per_trigger") or 1) / w["fire_rate_shots_per_s"], 4),
+        "burst": int(w.get("shots_per_trigger") or 1), "beam": beam["file"],
         "ammo": {"res": res, "shots_per_unit": int(w.get("shots_per_resource_unit") or 1),
                  "units_per_shot": int(w.get("resource_units_per_shot") or 1),
                  "storage": int(w.get("internal_storage_units") or 4)},
@@ -378,7 +386,14 @@ _convert()
 LIMIT_DEFS = SPEC.get("category_limits") or [
     {"category": "bs_limit_nuke", "max": 2, "match": "nuke", "en": ["Nuclear Howitzer", "Nuclear Howitzers"],
      "pt": ["Obuseiro Nuclear", "Obuseiros Nucleares"]},
+    {"category": "bs_limit_flagship", "max": 2, "match": "naval_406", "en": ["Battleship Turret", "Battleship Turrets"],
+     "pt": ["Torre de Encouraçado", "Torres de Encouraçado"]},
 ]
+# o limite de cada categoria vem do proprio spec (per_ship_limit), quando existir
+for _l in LIMIT_DEFS:
+    for _w in SPEC["weapons"]:
+        if _l["match"] in _w["id"] and _w.get("per_ship_limit"):
+            _l["max"] = int(_w["per_ship_limit"])
 LIMITS = []
 for _l in LIMIT_DEFS:
     key = "BS" + "".join(p.capitalize() for p in _l["category"].split("_")[1:])

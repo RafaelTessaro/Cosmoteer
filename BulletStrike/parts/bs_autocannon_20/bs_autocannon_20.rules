@@ -9,10 +9,10 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 	DescriptionKey = "Parts/BSAutocannon20Desc"
 	ID = rafaeltessaro.bs_autocannon_20
 	EditorGroups = ["BulletStrike", "WeaponsProjectile"]
-	Resources = [[steel, 48], [coil, 10]]
+	Resources = [[steel, 56], [coil, 12]]
 	Size = [2, 2]
 	SelectionPriority = 1
-	MaxHealth = 10000
+	MaxHealth = 8000
 	TypeCategories = [weapon, uses_ammo, is_crewed]
 	SignificanceToggle = ScorchedToggle
 	ReceivableBuffs : ^/0/ReceivableBuffs []
@@ -129,8 +129,8 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			AutoFireToggle = AutoFireToggle
 			FirePermissionToggle = FireModeToggle
 			FireInterval = &~/FIRE_INTERVAL
-			FiringArc = 300d
-			RotateSpeed = 90d
+			FiringArc = 360d
+			RotateSpeed = 120d
 			FireThresholdAngle = 4d
 			AIFirepowerRating = &~/Part/StatsByCategory/0/Stats/DamagePerSecond
 			Emitter = TargetEmitterProxy
@@ -196,7 +196,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			Spread = [-1.5d, 1.5d]
 			ResourceStorage = Splitter_0
 			ResourcesUsed = 1
-			Recoil = 12
+			Recoil = 11
 			AntiPhasingRaycastDistance = 2
 			AntiPhasingRaycastIgnoreLowCollisions = true
 		}

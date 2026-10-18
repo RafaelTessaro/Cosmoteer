@@ -80,6 +80,12 @@ def _fire_block_toggle(g, k, oc_state):
     return None, False
 
 
+def _barrels_per_trigger(pattern, nb):
+    if nb == 1:
+        return 1
+    return {"alternate": 1, "pairs": 2}.get(pattern, nb)
+
+
 def build_gun(g, shot_paths):
     """Retorna (texto_rules, info) de uma arma de convés.
 
@@ -265,6 +271,14 @@ def build_gun(g, shot_paths):
         for i in range(nb):
             comp[f"ShootTrigger{i + 1}"] = {"Type": "ModeTrigger", "Mode": "ShootCycle", "TriggerInModes": [i]}
             triggers.append(f"ShootTrigger{i + 1}")
+    elif pattern == "pairs" and nb >= 4:
+        # pares alternados: (1,3) e (2,4) se revezam a cada disparo
+        half = nb // 2
+        comp["ShootCycle"] = {"Type": "ModeCycle", "ModeRange": [0, half - 1], "IncrementTrigger": "Turret",
+                              "StartingMode": half - 1}
+        for j in range(half):
+            comp[f"ShootTrigger{j + 1}"] = {"Type": "ModeTrigger", "Mode": "ShootCycle", "TriggerInModes": [j]}
+        triggers = [f"ShootTrigger{i % half + 1}" for i in range(nb)]
     else:
         triggers = ["Turret"] * nb
 
@@ -452,7 +466,7 @@ def build_gun(g, shot_paths):
         part["Stats"]["CrewStunDuration"] = [0, "&~/Part/Components/StunEffect/HitEffects/0/Duration/BaseValue"]
         part["Stats"]["CrewStunRadius"] = "&~/Part/Components/StunEffect/HitEffects/0/Radius/BaseValue"
 
-    shots_per_trigger = (nb if pattern != "alternate" or nb == 1 else 1) * (burst["count"] if burst else 1)
+    shots_per_trigger = _barrels_per_trigger(pattern, nb) * (burst["count"] if burst else 1)
     spin_max = spin["max"] if spin else 1
     cats = []
     def em_path(k, s):
@@ -495,7 +509,7 @@ def build_gun(g, shot_paths):
         k = m0["mode"]
         em = em_path(k, True)
         oc_burst = oc.get("burst") or burst
-        spt = (nb if pattern != "alternate" or nb == 1 else 1) * (oc_burst["count"] if oc_burst else 1)
+        spt = _barrels_per_trigger(pattern, nb) * (oc_burst["count"] if oc_burst else 1)
         oc_spin = oc.get("max_spin", spin_max) if spin else 1
         oc_stats = {
             "DamagePerShot": f"{em}/Bullet/STAT_DAMAGE",

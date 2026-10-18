@@ -5,10 +5,10 @@ ID = rafaeltessaro.bs_mag_std
 NameKey = "Resource/BSMagStd"
 PluralNameKey = "Resource/BSMagStdPlural"
 DescriptionKey = "Resource/BSMagStdDesc"
-BuyPrice = 30
+BuyPrice = 24
 SellPrice = (&BuyPrice) / 2
 MaxPerNugget = 1
-MaxStackSize = 4
+MaxStackSize = 6
 FlexGridPriorityKey = "flex_grid_rafaeltessaro.bs_mag_std"
 FlexGridDefaultPriority = 1
 DropRates = &<./Data/resources/resources.rules>/AmmoDropRates
@@ -84,6 +84,14 @@ StackSprites
 	}
 	{
 		File = "stack_4.png"
+		Size = [1, 1]
+	}
+	{
+		File = "stack_5.png"
+		Size = [1, 1]
+	}
+	{
+		File = "stack_6.png"
 		Size = [1, 1]
 	}
 ]

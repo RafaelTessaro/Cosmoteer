@@ -5,10 +5,10 @@ ID = rafaeltessaro.bs_plasma_cell
 NameKey = "Resource/BSPlasmaCell"
 PluralNameKey = "Resource/BSPlasmaCellPlural"
 DescriptionKey = "Resource/BSPlasmaCellDesc"
-BuyPrice = 24
+BuyPrice = 40
 SellPrice = (&BuyPrice) / 2
 MaxPerNugget = 1
-MaxStackSize = 6
+MaxStackSize = 4
 FlexGridPriorityKey = "flex_grid_rafaeltessaro.bs_plasma_cell"
 FlexGridDefaultPriority = 1
 DropRates = &<./Data/resources/resources.rules>/AmmoDropRates
@@ -84,14 +84,6 @@ StackSprites
 	}
 	{
 		File = "stack_4.png"
-		Size = [1, 1]
-	}
-	{
-		File = "stack_5.png"
-		Size = [1, 1]
-	}
-	{
-		File = "stack_6.png"
 		Size = [1, 1]
 	}
 ]

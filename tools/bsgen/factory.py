@@ -24,8 +24,17 @@ def build_factory(f, own_stack):
     inputs = f["inputs"]
     out_res, out_qty = f["output"]
     n = len(inputs)
-    w = n + 1
-    h = 2
+    size = f.get("size") or [n + 1, 2]
+    he = list(size) == [3, 3] and n <= 2
+    if he:
+        # layout do factory_he vanilla: maquinario em cima e no centro, entradas nas laterais, saida embaixo
+        w, h = 3, 3
+        in_cells = [[0, 1], [2, 1]][:n] if n == 2 else [[0, 1]]
+        out_rect = [0, 2, 3, 1]
+    else:
+        w, h = n + 1, 2
+        in_cells = [[i, 1] for i in range(n)]
+        out_rect = [n, 1, 1, 1]
     stack = dict(RES_STACK)
     stack.update(own_stack)
     power = f.get("power")  # bateria por ciclo (None = sem energia)
@@ -44,9 +53,10 @@ def build_factory(f, own_stack):
         "TypeCategories": ["provides_ammo"] + [f"uses_{r}" for r, _ in inputs if r in ("sulfur", "coil", "coil2")] +
                           (["uses_power"] if power else []),
         "ReceivableBuffs : ^/0/ReceivableBuffs": ["Factory"],
-        "BlockedTravelCells": [[x, 0] for x in range(w)],
+        "BlockedTravelCells": [[x, 0] for x in range(w)] + ([[1, 1]] if he else []),
         "ForceManhattanPathInPart": True,
-        "AllowedDoorLocations": [[-1, 1], [w, 1]] + [[x, 2] for x in range(w)],
+        "AllowedDoorLocations": ([[-1, 1], [-1, 2], [0, 3], [1, 3], [2, 3], [3, 2], [3, 1]] if he else
+                                 [[-1, 1], [w, 1]] + [[x, 2] for x in range(w)]),
         "EditorIcon": {"Texture": {"File": Q("icon.png"), "SampleMode": "Linear"},
                        "Size": [64, round(64 * h / w, 2)] if w >= h else [round(64 * w / h, 2), 64]},
     }
@@ -67,25 +77,42 @@ def build_factory(f, own_stack):
 
     conv_from = []
     for i, (res, qty) in enumerate(inputs):
-        cap_tiles = 1 if qty <= stack[res] else 2
-        if qty > 2 * stack[res]:
+        cx, cy = in_cells[i]
+        frac = qty < 1
+        if frac:
+            # entrada fracionaria: 1 unidade vira round(1/qty) pedacos (InlineResourceConverter, como no factory_he)
+            parts = round(1 / qty)
+            if abs(parts * qty - 1) > 0.01 or parts > 50:
+                raise ValueError(f"{f['short']}: {qty} {res} nao vira um divisor inteiro (1:{1 / qty:.2f}).")
+        else:
+            qty = int(qty)
+        cap_tiles = 1 if frac or qty <= stack[res] else 2
+        if not frac and (qty > 2 * stack[res] or (he and cap_tiles == 2)):
             raise ValueError(f"{f['short']}: receita pede {qty} {res}, mas a grade de entrada so guarda "
-                             f"{2 * stack[res]} (2 tiles x pilha {stack[res]}). Reduza a receita.")
-        rect = [i, 1, 1, 1] if cap_tiles == 1 else [i, 0, 1, 2]
-        comp[f"Input{i}"] = {
+                             f"{(1 if he else 2) * stack[res]} (pilha {stack[res]}). Reduza a receita.")
+        rect = [cx, cy, 1, 1] if cap_tiles == 1 else [cx, 0, 1, 2]
+        grid = {
             "Type": "TypedResourceGrid", "ResourceType": res, "GridRect": rect,
             "Layer": Q("doodads_low"), "SpriteInset": ["8/64", "6/64", "8/64", "9/64"],
-            "ToggleOnResources": qty, "ToggleOffResources": qty - 1,
             "AllowExternalPickupAndDelivery": True,
         }
+        if not frac:
+            grid.update({"ToggleOnResources": qty, "ToggleOffResources": qty - 1})
+        comp[f"Input{i}"] = grid
         comp[f"Input{i}Consumer"] = {"Type": "TypedResourceGridConsumer", "ResourceType": res,
                                      "Storage": f"Input{i}", "DefaultPriority": "&/PRIORITIES/Factory_Supply",
                                      "OperationalToggle": "CommandConsumptionToggle",
                                      "ConsumptionToggleButtonOffset": [0, -0.4]}
-        conv_from.append({"Storage": f"Input{i}", "Quantity": qty})
+        if frac:
+            comp[f"Input{i}Splitter"] = {"Type": "InlineResourceConverter", "ResourceType": res,
+                                         "FromStorage": f"Input{i}", "FromQuantity": 1, "ToQuantity": parts}
+            conv_from.append({"Storage": f"Input{i}Splitter", "Quantity": 1})
+            op_toggles[op_toggles.index(f"Input{i}")] = f"Input{i}Splitter"
+        else:
+            conv_from.append({"Storage": f"Input{i}", "Quantity": qty})
         if cap_tiles == 2:
-            part["BlockedTravelCells"] = [c for c in part["BlockedTravelCells"] if c != [i, 0]]
-    comp["Output"] = {"Type": "TypedResourceGrid", "ResourceType": out_res, "GridRect": [n, 1, 1, 1],
+            part["BlockedTravelCells"] = [c for c in part["BlockedTravelCells"] if c != [cx, 0]]
+    comp["Output"] = {"Type": "TypedResourceGrid", "ResourceType": out_res, "GridRect": out_rect,
                       "Layer": Q("doodads_low"), "SpriteInset": ["8/64", "6/64", "8/64", "9/64"],
                       "SuppliesResources": True, "SupplyToggleButtonOffset": [0, -0.4],
                       "InitToMaxResources": 0, "AllowExternalPickupAndDelivery": True}
@@ -132,7 +159,8 @@ def build_factory(f, own_stack):
     inds = [{"Toggle": "PowerToggle", "AtlasSprite": {"File": "&/INDICATORS/PowerOff", "Size": [1, 1]},
              "HidesIndicators": list(range(1, n + 1 + (1 if power else 0)))}]
     for i in range(n):
-        inds.append({"Toggle": f"Input{i}", "AtlasSprite": {"File": "&/INDICATORS/NoResource", "Size": [1, 1]}})
+        tg = f"Input{i}Splitter" if f"Input{i}Splitter" in comp else f"Input{i}"
+        inds.append({"Toggle": tg, "AtlasSprite": {"File": "&/INDICATORS/NoResource", "Size": [1, 1]}})
     if power:
         inds.append({"Toggle": "BatteryStorage", "AtlasSprite": {"File": "&/INDICATORS/NoPower", "Size": [1, 1]}})
     comp["Indicators"] = {"Type": "IndicatorSprites", "Location": [w / 2, h / 2], "Indicators": inds}

@@ -1,8 +1,8 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
 // Projetil: 76mm Naval Automatic Cannon - std
 
-STAT_DAMAGE = 1800
-STAT_PENETRATION = 5
+STAT_DAMAGE = 1500
+STAT_PENETRATION = 3
 ID = "rafaeltessaro.bs_shot_naval_76_std"
 Range = 340
 IdealRange = [102, &~/Range]
@@ -23,7 +23,7 @@ Components
 	Targetable
 	{
 		Type = Targetable
-		Health = 1200
+		Health = 1000
 		TargetCategory = "bullet"
 		OnDeath
 		{
@@ -33,7 +33,7 @@ Components
 	Hit
 	{
 		Type = PenetratingHit
-		Penetration = 5
+		Penetration = 3
 		PenetrationSpeed = 25
 		FriendlyShipLowCollisions = false
 		CrewCollisions = {Enemies=true; Junk=true}
@@ -49,7 +49,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 2600
+						BaseValue = 3000
 						EffectScaleExponent = 1
 					}
 				}
@@ -74,7 +74,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 1800
+						BaseValue = 1500
 						EffectScaleExponent = 1
 					}
 				}
@@ -122,7 +122,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 450
+						BaseValue = 375
 						EffectScaleExponent = 1
 					}
 				}
@@ -150,7 +150,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 1800
+						BaseValue = 1500
 						EffectScaleExponent = 1
 					}
 				}
@@ -159,7 +159,7 @@ Components
 					StatusType = cosmoteer.fire
 					StatusChance
 					{
-						BaseValue = 0.25
+						BaseValue = 0.3
 						EffectScaleExponent = 1
 					}
 					ValueType = Interpolated
@@ -188,7 +188,7 @@ Components
 					Type = ExplosiveDamage
 					TotalDamage
 					{
-						BaseValue = 1600
+						BaseValue = 1500
 						EffectScaleExponent = 1
 					}
 					Radius = 2

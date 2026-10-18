@@ -1,5 +1,5 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
-// Arma: Light Deck MG / Metralhadora Leve de Convés
+// Arma: Light Deck Machine Gun / Metralhadora Leve de Convés
 
 FIRE_INTERVAL = 0.1538
 Part : <./Data/ships/terran/base_part_terran.rules>/Part

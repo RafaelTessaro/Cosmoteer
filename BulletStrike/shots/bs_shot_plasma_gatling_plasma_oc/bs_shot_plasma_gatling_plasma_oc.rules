@@ -1,13 +1,13 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
 // Projetil: Plasma Gatling - plasma (overclock)
 
-STAT_DAMAGE = 281
+STAT_DAMAGE = 240
 STAT_PENETRATION = 0
 ID = "rafaeltessaro.bs_shot_plasma_gatling_plasma_oc"
-Range = 320
-IdealRange = [96, &~/Range]
+Range = 352
+IdealRange = [106, &~/Range]
 IdealRadius = [5, 50]
-Speed = 280
+Speed = 299
 Components
 {
 	Physics
@@ -23,7 +23,7 @@ Components
 	Targetable
 	{
 		Type = Targetable
-		Health = 150
+		Health = 200
 		TargetCategory = "bullet"
 		OnDeath
 		{
@@ -49,7 +49,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 731
+						BaseValue = 675
 						EffectScaleExponent = 1
 					}
 				}
@@ -74,7 +74,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 281
+						BaseValue = 240
 						EffectScaleExponent = 1
 					}
 				}
@@ -89,7 +89,7 @@ Components
 				{
 					Type = StatusApplication
 					StatusType = cosmoteer.heat
-					StatusValue = 22
+					StatusValue = 19
 					ApplyToAllHitPartTiles = true
 					DivideValueByPartArea = true
 				}
@@ -123,7 +123,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 70
+						BaseValue = 60
 						EffectScaleExponent = 1
 					}
 				}
@@ -151,7 +151,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 281
+						BaseValue = 240
 						EffectScaleExponent = 1
 					}
 				}
@@ -160,7 +160,7 @@ Components
 					StatusType = cosmoteer.fire
 					StatusChance
 					{
-						BaseValue = 0.1
+						BaseValue = 0.08
 						EffectScaleExponent = 1
 					}
 					ValueType = Interpolated

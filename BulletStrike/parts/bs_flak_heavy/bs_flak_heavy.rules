@@ -3,12 +3,12 @@
 
 OVERCLOCK
 {
-	FIRE_INTERVAL_FACTOR = 1
-	HEAT_PER_SHOT = 300
-	HEAT_PER_SECOND = 60
+	FIRE_INTERVAL_FACTOR = 0.8
+	HEAT_PER_SHOT = 400
+	HEAT_PER_SECOND = 100
 }
 HEAT_TO_RESOURCE = &<./Data/statuses/heat/heat.rules>/STATUS_TO_RESOURCE_RATIO
-FIRE_INTERVAL = 0.3333
+FIRE_INTERVAL = 0.6667
 Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 {
 	NameKey = "Parts/BSFlakHeavy"
@@ -16,10 +16,10 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 	DescriptionKey = "Parts/BSFlakHeavyDesc"
 	ID = rafaeltessaro.bs_flak_heavy
 	EditorGroups = ["BulletStrike", "Defenses", "WeaponsProjectile"]
-	Resources = [[steel, 200], [coil2, 36], [tristeel, 30]]
+	Resources = [[steel, 200], [coil2, 50], [tristeel, 10]]
 	Size = [4, 4]
 	SelectionPriority = 1
-	MaxHealth = 21000
+	MaxHealth = 24000
 	TypeCategories = [defense, uses_ammo, is_crewed]
 	SignificanceToggle = ScorchedToggle
 	ReceivableBuffs : ^/0/ReceivableBuffs []
@@ -90,7 +90,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = CommandConsumer
 			OperationalToggle = CommandConsumptionToggle
-			CommandPoints = 6
+			CommandPoints = 8
 		}
 		FireModeToggle
 		{
@@ -152,7 +152,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = ResourceStorage
 			ResourceType = rafaeltessaro.bs_mag_std
-			MaxResources = 16
+			MaxResources = 12
 			UITileRect = [0 + 7/64, 3 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true
@@ -188,9 +188,22 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Rotation = -90d
 			OperationalToggle = IsOperational
 			AutoFireToggle = AutoFireToggle
-			FireInterval = &~/FIRE_INTERVAL
+			FireInterval
+			{
+				BaseValue = &~/FIRE_INTERVAL
+				Modifiers
+				[
+					{
+						Type = BuffRemap
+						BuffType = Overclock
+						ModificationMode = Multiply
+						RemapFrom = [0, 1]
+						RemapTo = [1, (&~/OVERCLOCK/FIRE_INTERVAL_FACTOR)]
+					}
+				]
+			}
 			FiringArc = 360d
-			RotateSpeed = 120d
+			RotateSpeed = 90d
 			FireThresholdAngle = 10d
 			TargetSearchesPerSecond = 8
 			AIFirepowerRating = &~/Part/StatsByCategory/0/Stats/DamagePerSecond
@@ -240,9 +253,9 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		ShootCycle
 		{
 			Type = ModeCycle
-			ModeRange = [0, 3]
+			ModeRange = [0, 1]
 			IncrementTrigger = Turret
-			StartingMode = 3
+			StartingMode = 1
 		}
 		ShootTrigger1
 		{
@@ -256,18 +269,6 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Mode = ShootCycle
 			TriggerInModes = [1]
 		}
-		ShootTrigger3
-		{
-			Type = ModeTrigger
-			Mode = ShootCycle
-			TriggerInModes = [2]
-		}
-		ShootTrigger4
-		{
-			Type = ModeTrigger
-			Mode = ShootCycle
-			TriggerInModes = [3]
-		}
 		// ---- emissores (feixe + explosao em area) ----
 		BaseFlakEmitter : <../../shots/bs_flak_heavy/bs_flak_flak_heavy.rules>
 		{
@@ -280,27 +281,19 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			OperationalToggle = IsOperationalNonOverclocked
 			ResourcesUsed = 1
 			Recoil = 4
-			Burst = 1
+			Burst = 2
+			BurstDelay = 0.03
+			UseResourcePerShotInBurst = true
 		}
 		FlakEmitter1 : BaseFlakEmitter
 		{
-			Location = [2.979, -0.75]
+			Location = [2.979, -0.25]
 			FireTrigger = ShootTrigger1
 		}
 		FlakEmitter2 : BaseFlakEmitter
 		{
-			Location = [2.979, -0.25]
-			FireTrigger = ShootTrigger2
-		}
-		FlakEmitter3 : BaseFlakEmitter
-		{
 			Location = [2.979, 0.25]
-			FireTrigger = ShootTrigger3
-		}
-		FlakEmitter4 : BaseFlakEmitter
-		{
-			Location = [2.979, 0.75]
-			FireTrigger = ShootTrigger4
+			FireTrigger = ShootTrigger2
 		}
 		Overclock_BaseFlakEmitter : <../../shots/bs_flak_heavy/bs_flak_flak_heavy_oc.rules>/Beam, BaseFlakEmitter
 		{
@@ -318,18 +311,6 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			FireTrigger = &^/1/FireTrigger
 			ResourceStorage = &^/1/ResourceStorage
 		}
-		Overclock_FlakEmitter3 : Overclock_BaseFlakEmitter, FlakEmitter3
-		{
-			Location = &^/1/Location
-			FireTrigger = &^/1/FireTrigger
-			ResourceStorage = &^/1/ResourceStorage
-		}
-		Overclock_FlakEmitter4 : Overclock_BaseFlakEmitter, FlakEmitter4
-		{
-			Location = &^/1/Location
-			FireTrigger = &^/1/FireTrigger
-			ResourceStorage = &^/1/ResourceStorage
-		}
 		Emitter1Trigger
 		{
 			Type = MultiTrigger
@@ -340,22 +321,12 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Type = MultiTrigger
 			Triggers = [FlakEmitter2, Overclock_FlakEmitter2]
 		}
-		Emitter3Trigger
-		{
-			Type = MultiTrigger
-			Triggers = [FlakEmitter3, Overclock_FlakEmitter3]
-		}
-		Emitter4Trigger
-		{
-			Type = MultiTrigger
-			Triggers = [FlakEmitter4, Overclock_FlakEmitter4]
-		}
 		FireEffect1
 		{
 			Type = TriggeredEffects
 			ChainedTo = Turret
 			Trigger = Emitter1Trigger
-			Location = [2.979, -0.75]
+			Location = [2.979, -0.25]
 			MediaEffects
 			[
 				&<./Data/ships/terran/flak_cannon_large/particles/flak_cannon_shoot_flash_large.rules>
@@ -379,55 +350,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Type = TriggeredEffects
 			ChainedTo = Turret
 			Trigger = Emitter2Trigger
-			Location = [2.979, -0.25]
-			MediaEffects
-			[
-				&<./Data/ships/terran/flak_cannon_large/particles/flak_cannon_shoot_flash_large.rules>
-				: /BASE_SOUNDS/AudioExterior
-				{
-					RandomSounds
-					[
-						"./Data/ships/terran/flak_cannon_large/sounds/flak_cannon_shot_01.wav"
-						"./Data/ships/terran/flak_cannon_large/sounds/flak_cannon_shot_02.wav"
-						"./Data/ships/terran/flak_cannon_large/sounds/flak_cannon_shot_03.wav"
-						"./Data/ships/terran/flak_cannon_large/sounds/flak_cannon_shot_04.wav"
-					]
-					Volume = 0.35
-					SpeedVariation = 0.08
-					MaxConcurrent = 30
-				}
-			]
-		}
-		FireEffect3
-		{
-			Type = TriggeredEffects
-			ChainedTo = Turret
-			Trigger = Emitter3Trigger
 			Location = [2.979, 0.25]
-			MediaEffects
-			[
-				&<./Data/ships/terran/flak_cannon_large/particles/flak_cannon_shoot_flash_large.rules>
-				: /BASE_SOUNDS/AudioExterior
-				{
-					RandomSounds
-					[
-						"./Data/ships/terran/flak_cannon_large/sounds/flak_cannon_shot_01.wav"
-						"./Data/ships/terran/flak_cannon_large/sounds/flak_cannon_shot_02.wav"
-						"./Data/ships/terran/flak_cannon_large/sounds/flak_cannon_shot_03.wav"
-						"./Data/ships/terran/flak_cannon_large/sounds/flak_cannon_shot_04.wav"
-					]
-					Volume = 0.35
-					SpeedVariation = 0.08
-					MaxConcurrent = 30
-				}
-			]
-		}
-		FireEffect4
-		{
-			Type = TriggeredEffects
-			ChainedTo = Turret
-			Trigger = Emitter4Trigger
-			Location = [2.979, 0.75]
 			MediaEffects
 			[
 				&<./Data/ships/terran/flak_cannon_large/particles/flak_cannon_shoot_flash_large.rules>
@@ -512,7 +435,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = MultiTrigger
 			OperationalToggle = IsOverclocked
-			Triggers = [Emitter1Trigger, Emitter2Trigger, Emitter3Trigger, Emitter4Trigger]
+			Triggers = [Emitter1Trigger, Emitter2Trigger]
 		}
 		Overclock_ShotHeatProducer
 		{
@@ -691,7 +614,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = Graphics
 			ChainedTo = Turret
-			Location = [2.109, -0.75]
+			Location = [2.109, -0.25]
 			Rotation = 90d
 			OperationalToggle = IsOperational
 			ResetAnimationTrigger = Emitter1Trigger
@@ -734,96 +657,10 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		{
 			Type = Graphics
 			ChainedTo = Turret
-			Location = [2.109, -0.25]
-			Rotation = 90d
-			OperationalToggle = IsOperational
-			ResetAnimationTrigger = Emitter2Trigger
-			OperationalDoodad
-			{
-				Layer = "roof_turrets"
-				DamageLevels
-				[
-					{
-						AnimationFiles = ["barrel2.png", "barrel3.png", "barrel4.png", "barrel5.png", "barrel1.png"]
-						NormalsAnimationFiles
-						[
-							"barrel_normals1.png"
-							"barrel_normals1.png"
-							"barrel_normals1.png"
-							"barrel_normals1.png"
-							"barrel_normals1.png"
-						]
-						Size = [0.5, 1.9]
-						AnimationInterval = 0.03
-						AnimationStartTime = MinValue
-						ClampAnimation = true
-					}
-				]
-			}
-			NonOperationalDoodad
-			{
-				Layer = "roof_turrets"
-				DamageLevels
-				[
-					{
-						File = "barrel1.png"
-						NormalsFile = "barrel_normals1.png"
-						Size = [0.5, 1.9]
-					}
-				]
-			}
-		}
-		Barrel3Graphics
-		{
-			Type = Graphics
-			ChainedTo = Turret
 			Location = [2.109, 0.25]
 			Rotation = 90d
 			OperationalToggle = IsOperational
-			ResetAnimationTrigger = Emitter3Trigger
-			OperationalDoodad
-			{
-				Layer = "roof_turrets"
-				DamageLevels
-				[
-					{
-						AnimationFiles = ["barrel2.png", "barrel3.png", "barrel4.png", "barrel5.png", "barrel1.png"]
-						NormalsAnimationFiles
-						[
-							"barrel_normals1.png"
-							"barrel_normals1.png"
-							"barrel_normals1.png"
-							"barrel_normals1.png"
-							"barrel_normals1.png"
-						]
-						Size = [0.5, 1.9]
-						AnimationInterval = 0.03
-						AnimationStartTime = MinValue
-						ClampAnimation = true
-					}
-				]
-			}
-			NonOperationalDoodad
-			{
-				Layer = "roof_turrets"
-				DamageLevels
-				[
-					{
-						File = "barrel1.png"
-						NormalsFile = "barrel_normals1.png"
-						Size = [0.5, 1.9]
-					}
-				]
-			}
-		}
-		Barrel4Graphics
-		{
-			Type = Graphics
-			ChainedTo = Turret
-			Location = [2.109, 0.75]
-			Rotation = 90d
-			OperationalToggle = IsOperational
-			ResetAnimationTrigger = Emitter4Trigger
+			ResetAnimationTrigger = Emitter2Trigger
 			OperationalDoodad
 			{
 				Layer = "roof_turrets"
@@ -954,7 +791,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			{
 				DamagePerShotVsShots = &~/Part/Components/BaseFlakEmitter/STAT_DAMAGE
 				DamagePerShot = &~/Part/Components/BaseFlakEmitter/STAT_SHIP_DAMAGE
-				ROF = 1 / (&~/Part/Components/Turret/FireInterval)
+				ROF = 2 / (&~/Part/Components/Turret/FireInterval/BaseValue)
 				DamagePerSecond = (&DamagePerShot) * (&ROF)
 				DamagePerSecondVsShots = (&DamagePerShotVsShots) * (&ROF)
 				MaxDamage = [&../DamagePerShot, &../DamagePerSecond]
@@ -980,7 +817,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				NameKey = "StatCategories/BSFlak"
 				Stats
 				{
-					ROF = 1 / ((&~/Part/Components/Turret/FireInterval) * (&~/OVERCLOCK/FIRE_INTERVAL_FACTOR))
+					ROF = 2 / ((&~/Part/Components/Turret/FireInterval/BaseValue) * (&~/OVERCLOCK/FIRE_INTERVAL_FACTOR))
 					ShrapnelFieldRadius = &~/Part/Components/Overclock_BaseFlakEmitter/STAT_CLOUD_RADIUS
 					ShrapnelFieldDamagePool = &~/Part/Components/Overclock_BaseFlakEmitter/STAT_CLOUD_POOL
 					ShrapnelFieldLifetime = &~/Part/Components/Overclock_BaseFlakEmitter/STAT_CLOUD_LIFETIME

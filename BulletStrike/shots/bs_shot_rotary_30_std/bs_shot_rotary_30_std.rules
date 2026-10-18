@@ -1,19 +1,19 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
 // Projetil: 30mm Heavy Rotary Cannon - std
 
-STAT_DAMAGE = 260
-STAT_PENETRATION = 4
+STAT_DAMAGE = 400
+STAT_PENETRATION = 3
 ID = "rafaeltessaro.bs_shot_rotary_30_std"
 Range = 500
 IdealRange = [150, &~/Range]
 IdealRadius = [5, 50]
-Speed = 400
+Speed = 300
 Components
 {
 	Physics
 	{
 		Type = CirclePhysics
-		Radius = 0.1
+		Radius = 0.15
 		Density = 0.0001
 	}
 	Death
@@ -33,7 +33,7 @@ Components
 	Hit
 	{
 		Type = PenetratingHit
-		Penetration = 4
+		Penetration = 3
 		PenetrationSpeed = 25
 		FriendlyShipLowCollisions = false
 		CrewCollisions = {Enemies=true; Junk=true}
@@ -49,7 +49,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 320
+						BaseValue = 600
 						EffectScaleExponent = 1
 					}
 				}
@@ -74,7 +74,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 260
+						BaseValue = 400
 						EffectScaleExponent = 1
 					}
 				}
@@ -89,21 +89,22 @@ Components
 			]
 			MediaEffects
 			[
-				&<./Data/shots/chaingun_shot/particles/chaingun_sparks.rules>
+				&<./Data/shots/bullet_med/particles/bullet_hit_med.rules>
+				&<./Data/shots/bullet_med/particles/bullet_hit_med_sparks.rules>
+				&<./Data/shots/bullet_med/particles/bullet_smoke_med.rules>
 				&<./Data/shots/bullet_med/particles/bullet_flash_med.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds
 					[
-						"./Data/shots/chaingun_shot/sounds/chain_gun_impact_01.wav"
-						"./Data/shots/chaingun_shot/sounds/chain_gun_impact_02.wav"
-						"./Data/shots/chaingun_shot/sounds/chain_gun_impact_03.wav"
-						"./Data/shots/chaingun_shot/sounds/chain_gun_impact_04.wav"
-						"./Data/shots/chaingun_shot/sounds/chain_gun_impact_05.wav"
+						"./Data/shots/bullet_med/sounds/cannon_impact_01.wav"
+						"./Data/shots/bullet_med/sounds/cannon_impact_02.wav"
+						"./Data/shots/bullet_med/sounds/cannon_impact_03.wav"
+						"./Data/shots/bullet_med/sounds/cannon_impact_04.wav"
 					]
-					Volume = 0.5
+					Volume = 0.6
 					SpeedVariation = 0.2
-					MaxConcurrent = 30
+					MaxConcurrent = 20
 				}
 			]
 		}
@@ -117,7 +118,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 65
+						BaseValue = 100
 						EffectScaleExponent = 1
 					}
 				}
@@ -130,7 +131,11 @@ Components
 					}
 				}
 			]
-			MediaEffects = [&<./Data/shots/chaingun_shot/particles/chaingun_sparks.rules>]
+			MediaEffects
+			[
+				&<./Data/shots/bullet_med/particles/bullet_hit_med_struct.rules>
+				&<./Data/shots/bullet_med/particles/bullet_flash_med_struct.rules>
+			]
 		}
 		PenetratingOperational
 		{
@@ -141,7 +146,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 260
+						BaseValue = 400
 						EffectScaleExponent = 1
 					}
 				}
@@ -150,7 +155,7 @@ Components
 					StatusType = cosmoteer.fire
 					StatusChance
 					{
-						BaseValue = 0.06
+						BaseValue = 0.05
 						EffectScaleExponent = 1
 					}
 					ValueType = Interpolated
@@ -179,7 +184,7 @@ Components
 					Type = ExplosiveDamage
 					TotalDamage
 					{
-						BaseValue = 120
+						BaseValue = 200
 						EffectScaleExponent = 1
 					}
 					Radius = 1
@@ -220,7 +225,7 @@ Components
 				SampleMode = Linear
 				MipLevels = max
 			}
-			Size = [0.18, 0.18]
+			Size = [0.32, 0.32]
 		}
 	}
 	GlowSprite
@@ -229,7 +234,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		Offset = [-0.375, 0]
+		Offset = [-0.625, 0]
 		Sprite
 		{
 			Texture
@@ -238,7 +243,7 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [3, 1.5]
+			Size = [5, 2.5]
 			VertexColor = [255, 120, 30]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"

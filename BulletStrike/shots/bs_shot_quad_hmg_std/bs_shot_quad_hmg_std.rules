@@ -1,5 +1,5 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
-// Projetil: Quad Heavy MG - std
+// Projetil: Quad Heavy Machine Gun - std
 
 STAT_DAMAGE = 95
 STAT_PENETRATION = 2
@@ -7,7 +7,7 @@ ID = "rafaeltessaro.bs_shot_quad_hmg_std"
 Range = 300
 IdealRange = [90, &~/Range]
 IdealRadius = [5, 50]
-Speed = 300
+Speed = 320
 Components
 {
 	Physics

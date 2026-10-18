@@ -9,7 +9,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 	DescriptionKey = "Parts/BSFlakLightDesc"
 	ID = rafaeltessaro.bs_flak_light
 	EditorGroups = ["BulletStrike", "Defenses", "WeaponsProjectile"]
-	Resources = [[steel, 40], [coil, 12]]
+	Resources = [[steel, 48], [coil, 16]]
 	Size = [2, 2]
 	SelectionPriority = 1
 	MaxHealth = 8000
@@ -132,7 +132,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			ResourceType = bullet
 			FromStorage = MagStorage
 			FromQuantity = 1
-			ToQuantity = 1
+			ToQuantity = 2
 		}
 		MagConsumer
 		{

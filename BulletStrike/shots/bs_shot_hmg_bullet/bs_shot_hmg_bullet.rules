@@ -1,7 +1,7 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
-// Projetil: Heavy Deck MG - bullet
+// Projetil: Heavy Deck Machine Gun - bullet
 
-STAT_DAMAGE = 104
+STAT_DAMAGE = 90
 STAT_PENETRATION = 3
 ID = "rafaeltessaro.bs_shot_hmg_bullet"
 Range = 240
@@ -23,7 +23,7 @@ Components
 	Targetable
 	{
 		Type = Targetable
-		Health = 90
+		Health = 100
 		TargetCategory = "bullet"
 		OnDeath
 		{
@@ -50,7 +50,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 104
+						BaseValue = 90
 						EffectScaleExponent = 1
 					}
 				}
@@ -93,7 +93,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 26
+						BaseValue = 22
 						EffectScaleExponent = 1
 					}
 				}
@@ -117,7 +117,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 104
+						BaseValue = 90
 						EffectScaleExponent = 1
 					}
 				}

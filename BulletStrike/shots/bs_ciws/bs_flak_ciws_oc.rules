@@ -5,8 +5,8 @@ BASE = &<bs_flak_ciws.rules>
 CLOUD = &<bs_cloud_ciws.rules>
 Beam : BASE
 {
-	STAT_CLOUD_RADIUS = 3
-	STAT_CLOUD_POOL = 750
+	STAT_CLOUD_RADIUS = 3.375
+	STAT_CLOUD_POOL = 1000
 	STAT_CLOUD_LIFETIME = 3
 	HitNothing : ^/0/HitNothing
 	{

@@ -5,7 +5,7 @@ BASE = &<bs_flak_flak_heavy.rules>
 CLOUD = &<bs_cloud_flak_heavy.rules>
 Beam : BASE
 {
-	STAT_CLOUD_RADIUS = 4.5
+	STAT_CLOUD_RADIUS = 5.25
 	STAT_CLOUD_POOL = 2000
 	STAT_CLOUD_LIFETIME = 3
 	HitNothing : ^/0/HitNothing

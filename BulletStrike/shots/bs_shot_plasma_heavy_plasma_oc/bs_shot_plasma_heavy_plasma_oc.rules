@@ -1,7 +1,7 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
 // Projetil: Heavy Plasma Cannon - plasma (overclock)
 
-STAT_DAMAGE = 6480
+STAT_DAMAGE = 4680
 STAT_PENETRATION = 0
 ID = "rafaeltessaro.bs_shot_plasma_heavy_plasma_oc"
 Range = 600
@@ -13,7 +13,7 @@ Components
 	Physics
 	{
 		Type = CirclePhysics
-		Radius = 0.45
+		Radius = 0.3
 		Density = 0.0001
 	}
 	Death
@@ -23,45 +23,75 @@ Components
 	Targetable
 	{
 		Type = Targetable
-		Health = 3000
+		Health = 2500
 		TargetCategory = "bullet"
 		OnDeath
 		{
-			MediaEffects = [&<./Data/shots/flak_large/particles/flak_large_flash.rules>]
+			MediaEffects = &~/Components/Hit/HitOperational/MediaEffects
 		}
 	}
 	Hit
 	{
-		Type = SimpleHit
+		Type = PenetratingHit
+		Penetration = 0
+		PenetrationSpeed = 25
 		FriendlyShipLowCollisions = false
-		HitOperational
+		CrewCollisions = {Enemies=true; Junk=true}
+		PenetratesCrew = true
+		HitCrew = &HitOperational
+		HitShield
 		{
+			ReduceEffectsByPenetration = true
+			Offset = [-0.15, 0]
 			HitEffects
 			[
 				{
 					Type = Damage
 					Damage
 					{
-						BaseValue = 4320
+						BaseValue = 12480
 						EffectScaleExponent = 1
 					}
-				}
-				{
-					Type = ExplosiveDamage
-					TotalDamage
-					{
-						BaseValue = 2160
-						EffectScaleExponent = 1
-					}
-					Radius = 2
 				}
 				{
 					Type = Impulse
 					Impulse
 					{
-						BaseValue = 30
+						BaseValue = 5
 						EffectScaleExponent = 1
 					}
+				}
+			]
+			MediaEffects = &../HitOperational/MediaEffects
+		}
+		HitOperational
+		{
+			ReduceEffectsByPenetration = true
+			Offset = [-0.15, 0]
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
+					{
+						BaseValue = 4680
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 5
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = StatusApplication
+					StatusType = cosmoteer.heat
+					StatusValue = 374
+					ApplyToAllHitPartTiles = true
+					DivideValueByPartArea = true
 				}
 			]
 			MediaEffects
@@ -77,49 +107,87 @@ Components
 						"./Data/shots/bullet_railgun/sounds/railgun_impact_02.wav"
 						"./Data/shots/bullet_railgun/sounds/railgun_impact_03.wav"
 					]
-					Volume = 1
+					Volume = 0.8
 					SpeedVariation = 0.2
-					MaxConcurrent = 8
+					MaxConcurrent = 12
 				}
 				: /BASE_SHAKE
 				{
-					ShakeAmount = 0.08
+					ShakeAmount = 0.04
 					Duration = 0.5
 				}
 			]
 		}
-		HitStructural = &HitOperational
-		HitCrew = &HitOperational
-		CrewCollisions = {Enemies=true; Junk=true}
-		HitShield
+		HitStructural
 		{
+			ReduceEffectsByPenetration = true
+			Offset = [0.15, 0]
 			HitEffects
 			[
 				{
 					Type = Damage
 					Damage
 					{
-						BaseValue = 9720
+						BaseValue = 1170
 						EffectScaleExponent = 1
 					}
 				}
 				{
-					Type = ExplosiveDamage
-					TotalDamage
+					Type = Impulse
+					Impulse
 					{
-						BaseValue = 4860
+						BaseValue = 2.5
 						EffectScaleExponent = 1
 					}
-					Radius = 2
-					Filter
+				}
+			]
+			MediaEffects
+			[
+				&<./Data/shots/bullet_railgun/particles/bullet_hit_struct_railgun.rules>
+				&<./Data/shots/bullet_railgun/particles/bullet_hit_struct_railgun_sparks.rules>
+			]
+		}
+		PenetratingOperational
+		{
+			ReduceEffectsByPenetration = true
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
 					{
-						Ships = true
-						Shields = true
+						BaseValue = 4680
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = StatusApplication
+					StatusType = cosmoteer.fire
+					StatusChance
+					{
+						BaseValue = 0.25
+						EffectScaleExponent = 1
+					}
+					ValueType = Interpolated
+				}
+				{
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 5
+						EffectScaleExponent = 1
 					}
 				}
 			]
 			MediaEffects = &../HitOperational/MediaEffects
 		}
+		PenetratingStructural : &HitStructural
+		{
+			StructuralDamageRetentionPerHit = 50%
+			MinStructuralDamageScale = 3%
+		}
+		FinishedPenetratingOperational = &PenetratingOperational
+		FinishedPenetratingStructural = &PenetratingStructural
 	}
 	Sprite
 	{
@@ -133,7 +201,7 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [4.2, 1.68]
+			Size = [2.8, 1.12]
 			VertexColor = [120, 255, 255]
 			TargetBlendMode = Add
 		}
@@ -144,7 +212,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		Offset = [-2, 0]
+		Offset = [-1.25, 0]
 		Sprite
 		{
 			Texture
@@ -153,7 +221,7 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [16, 8]
+			Size = [10, 5]
 			VertexColor = [0, 255, 220]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"

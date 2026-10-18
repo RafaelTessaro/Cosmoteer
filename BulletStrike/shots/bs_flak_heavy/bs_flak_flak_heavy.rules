@@ -3,7 +3,7 @@
 
 STAT_DAMAGE = 4000
 STAT_SHIP_DAMAGE = 0
-STAT_RADIUS = 6
+STAT_RADIUS = 7
 Range = 320
 IdealRange = 288
 ClipRangeToTarget = true
@@ -20,7 +20,7 @@ HitNothing
 				BaseValue = 4000
 				EffectScaleExponent = 1
 			}
-			Radius = 6
+			Radius = 7
 			Slices = 1
 			Filter
 			{
@@ -38,7 +38,7 @@ HitNothing
 				BaseValue = 0
 				EffectScaleExponent = 1
 			}
-			Radius = 3.6
+			Radius = 4.2
 			Filter
 			{
 				Ships = true

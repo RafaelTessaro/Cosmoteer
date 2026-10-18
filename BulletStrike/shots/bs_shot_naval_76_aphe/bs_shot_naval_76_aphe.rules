@@ -1,8 +1,8 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
 // Projetil: 76mm Naval Automatic Cannon - aphe
 
-STAT_DAMAGE = 1080
-STAT_PENETRATION = 9
+STAT_DAMAGE = 1125
+STAT_PENETRATION = 10
 ID = "rafaeltessaro.bs_shot_naval_76_aphe"
 Range = 340
 IdealRange = [102, &~/Range]
@@ -23,7 +23,7 @@ Components
 	Targetable
 	{
 		Type = Targetable
-		Health = 1200
+		Health = 1000
 		TargetCategory = "bullet"
 		OnDeath
 		{
@@ -33,7 +33,7 @@ Components
 	Hit
 	{
 		Type = PenetratingHit
-		Penetration = 9
+		Penetration = 10
 		PenetrationSpeed = 25
 		FriendlyShipLowCollisions = false
 		CrewCollisions = {Enemies=true; Junk=true}
@@ -53,7 +53,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 2240
+						BaseValue = 2400
 						EffectScaleExponent = 1
 					}
 				}
@@ -78,7 +78,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 1080
+						BaseValue = 1125
 						EffectScaleExponent = 1
 					}
 				}
@@ -126,7 +126,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 270
+						BaseValue = 281
 						EffectScaleExponent = 1
 					}
 				}
@@ -154,7 +154,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 1080
+						BaseValue = 1125
 						EffectScaleExponent = 1
 					}
 				}
@@ -192,7 +192,7 @@ Components
 					Type = ExplosiveDamage
 					TotalDamage
 					{
-						BaseValue = 2320
+						BaseValue = 1800
 						EffectScaleExponent = 1
 					}
 					Radius = 1.5

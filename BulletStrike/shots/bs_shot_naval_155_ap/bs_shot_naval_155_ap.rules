@@ -1,19 +1,19 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
 // Projetil: 155mm Twin Naval Gun - ap
 
-STAT_DAMAGE = 2890
+STAT_DAMAGE = 7600
 STAT_PENETRATION = 22
 ID = "rafaeltessaro.bs_shot_naval_155_ap"
 Range = 520
 IdealRange = [156, &~/Range]
 IdealRadius = [5, 50]
-Speed = 230
+Speed = 220
 Components
 {
 	Physics
 	{
 		Type = CirclePhysics
-		Radius = 0.3
+		Radius = 0.45
 		Density = 0.0001
 	}
 	Death
@@ -53,7 +53,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 2040
+						BaseValue = 3600
 						EffectScaleExponent = 1
 					}
 				}
@@ -78,7 +78,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 2890
+						BaseValue = 7600
 						EffectScaleExponent = 1
 					}
 				}
@@ -93,25 +93,25 @@ Components
 			]
 			MediaEffects
 			[
-				&<./Data/shots/bullet_large/particles/bullet_hit_large.rules>
-				&<./Data/shots/bullet_large/particles/bullet_hit_large_sparks.rules>
-				&<./Data/shots/bullet_large/particles/bullet_smoke_large.rules>
-				&<./Data/shots/bullet_large/particles/bullet_flash_large.rules>
+				&<./Data/shots/bullet_deck/particles/bullet_hit_deck.rules>
+				&<./Data/shots/bullet_deck/particles/bullet_hit_deck_sparks.rules>
+				&<./Data/shots/bullet_deck/particles/bullet_smoke_deck.rules>
+				&<./Data/shots/bullet_deck/particles/bullet_flash_deck.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds
 					[
-						"./Data/shots/bullet_large/sounds/large_cannon_impact_01.wav"
-						"./Data/shots/bullet_large/sounds/large_cannon_impact_02.wav"
-						"./Data/shots/bullet_large/sounds/large_cannon_impact_03.wav"
+						"./Data/shots/bullet_deck/sounds/deck_cannon_impact_01.wav"
+						"./Data/shots/bullet_deck/sounds/deck_cannon_impact_02.wav"
+						"./Data/shots/bullet_deck/sounds/deck_cannon_impact_03.wav"
 					]
-					Volume = 0.8
+					Volume = 1
 					SpeedVariation = 0.2
-					MaxConcurrent = 12
+					MaxConcurrent = 8
 				}
 				: /BASE_SHAKE
 				{
-					ShakeAmount = 0.04
+					ShakeAmount = 0.08
 					Duration = 0.5
 				}
 			]
@@ -126,7 +126,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 722
+						BaseValue = 1900
 						EffectScaleExponent = 1
 					}
 				}
@@ -141,8 +141,8 @@ Components
 			]
 			MediaEffects
 			[
-				&<./Data/shots/bullet_large/particles/bullet_hit_large_sparks.rules>
-				&<./Data/shots/bullet_large/particles/bullet_flash_large_struct.rules>
+				&<./Data/shots/bullet_deck/particles/bullet_hit_deck_sparks.rules>
+				&<./Data/shots/bullet_deck/particles/bullet_flash_deck_struct.rules>
 			]
 		}
 		PenetratingOperational
@@ -154,7 +154,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 2890
+						BaseValue = 7600
 						EffectScaleExponent = 1
 					}
 				}
@@ -163,7 +163,7 @@ Components
 					StatusType = cosmoteer.fire
 					StatusChance
 					{
-						BaseValue = 0.087
+						BaseValue = 0.1
 						EffectScaleExponent = 1
 					}
 					ValueType = Interpolated
@@ -203,7 +203,7 @@ Components
 					SampleMode = Linear
 					MipLevels = max
 				}
-				Size = [0.7, 0.7]
+				Size = [1.05, 1.05]
 			}
 			FrameCount = 16
 			FrameSize = [256, 256]
@@ -220,7 +220,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		Offset = [-1.25, 0]
+		Offset = [-2, 0]
 		Sprite
 		{
 			Texture
@@ -229,7 +229,7 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [10, 5]
+			Size = [16, 8]
 			VertexColor = [200, 225, 255]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"
@@ -243,6 +243,6 @@ Components
 	Trail
 	{
 		Type = MediaEffects
-		MediaEffects = [&<./Data/shots/bullet_large/particles/bullet_trail_large.rules>]
+		MediaEffects = [&<./Data/shots/bullet_deck/particles/bullet_trail_deck.rules>]
 	}
 }

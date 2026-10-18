@@ -1,16 +1,16 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
-// Arma: Quad Heavy MG / Metralhadora Pesada Quádrupla
+// Arma: Quad Heavy Machine Gun / Metralhadora Pesada Quádrupla
 
 OVERCLOCK
 {
-	FIRE_INTERVAL_FACTOR = 0.7407
+	FIRE_INTERVAL_FACTOR = 0.7143
 	HALF_SPREAD = 2.5d
 	RECOIL_FACTOR = 160%
-	HEAT_PER_SHOT = 40
+	HEAT_PER_SHOT = 30
 	HEAT_PER_SECOND = 40
 }
 HEAT_TO_RESOURCE = &<./Data/statuses/heat/heat.rules>/STATUS_TO_RESOURCE_RATIO
-FIRE_INTERVAL = 0.0625
+FIRE_INTERVAL = 0.1429
 Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 {
 	NameKey = "Parts/BSQuadHmg"
@@ -18,7 +18,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 	DescriptionKey = "Parts/BSQuadHmgDesc"
 	ID = rafaeltessaro.bs_quad_hmg
 	EditorGroups = ["BulletStrike", "WeaponsProjectile"]
-	Resources = [[steel, 56], [coil, 12], [coil2, 4]]
+	Resources = [[steel, 60], [coil2, 6], [tristeel, 4]]
 	Size = [2, 2]
 	SelectionPriority = 1
 	MaxHealth = 8000
@@ -74,7 +74,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 		{
 			Type = CommandConsumer
 			OperationalToggle = CommandConsumptionToggle
-			CommandPoints = 2
+			CommandPoints = 3
 		}
 		FireModeToggle
 		{
@@ -132,25 +132,6 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 			Mode = All
 		}
 		// ---- municao (carregadores abertos em N tiros) ----
-		AmmoTypeToggle
-		{
-			Type = UIToggle
-			ToggleID = "bs_ammo_type"
-			Default = 0
-			AlwaysAllowInBuildMode = true
-		}
-		ModeToggle_0
-		{
-			Type = ModeToggle
-			Mode = AmmoTypeToggle
-			OnMode = 0
-		}
-		ConsumeToggle_0
-		{
-			Type = MultiToggle
-			Toggles = [CommandConsumptionToggle, ModeToggle_0]
-			Mode = All
-		}
 		MagStorage_0
 		{
 			Type = ResourceStorage
@@ -174,200 +155,14 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 			ResourceType = rafaeltessaro.bs_mag_std
 			Storage = MagStorage_0
 			DefaultPriority = &/PRIORITIES/Weapon_Supply
-			OperationalToggle = ConsumeToggle_0
+			OperationalToggle = CommandConsumptionToggle
 			ConsumptionToggleButtonOffset = [0, -0.4]
-		}
-		HasAmmo_0
-		{
-			Type = MultiToggle
-			Toggles = [ModeToggle_0, Splitter_0]
-			Mode = All
-		}
-		ModeToggle_1
-		{
-			Type = ModeToggle
-			Mode = AmmoTypeToggle
-			OnMode = 1
-		}
-		ConsumeToggle_1
-		{
-			Type = MultiToggle
-			Toggles = [CommandConsumptionToggle, ModeToggle_1]
-			Mode = All
-		}
-		MagStorage_1
-		{
-			Type = ResourceStorage
-			ResourceType = rafaeltessaro.bs_mag_ap
-			MaxResources = 6
-			UITileRect = [1 + 7/64, 1 + 7/64, 1 - 14/64, 1 - 14/64]
-			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
-			DropResourcesWhenDestroyed = true
-		}
-		Splitter_1
-		{
-			Type = InlineResourceConverter
-			ResourceType = rafaeltessaro.bs_mag_ap
-			FromStorage = MagStorage_1
-			FromQuantity = 1
-			ToQuantity = 50
-		}
-		MagConsumer_1
-		{
-			Type = ResourceConsumer
-			ResourceType = rafaeltessaro.bs_mag_ap
-			Storage = MagStorage_1
-			DefaultPriority = &/PRIORITIES/Weapon_Supply
-			OperationalToggle = ConsumeToggle_1
-			ConsumptionToggleButtonOffset = [0, -0.15]
-		}
-		HasAmmo_1
-		{
-			Type = MultiToggle
-			Toggles = [ModeToggle_1, Splitter_1]
-			Mode = All
-		}
-		ModeToggle_2
-		{
-			Type = ModeToggle
-			Mode = AmmoTypeToggle
-			OnMode = 2
-		}
-		ConsumeToggle_2
-		{
-			Type = MultiToggle
-			Toggles = [CommandConsumptionToggle, ModeToggle_2]
-			Mode = All
-		}
-		MagStorage_2
-		{
-			Type = ResourceStorage
-			ResourceType = rafaeltessaro.bs_mag_aphe
-			MaxResources = 6
-			UITileRect = [0 + 7/64, 0 + 7/64, 1 - 14/64, 1 - 14/64]
-			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
-			DropResourcesWhenDestroyed = true
-		}
-		Splitter_2
-		{
-			Type = InlineResourceConverter
-			ResourceType = rafaeltessaro.bs_mag_aphe
-			FromStorage = MagStorage_2
-			FromQuantity = 1
-			ToQuantity = 50
-		}
-		MagConsumer_2
-		{
-			Type = ResourceConsumer
-			ResourceType = rafaeltessaro.bs_mag_aphe
-			Storage = MagStorage_2
-			DefaultPriority = &/PRIORITIES/Weapon_Supply
-			OperationalToggle = ConsumeToggle_2
-			ConsumptionToggleButtonOffset = [0, 0.1]
-		}
-		HasAmmo_2
-		{
-			Type = MultiToggle
-			Toggles = [ModeToggle_2, Splitter_2]
-			Mode = All
-		}
-		ModeToggle_3
-		{
-			Type = ModeToggle
-			Mode = AmmoTypeToggle
-			OnMode = 3
-		}
-		ConsumeToggle_3
-		{
-			Type = MultiToggle
-			Toggles = [CommandConsumptionToggle, ModeToggle_3]
-			Mode = All
-		}
-		MagStorage_3
-		{
-			Type = ResourceStorage
-			ResourceType = rafaeltessaro.bs_mag_emp
-			MaxResources = 6
-			UITileRect = [1 + 7/64, 0 + 7/64, 1 - 14/64, 1 - 14/64]
-			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
-			DropResourcesWhenDestroyed = true
-		}
-		Splitter_3
-		{
-			Type = InlineResourceConverter
-			ResourceType = rafaeltessaro.bs_mag_emp
-			FromStorage = MagStorage_3
-			FromQuantity = 1
-			ToQuantity = 50
-		}
-		MagConsumer_3
-		{
-			Type = ResourceConsumer
-			ResourceType = rafaeltessaro.bs_mag_emp
-			Storage = MagStorage_3
-			DefaultPriority = &/PRIORITIES/Weapon_Supply
-			OperationalToggle = ConsumeToggle_3
-			ConsumptionToggleButtonOffset = [0, 0.35]
-		}
-		HasAmmo_3
-		{
-			Type = MultiToggle
-			Toggles = [ModeToggle_3, Splitter_3]
-			Mode = All
 		}
 		AmmoPrereq
 		{
 			Type = MultiToggle
-			Toggles = [HasAmmo_0, HasAmmo_1, HasAmmo_2, HasAmmo_3]
+			Toggles = [Splitter_0]
 			Mode = Any
-		}
-		FireToggle_0_N
-		{
-			Type = MultiToggle
-			Toggles = [ModeToggle_0, { Toggle=IsOverclocked; Invert=true }]
-			Mode = All
-		}
-		FireToggle_0_OC
-		{
-			Type = MultiToggle
-			Toggles = [ModeToggle_0, IsOverclocked]
-			Mode = All
-		}
-		FireToggle_1_N
-		{
-			Type = MultiToggle
-			Toggles = [ModeToggle_1, { Toggle=IsOverclocked; Invert=true }]
-			Mode = All
-		}
-		FireToggle_1_OC
-		{
-			Type = MultiToggle
-			Toggles = [ModeToggle_1, IsOverclocked]
-			Mode = All
-		}
-		FireToggle_2_N
-		{
-			Type = MultiToggle
-			Toggles = [ModeToggle_2, { Toggle=IsOverclocked; Invert=true }]
-			Mode = All
-		}
-		FireToggle_2_OC
-		{
-			Type = MultiToggle
-			Toggles = [ModeToggle_2, IsOverclocked]
-			Mode = All
-		}
-		FireToggle_3_N
-		{
-			Type = MultiToggle
-			Toggles = [ModeToggle_3, { Toggle=IsOverclocked; Invert=true }]
-			Mode = All
-		}
-		FireToggle_3_OC
-		{
-			Type = MultiToggle
-			Toggles = [ModeToggle_3, IsOverclocked]
-			Mode = All
 		}
 		// ---- torre ----
 		Turret
@@ -440,9 +235,9 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 		ShootCycle
 		{
 			Type = ModeCycle
-			ModeRange = [0, 3]
+			ModeRange = [0, 1]
 			IncrementTrigger = Turret
-			StartingMode = 3
+			StartingMode = 1
 		}
 		ShootTrigger1
 		{
@@ -456,23 +251,12 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 			Mode = ShootCycle
 			TriggerInModes = [1]
 		}
-		ShootTrigger3
-		{
-			Type = ModeTrigger
-			Mode = ShootCycle
-			TriggerInModes = [2]
-		}
-		ShootTrigger4
-		{
-			Type = ModeTrigger
-			Mode = ShootCycle
-			TriggerInModes = [3]
-		}
 		// ---- emissores: um bloco por tipo de municao (e por estado de overclock) ----
 		Fire_0_N
 		{
 			Type = ToggledComponents
-			Toggle = FireToggle_0_N
+			Toggle = IsOverclocked
+			Invert = true
 			IncludeInBlueprints = true
 			Components
 			{
@@ -505,19 +289,19 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 				Emitter3 : TargetEmitter
 				{
 					Location = [1.59, 0.15]
-					FireTrigger = ShootTrigger3
+					FireTrigger = ShootTrigger1
 				}
 				Emitter4 : TargetEmitter
 				{
 					Location = [1.59, 0.45]
-					FireTrigger = ShootTrigger4
+					FireTrigger = ShootTrigger2
 				}
 			}
 		}
 		Fire_0_OC
 		{
 			Type = ToggledComponents
-			Toggle = FireToggle_0_OC
+			Toggle = IsOverclocked
 			IncludeInBlueprints = false
 			Components
 			{
@@ -550,282 +334,12 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 				Emitter3 : TargetEmitter
 				{
 					Location = [1.59, 0.15]
-					FireTrigger = ShootTrigger3
-				}
-				Emitter4 : TargetEmitter
-				{
-					Location = [1.59, 0.45]
-					FireTrigger = ShootTrigger4
-				}
-			}
-		}
-		Fire_1_N
-		{
-			Type = ToggledComponents
-			Toggle = FireToggle_1_N
-			IncludeInBlueprints = true
-			Components
-			{
-				TargetEmitter
-				{
-					Type = BulletEmitter
-					ChainedTo = Turret
-					FireTrigger
-					GetTargetFrom = Turret
-					Location = [1.59, 0]
-					OperationalToggle = IsOperational
-					Bullet = &<../../shots/bs_shot_quad_hmg_ap/bs_shot_quad_hmg_ap.rules>
-					Spread = [-2.0d, 2.0d]
-					ResourceStorage = Splitter_1
-					ResourcesUsed = 1
-					Recoil = 2
-					AntiPhasingRaycastDistance = 2
-					AntiPhasingRaycastIgnoreLowCollisions = true
-				}
-				Emitter1 : TargetEmitter
-				{
-					Location = [1.59, -0.45]
 					FireTrigger = ShootTrigger1
 				}
-				Emitter2 : TargetEmitter
-				{
-					Location = [1.59, -0.15]
-					FireTrigger = ShootTrigger2
-				}
-				Emitter3 : TargetEmitter
-				{
-					Location = [1.59, 0.15]
-					FireTrigger = ShootTrigger3
-				}
 				Emitter4 : TargetEmitter
 				{
 					Location = [1.59, 0.45]
-					FireTrigger = ShootTrigger4
-				}
-			}
-		}
-		Fire_1_OC
-		{
-			Type = ToggledComponents
-			Toggle = FireToggle_1_OC
-			IncludeInBlueprints = false
-			Components
-			{
-				TargetEmitter
-				{
-					Type = BulletEmitter
-					ChainedTo = Turret
-					FireTrigger
-					GetTargetFrom = Turret
-					Location = [1.59, 0]
-					OperationalToggle = IsOperational
-					Bullet = &<../../shots/bs_shot_quad_hmg_ap_oc/bs_shot_quad_hmg_ap_oc.rules>
-					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
-					ResourceStorage = Splitter_1
-					ResourcesUsed = 1
-					Recoil = 2 * (&~/OVERCLOCK/RECOIL_FACTOR)
-					AntiPhasingRaycastDistance = 2
-					AntiPhasingRaycastIgnoreLowCollisions = true
-				}
-				Emitter1 : TargetEmitter
-				{
-					Location = [1.59, -0.45]
-					FireTrigger = ShootTrigger1
-				}
-				Emitter2 : TargetEmitter
-				{
-					Location = [1.59, -0.15]
 					FireTrigger = ShootTrigger2
-				}
-				Emitter3 : TargetEmitter
-				{
-					Location = [1.59, 0.15]
-					FireTrigger = ShootTrigger3
-				}
-				Emitter4 : TargetEmitter
-				{
-					Location = [1.59, 0.45]
-					FireTrigger = ShootTrigger4
-				}
-			}
-		}
-		Fire_2_N
-		{
-			Type = ToggledComponents
-			Toggle = FireToggle_2_N
-			IncludeInBlueprints = true
-			Components
-			{
-				TargetEmitter
-				{
-					Type = BulletEmitter
-					ChainedTo = Turret
-					FireTrigger
-					GetTargetFrom = Turret
-					Location = [1.59, 0]
-					OperationalToggle = IsOperational
-					Bullet = &<../../shots/bs_shot_quad_hmg_aphe/bs_shot_quad_hmg_aphe.rules>
-					Spread = [-2.0d, 2.0d]
-					ResourceStorage = Splitter_2
-					ResourcesUsed = 1
-					Recoil = 2
-					AntiPhasingRaycastDistance = 2
-					AntiPhasingRaycastIgnoreLowCollisions = true
-				}
-				Emitter1 : TargetEmitter
-				{
-					Location = [1.59, -0.45]
-					FireTrigger = ShootTrigger1
-				}
-				Emitter2 : TargetEmitter
-				{
-					Location = [1.59, -0.15]
-					FireTrigger = ShootTrigger2
-				}
-				Emitter3 : TargetEmitter
-				{
-					Location = [1.59, 0.15]
-					FireTrigger = ShootTrigger3
-				}
-				Emitter4 : TargetEmitter
-				{
-					Location = [1.59, 0.45]
-					FireTrigger = ShootTrigger4
-				}
-			}
-		}
-		Fire_2_OC
-		{
-			Type = ToggledComponents
-			Toggle = FireToggle_2_OC
-			IncludeInBlueprints = false
-			Components
-			{
-				TargetEmitter
-				{
-					Type = BulletEmitter
-					ChainedTo = Turret
-					FireTrigger
-					GetTargetFrom = Turret
-					Location = [1.59, 0]
-					OperationalToggle = IsOperational
-					Bullet = &<../../shots/bs_shot_quad_hmg_aphe_oc/bs_shot_quad_hmg_aphe_oc.rules>
-					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
-					ResourceStorage = Splitter_2
-					ResourcesUsed = 1
-					Recoil = 2 * (&~/OVERCLOCK/RECOIL_FACTOR)
-					AntiPhasingRaycastDistance = 2
-					AntiPhasingRaycastIgnoreLowCollisions = true
-				}
-				Emitter1 : TargetEmitter
-				{
-					Location = [1.59, -0.45]
-					FireTrigger = ShootTrigger1
-				}
-				Emitter2 : TargetEmitter
-				{
-					Location = [1.59, -0.15]
-					FireTrigger = ShootTrigger2
-				}
-				Emitter3 : TargetEmitter
-				{
-					Location = [1.59, 0.15]
-					FireTrigger = ShootTrigger3
-				}
-				Emitter4 : TargetEmitter
-				{
-					Location = [1.59, 0.45]
-					FireTrigger = ShootTrigger4
-				}
-			}
-		}
-		Fire_3_N
-		{
-			Type = ToggledComponents
-			Toggle = FireToggle_3_N
-			IncludeInBlueprints = true
-			Components
-			{
-				TargetEmitter
-				{
-					Type = BulletEmitter
-					ChainedTo = Turret
-					FireTrigger
-					GetTargetFrom = Turret
-					Location = [1.59, 0]
-					OperationalToggle = IsOperational
-					Bullet = &<../../shots/bs_shot_quad_hmg_emp/bs_shot_quad_hmg_emp.rules>
-					Spread = [-2.0d, 2.0d]
-					ResourceStorage = Splitter_3
-					ResourcesUsed = 1
-					Recoil = 2
-					AntiPhasingRaycastDistance = 2
-					AntiPhasingRaycastIgnoreLowCollisions = true
-				}
-				Emitter1 : TargetEmitter
-				{
-					Location = [1.59, -0.45]
-					FireTrigger = ShootTrigger1
-				}
-				Emitter2 : TargetEmitter
-				{
-					Location = [1.59, -0.15]
-					FireTrigger = ShootTrigger2
-				}
-				Emitter3 : TargetEmitter
-				{
-					Location = [1.59, 0.15]
-					FireTrigger = ShootTrigger3
-				}
-				Emitter4 : TargetEmitter
-				{
-					Location = [1.59, 0.45]
-					FireTrigger = ShootTrigger4
-				}
-			}
-		}
-		Fire_3_OC
-		{
-			Type = ToggledComponents
-			Toggle = FireToggle_3_OC
-			IncludeInBlueprints = false
-			Components
-			{
-				TargetEmitter
-				{
-					Type = BulletEmitter
-					ChainedTo = Turret
-					FireTrigger
-					GetTargetFrom = Turret
-					Location = [1.59, 0]
-					OperationalToggle = IsOperational
-					Bullet = &<../../shots/bs_shot_quad_hmg_emp_oc/bs_shot_quad_hmg_emp_oc.rules>
-					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
-					ResourceStorage = Splitter_3
-					ResourcesUsed = 1
-					Recoil = 2 * (&~/OVERCLOCK/RECOIL_FACTOR)
-					AntiPhasingRaycastDistance = 2
-					AntiPhasingRaycastIgnoreLowCollisions = true
-				}
-				Emitter1 : TargetEmitter
-				{
-					Location = [1.59, -0.45]
-					FireTrigger = ShootTrigger1
-				}
-				Emitter2 : TargetEmitter
-				{
-					Location = [1.59, -0.15]
-					FireTrigger = ShootTrigger2
-				}
-				Emitter3 : TargetEmitter
-				{
-					Location = [1.59, 0.15]
-					FireTrigger = ShootTrigger3
-				}
-				Emitter4 : TargetEmitter
-				{
-					Location = [1.59, 0.45]
-					FireTrigger = ShootTrigger4
 				}
 			}
 		}
@@ -1563,7 +1077,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 			Stats
 			{
 				DamagePerShot = &~/Part/Components/Fire_0_N/Components/TargetEmitter/Bullet/STAT_DAMAGE
-				ShotsPerSecond = 1 * 1 / (&~/Part/Components/Turret/FireInterval/BaseValue)
+				ShotsPerSecond = 2 * 1 / (&~/Part/Components/Turret/FireInterval/BaseValue)
 				DamagePerSecond = (&DamagePerShot) * (&ShotsPerSecond)
 				Damage = [&../DamagePerShot, &../DamagePerSecond]
 				Penetration = &~/Part/Components/Fire_0_N/Components/TargetEmitter/Bullet/STAT_PENETRATION
@@ -1575,69 +1089,6 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 				ShotSpeed = &~/Part/Components/Fire_0_N/Components/TargetEmitter/Bullet/Speed
 				ShotHP = &~/Part/Components/Fire_0_N/Components/TargetEmitter/Bullet/Components/Targetable/Health
 				AmmoPerShot = (&~/Part/Components/Fire_0_N/Components/TargetEmitter/ResourcesUsed) / (&~/Part/Components/Splitter_0/ToQuantity)
-				AmmoPerSecond = (&AmmoPerShot) * (&ShotsPerSecond)
-				ShotAmmoUsage = [&../AmmoPerShot, &../AmmoPerSecond]
-			}
-		}
-		{
-			NameKey = "StatCategories/BSAmmo_ap"
-			Stats
-			{
-				DamagePerShot = &~/Part/Components/Fire_1_N/Components/TargetEmitter/Bullet/STAT_DAMAGE
-				ShotsPerSecond = 1 * 1 / (&~/Part/Components/Turret/FireInterval/BaseValue)
-				DamagePerSecond = (&DamagePerShot) * (&ShotsPerSecond)
-				Damage = [&../DamagePerShot, &../DamagePerSecond]
-				Penetration = &~/Part/Components/Fire_1_N/Components/TargetEmitter/Bullet/STAT_PENETRATION
-				ROF = &ShotsPerSecond
-				Range = &~/Part/Components/Fire_1_N/Components/TargetEmitter/Bullet/Range
-				Arc = deg(&~/Part/Components/Turret/FiringArc)
-				Spread = deg(&~/Part/Components/Fire_1_N/Components/TargetEmitter/Spread/1)
-				TurretSpeed = deg(&~/Part/Components/Turret/RotateSpeed)
-				ShotSpeed = &~/Part/Components/Fire_1_N/Components/TargetEmitter/Bullet/Speed
-				ShotHP = &~/Part/Components/Fire_1_N/Components/TargetEmitter/Bullet/Components/Targetable/Health
-				AmmoPerShot = (&~/Part/Components/Fire_1_N/Components/TargetEmitter/ResourcesUsed) / (&~/Part/Components/Splitter_1/ToQuantity)
-				AmmoPerSecond = (&AmmoPerShot) * (&ShotsPerSecond)
-				ShotAmmoUsage = [&../AmmoPerShot, &../AmmoPerSecond]
-			}
-		}
-		{
-			NameKey = "StatCategories/BSAmmo_aphe"
-			Stats
-			{
-				DamagePerShot = &~/Part/Components/Fire_2_N/Components/TargetEmitter/Bullet/STAT_DAMAGE
-				ShotsPerSecond = 1 * 1 / (&~/Part/Components/Turret/FireInterval/BaseValue)
-				DamagePerSecond = (&DamagePerShot) * (&ShotsPerSecond)
-				Damage = [&../DamagePerShot, &../DamagePerSecond]
-				Penetration = &~/Part/Components/Fire_2_N/Components/TargetEmitter/Bullet/STAT_PENETRATION
-				ROF = &ShotsPerSecond
-				Range = &~/Part/Components/Fire_2_N/Components/TargetEmitter/Bullet/Range
-				Arc = deg(&~/Part/Components/Turret/FiringArc)
-				Spread = deg(&~/Part/Components/Fire_2_N/Components/TargetEmitter/Spread/1)
-				TurretSpeed = deg(&~/Part/Components/Turret/RotateSpeed)
-				ShotSpeed = &~/Part/Components/Fire_2_N/Components/TargetEmitter/Bullet/Speed
-				ShotHP = &~/Part/Components/Fire_2_N/Components/TargetEmitter/Bullet/Components/Targetable/Health
-				AmmoPerShot = (&~/Part/Components/Fire_2_N/Components/TargetEmitter/ResourcesUsed) / (&~/Part/Components/Splitter_2/ToQuantity)
-				AmmoPerSecond = (&AmmoPerShot) * (&ShotsPerSecond)
-				ShotAmmoUsage = [&../AmmoPerShot, &../AmmoPerSecond]
-			}
-		}
-		{
-			NameKey = "StatCategories/BSAmmo_emp"
-			Stats
-			{
-				DamagePerShot = &~/Part/Components/Fire_3_N/Components/TargetEmitter/Bullet/STAT_DAMAGE
-				ShotsPerSecond = 1 * 1 / (&~/Part/Components/Turret/FireInterval/BaseValue)
-				DamagePerSecond = (&DamagePerShot) * (&ShotsPerSecond)
-				Damage = [&../DamagePerShot, &../DamagePerSecond]
-				Penetration = &~/Part/Components/Fire_3_N/Components/TargetEmitter/Bullet/STAT_PENETRATION
-				ROF = &ShotsPerSecond
-				Range = &~/Part/Components/Fire_3_N/Components/TargetEmitter/Bullet/Range
-				Arc = deg(&~/Part/Components/Turret/FiringArc)
-				Spread = deg(&~/Part/Components/Fire_3_N/Components/TargetEmitter/Spread/1)
-				TurretSpeed = deg(&~/Part/Components/Turret/RotateSpeed)
-				ShotSpeed = &~/Part/Components/Fire_3_N/Components/TargetEmitter/Bullet/Speed
-				ShotHP = &~/Part/Components/Fire_3_N/Components/TargetEmitter/Bullet/Components/Targetable/Health
-				AmmoPerShot = (&~/Part/Components/Fire_3_N/Components/TargetEmitter/ResourcesUsed) / (&~/Part/Components/Splitter_3/ToQuantity)
 				AmmoPerSecond = (&AmmoPerShot) * (&ShotsPerSecond)
 				ShotAmmoUsage = [&../AmmoPerShot, &../AmmoPerSecond]
 			}
@@ -1654,7 +1105,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 				Stats
 				{
 					DamagePerShot = &~/Part/Components/Fire_0_OC/Components/TargetEmitter/Bullet/STAT_DAMAGE
-					ShotsPerSecond = 1 * 1 / ((&~/Part/Components/Turret/FireInterval/BaseValue) * (&~/OVERCLOCK/FIRE_INTERVAL_FACTOR))
+					ShotsPerSecond = 2 * 1 / ((&~/Part/Components/Turret/FireInterval/BaseValue) * (&~/OVERCLOCK/FIRE_INTERVAL_FACTOR))
 					DamagePerSecond = (&DamagePerShot) * (&ShotsPerSecond)
 					Damage = [&../DamagePerShot, &../DamagePerSecond]
 					ROF = &ShotsPerSecond

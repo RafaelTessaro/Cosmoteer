@@ -1,13 +1,13 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
 // Projetil: Deck Minigun - aphe
 
-STAT_DAMAGE = 54
-STAT_PENETRATION = 5
+STAT_DAMAGE = 42
+STAT_PENETRATION = 6
 ID = "rafaeltessaro.bs_shot_minigun_aphe"
-Range = 310
-IdealRange = [93, &~/Range]
+Range = 300
+IdealRange = [90, &~/Range]
 IdealRadius = [5, 50]
-Speed = 330
+Speed = 320
 Components
 {
 	Physics
@@ -33,7 +33,7 @@ Components
 	Hit
 	{
 		Type = PenetratingHit
-		Penetration = 5
+		Penetration = 6
 		PenetrationSpeed = 25
 		FriendlyShipLowCollisions = false
 		CrewCollisions = {Enemies=true; Junk=true}
@@ -53,7 +53,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 81
+						BaseValue = 68
 						EffectScaleExponent = 1
 					}
 				}
@@ -78,7 +78,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 54
+						BaseValue = 42
 						EffectScaleExponent = 1
 					}
 				}
@@ -121,7 +121,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 14
+						BaseValue = 10
 						EffectScaleExponent = 1
 					}
 				}
@@ -145,7 +145,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 54
+						BaseValue = 42
 						EffectScaleExponent = 1
 					}
 				}
@@ -154,7 +154,7 @@ Components
 					StatusType = cosmoteer.fire
 					StatusChance
 					{
-						BaseValue = 0.06
+						BaseValue = 0.0375
 						EffectScaleExponent = 1
 					}
 					ValueType = Interpolated
@@ -183,7 +183,7 @@ Components
 					Type = ExplosiveDamage
 					TotalDamage
 					{
-						BaseValue = 54
+						BaseValue = 68
 						EffectScaleExponent = 1
 					}
 					Radius = 1

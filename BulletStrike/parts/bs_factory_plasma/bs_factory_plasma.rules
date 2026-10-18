@@ -1,5 +1,5 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
-// Fabrica: Plasma Cell Condenser / Condensador de Células de Plasma
+// Fabrica: Plasma Cell Factory / Fábrica de Células de Plasma
 
 Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 {
@@ -8,12 +8,12 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 	DescriptionKey = "Parts/BSFactoryPlasmaDesc"
 	ID = rafaeltessaro.bs_factory_plasma
 	EditorGroups = ["BulletStrike", "Production"]
-	Resources = [[steel, 76], [coil2, 27], [processor, 2]]
+	Resources = [[steel, 80], [coil2, 40], [processor, 2]]
 	Size = [3, 2]
 	IsFlippable = true
 	SelectionPriority = 1
 	MaxHealth = 9000
-	TypeCategories = [provides_ammo, uses_sulfur, uses_power]
+	TypeCategories = [provides_ammo, uses_sulfur, uses_coil, uses_power]
 	ReceivableBuffs : ^/0/ReceivableBuffs [Factory]
 	BlockedTravelCells = [[0, 0], [1, 0], [2, 0]]
 	ForceManhattanPathInPart = true
@@ -32,7 +32,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 		IsOperational
 		{
 			Type = MultiToggle
-			Toggles = [PowerToggle, NonJunkToggle, ScorchedToggle, Input0, Input1, BatteryStorage]
+			Toggles = [PowerToggle, NonJunkToggle, ScorchedToggle, Input0Splitter, Input1Splitter, BatteryStorage]
 			Mode = All
 		}
 		NonJunkToggle
@@ -73,8 +73,6 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			GridRect = [0, 1, 1, 1]
 			Layer = "doodads_low"
 			SpriteInset = [8/64, 6/64, 8/64, 9/64]
-			ToggleOnResources = 1
-			ToggleOffResources = 0
 			AllowExternalPickupAndDelivery = true
 		}
 		Input0Consumer
@@ -86,25 +84,39 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			OperationalToggle = CommandConsumptionToggle
 			ConsumptionToggleButtonOffset = [0, -0.4]
 		}
+		Input0Splitter
+		{
+			Type = InlineResourceConverter
+			ResourceType = sulfur
+			FromStorage = Input0
+			FromQuantity = 1
+			ToQuantity = 2
+		}
 		Input1
 		{
 			Type = TypedResourceGrid
-			ResourceType = copper
+			ResourceType = coil
 			GridRect = [1, 1, 1, 1]
 			Layer = "doodads_low"
 			SpriteInset = [8/64, 6/64, 8/64, 9/64]
-			ToggleOnResources = 1
-			ToggleOffResources = 0
 			AllowExternalPickupAndDelivery = true
 		}
 		Input1Consumer
 		{
 			Type = TypedResourceGridConsumer
-			ResourceType = copper
+			ResourceType = coil
 			Storage = Input1
 			DefaultPriority = &/PRIORITIES/Factory_Supply
 			OperationalToggle = CommandConsumptionToggle
 			ConsumptionToggleButtonOffset = [0, -0.4]
+		}
+		Input1Splitter
+		{
+			Type = InlineResourceConverter
+			ResourceType = coil
+			FromStorage = Input1
+			FromQuantity = 1
+			ToQuantity = 4
 		}
 		Output
 		{
@@ -122,7 +134,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 		{
 			Type = ResourceStorage
 			ResourceType = battery
-			MaxResources = 6000
+			MaxResources = 2000
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/PowerDeliver
 		}
 		BatteryConsumer
@@ -131,7 +143,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			ResourceType = battery
 			Storage = BatteryStorage
 			DefaultPriority = &/PRIORITIES/Factory_Supply
-			ResupplyThreshold = 1500
+			ResupplyThreshold = 500
 			OperationalToggle = CommandConsumptionToggle
 		}
 		ResourceConverter
@@ -141,24 +153,24 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			From
 			[
 				{
-					Storage = Input0
+					Storage = Input0Splitter
 					Quantity = 1
 				}
 				{
-					Storage = Input1
+					Storage = Input1Splitter
 					Quantity = 1
 				}
 				{
 					Storage = BatteryStorage
-					Quantity = 1500
+					Quantity = 400
 					MinQuantityForConversion = 1
 				}
 			]
 			ToStorage = Output
-			ToQuantity = 5
+			ToQuantity = 1
 			Interval
 			{
-				BaseValue = 5
+				BaseValue = 2
 				Modifiers
 				[
 					{
@@ -291,7 +303,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					HidesIndicators = [1, 2, 3]
 				}
 				{
-					Toggle = Input0
+					Toggle = Input0Splitter
 					AtlasSprite
 					{
 						File = &/INDICATORS/NoResource
@@ -299,7 +311,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					}
 				}
 				{
-					Toggle = Input1
+					Toggle = Input1Splitter
 					AtlasSprite
 					{
 						File = &/INDICATORS/NoResource

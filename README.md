@@ -29,7 +29,9 @@ traçantes, clarões de boca, granadas explodindo, flak enchendo o céu. É *tir
   disparos laser e tiros iônicos (inclusive os do SW:ACD) **de uma vez**. Em compensação, gasta muita munição.
   Feixes (como o do prisma iônico) não podem ser abatidos, igual ao jogo base.
 - **Carregadores em vez de fitas de munição:** a fábrica produz munição, a **prensa** empacota em
-  carregadores e a tripulação leva o carregador até a arma. Cada arma abre o carregador em N disparos
+  carregadores e a tripulação leva o carregador até a arma. Os carregadores especiais (Perfurante, EMP) e os
+  projéteis nucleares são feitos a partir dos carregadores Padrão; Perfurante e Perfurante-Explosiva usam o
+  mesmo carregador. Cada arma abre o carregador em N disparos
   (por exemplo, 50 tiros de metralhadora). Nada de fileiras de magazines ocupando a nave.
 - **Seletor de munição** nas armas de meio e fim de jogo, igual ao do lança-mísseis:
   **Padrão**, **Perfurante** (atravessa blindagem), **Perfurante-Explosiva** (atravessa e explode dentro do
@@ -37,7 +39,11 @@ traçantes, clarões de boca, granadas explodindo, flak enchendo o céu. É *tir
 - **Munições especiais:** **células de plasma** (ótimas contra escudos) e **projéteis nucleares**.
 - **Overclock** nas armas de meio e fim de jogo: mais cadência, dano ou alcance em troca de calor.
 - **Aba própria "Bullet Strike"** no menu de construção, techs no modo **Carreira** e no **Build & Battle**.
-- **Limite de 2 obuseiros nucleares por nave**, para não ficar roubado.
+- **Limite por nave:** no máximo 2 obuseiros nucleares e 2 torres de 406 mm (a arma do encouraçado),
+  para não ficar roubado.
+- **Arma de fim de jogo muito forte, mas muito cara:** a torre tripla de 406 mm causa ~16.000 de dano por
+  segundo a 600 m, mas exige 10 tripulantes, 20 pontos de comando e uma linha de munição pesada
+  (~30 viagens de carregadores por minuto).
 
 A tabela completa de armas, munições e fábricas (com alcance, DPS, tripulação e receitas) está em
 **[docs/ARMAS.md](docs/ARMAS.md)**. As imagens de cada peça ficam em [docs/preview](docs/preview).

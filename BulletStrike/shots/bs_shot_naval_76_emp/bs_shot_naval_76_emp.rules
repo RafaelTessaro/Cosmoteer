@@ -1,7 +1,7 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
 // Projetil: 76mm Naval Automatic Cannon - emp
 
-STAT_DAMAGE = 1080
+STAT_DAMAGE = 1125
 STAT_PENETRATION = 1
 ID = "rafaeltessaro.bs_shot_naval_76_emp"
 Range = 340
@@ -23,7 +23,7 @@ Components
 	Targetable
 	{
 		Type = Targetable
-		Health = 1200
+		Health = 1000
 		TargetCategory = "bullet"
 		OnDeath
 		{
@@ -49,7 +49,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 1080
+						BaseValue = 1800
 						EffectScaleExponent = 1
 					}
 				}
@@ -66,7 +66,7 @@ Components
 					ResourceType = battery
 					Amount
 					{
-						BaseValue = 1232
+						BaseValue = 375
 						EffectScaleExponent = 1
 					}
 					TreatShieldAsPart = true
@@ -89,7 +89,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 1080
+						BaseValue = 1125
 						EffectScaleExponent = 1
 					}
 				}
@@ -106,7 +106,7 @@ Components
 					ResourceType = battery
 					Amount
 					{
-						BaseValue = 739
+						BaseValue = 225
 						EffectScaleExponent = 1
 					}
 					MediaEffectsOnDrain
@@ -146,7 +146,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 270
+						BaseValue = 281
 						EffectScaleExponent = 1
 					}
 				}
@@ -175,7 +175,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 1080
+						BaseValue = 1125
 						EffectScaleExponent = 1
 					}
 				}

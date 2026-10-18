@@ -1,5 +1,5 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
-// Fabrica: EMP Magazine Line / Linha de Carregadores EMP
+// Fabrica: EMP Magazine Charger / Carregadora de Carregadores EMP
 
 Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 {
@@ -8,11 +8,11 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 	DescriptionKey = "Parts/BSFactoryMagEmpDesc"
 	ID = rafaeltessaro.bs_factory_mag_emp
 	EditorGroups = ["BulletStrike", "Production"]
-	Resources = [[steel, 90], [coil2, 30], [processor, 1]]
+	Resources = [[steel, 76], [coil2, 30], [processor, 1]]
 	Size = [3, 2]
 	IsFlippable = true
 	SelectionPriority = 1
-	MaxHealth = 12000
+	MaxHealth = 9000
 	TypeCategories = [provides_ammo, uses_power]
 	ReceivableBuffs : ^/0/ReceivableBuffs [Factory]
 	BlockedTravelCells = [[0, 0], [1, 0], [2, 0]]
@@ -32,7 +32,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 		IsOperational
 		{
 			Type = MultiToggle
-			Toggles = [PowerToggle, NonJunkToggle, ScorchedToggle, Input0, Input1, BatteryStorage]
+			Toggles = [PowerToggle, NonJunkToggle, ScorchedToggle, Input0, Input1Splitter, BatteryStorage]
 			Mode = All
 		}
 		NonJunkToggle
@@ -69,18 +69,18 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 		Input0
 		{
 			Type = TypedResourceGrid
-			ResourceType = bullet
+			ResourceType = rafaeltessaro.bs_mag_std
 			GridRect = [0, 1, 1, 1]
 			Layer = "doodads_low"
 			SpriteInset = [8/64, 6/64, 8/64, 9/64]
-			ToggleOnResources = 18
-			ToggleOffResources = 17
 			AllowExternalPickupAndDelivery = true
+			ToggleOnResources = 2
+			ToggleOffResources = 1
 		}
 		Input0Consumer
 		{
 			Type = TypedResourceGridConsumer
-			ResourceType = bullet
+			ResourceType = rafaeltessaro.bs_mag_std
 			Storage = Input0
 			DefaultPriority = &/PRIORITIES/Factory_Supply
 			OperationalToggle = CommandConsumptionToggle
@@ -93,8 +93,6 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			GridRect = [1, 1, 1, 1]
 			Layer = "doodads_low"
 			SpriteInset = [8/64, 6/64, 8/64, 9/64]
-			ToggleOnResources = 1
-			ToggleOffResources = 0
 			AllowExternalPickupAndDelivery = true
 		}
 		Input1Consumer
@@ -105,6 +103,14 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			DefaultPriority = &/PRIORITIES/Factory_Supply
 			OperationalToggle = CommandConsumptionToggle
 			ConsumptionToggleButtonOffset = [0, -0.4]
+		}
+		Input1Splitter
+		{
+			Type = InlineResourceConverter
+			ResourceType = copper
+			FromStorage = Input1
+			FromQuantity = 1
+			ToQuantity = 4
 		}
 		Output
 		{
@@ -122,7 +128,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 		{
 			Type = ResourceStorage
 			ResourceType = battery
-			MaxResources = 2400
+			MaxResources = 2000
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/PowerDeliver
 		}
 		BatteryConsumer
@@ -131,7 +137,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			ResourceType = battery
 			Storage = BatteryStorage
 			DefaultPriority = &/PRIORITIES/Factory_Supply
-			ResupplyThreshold = 600
+			ResupplyThreshold = 500
 			OperationalToggle = CommandConsumptionToggle
 		}
 		ResourceConverter
@@ -142,23 +148,23 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			[
 				{
 					Storage = Input0
-					Quantity = 18
+					Quantity = 2
 				}
 				{
-					Storage = Input1
+					Storage = Input1Splitter
 					Quantity = 1
 				}
 				{
 					Storage = BatteryStorage
-					Quantity = 600
+					Quantity = 400
 					MinQuantityForConversion = 1
 				}
 			]
 			ToStorage = Output
-			ToQuantity = 3
+			ToQuantity = 2
 			Interval
 			{
-				BaseValue = 3
+				BaseValue = 4
 				Modifiers
 				[
 					{
@@ -299,7 +305,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					}
 				}
 				{
-					Toggle = Input1
+					Toggle = Input1Splitter
 					AtlasSprite
 					{
 						File = &/INDICATORS/NoResource

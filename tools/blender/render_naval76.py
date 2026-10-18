@@ -181,7 +181,49 @@ def render_showcase(M, scale=4):
     del cam
 
 
+def render_hero(M):
+    """Vista 3/4 em perspectiva (so para apresentacao do modelo, nao vai para o jogo)."""
+    from mathutils import Vector
+    paint = B.mat_paint("ship_paint", (0.11, 0.14, 0.19), rough=0.4, metal=0.4, wear=0.2, grime=0.1)
+    for o in B.objects_with("roof"):
+        for i, m in enumerate(o.data.materials):
+            if m and m.name.startswith("roof_green"):
+                o.data.materials[i] = paint
+    px, py = PIVOT[0] - W / 2, H / 2 - PIVOT[1]
+    for o in B.objects_with("head"):
+        o.location.x += px
+        o.location.y += py
+        o.location.z += 0.10
+    for o in B.objects_with("barrel"):
+        o.location.x += px
+        o.location.y += py + BARREL_ROOT
+        o.location.z += 0.10
+    sc = bpy.context.scene
+    cam = bpy.data.objects.new("hero", bpy.data.cameras.new("hero"))
+    cam.data.lens = 50
+    sc.collection.objects.link(cam)
+    target = Vector((0, 0.9, 0.3))
+    cam.location = Vector((5.2, -6.0, 5.6))
+    cam.rotation_euler = (target - cam.location).to_track_quat("-Z", "Y").to_euler()
+    sc.camera = cam
+    sc.render.resolution_x, sc.render.resolution_y = 1600, 1100
+    samples(128)
+    B.show_only(["roof", "head", "barrel"])
+    sc.render.film_transparent = False
+    sc.world.node_tree.nodes["Background"].inputs[0].default_value = (0.012, 0.014, 0.02, 1)
+    sc.render.filepath = P("hero.png")
+    bpy.ops.render.render(write_still=True)
+
+
 def main():
+    if "--hero" in sys.argv:
+        B.reset()
+        M = Mo.mats()
+        Mo.hull_roof(M, W, H, PIVOT, 1.30, "roof")
+        Mo.naval_76_head(M, "head")
+        Mo.naval_76_barrel(M, BARREL_L, "barrel")
+        render_hero(M)
+        return
     B.reset()
     M = Mo.mats()
     render_turret(M)

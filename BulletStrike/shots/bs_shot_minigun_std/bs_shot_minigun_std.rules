@@ -1,13 +1,13 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
 // Projetil: Deck Minigun - std
 
-STAT_DAMAGE = 90
+STAT_DAMAGE = 85
 STAT_PENETRATION = 2
 ID = "rafaeltessaro.bs_shot_minigun_std"
-Range = 310
-IdealRange = [93, &~/Range]
+Range = 300
+IdealRange = [90, &~/Range]
 IdealRadius = [5, 50]
-Speed = 330
+Speed = 320
 Components
 {
 	Physics
@@ -50,7 +50,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 90
+						BaseValue = 85
 						EffectScaleExponent = 1
 					}
 				}
@@ -93,7 +93,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 22
+						BaseValue = 21
 						EffectScaleExponent = 1
 					}
 				}
@@ -117,7 +117,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 90
+						BaseValue = 85
 						EffectScaleExponent = 1
 					}
 				}
@@ -126,7 +126,7 @@ Components
 					StatusType = cosmoteer.fire
 					StatusChance
 					{
-						BaseValue = 0.04
+						BaseValue = 0.03
 						EffectScaleExponent = 1
 					}
 					ValueType = Interpolated

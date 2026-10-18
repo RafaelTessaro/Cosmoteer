@@ -43,7 +43,6 @@ Actions
 		[
 			&<resources/bs_mag_std/bs_mag_std.rules>
 			&<resources/bs_mag_ap/bs_mag_ap.rules>
-			&<resources/bs_mag_aphe/bs_mag_aphe.rules>
 			&<resources/bs_mag_emp/bs_mag_emp.rules>
 			&<resources/bs_plasma_cell/bs_plasma_cell.rules>
 			&<resources/bs_shell_nuke/bs_shell_nuke.rules>
@@ -71,10 +70,9 @@ Actions
 			&<parts/bs_flak_heavy/bs_flak_heavy.rules>/Part
 			&<parts/bs_factory_mag_std/bs_factory_mag_std.rules>/Part
 			&<parts/bs_factory_mag_ap/bs_factory_mag_ap.rules>/Part
-			&<parts/bs_factory_mag_aphe/bs_factory_mag_aphe.rules>/Part
 			&<parts/bs_factory_mag_emp/bs_factory_mag_emp.rules>/Part
 			&<parts/bs_factory_plasma/bs_factory_plasma.rules>/Part
-			&<parts/bs_factory_nuke_shell/bs_factory_nuke_shell.rules>/Part
+			&<parts/bs_factory_shell_nuke/bs_factory_shell_nuke.rules>/Part
 		]
 	}
 	{
@@ -118,6 +116,10 @@ Actions
 				Category = "bs_limit_nuke"
 				Max = 2
 			}
+			{
+				Category = "bs_limit_flagship"
+				Max = 2
+			}
 		]
 	}
 	{
@@ -129,6 +131,11 @@ Actions
 				Category = bs_limit_nuke
 				SingularKey = "CategoryNouns/BSLimitNukeSingular"
 				PluralKey = "CategoryNouns/BSLimitNukePlural"
+			}
+			{
+				Category = bs_limit_flagship
+				SingularKey = "CategoryNouns/BSLimitFlagshipSingular"
+				PluralKey = "CategoryNouns/BSLimitFlagshipPlural"
 			}
 		]
 	}

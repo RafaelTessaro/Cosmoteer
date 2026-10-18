@@ -1,13 +1,13 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
 // Projetil: 406mm Triple Naval Turret - aphe
 
-STAT_DAMAGE = 4200
-STAT_PENETRATION = 20
+STAT_DAMAGE = 8000
+STAT_PENETRATION = 17
 ID = "rafaeltessaro.bs_shot_naval_406_aphe"
 Range = 600
 IdealRange = [180, &~/Range]
 IdealRadius = [5, 50]
-Speed = 220
+Speed = 200
 Components
 {
 	Physics
@@ -23,7 +23,7 @@ Components
 	Targetable
 	{
 		Type = Targetable
-		Health = 5000
+		Health = 6000
 		TargetCategory = "bullet"
 		OnDeath
 		{
@@ -33,7 +33,7 @@ Components
 	Hit
 	{
 		Type = PenetratingHit
-		Penetration = 20
+		Penetration = 17
 		PenetrationSpeed = 25
 		FriendlyShipLowCollisions = false
 		CrewCollisions = {Enemies=true; Junk=true}
@@ -53,7 +53,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 8600
+						BaseValue = 17600
 						EffectScaleExponent = 1
 					}
 				}
@@ -78,7 +78,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 4200
+						BaseValue = 8000
 						EffectScaleExponent = 1
 					}
 				}
@@ -126,7 +126,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 1050
+						BaseValue = 2000
 						EffectScaleExponent = 1
 					}
 				}
@@ -154,7 +154,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 4200
+						BaseValue = 8000
 						EffectScaleExponent = 1
 					}
 				}
@@ -163,7 +163,7 @@ Components
 					StatusType = cosmoteer.fire
 					StatusChance
 					{
-						BaseValue = 0.6
+						BaseValue = 0.5
 						EffectScaleExponent = 1
 					}
 					ValueType = Interpolated
@@ -192,10 +192,10 @@ Components
 					Type = ExplosiveDamage
 					TotalDamage
 					{
-						BaseValue = 8800
+						BaseValue = 12800
 						EffectScaleExponent = 1
 					}
-					Radius = 2.62
+					Radius = 3.38
 					StatusType = cosmoteer.fire
 					StatusChancePerNDamage = 40%
 					StatusValue = 1

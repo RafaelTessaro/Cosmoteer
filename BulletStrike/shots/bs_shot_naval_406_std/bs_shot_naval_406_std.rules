@@ -1,13 +1,13 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
 // Projetil: 406mm Triple Naval Turret - std
 
-STAT_DAMAGE = 7000
-STAT_PENETRATION = 12
+STAT_DAMAGE = 10000
+STAT_PENETRATION = 8
 ID = "rafaeltessaro.bs_shot_naval_406_std"
 Range = 600
 IdealRange = [180, &~/Range]
 IdealRadius = [5, 50]
-Speed = 220
+Speed = 200
 Components
 {
 	Physics
@@ -23,7 +23,7 @@ Components
 	Targetable
 	{
 		Type = Targetable
-		Health = 5000
+		Health = 6000
 		TargetCategory = "bullet"
 		OnDeath
 		{
@@ -33,7 +33,7 @@ Components
 	Hit
 	{
 		Type = PenetratingHit
-		Penetration = 12
+		Penetration = 8
 		PenetrationSpeed = 25
 		FriendlyShipLowCollisions = false
 		CrewCollisions = {Enemies=true; Junk=true}
@@ -49,7 +49,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 10000
+						BaseValue = 22000
 						EffectScaleExponent = 1
 					}
 				}
@@ -74,7 +74,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 7000
+						BaseValue = 10000
 						EffectScaleExponent = 1
 					}
 				}
@@ -122,7 +122,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 1750
+						BaseValue = 2500
 						EffectScaleExponent = 1
 					}
 				}
@@ -150,7 +150,7 @@ Components
 					Type = Damage
 					Damage
 					{
-						BaseValue = 7000
+						BaseValue = 10000
 						EffectScaleExponent = 1
 					}
 				}
@@ -188,10 +188,10 @@ Components
 					Type = ExplosiveDamage
 					TotalDamage
 					{
-						BaseValue = 6000
+						BaseValue = 12000
 						EffectScaleExponent = 1
 					}
-					Radius = 3.5
+					Radius = 4.5
 				}
 			]
 			MediaEffects
