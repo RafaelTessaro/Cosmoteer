@@ -5,22 +5,25 @@
 
 Nada e remodelado: a cena importa os modulos de tools/blender/parts/ e chama as funcoes de modelagem como o
 render_part.py (roof/head/barrel/cell), so que todas numa cena unica, em perspectiva:
-  * Torre Naval Tripla 406 mm (Mapinguari) em primeiro plano, disparando a salva (clarao emissivo nas bocas e
-    nas portas do freio, luz do clarao, fumaca volumetrica, freios em brasa);
-  * Bateria de Misseis Mula-sem-Cabeca atras, com os narizes carregados nos tubos e um missil saindo do casulo
-    (chama, luz e rastro de fumaca);
-  * Canhao de Plasma Curupira ao fundo (destaque ciano);
-  * conves blindado escuro da nave (placas chanfradas por tile, escotilhas e luzes em recessos, borda do casco)
-    e espaco profundo (estrelas e nebulosa) composto depois do render.
+  * Torre Naval Tripla 406 mm (Mapinguari) grande em primeiro plano, 3/4 por tras-direita, disparando a salva
+    (clarao laranja nas bocas e nas portas do freio, luz do clarao, fumaca volumetrica, freios em brasa);
+  * Bateria de Misseis Mula-sem-Cabeca ao fundo a esquerda, de frente para a camera, com os narizes carregados
+    nos tubos e um missil saindo do casulo (chama, luz e rastro de fumaca);
+  * Canhao de Plasma Curupira ao fundo no meio, canos para o alto contra o espaco, com a carga ciano nas bocas;
+  * conves blindado escuro da nave (placas de casco grandes, 2x2/3x2 tiles, foscas; respiros, escotilhas e
+    filetes de luz ambar em recessos; amurada do casco no horizonte) e espaco profundo (estrelas e nebulosa)
+    composto depois do render.
+Nenhuma boca de cano pode cair perto do quadrado de giro de outra arma (layout() confere com assert).
 
 Etapas: (1) geometria das armas, cada uma montada na origem dentro de Empties (lenta: muitas booleanas);
 (2) disposicao (posicao/giro/elevacao), conves, efeitos, luzes e camera; (3) render em EXR linear
 (pre-multiplicado); (4) composicao em numpy (fundo, bloom, curva de tom, vinheta) -> PNG RGB quadrado.
 Padrao: 1024 px e 128 amostras, saida em tools/blender/logo_hero.png (~5 min de modelagem + render na CPU);
---quick = 384 px e 16 amostras (rascunho). --raw guarda o EXR (e o passe de profundidade <raw>_depth.exr);
+--quick = 384 px e 16 amostras (rascunho); sem --out o rascunho vai para <tmp>/logo_hero_quick.png e a arte
+final nunca e sobrescrita. --raw guarda o EXR (e o passe de profundidade <raw>_depth.exr);
 sem --raw eles vao para um arquivo temporario apagado no fim.
 --cache guarda a etapa 1 num .blend (so para iterar camera/luz/efeitos; a chave inclui o codigo dos modelos).
---comp-only refaz so a etapa 4 a partir do EXR de --raw.
+--comp-only refaz so a etapa 4 a partir do EXR de --raw (exige --raw de um render anterior).
 O titulo e o subtitulo NAO ficam aqui: tools/make_art.py logo() reduz esta imagem para 512 e escreve o texto.
 """
 
@@ -53,7 +56,7 @@ WEAPONS = [
     {"mod": "bs_naval_406", "at": (-3, -3), "yaw": -76.0, "elev": 14.0, "recoil": 0.15, "fire": True},
     # msl_s: ponto do caminho do missil (tiles desde o tubo) em que ele aparece
     {"mod": "bs_msl_quad", "alt": "bs_msl_twin", "at": (-3, 7), "yaw": 150.0, "missile": True, "msl_s": 2.2},
-    {"mod": "bs_plasma_heavy", "at": (3, 8), "yaw": -45.0, "elev": 18.0, "charge": True},
+    {"mod": "bs_plasma_heavy", "at": (3, 8), "yaw": -15.0, "elev": 18.0, "charge": True},
 ]
 DECK_X = (-24, 26)          # extensao do conves (tiles): passa das bordas laterais do quadro; so a borda do
 DECK_Y = (-18, 14)          # fundo aparece, logo atras das armas do fundo, como horizonte contra o espaco
@@ -67,6 +70,7 @@ CAM_DIST = 11.0
 CAM_LENS = 35.0
 CAM_FSTOP = 1.0             # profundidade de campo leve (cena em metros: f/1 so desfoca de leve o conves da frente)
 FLASH = 0.72                # escala do clarao da salva (bola de fogo, jatos, fagulhas)
+RIM = 14.0                  # forca da contraluz fria (sol) que recorta a silhueta das armas
 VIG_C = (0.40, 0.48)        # centro da vinheta (fracao da imagem): em cima do corpo do 406
 HEAD_LIFT = 0.10            # a cabeca fica um pouco acima do teto (como no render 3/4 do 76 mm)
 PAINT = (0.020, 0.025, 0.036)   # pintura escura do casco (troca o verde do teto)
@@ -851,7 +855,7 @@ def lights_and_world():
         spot_size=math.radians(30), spot_blend=0.95, shadow_soft_size=1.2)
     # contraluz fria e baixa de tras-direita (em relacao a camera): recorta a silhueta das armas contra o espaco.
     # Ligacao de luz: so as armas e os efeitos recebem (no conves ela acenderia a quina de cada placa)
-    rim = add("rim", "SUN", 7.0, (0.62, 0.78, 1.0), sph(CAM_AZ + 145, 14, 20, (0, 0, 0)), (0.0, 0.0, 0.0),
+    rim = add("rim", "SUN", RIM, (0.62, 0.78, 1.0), sph(CAM_AZ + 160, 12, 20, (0, 0, 0)), (0.0, 0.0, 0.0),
               angle=math.radians(4))
     recv = bpy.data.collections.new("bs_rim_recv")
     for o in sc.objects:

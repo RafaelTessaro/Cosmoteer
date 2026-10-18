@@ -248,11 +248,13 @@ def _gradient(h, stops):
 def _metal_title(W, text, size, slant=0.12, ss=3):
     """Titulo em ambar metalico: degrade com 'horizonte' escuro no meio, brilho no topo das letras,
     contorno escuro, sombra e brilho ambar por tras. Desenhado em ss x e reduzido (bordas limpas).
-    Devolve uma camada RGBA de largura W e a altura da caixa do texto."""
+    Devolve (camada RGBA de largura W, altura das letras, margem acima das letras na camada). A margem cobre a
+    cauda do desfoque do brilho (3 sigmas): a camada chega a alfa 0 nas bordas e nao deixa emenda no fundo."""
     import numpy as np
     f = _font(size * ss)
     sw = 3 * ss                                # contorno
-    pad = 14 * ss
+    glow_r = 9 * ss                            # sigma do brilho difuso
+    pad = 3 * glow_r + 3 * ss                  # cabe a cauda inteira do desfoque (sem corte reto em cima/baixo)
     x0, y0, x1, y1 = f.getbbox(text)
     tw, th = x1 - x0, y1 - y0
     Wb, Hb = W * ss, th + 2 * pad
@@ -279,7 +281,7 @@ def _metal_title(W, text, size, slant=0.12, ss=3):
     letters = Image.fromarray(np.dstack([np.clip(grad, 0, 255), a * 255]).astype(np.uint8), "RGBA")
     layer = Image.new("RGBA", (Wb, Hb), (0, 0, 0, 0))
     # brilho ambar difuso atras, sombra deslocada, contorno escuro e as letras
-    glow = outline.filter(ImageFilter.GaussianBlur(9 * ss)).point(lambda v: int(v * 0.55))
+    glow = outline.filter(ImageFilter.GaussianBlur(glow_r)).point(lambda v: int(v * 0.55))
     layer.alpha_composite(Image.merge("RGBA", (*Image.new("RGB", (Wb, Hb), (255, 120, 16)).split(), glow)))
     shadow = Image.new("L", (Wb, Hb), 0)
     shadow.paste(outline.filter(ImageFilter.GaussianBlur(2 * ss)), (0, 3 * ss))
@@ -291,47 +293,62 @@ def _metal_title(W, text, size, slant=0.12, ss=3):
         # italico "de ataque": o topo das letras avanca para a direita
         cy = Hb / 2
         layer = layer.transform((Wb, Hb), Image.AFFINE, (1, slant, -slant * cy, 0, 1, 0), Image.BICUBIC)
-    return layer.resize((W, Hb // ss), Image.LANCZOS), th // ss
+    return layer.resize((W, Hb // ss), Image.LANCZOS), th // ss, pad // ss
 
 
 def _logo_hero(path):
     import numpy as np
     W = 512
     bg = Image.open(path).convert("RGB")
+    w, h = bg.size
+    if w != h:
+        # imagem nao quadrada: recorte central (nao deforma a cena)
+        print(f"AVISO: {path} nao e quadrada ({w}x{h}); usando o recorte central")
+        c = min(w, h)
+        bg = bg.crop(((w - c) // 2, (h - c) // 2, (w - c) // 2 + c, (h - c) // 2 + c))
+    if min(w, h) < W:
+        print(f"AVISO: {path} tem {min(w, h)} px (menos que {W}): o logo vai sair borrado; "
+              "renderize de novo com tools/blender/render_logo.py (sem --quick)")
     if bg.size != (W, W):
         bg = bg.resize((W, W), Image.LANCZOS)
     img = bg.convert("RGBA")
     # faixa de baixo escurecida (o titulo fica legivel sobre o conves)
-    t = np.clip((np.arange(W, dtype=np.float32) - 300) / 170, 0, 1)
-    ramp = (t * t * (3 - 2 * t) * 225).astype(np.uint8)
+    t = np.clip((np.arange(W, dtype=np.float32) - 318) / 150, 0, 1)
+    ramp = (t * t * (3 - 2 * t) * 228).astype(np.uint8)
     shade = Image.fromarray(np.repeat(ramp[:, None], W, axis=1), "L")
     img.alpha_composite(Image.merge("RGBA", (*Image.new("RGB", (W, W), (2, 3, 6)).split(), shade)))
     # titulo: o maior que cabe em ~90 % da largura
     size = 72
     while size > 40 and _font(size).getbbox(LOGO_TITLE)[2] > W * 0.90:
         size -= 1
-    title, th = _metal_title(W, LOGO_TITLE, size)
-    ty = 404
-    img.alpha_composite(title, (0, ty - 14))
-    # subtitulo: claro com contorno escuro, o maior que cabe em ~93 % da largura; separadores em ambar
+    title, th, pad = _metal_title(W, LOGO_TITLE, size)
+    ty = 372
+    img.alpha_composite(title, (0, ty - pad))
+    # subtitulo em duas linhas centradas (legivel na miniatura de 128 px da lista de mods): claro com contorno
+    # escuro e separador ambar; o maior tamanho em que a linha mais larga cabe em ~84 % da largura
     parts = LOGO_SUB.split(" · ")
+    lines = [parts[:1], parts[1:]] if len(parts) > 2 else [parts]
     sep = "  ·  "
-    for sz in range(24, 13, -1):
+    sw = 3
+    for sz in range(30, 15, -1):
         f2 = _font(sz)
-        widths = [f2.getlength(p) for p in parts]
-        total = sum(widths) + f2.getlength(sep) * (len(parts) - 1)
-        if total <= W * 0.93:
+        widths = [sum(f2.getlength(p) for p in ln) + f2.getlength(sep) * (len(ln) - 1) for ln in lines]
+        if max(widths) <= W * 0.84:
             break
-    x = (W - total) / 2
-    y = ty + th + 20
+    hb = f2.getbbox("H")
+    lh = (hb[3] - hb[1]) + 12                 # altura de maiuscula + entrelinha
+    y = ty + th + 22 - hb[1]
     txt = Image.new("RGBA", (W, W), (0, 0, 0, 0))
     d = ImageDraw.Draw(txt)
-    for i, p in enumerate(parts):
-        d.text((x, y), p, font=f2, fill=(226, 232, 242, 255), stroke_width=2, stroke_fill=(4, 5, 8, 255))
-        x += widths[i]
-        if i < len(parts) - 1:
-            d.text((x, y), sep, font=f2, fill=(255, 170, 40, 255), stroke_width=2, stroke_fill=(4, 5, 8, 255))
-            x += f2.getlength(sep)
+    for ln, lw in zip(lines, widths):
+        x = (W - lw) / 2
+        for i, p in enumerate(ln):
+            d.text((x, y), p, font=f2, fill=(228, 233, 242, 255), stroke_width=sw, stroke_fill=(4, 5, 8, 255))
+            x += f2.getlength(p)
+            if i < len(ln) - 1:
+                d.text((x, y), sep, font=f2, fill=(255, 170, 40, 255), stroke_width=sw, stroke_fill=(4, 5, 8, 255))
+                x += f2.getlength(sep)
+        y += lh
     img.alpha_composite(txt)
     return img.convert("RGB")
 
