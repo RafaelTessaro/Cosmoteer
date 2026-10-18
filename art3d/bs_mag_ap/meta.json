@@ -1,0 +1,16 @@
+{
+ "version": 1,
+ "id": "rafaeltessaro.bs_mag_ap",
+ "kind": "resource",
+ "stack": 4,
+ "files": [
+  "icon.png",
+  "nugget.png",
+  "nugget_normals.png",
+  "overlay.png",
+  "stack_1.png",
+  "stack_2.png",
+  "stack_3.png",
+  "stack_4.png"
+ ]
+}
