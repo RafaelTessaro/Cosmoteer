@@ -353,3 +353,7 @@ normals PNG per body size; never use a Lower/Middle bucket (hidden under our roo
   triangles that render black (often on the mirrored side only). Widen the tip or draw the inner panel by hand
   (as the Cigarra and the Tamanduá do).
 - The renderer prints `AVISO: '<obj>' ficou vazio depois das booleanas` when a piece disappears: always check the log.
+- **Inclined launcher pods:** a recess cut perpendicular to a surface tilted around X shows its back wall lit from above, half-filling
+  the dark window. Cut with world-vertical walls (shift the cutter polygon by dz*tan(pitch) in local y).
+- **oc_glow() (launchers with overclock):** draw ONLY emissive objects with the 'oc' tag; anything non-emissive tagged 'oc'
+  comes out black over the turret.
