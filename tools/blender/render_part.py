@@ -68,8 +68,22 @@ def fresh(accent):
     return Mo.mats(accent)
 
 
-def emission_pass(path, size, keep_tag=None):
-    """Renderiza so a luz emitida (sem luzes nem ambiente). keep_tag: objetos sem a tag viram preto opaco."""
+def _holdout_mat():
+    """Material Holdout: tampa o que esta atras mas sai transparente (alpha 0) com film_transparent."""
+    m = bpy.data.materials.get("__holdout_clear")
+    if m is None:
+        m = bpy.data.materials.new("__holdout_clear")
+        m.use_nodes = True
+        nt = m.node_tree
+        for n in list(nt.nodes):
+            nt.nodes.remove(n)
+        nt.links.new(nt.nodes.new("ShaderNodeHoldout").outputs[0], nt.nodes.new("ShaderNodeOutputMaterial").inputs[0])
+    return m
+
+
+def emission_pass(path, size, keep_tag=None, holdout=False):
+    """Renderiza so a luz emitida (sem luzes nem ambiente). keep_tag: objetos sem a tag viram preto opaco
+    (holdout=True: viram Holdout, tampam o brilho mas ficam transparentes)."""
     sc = bpy.context.scene
     lights = [o for o in sc.objects if o.type == "LIGHT"]
     for lo in lights:
@@ -79,7 +93,7 @@ def emission_pass(path, size, keep_tag=None):
     bg.default_value = 0.0
     swapped = {}
     if keep_tag:
-        blk = B.mat_metal("__holdout_black", (0, 0, 0), rough=1.0, metal=0.0)
+        blk = _holdout_mat() if holdout else B.mat_metal("__holdout_black", (0, 0, 0), rough=1.0, metal=0.0)
         for o in sc.objects:
             if o.type == "MESH" and not o.hide_render and not o.get(keep_tag):
                 swapped[o.name] = list(o.data.materials)
@@ -506,12 +520,15 @@ def render_launcher(mod, out, only):
             samples(32)
             mod.head(M, "head", 0.0)
             mod.oc_glow(M, "oc")
-            B.show_only(["oc"])
+            # PART["oc_occlude"]: a cabeca entra como Holdout (tampa o brilho que fica atras dela, sem cor)
+            occl = bool(P.get("oc_occlude"))
+            B.show_only(["oc", "head"] if occl else ["oc"])
             warn_empty("oc")
             for o in B.objects_with("oc"):
                 if o.type == "MESH" and not any(m is not None and "bs_glow" in m.keys() for m in o.data.materials):
                     print(f"AVISO: '{o.name}' (tag oc) nao e emissivo: sai preto por cima da torre (STYLE.md 9)")
-            em = emission_pass(os.path.join(out, "oc_raw.png"), (T, T))
+            em = emission_pass(os.path.join(out, "oc_raw.png"), (T, T), keep_tag="oc" if occl else None,
+                               holdout=occl)
             _oc_glow_sprite(em).save(os.path.join(out, "turret_oc.png"))
         meta["turret"]["oc_glow"] = "turret_oc.png"
         files.append("turret_oc.png")
