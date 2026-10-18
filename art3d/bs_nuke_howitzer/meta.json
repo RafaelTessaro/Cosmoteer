@@ -30,12 +30,12 @@
    0.0
   ],
   "root": 1.25,
-  "length": 3.5,
+  "length": 3.9,
   "pad": 0.8,
   "sprite_w": 0.9,
-  "sprite_len": 4.359999999999999,
-  "center": 2.63,
-  "muzzle": 4.7,
+  "sprite_len": 4.76,
+  "center": 2.83,
+  "muzzle": 5.1,
   "anim": "recoil",
   "frames": [
    "barrel2.png",
