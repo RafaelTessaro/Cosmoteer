@@ -278,10 +278,14 @@ def make_all(d, paint=(46, 58, 74), scale=2):
         durs.append(40)
         tf += 1 if ntf > 1 else 0
     frames = _crop_frames(frames)
-    pal = [f.convert("RGB").quantize(colors=255, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+    # pecas grandes: limita o tamanho do GIF (envio maximo ~30 MB)
+    k = min(1.0, 760 / max(frames[0].size))
+    if k < 1:
+        frames = [f.resize((int(f.width * k), int(f.height * k)), Image.LANCZOS) for f in frames]
+    pal = [f.convert("RGB").quantize(colors=200, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
            for f in frames]
     pal[0].save(os.path.join(d, "preview_fire.gif"), save_all=True, append_images=pal[1:], duration=durs, loop=0,
-                optimize=False, disposal=1)
+                optimize=True, disposal=1)
     return len(frames)
 
 
