@@ -371,7 +371,7 @@ Part : <./Data/ships/terran/base_part_terran.rules>/Part
 		{
 			Type = Graphics
 			ChainedTo = Turret
-			Location = [-0.33, 0]
+			Location = [-0.3, 0]
 			OperationalToggle = IsOperational
 			OperationalRoofLighting
 			{
