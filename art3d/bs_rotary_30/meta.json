@@ -1,0 +1,120 @@
+{
+ "version": 1,
+ "id": "rafaeltessaro.bs_rotary_30",
+ "kind": "gun",
+ "size": [
+  4,
+  4
+ ],
+ "pivot": [
+  2.0,
+  1.55
+ ],
+ "turret_size": 3.36,
+ "collider": 1.45,
+ "turret": {
+  "frames": [
+   "turret.png"
+  ],
+  "normals": [
+   "turret_normals.png"
+  ],
+  "interval": 0,
+  "off": "turret_off.png",
+  "off_normals": "turret_normals.png",
+  "shadow": "turret_shadow.png",
+  "shadow_size": 3.61
+ },
+ "barrel": {
+  "ys": [
+   0.0
+  ],
+  "root": 0.62,
+  "length": 2.2,
+  "pad": 0.12,
+  "sprite_w": 0.8,
+  "sprite_len": 2.3800000000000003,
+  "center": 1.69,
+  "muzzle": 2.77,
+  "anim": "spin",
+  "frames": [
+   "barrel_spin1.png",
+   "barrel_spin2.png",
+   "barrel_spin3.png",
+   "barrel1.png"
+  ],
+  "normals": [
+   "barrel_spin_normals1.png",
+   "barrel_spin_normals2.png",
+   "barrel_spin_normals3.png",
+   "barrel_normals1.png"
+  ],
+  "interval": 0.05,
+  "rest": "barrel1.png",
+  "rest_normals": "barrel_normals1.png"
+ },
+ "crew_pos": [
+  [
+   0.5,
+   3.55,
+   0
+  ],
+  [
+   1.5,
+   3.55,
+   0
+  ],
+  [
+   2.5,
+   3.55,
+   0
+  ],
+  [
+   3.5,
+   3.55,
+   0
+  ]
+ ],
+ "hull": {
+  "floor": "floor.png",
+  "walls": "walls.png",
+  "roof": "roof.png",
+  "roof_normals": "roof_normals.png",
+  "lights": "lights.png"
+ },
+ "lights": [
+  {
+   "loc": [
+    -1.3,
+    0.0
+   ],
+   "size": 1.6,
+   "color": [
+    255,
+    120,
+    30
+   ],
+   "z": 0.9
+  }
+ ],
+ "preview_pattern": "rotary",
+ "files": [
+  "barrel1.png",
+  "barrel_normals1.png",
+  "barrel_spin1.png",
+  "barrel_spin2.png",
+  "barrel_spin3.png",
+  "barrel_spin_normals1.png",
+  "barrel_spin_normals2.png",
+  "barrel_spin_normals3.png",
+  "floor.png",
+  "lights.png",
+  "roof.png",
+  "roof_normals.png",
+  "turret.png",
+  "turret_normals.png",
+  "turret_off.png",
+  "turret_shadow.png",
+  "walls.png"
+ ]
+}
