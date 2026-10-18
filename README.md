@@ -350,6 +350,8 @@ Para não ficar roubado, algumas peças têm limite por nave (o editor mostra o 
 
 ## Como testar
 
+O roteiro completo, item por item, está em **[docs/COMO_TESTAR.md](docs/COMO_TESTAR.md)**. Resumo:
+
 1. Abra o jogo com o **modo desenvolvedor** (na Steam: botão direito no Cosmoteer → Propriedades → Opções de
    inicialização → `--devmode`). Assim os erros de carregamento aparecem com detalhes.
 2. Se o jogo travar ao carregar, o motivo aparece nas primeiras ~20 linhas do log, acima de

@@ -1,0 +1,216 @@
+# Bullet Strike: instalação e roteiro de testes
+
+Guia passo a passo para instalar o mod e conferir tudo dentro do jogo. Vá marcando os itens; quando algo falhar,
+anote o número do item (por exemplo **H5**) e veja no fim [como me mandar o resultado](#5-como-me-mandar-o-resultado).
+
+---
+
+## 1. Instalar
+
+1. **Baixe o mod.** No GitHub, abra o repositório **RafaelTessaro/Cosmoteer**, troque o branch para
+   **`claude/laughing-babbage-0pswjv`** e clique em **Code → Download ZIP**.
+2. **Extraia o ZIP.** Dentro dele há uma pasta **`BulletStrike`** (é ela que interessa; o resto é o gerador e a
+   documentação).
+3. **Abra a pasta de mods do Cosmoteer:**
+   `C:\Users\<seu usuário>\Saved Games\Cosmoteer\<número do seu SteamID>\Mods\`
+   (se a pasta `Mods` não existir, crie).
+4. **Se já tinha uma versão antiga do Bullet Strike, apague a pasta antiga primeiro.** Arquivos que mudaram de nome
+   ficariam sobrando e podem dar erro.
+5. **Copie a pasta `BulletStrike` inteira** para dentro de `Mods`. O resultado tem que ficar assim:
+   `...\Mods\BulletStrike\mod.rules` (e não `...\Mods\BulletStrike\BulletStrike\mod.rules`).
+6. **Ative o modo desenvolvedor** (mostra os erros com detalhes): na Steam, botão direito no Cosmoteer →
+   **Propriedades → Opções de inicialização** → escreva `--devmode`.
+7. **Abra o jogo → Mods → ative o Bullet Strike** e reinicie o jogo quando ele pedir.
+8. **Star Wars: A Cosmos Divided (opcional):** para testar junto, ative os dois mods. A ordem não importa.
+   Faça primeiro os testes só com o Bullet Strike e depois repita a parte [K](#k-junto-com-o-star-wars-a-cosmos-divided).
+
+**Se o jogo travar ao carregar:** a mensagem de erro mostra o motivo nas primeiras ~20 linhas, acima de
+`--- End of inner exception stack trace ---`. Copie essas linhas (ou tire um print) e me mande. O arquivo de log
+completo costuma ficar na mesma pasta `Saved Games\Cosmoteer`.
+
+---
+
+## 2. Preparar a nave de teste
+
+- Use o **modo Criativo** (tudo liberado, sem custo). Monte uma nave com tripulação suficiente (alojamentos),
+  corredores até as armas, depósitos e, para o overclock, **termodutos e radiadores** ligados às peças.
+- Coloque os insumos: **munição** (da Fábrica de munição para canhão do jogo), **enxofre, bobina, triaço, cobre,
+  urânio enriquecido** e **peças de míssil** (A.E., T., P.E.M. e nuclear).
+- Monte também uma **nave inimiga** simples (com escudo e com blindagem) para servir de alvo, e uma que dispare
+  mísseis, para testar as defesas.
+- As peças do mod ficam na aba **Bullet Strike** do editor.
+
+---
+
+## 3. Roteiro de testes
+
+### A. Carregamento e editor
+
+- [ ] **A1** O jogo abre sem erro com o mod ativo.
+- [ ] **A2** O Bullet Strike aparece no menu Mods com o logo novo (torre tripla disparando).
+- [ ] **A3** A aba **Bullet Strike** aparece no editor com o ícone azul (projétil com rastros).
+- [ ] **A4** Todas as peças aparecem com ícone 3D: 15 armas, 3 lança-mísseis e 5 fábricas.
+- [ ] **A5** Nomes e descrições estão em português (com o jogo em pt-BR), sem texto faltando nem em inglês.
+- [ ] **A6** As armas podem ser colocadas no convés e cercadas de blindagem.
+- [ ] **A7** O tooltip de cada peça mostra os números (dano, alcance, consumo, tripulação).
+
+### B. Cada arma (atirando num alvo)
+
+Para cada arma confira: a tripulação chega no posto, a munição chega, a torre gira e mira, o cano recua (ou gira),
+sai clarão e som, e o tiro chega no alvo dentro do alcance.
+
+| Item | Arma | Fase | O que observar em especial |
+|---|---|---|---|
+| [ ] **B1** | Marimbondo (metralhadora leve, 1x1) | início | usa munição avulsa do jogo |
+| [ ] **B2** | Mangangá (metralhadora pesada, 1x2) | início | fluxo constante de traçantes |
+| [ ] **B3** | Carcará (autocanhão 20 mm, 2x2) | início | os dois canos alternando; o tiro tem pequena explosão |
+| [ ] **B4** | Tatu (flak leve, 2x2) | início | veja a parte G |
+| [ ] **B5** | Saci (metralhadora quádrupla, 2x2) | meio | ataca naves **e** derruba mísseis (híbrida) |
+| [ ] **B6** | Cigarra (minigun, 2x3) | meio | **começa devagar e acelera** os canos girando |
+| [ ] **B7** | Tambor (canhão naval 76 mm, 3x4) | meio | "tum, tum, tum"; tripulante perto da torre leva um tranco |
+| [ ] **B8** | Boitatá (gatling de plasma, 2x3) | meio | acelera; disparos ciano; derruba escudo rápido |
+| [ ] **B9** | Tamanduá (CIWS, 3x3) | meio | radar girando; veja a parte G |
+| [ ] **B10** | Furacão (rotativo 30 mm, 4x4) | fim | demora ~6 s para acelerar |
+| [ ] **B11** | Trovão (naval duplo 155 mm, 4x5) | fim | canos alternados, longo alcance (520 m) |
+| [ ] **B12** | Curupira (plasma pesado, 4x5) | fim | 2 canos de plasma, quebra escudos de longe |
+| [ ] **B13** | Pororoca (flak pesada, 4x4) | fim | veja a parte G |
+| [ ] **B14** | Boiúna (obuseiro nuclear, 5x6) | fim | 1 projétil a cada 10 s; explosão nuclear **não** destrói a própria nave; o projétil pode ser abatido |
+| [ ] **B15** | Mapinguari (torre tripla 406 mm, 6x7) | fim | salva de 3 granadas; tranco forte na tripulação |
+
+- [ ] **B16** O tranco (Tambor, Trovão, Boiúna, Mapinguari) atordoa só por um instante quem está perto da torre.
+- [ ] **B17** Sem tripulante no posto, a arma para de atirar.
+
+### C. Munição e logística
+
+- [ ] **C1** A **Prensa de Carregadores** transforma munição do jogo em **Carregadores Padrão** (5 → 1).
+- [ ] **C2** A tripulação leva os carregadores até as armas de meio e fim de jogo (6 por viagem).
+- [ ] **C3** O carregador na mão do tripulante tem o tamanho de um carregador da pilha (não aparece gigante).
+- [ ] **C4** As pilhas aparecem certinhas nos depósitos: Carregador Padrão até 6, Perfurante 4, P.E.M. 4,
+  Célula de Plasma 4, Projétil Nuclear 2.
+- [ ] **C5** **Prensa de Carregadores Perfurantes:** 2 Carregadores Padrão + triaço → 2 Carregadores Perfurantes.
+- [ ] **C6** **Energizador de Carregadores P.E.M.:** 2 Carregadores Padrão + cobre → 2 Carregadores P.E.M.
+- [ ] **C7** **Fábrica de Células de Plasma:** enxofre + bobina → Célula de Plasma; Boitatá e Curupira usam.
+- [ ] **C8** **Fundição de Projéteis Nucleares:** urânio enriquecido + 2 Carregadores Padrão → Projétil Nuclear; a Boiúna usa.
+- [ ] **C9** A dica "2 Fábricas de munição para canhão alimentam 1 Prensa de Carregadores" aparece na descrição e
+  bate na prática (a prensa não fica parada esperando munição).
+
+### D. Seletor de munição (Cigarra, Tambor, Furacão, Trovão, Mapinguari)
+
+- [ ] **D1** O botão de munição aparece e troca entre **Padrão / Perfurante / Perfurante-Explosiva / P.E.M.**
+- [ ] **D2** Cada modo pede o carregador certo (Perfurante e Perfurante-Explosiva usam o mesmo Carregador Perfurante).
+- [ ] **D3** **Perfurante** atravessa blindagem e danifica as peças de trás.
+- [ ] **D4** **Perfurante-Explosiva** atravessa uma ou duas placas e explode dentro do casco.
+- [ ] **D5** **P.E.M.** drena escudos e bateria (as armas do Bullet Strike não são afetadas).
+- [ ] **D6** Trocar de modo não gera tiros grátis nem trava a arma.
+
+### E. Overclock das armas (meio e fim de jogo)
+
+- [ ] **E1** O botão de overclock aparece nas armas de meio e fim (não aparece nas de início).
+- [ ] **E2** Ligado, a arma atira mais rápido (veja a tabela de overclock no README) e **gera calor** nos termodutos.
+- [ ] **E3** Sem radiador suficiente, a arma esquenta, pega fogo e pode explodir.
+- [ ] **E4** Efeitos especiais: Trovão alcança 598 m; Curupira estoura no impacto; Boiúna "Fat Boy" com explosão
+  maior; Pororoca deixa nuvem de estilhaços por 4 s.
+- [ ] **E5** Desligar o overclock dá uma pausa de 3 s antes de voltar ao normal.
+
+### F. Fábricas
+
+- [ ] **F1** A máquina **só anima enquanto produz**: para quando falta insumo ou quando a saída enche.
+- [ ] **F2** Fábricas vizinhas ganham +25% de velocidade e a animação fica mais rápida junto.
+- [ ] **F3** **Overclock** das fábricas: produz 3 vezes mais rápido, gera calor (portas térmicas nas laterais e
+  embaixo, não na fileira das máquinas) e, nas que usam energia, gasta 1,5 vez mais bateria.
+- [ ] **F4** A **luz vermelha no teto** aparece num lugar que faz sentido em cima da arte.
+- [ ] **F5** Ao levar dano, as **paredes rachadas** aparecem (dois níveis de dano).
+- [ ] **F6** Som da fábrica parada não está alto demais.
+- [ ] **F7** Destruída com produto guardado, a fábrica explode (mais forte quanto mais estoque).
+- [ ] **F8** Com o teto ligado, o teto da fábrica fica com a cor da nave (o verde vira a pintura).
+
+### G. Defesas (Tatu, Tamanduá, Pororoca e o Saci)
+
+- [ ] **G1** No modo **Defender**, derrubam mísseis, minas, granadas e disparos laser inimigos (vários de uma vez
+  na mesma explosão).
+- [ ] **G2** No modo **Atacar**, a explosão causa dano em naves e escudos (Tatu 300, Tamanduá 400, Pororoca 1.200
+  por explosão).
+- [ ] **G3** O padrão já vem certo: Tatu e Pororoca em Atacar + Defender, Tamanduá em Defender.
+- [ ] **G4** Feixes contínuos (como o prisma iônico) **não** são abatidos (igual ao jogo).
+- [ ] **G5** O consumo de munição das defesas é alto, mas a tripulação consegue manter o abastecimento.
+
+### H. Lança-mísseis (Tocandira, Caipora, Mula-sem-Cabeça)
+
+Estes são os testes mais importantes: são mecânicas que só dá para confirmar no jogo.
+
+- [ ] **H1** A tripulação leva **peças de míssil** do jogo (A.E., T., P.E.M., nuclear) até o paiol do lançador.
+- [ ] **H2** As ogivas aparecem carregadas no casulo, uma a uma, enquanto ele recarrega.
+- [ ] **H3** **Trava das células:** só dispara com todas as células cheias, sai a **salva inteira em sequência**,
+  e só então volta a recarregar.
+- [ ] **H4** **Recarga só com tripulação:** sem tripulante no posto, as células param de encher (o paiol continua
+  recebendo peças).
+- [ ] **H5** **Troca de míssil:** trocar o tipo nunca dispara uma salva logo depois da outra, nem com overclock.
+- [ ] **H6** **Salva parcial:** com o paiol vazio, as células já carregadas disparam depois de uma recarga inteira;
+  com abastecimento só lento, continua saindo a salva cheia.
+- [ ] **H7** Os mísseis passam **por cima do próprio convés**: não explodem nas nossas torres nem freiam ou desviam
+  logo depois de sair.
+- [ ] **H8** A nossa CIWS e flak **não** derrubam os nossos próprios mísseis.
+- [ ] **H9** **Piranha (submunições):** abre perto do inimigo, os minimísseis seguem o alvo, se espalham por várias
+  peças e não estouram em cima do nosso casco; o jogo aguenta muitas submunições ao mesmo tempo sem travar.
+- [ ] **H10** **Carrapato (grudento):** gruda numa nave que está girando e acelerando e explode 2,5 s depois;
+  abatido no voo, se perde.
+- [ ] **H11** **Taturana (napalm):** acende fogo na peça atingida e em volta.
+- [ ] **H12** **Poraquê (P.E.M.):** drena bateria e escudo na área.
+- [ ] **H13** **Boto (torpedo com iscas):** a ogiva se separa junto com as iscas 1,5 s depois do lançamento.
+- [ ] **H14** **Iara (torpedo nuclear, só na Mula):** só os 2 casulos de dentro disparam (os de fora ficam com
+  persianas fechadas) e o overclock **não** acelera o Iara.
+- [ ] **H15** **Overclock (Caipora e Mula):** recarga 1,5 vez mais rápida, calor chega aos termodutos, cerca de 1 em
+  16 mísseis é descartado por salva; sem refrigeração o lançador pega fogo e explode.
+- [ ] **H16** Lançador destruído **cheio** explode proporcional ao estoque; consertar um lançador queimado não o faz
+  explodir de novo.
+- [ ] **H17** Na Mula, o colar sem cabeça mostra a brasa fraca, que acende forte no overclock.
+
+### I. Limites por nave
+
+- [ ] **I1** **Limite nuclear (2):** aceita 2 Boiúnas, 2 Mulas ou 1 de cada; recusa a 3ª.
+- [ ] **I2** **Torres de Encouraçado (2):** recusa o 3º Mapinguari.
+- [ ] **I3** O editor mostra o limite na peça.
+
+### J. Carreira e Construir e Batalhar
+
+- [ ] **J1** Na **Carreira**, as techs do Bullet Strike aparecem na árvore e liberam as peças, os tipos de munição,
+  os tipos de míssil e o overclock de cada arma e fábrica.
+- [ ] **J2** Nenhuma arma é liberada sem dar para fazer a munição dela.
+- [ ] **J3** No **Construir e Batalhar**, as peças aparecem e dá para montar e lutar.
+
+### K. Junto com o Star Wars: A Cosmos Divided
+
+- [ ] **K1** Os dois mods carregam juntos sem erro.
+- [ ] **K2** A flak e a CIWS derrubam mísseis e disparos do SW:ACD.
+- [ ] **K3** As fábricas de mísseis do SW:ACD abastecem os nossos lançadores (usam as mesmas peças de míssil).
+- [ ] **K4** As abas do editor e os textos dos dois mods não se misturam nem somem.
+
+### L. Visual geral
+
+- [ ] **L1** As torres ficam por cima do casco, com sombra, e giram suaves.
+- [ ] **L2** Os canos ficam alinhados com a torre durante o giro e o recuo.
+- [ ] **L3** Com o teto ligado, a parte de baixo das armas pega a cor da nave.
+- [ ] **L4** Luzes âmbar/ciano/verde acendem quando a arma está funcionando e apagam quando está desligada ou
+  destruída.
+- [ ] **L5** Nada aparece cortado, deslocado ou com quadrado preto.
+
+---
+
+## 4. Dicas
+
+- Teste uma parte por vez (por exemplo, só a logística com a Prensa e a Cigarra) para achar o problema mais rápido.
+- Para os testes de míssil, deixe uma nave inimiga **parada** primeiro e depois uma **girando e acelerando**.
+- Para o overclock, coloque radiadores **de sobra** primeiro (para ver o efeito) e depois **de menos** (para ver o
+  aquecimento e o fogo).
+
+## 5. Como me mandar o resultado
+
+Para cada item que falhou, me mande:
+
+1. O **número do item** (por exemplo **H5**).
+2. **O que aconteceu** e o que você esperava.
+3. Um **print** ou vídeo curto, se der.
+4. Se o jogo travou: as primeiras linhas do erro (acima de `--- End of inner exception stack trace ---`).
+
+Vários itens dos mísseis têm um **plano B** pronto no gerador, que muda o mecanismo sem mudar os números; então,
+se algo de H falhar, eu já tenho por onde corrigir rápido.
