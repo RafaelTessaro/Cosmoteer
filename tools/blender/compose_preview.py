@@ -242,9 +242,12 @@ def make_all(d, paint=(46, 58, 74), scale=2):
     else:  # alternate
         groups = [[k % nb] for k in range(max(4, nb * 2))]
     # canhoes lentos: espera o calor esfriar entre os tiros; rotativos/metralhadoras: rajada rapida
-    gap = max(10, len(seq) + 2) if pattern in ("single", "volley") else (2 if pattern == "rotary" else 4)
+    small = br["sprite_w"] < 0.3 and not spin   # metralhadoras: tiro rapido ("tatata"), nao cadencia de canhao
+    gap = max(10, len(seq) + 2) if pattern in ("single", "volley") and not small else (2 if pattern == "rotary" else (3 if small else 4))
+    if small and pattern in ("single", "volley"):
+        groups = [list(range(nb))] * 10
     # tamanho do clarao/fumaca pelo calibre (largura do sprite do cano; 0.46 = 76 mm)
-    fsc = 0.55 if spin else min(2.2, max(0.5, br["sprite_w"] / 0.46))
+    fsc = 0.55 if spin else min(2.2, max(0.3, br["sprite_w"] / 0.46))
     plasma = meta.get("preview_fx") == "plasma" or meta.get("accent") == "cyan"
     state = [len(seq) - 1] * nb             # indice do quadro atual de cada cano (comeca em repouso)
     shot_fx = []                            # (barril, idade)
