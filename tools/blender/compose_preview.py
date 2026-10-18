@@ -310,6 +310,27 @@ def _reach(meta):
     return max(LAUNCH_REACH, meta["turret_size"] / 2 + 1.0)
 
 
+_TFRAMES = {}
+
+
+def _turret_frame(d, meta, i, thr=8):
+    """Quadro i da animacao da torre para a previa: pixels que so diferem do 1o quadro pelo ruido do render
+    (<= thr niveis) ficam iguais aos do 1o quadro, entao o GIF guarda so o que anima de verdade (brasa, olho)."""
+    tf = meta["turret"]["frames"]
+    key = (d, i % len(tf))
+    if key not in _TFRAMES:
+        im = load(d, tf[key[1]])
+        if key[1]:
+            a0 = np.asarray(_turret_frame(d, meta, 0), dtype=np.int16)
+            a = np.asarray(im, dtype=np.int16).copy()
+            if a.shape == a0.shape:
+                keep = np.abs(a - a0).max(axis=2) <= thr
+                a[keep] = a0[keep]
+                im = Image.fromarray(a.astype(np.uint8), "RGBA")
+        _TFRAMES[key] = im
+    return _TFRAMES[key]
+
+
 def _launcher_layer(d, meta, look, level, tframe=0, fx=None, side=None, oc=False):
     """Casulo + nivel do rack (ResourceSprites) num quadrado centrado no pivo, ainda sem girar.
 
@@ -320,9 +341,8 @@ def _launcher_layer(d, meta, look, level, tframe=0, fx=None, side=None, oc=False
     side = side or int(math.ceil(2 * _reach(meta) * PX)) + 4
     lay = Image.new("RGBA", (side, side), (0, 0, 0, 0))
     c = side / 2
-    tf = meta["turret"]["frames"]
     x0, y0 = int(round(c - T / 2)), int(round(c - T / 2))
-    lay.alpha_composite(load(d, tf[tframe % len(tf)]), (x0, y0))
+    lay.alpha_composite(_turret_frame(d, meta, tframe), (x0, y0))
     for ov in meta["modes"][look]["overlays"]:
         a, b = ov["range"]
         n = max(0, min(b - a, level - a))
@@ -425,8 +445,8 @@ def backblast_puff(scale, t, seed=0):
 
 def make_all_launcher(d, meta, paint=(46, 58, 74), scale=2):
     """Previas do lancador: casulo com o rack cheio (1x e 3x) e GIF girando, salva em LIFO tubo a tubo (o nivel
-    do rack cai uma unidade por lancamento, clarao em cada tubo + baforada de sopro atras) e recarga unidade
-    a unidade."""
+    do rack cai uma unidade por lancamento, clarao em cada tubo + baforada de sopro atras), recarga unidade
+    a unidade e, no fim, o rack cheio dos outros modos com unidade diferente (pesado, torpedo, persianas)."""
     roof = paint_roof(load(d, "roof.png"), paint)
     looks = list(meta["modes"])
     look = looks[0]
@@ -479,7 +499,10 @@ def make_all_launcher(d, meta, paint=(46, 58, 74), scale=2):
         push(_launcher_frame(d, meta, roof, look, units, tfr(), aim * (1 - math.cos(t * math.pi)) / 2, scale=scale))
     for _ in range(3):
         push(_launcher_frame(d, meta, roof, look, units, tfr(), aim, scale=scale))
-    ripple, burst = 3, 2
+    # racks grandes (Mula: 48): ripple de 2 quadros (~2/30 s do jogo) e recarga mais curta por unidade, senao o
+    # GIF passa de ~15 MB
+    big = units > 24
+    ripple, burst = (2 if big else 3), 2
     events = []                 # (quadro, unidade, tubo)
     for k in range(units):
         u = units - 1 - k       # LIFO: a ultima unidade carregada sai primeiro
@@ -509,22 +532,45 @@ def make_all_launcher(d, meta, paint=(46, 58, 74), scale=2):
                 fx.append((backblast_puff(fsc, age / 9, seed=f0 + 3), b[0] - 0.08 - age * 0.03, b[1], False))
         push(_launcher_frame(d, meta, roof, look, level, tfr(), aim, fx=fx, scale=scale))
     for lv in range(units + 1):       # recarga: uma unidade por vez
-        for _ in range(4):
+        for _ in range(2 if big else 4):
             push(_launcher_frame(d, meta, roof, look, lv, tfr(), aim, scale=scale))
     for _ in range(4):
         push(_launcher_frame(d, meta, roof, look, units, tfr(), aim, scale=scale))
     for i in range(10):
         t = (i + 1) / 10
         push(_launcher_frame(d, meta, roof, look, units, tfr(), aim * (1 + math.cos(t * math.pi)) / 2, scale=scale))
+    # fecho: rack cheio dos outros modos com unidade diferente (pesado, torpedo, persianas), ~0.5 s cada
+    seen = {units}
+    for lk in looks[1:]:
+        n = len(meta["modes"][lk]["units"])
+        if n in seen:
+            continue
+        seen.add(n)
+        for _ in range(13):
+            push(_launcher_frame(d, meta, roof, lk, n, tfr(), 0.0, scale=scale))
     frames = _crop_frames(frames)
-    k = min(1.0, 760 / max(frames[0].size))
+    k = min(1.0, (640 if big else 760) / max(frames[0].size))
     if k < 1:
         frames = [f.resize((int(f.width * k), int(f.height * k)), Image.LANCZOS) for f in frames]
-    pal = [f.convert("RGB").quantize(colors=200, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
-           for f in frames]
-    pal[0].save(os.path.join(d, "preview_fire.gif"), save_all=True, append_images=pal[1:], duration=durs, loop=0,
-                optimize=True, disposal=1)
+    _save_gif_shared(frames, durs, os.path.join(d, "preview_fire.gif"))
     return len(frames)
+
+
+def _save_gif_shared(frames, durs, path, colors=255):
+    """GIF com UMA paleta para todos os quadros (amostrada de varios quadros, inclusive os de clarao): as areas
+    paradas ficam identicas entre quadros e o Pillow grava so o retangulo que mudou (paleta por quadro mudava
+    a imagem inteira e o GIF do lancador de 48 tubos passava de 30 MB)."""
+    step = max(1, len(frames) // 32)
+    samples = [f.convert("RGB").resize((max(1, f.width // 2), max(1, f.height // 2)), Image.BILINEAR)
+               for f in frames[::step]]
+    sheet = Image.new("RGB", (samples[0].width, sum(s.height for s in samples)))
+    y = 0
+    for s_ in samples:
+        sheet.paste(s_, (0, y))
+        y += s_.height
+    pal = sheet.quantize(colors=colors, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+    q = [f.convert("RGB").quantize(palette=pal, dither=Image.Dither.NONE) for f in frames]
+    q[0].save(path, save_all=True, append_images=q[1:], duration=durs, loop=0, optimize=False, disposal=1)
 
 
 def main():
