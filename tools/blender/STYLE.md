@@ -170,3 +170,45 @@ images** (Read tool) on every iteration. The machine has only 4 CPUs, so render 
 - [ ] The roof is green with non-green details; the floor has seats/consoles at the crew positions and visible
       magazine racks.
 - [ ] `python3 tools/build_mod.py --no-art` plus `rules_lint` give 0 errors.
+
+## 6. Factories (`kind: "factory"`)
+
+Reference (simple first version): `tools/blender/parts/bs_factory_mag_std.py`.
+
+```python
+PART = {"id": "rafaeltessaro.bs_factory_xxx", "kind": "factory", "size": [w, h], "accent": "amber",
+        "machine_frames": 4, "machine_interval": 0.12}
+def floor(M, T="floor"): ...                  # opaque interior floor (whole part)
+def machine(M, T="machine", phase=0.0): ...   # machinery (animated frame; phase in [0,1)); transparent where empty
+def roof(M, T="roof"): ...                    # green roof + unpainted details
+```
+- Coordinates centered on the part, +Y = front of the part (image top), 1 unit = 1 tile.
+- **Grid layout (fixed by the rules, tools/bsgen/factory.py):**
+  - 2x2 (Magazine Press): top row = machinery (blocked to crew). Bottom row: INPUT at the left tile, OUTPUT at the
+    right tile.
+  - 3x3 (other factories, vanilla `factory_he` layout): top row + center tile (1,1) = machinery. Tiles (0,1)
+    left and (2,1) right = INPUTS (the 2nd input on the right). The whole bottom row (y = 2) = OUTPUT.
+  - The game draws the resource stacks on top of the input/output tiles (`doodads_low` layer). The floor
+    should show marked "pads" there. Keep those tiles free of machinery.
+- The machinery must look like the same family: light chamfered shells with a double bevel, dark core, LEDs in
+  recesses, panel lines. The animation must show work (press ram, conveyor, spinning rotor, pulsing light...).
+  Theme per factory: Magazine Press (packs bullets), AP Magazine Press (tristeel tips), EMP Magazine Charger (copper coils and
+  electric glow), Plasma Cell Factory (cyan, cell tanks), Nuclear Shell Foundry (green, radiation-shielded hot cell).
+- Accent: amber (standard/AP press), blue (EMP), cyan (plasma), green (nuclear).
+
+## 7. Ammunition (`kind: "resource"`)
+
+Reference: `tools/blender/parts/bs_mag_std.py`.
+
+```python
+PART = {"id": "rafaeltessaro.bs_xxx", "kind": "resource", "accent": "amber", "unit_scale": 0.44,
+        # optional: "stack_layout": {k: [(x, y, z), ...]}, "stack_rot": [...], "icon_scale": 0.8}
+def item(M, T="item"): ...   # ONE unit centered on the origin, fitting in ~1x1 (z up to ~0.5)
+```
+- The renderer produces `stack_1..N` (N = `max_stack_size` from the spec) at 64x64, the `nugget` (loose item,
+  with normals), `icon.png` 64x64 and `overlay.png` (white silhouette 128x128).
+- The item must be recognizable at 64 px and 1/2 tile: a clear silhouette, a light shell + dark core, and a
+  distinctive detail per type: Standard (amber LEDs, visible brass), AP/APHE (tristeel tips, blue-white band),
+  EMP (blue coils/glow), plasma cell (glowing cyan cylinder), nuclear shell (large shell, green band, radiation
+  symbol made of 3 wedges).
+- Stacks of 5-6 must not look like a jumble: use an organized 2-layer arrangement (`stack_layout`).

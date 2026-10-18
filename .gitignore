@@ -1,3 +1,7 @@
 __pycache__/
 *.pyc
 tools/.vanilla_cache/
+
+# previas grandes da arte 3D (vao para docs/preview/3d quando aprovadas)
+art3d/*/preview_fire.gif
+art3d/*/preview_ingame.png
