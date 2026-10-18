@@ -226,3 +226,9 @@ def item(M, T="item"): ...   # ONE unit centered on the origin, fitting in ~1x1 
 - **Head ring over the barrels:** on large turrets the turret disk (ring) can cover the barrel roots when the head is drawn on top.
   Cut the front arc of the disk at the cradle mouths.
 - **Heat on light armor:** tag only brakes/tips/collars as 'hot'. On plasma weapons use a cyan `heat_color` with low heat values.
+- **Cut floor on top of another face:** if the `slot_with_pips` depth equals the panel height, the cutter floor lands exactly on
+  the face of the plate underneath, and the coplanar boolean can leave a "lid" over nearby recesses. Use depth > panel_h.
+- **Thin tips after the chamfer:** concave outlines whose top face (after `slope`) pinches below ~0.02 tile create overlapping
+  triangles that render black (often on the mirrored side only). Widen the tip or draw the inner panel by hand
+  (as the Cigarra and the Tamanduá do).
+- The renderer prints `AVISO: '<obj>' ficou vazio depois das booleanas` when a piece disappears: always check the log.

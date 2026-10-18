@@ -89,6 +89,20 @@ def emission_pass(path, size, keep_tag=None):
 SHADOW_MARGIN = 8  # px de cada lado: a sombra fica maior que a torre e nao e cortada
 
 
+def warn_empty(tag):
+    """Avisa quando um objeto com a tag some depois das booleanas (malha vazia = recorte que engoliu a peca)."""
+    dg = bpy.context.evaluated_depsgraph_get()
+    for o in bpy.context.scene.objects:
+        if o.type != "MESH" or o.hide_render or not o.get(tag):
+            continue
+        eo = o.evaluated_get(dg)
+        me = eo.to_mesh()
+        n = len(me.vertices)
+        eo.to_mesh_clear()
+        if n == 0:
+            print(f"AVISO: '{o.name}' ficou vazio depois das booleanas (confira o poligono/recortes)")
+
+
 def shadow_from(img, offset_px=5, blur_px=4, opacity=0.55, margin=SHADOW_MARGIN):
     """Sombra projetada (deslocada para baixo-direita, borrada) num quadro com margem extra."""
     a = np.asarray(img.split()[-1], dtype=np.float32)
@@ -152,6 +166,8 @@ def render_gun(mod, out, only):
             samples(64)
             mod.head(M, "head", i / nfr)
             B.show_only(["head"])
+            if i == 0:
+                warn_empty("head")
             base = os.path.join(out, "turret" if nfr == 1 else f"turret{i + 1}")
             res = B.render_set(base, tsz, glow_halo=True, normals=True, off=(i == 0))
             if i == 0:
@@ -209,6 +225,7 @@ def render_gun(mod, out, only):
                 samples(48)
                 mod.barrel(M, L, "barrel", ph)
                 objs = B.objects_with("barrel")
+                warn_empty("barrel")
                 done_phase = {key: {o.name: o.location.y for o in objs}}
             base_y = done_phase[key]
             for o in B.objects_with("barrel"):
