@@ -1,12 +1,13 @@
 """Canhao Naval Duplo 155 mm ("Trovao") - torre dupla de encouracado, mesma familia do 76 mm.
 
 Bloco escuro da casa de canhoes coberto por placas claras em varios niveis (ombreiras macicas,
-ombros divididos em chevron, aletas com pips, espinha com sensor e o raio do "Trovao"), cunha frontal
-larga (garras laterais + bercos em cunha + proa central entre os canos), orelhas de telemetro em
-soquete escuro cujo tubo otico gira (animacao da torre), tambores de municao nos vaos, baia de exaustao
-traseira e faixa de carregadores com 4 portas facetadas no teto. Dois canos pesados: bolsa de culatra
-escura, luva de recuo com aros, tubo em dois estagios (tubo A + cano fino) com extrator de gases e
-freio de boca de duas camaras escuras com defletores claros, que brilham de calor entre os defletores.
+ombros divididos em chevron, aletas com pips, espinha com sensor e o raio do "Trovao" gravado num
+rebaixo escuro), cunha frontal larga (garras laterais + bercos em cunha + proa central entre os canos),
+orelhas de telemetro: casulos blindados que saem dos flancos e giram (animacao da torre), tambores de
+municao nos vaos, baia de exaustao traseira e faixa de carregadores com 4 escotilhas emolduradas no teto.
+Dois canos pesados: bolsa de culatra escura, luva de recuo com aros, tubo em dois estagios (tubo A +
+cano fino) com extrator de gases e freio de boca de duas camaras escuras com defletores claros, que
+brilham de calor (o calor escorre um pouco para o fim do cano fino).
 """
 
 import math
@@ -53,6 +54,14 @@ def _lines(target, name, specs, ztop, mat):
     B.cut(target, cuts)
 
 
+def _stroke(name, p, q, w, z0, z1, mat, tags):
+    """Traco fino (caixa girada) de p ate q; pontas estendidas w/2 para emendar com o proximo."""
+    dx, dy = q[0] - p[0], q[1] - p[1]
+    rot = math.degrees(math.atan2(-dx, dy))
+    return B.rbox(name, (p[0] + q[0]) / 2, (p[1] + q[1]) / 2, w, math.hypot(dx, dy) + w, z0, z1, mat, rot=rot,
+                  bevel=0.0, tags=tags)
+
+
 def _swivel(objs, px, py, deg):
     """Gira um grupo de objetos em torno do eixo Z que passa por (px, py)."""
     emp = bpy.data.objects.new("swivel", None)
@@ -67,45 +76,48 @@ def _swivel(objs, px, py, deg):
 
 
 def _ear(M, tags, sx, phase, paul):
-    """Orelha de telemetro: soquete escuro na ombreira, capuz blindado fixo com janela otica que varre e
-    tubo otico escuro que sai pelo flanco (so o tubo gira, o capuz claro fica parado)."""
+    """Orelha de telemetro: casulo blindado que sai do flanco da ombreira (silhueta classica de torre de
+    encouracado) e gira +-11 graus num soquete escuro; janela otica no topo com ponto de varredura e
+    objetiva num rebaixo da face externa."""
     A, K, KM, S = M["armor"], M["core"], M["core_mid"], M["steel"]
     y0 = EAR_Y
-    # soquete escuro recortado na ombreira (separa o capuz da ombreira)
+    f = (lambda p: p) if sx < 0 else Mo.mirror
+    # soquete escuro na ombreira: a folga em volta do casulo mostra o giro
     for i, t in enumerate(paul):
-        B.cut(t, [B.box(f"ear_sock{sx}{i}", sx * 1.51, y0, 0.42, 0.50, 0.72, 1.3, K, bevel=0.0)])
-    B.box(f"ear_bed{sx}", sx * 1.46, y0, 0.32, 0.50, 0.70, 0.725, KM, bevel=0.0, tags=tags)
-    # tubo otico (gira): sai do capuz e passa da borda da ombreira, tampa de aco e abertura escura
+        B.cut(t, [B.box(f"ear_sock{sx}{i}", sx * 1.51, y0, 0.38, 0.58, 0.72, 1.3, K, bevel=0.0)])
+    B.box(f"ear_bed{sx}", sx * 1.49, y0, 0.34, 0.58, 0.70, 0.725, KM, bevel=0.0, tags=tags)
     before = set(bpy.context.scene.objects)
-    B.cyl(f"ear_tube{sx}", sx * 1.66, y0, 0.70, 0.11, 0.36, KM, axis="X", verts=8, bevel=0.01, tags=tags)
-    B.cyl(f"ear_ring{sx}", sx * 1.74, y0, 0.70, 0.122, 0.03, S, axis="X", verts=8, bevel=0.005, tags=tags)
-    B.cyl(f"ear_cap{sx}", sx * 1.845, y0, 0.70, 0.13, 0.05, S, axis="X", verts=8, bevel=0.008, tags=tags)
-    B.box(f"ear_end{sx}", sx * 1.875, y0, 0.02, 0.12, 0.70, 0.80, M["black"], bevel=0.0, tags=tags)
-    new = [o for o in bpy.context.scene.objects if o not in before and o.parent is None]
-    _swivel(new, sx * 1.52, y0, 5.0 * math.sin(2 * math.pi * phase))
-    # capuz blindado fixo (nivel acima da ombreira)
-    hood = [(-1.36, y0 - 0.16), (-1.40, y0 - 0.20), (-1.60, y0 - 0.20), (-1.68, y0 - 0.12), (-1.68, y0 + 0.12),
-            (-1.60, y0 + 0.20), (-1.40, y0 + 0.20), (-1.36, y0 + 0.16)]
-    if sx > 0:
-        hood = Mo.mirror(hood)
-    ha, hp = B.shard(f"ear_hood{sx}", hood, 0.62, 0.98, A, slope=0.05, groove=0.024, panel_h=0.022, tags=tags)
-    # janela otica ao longo do capuz (recorte escuro com lente e ponto de varredura)
-    wx = sx * 1.52
+    # casulo em cunha: canto externo dianteiro bem chanfrado (aponta para a frente/fora)
+    pod = [(-1.40, y0 - 0.18), (-1.46, y0 - 0.24), (-1.80, y0 - 0.24), (-1.89, y0 - 0.14), (-1.89, y0 + 0.02),
+           (-1.74, y0 + 0.22), (-1.44, y0 + 0.26), (-1.40, y0 + 0.21)]
+    ha, hp = B.shard(f"ear_pod{sx}", f(pod), 0.62, 0.98, A, slope=0.06, groove=0.026, panel_h=0.024, tags=tags)
+    # janela otica ao longo do topo (fenda escura, lente fina e ponto que varre)
+    wx, wy = sx * 1.625, y0 + 0.06
     for t in (ha, hp):
-        B.cut(t, [B.box(f"ear_wc{sx}", wx, y0 + 0.03, 0.20, 0.07, 0.95, 1.3, K, bevel=0.0)])
-    B.box(f"ear_wbed{sx}", wx, y0 + 0.03, 0.20, 0.07, 0.935, 0.955, M["black"], bevel=0.0, tags=tags)
-    B.box(f"ear_lens{sx}", wx, y0 + 0.03, 0.16, 0.014, 0.95, 0.957, M["glow_dim"], bevel=0.0, tags=tags)
+        B.cut(t, [B.box(f"ear_wc{sx}", wx, wy, 0.30, 0.075, 0.965, 1.3, K, bevel=0.0)])
+    B.box(f"ear_wbed{sx}", wx, wy, 0.30, 0.075, 0.95, 0.97, M["black"], bevel=0.0, tags=tags)
+    B.box(f"ear_lens{sx}", wx, wy, 0.22, 0.014, 0.965, 0.972, M["glow_dim"], bevel=0.0, tags=tags)
     s = 0.5 + 0.5 * math.sin(2 * math.pi * phase)
-    B.box(f"ear_scan{sx}", wx + sx * (-0.06 + 0.12 * s), y0 + 0.03, 0.035, 0.036, 0.95, 0.962, M["lens"],
-          bevel=0.0, tags=tags)
-    B.bolts(f"ear_b{sx}", [(sx * 1.45, y0 - 0.12), (sx * 1.59, y0 - 0.12)], 0.995, 0.016, S, tags=tags)
+    B.box(f"ear_scan{sx}", wx + sx * (-0.09 + 0.18 * s), wy, 0.04, 0.04, 0.965, 0.977, M["lens"], bevel=0.0,
+          tags=tags)
+    # objetiva num rebaixo da face externa (mordida escura com tubo e aro de aco)
+    oy = y0 - 0.06
+    for t in (ha, hp):
+        B.cut(t, [B.box(f"ear_oc{sx}", sx * 1.90, oy, 0.16, 0.14, 0.72, 1.3, K, bevel=0.0)])
+    B.box(f"ear_obed{sx}", sx * 1.855, oy, 0.07, 0.14, 0.70, 0.725, M["black"], bevel=0.0, tags=tags)
+    B.cyl(f"ear_obj{sx}", sx * 1.85, oy, 0.80, 0.05, 0.08, KM, axis="X", verts=8, bevel=0.006, tags=tags)
+    B.cyl(f"ear_objr{sx}", sx * 1.885, oy, 0.80, 0.058, 0.02, S, axis="X", verts=8, bevel=0.004, tags=tags)
+    _lines(hp, f"ear_l{sx}", [(sx * 1.62, y0 - 0.075, 0.24, 90)], 1.004, K)
+    B.bolts(f"ear_b{sx}", [(sx * 1.50, y0 - 0.14), (sx * 1.76, y0 - 0.14)], 1.006, 0.016, S, tags=tags)
+    new = [o for o in bpy.context.scene.objects if o not in before and o.parent is None]
+    _swivel(new, sx * 1.50, y0, 11.0 * math.sin(2 * math.pi * phase))
 
 
 def head(M, T="head", phase=0.0):
     """Cabeca: bloco escuro da casa de canhoes com placas claras em 3-4 niveis, cunha frontal, orelhas."""
     tags = (T,)
     A, K, KM, S = M["armor"], M["core"], M["core_mid"], M["steel"]
-    bolt_m = B.mat_glow("bolt_glow", Mo.AMBER, 1.2)
+    bolt_m = B.mat_glow("bolt_glow", Mo.AMBER, 0.6)
     # anel giratorio e nucleo escuro (cantos traseiros bem chanfrados: gira sem invadir o teto)
     B.cyl("ring", 0, 0, 0.04, 1.80, 0.08, KM, axis="Z", verts=80, bevel=0.01, tags=tags)
     B.bolts("ringbolt", B.ring_points(0, 0, 1.72, 32, 0.1), 0.09, 0.024, S, tags=tags)
@@ -122,7 +134,8 @@ def head(M, T="head", phase=0.0):
     paul = [(-1.20, -1.38), (-1.48, -1.38), (-1.66, -1.20), (-1.66, -0.20), (-1.80, -0.06), (-1.80, 0.44),
             (-1.56, 0.80), (-1.24, 0.84), (-1.20, 0.70), (-1.20, 0.22), (-1.30, 0.10), (-1.30, -0.40),
             (-1.20, -0.52)]
-    pcap = [(-1.34, -0.06), (-1.62, -0.06), (-1.72, 0.04), (-1.72, 0.38), (-1.54, 0.64), (-1.34, 0.62)]
+    # tampa da ombreira com borda traseira diagonal (~31 graus): continua o chevron do glacis
+    pcap = [(-1.34, 0.02), (-1.62, -0.15), (-1.72, -0.07), (-1.72, 0.38), (-1.54, 0.64), (-1.34, 0.62)]
     claw = [(-1.60, 0.88), (-1.26, 0.86), (-0.94, 1.04), (-0.79, 1.30), (-0.79, 1.70), (-0.86, 1.84),
             (-0.98, 1.76), (-1.66, 1.06)]
     apron = [(-0.62, -1.88), (-1.04, -1.88), (-1.50, -1.46), (-0.62, -1.46)]
@@ -210,30 +223,34 @@ def head(M, T="head", phase=0.0):
     spine = [(-0.27, -1.14), (0.27, -1.14), (0.32, -1.04), (0.32, 0.18), (0.14, 0.60), (-0.14, 0.60),
              (-0.32, 0.18), (-0.32, -1.04)]
     sa, sp = B.shard("spine", spine, 0.80, 1.14, A, slope=0.07, groove=0.03, panel_h=0.025, tags=tags)
-    sp2 = [(-0.18, -0.82), (0.18, -0.82), (0.21, -0.74), (0.21, 0.10), (0.08, 0.40), (-0.08, 0.40),
-           (-0.21, 0.10), (-0.21, -0.74)]
+    sp2 = [(-0.18, -0.90), (0.18, -0.90), (0.21, -0.82), (0.21, 0.10), (0.08, 0.40), (-0.08, 0.40),
+           (-0.21, 0.10), (-0.21, -0.82)]
     s2 = B.plate("spine2", sp2, 1.16, 1.26, A, slope=0.035, tags=tags)
     win = [(-0.12, -0.03), (0.12, -0.03), (0.12, 0.08), (0.04, 0.22), (-0.04, 0.22), (-0.12, 0.08)]
     B.cut(s2, [B.loft("win_cut", win, win, 1.22, 1.5, K, bevel=0.0)])
     B.loft("sensor_bed", win, win, 1.215, 1.225, M["black"], bevel=0.0, tags=tags)
     B.box("sensor_eye", 0, 0.06, 0.17, 0.03, 1.22, 1.232, M["lens"], bevel=0.0, tags=tags)
-    # raio fino e anguloso: canal de energia gravado (nao decalque)
-    bolt = [(0.04, -0.16), (0.10, -0.16), (0.03, -0.35), (0.11, -0.35), (-0.10, -0.76), (-0.025, -0.44),
-            (-0.08, -0.44)]
-    B.cut(s2, [B.loft("bolt_cut", bolt, bolt, 1.23, 1.5, K, bevel=0.0)])
-    B.loft("bolt_bed", bolt, bolt, 1.22, 1.235, M["black"], bevel=0.0, tags=tags)
-    ib = B.offset_poly(bolt, 0.016)
-    B.loft("bolt_glow", ib, ib, 1.23, 1.238, bolt_m, bevel=0.0, tags=tags)
+    # raio do "Trovao": rebaixo preto largo (~2 px em volta) com canal de energia fino dentro,
+    # mesma lingua das fendas acesas (nada de brilho direto na blindagem branca)
+    dx = -0.012
+    bolt = [(x + dx, y) for x, y in ((0.04, -0.16), (0.10, -0.16), (0.03, -0.35), (0.11, -0.35), (-0.10, -0.76),
+                                     (-0.025, -0.44), (-0.08, -0.44))]
+    rim = B.offset_poly(bolt, -0.03)          # d negativo = para fora
+    B.cut(s2, [B.loft("bolt_cut", rim, rim, 1.23, 1.5, K, bevel=0.0)])
+    B.loft("bolt_bed", rim, rim, 1.22, 1.235, M["black"], bevel=0.0, tags=tags)
+    path = [(0.07 + dx, -0.18), (-0.04 + dx, -0.40), (0.07 + dx, -0.39), (-0.075 + dx, -0.69)]
+    for i in range(3):
+        _stroke(f"bolt_glow{i}", path[i], path[i + 1], 0.022, 1.23, 1.236, bolt_m, tags)
     _lines(sp, "spl", [(0.0, -1.00, 0.16, 90)], 1.165, K)
 
     # ---------------------------------------------------------------- baia de exaustao traseira
     B.box("vent_bay", 0, -1.60, 1.16, 0.44, 0.20, 0.40, M["black"], bevel=0.0, tags=tags)
-    for i in range(7):
-        B.box(f"louver{i}", 0, -1.78 + i * 0.045, 1.10, 0.02, 0.30, 0.41, KM, bevel=0.004, tags=tags)
     for i in range(6):
-        B.box(f"vent_pip{i}", -0.45 + i * 0.18, -1.455, 0.07, 0.026, 0.36, 0.42, M["glow"], bevel=0.0, tags=tags)
-    # aba preta entre os pips e a parede da casa (corta o reflexo dos pips)
-    B.box("vent_lip", 0, -1.405, 1.12, 0.03, 0.36, 0.47, M["black"], bevel=0.0, tags=tags)
+        B.box(f"louver{i}", 0, -1.78 + i * 0.045, 1.10, 0.02, 0.30, 0.41, KM, bevel=0.004, tags=tags)
+    # pips longe da parede da casa: a face inclinada nao reflete uma segunda fileira
+    for i in range(6):
+        B.box(f"vent_pip{i}", -0.45 + i * 0.18, -1.49, 0.07, 0.026, 0.36, 0.42, M["glow"], bevel=0.0, tags=tags)
+    B.box("vent_lip", 0, -1.43, 1.12, 0.025, 0.36, 0.50, M["black"], bevel=0.0, tags=tags)
 
     # tambores de municao nos vaos laterais (contador ambar) e pistoes do elevador
     for sx in (-1, 1):
@@ -289,9 +306,15 @@ def barrel(M, L=3.0, T="barrel", phase=0.0):
     B.cyl("b_shoulder", 0, y1, z, 0.205, 0.06, S, axis="Y", verts=8, bevel=0.008, tags=tags)
     # estagio 2: cano fino afunilado ate o freio, com canal escuro
     yc0, yc1 = y1, L - 0.71
-    ch = B.cyl("b_chase", 0, (yc0 + yc1) / 2, z, 0.168, yc1 - yc0, A, axis="Y", verts=8, bevel=0.008, tags=tags,
-               r2=0.15)
-    B.cut(ch, [B.box("b_chcc", 0, (yc0 + yc1) / 2, 0.065, yc1 - yc0 - 0.10, z + 0.085, z + 0.3, K, bevel=0.0)])
+    # trecho final do cano fino separado e marcado 'hot': o calor do freio "escorre" um pouco para tras
+    yh = 2.10
+    rh = 0.168 - 0.018 * (yh - yc0) / (yc1 - yc0)
+    ch = B.cyl("b_chase", 0, (yc0 + yh) / 2, z, 0.168, yh - yc0, A, axis="Y", verts=8, bevel=0.008, tags=tags,
+               r2=rh)
+    chh = B.cyl("b_chaseh", 0, (yh + yc1) / 2, z, rh, yc1 - yh, A, axis="Y", verts=8, bevel=0.008, tags=hot,
+                r2=0.15)
+    for t in (ch, chh):
+        B.cut(t, [B.box("b_chcc", 0, (yc0 + yc1) / 2, 0.065, yc1 - yc0 - 0.10, z + 0.085, z + 0.3, K, bevel=0.0)])
     B.box("b_chbedc", 0, (yc0 + yc1) / 2, 0.065, yc1 - yc0 - 0.10, z + 0.065, z + 0.095, M["black"], bevel=0.0,
           tags=tags)
     # extrator de gases (bojo facetado) no meio do cano fino
@@ -322,7 +345,7 @@ def barrel(M, L=3.0, T="barrel", phase=0.0):
 
 
 def roof(M, T="roof"):
-    """Teto: placas do convés (verde = pintura) + faixa de carregadores de 4 tiles com portas facetadas."""
+    """Teto: placas do conves (verde = pintura) + faixa de carregadores de 4 tiles com portas facetadas."""
     tags = (T,)
     W, H = PART["size"]
     pv = PART["pivot"]
@@ -362,15 +385,15 @@ def roof(M, T="roof"):
                 (cx - 0.14, y1), (cx - 0.33, y1 - 0.17), (cx - 0.33, y0 + 0.08)]
         da, dp = B.shard(f"door{tx}", door, 0.10, 0.15, M["armor_mid"], slope=0.02, groove=0.03, panel_h=0.015,
                          tags=tags)
-        # costura em chevron apontando para a frente (duas folhas)
-        ang = math.degrees(math.atan2(0.33, 0.18))
-        for t in (da, dp):
-            B.cut(t, [B.rbox(f"dseam{tx}{k}", cx + k * 0.165, sy + 0.03, 0.022, 0.39, 0.12, 0.3, M["core"],
-                             rot=k * ang, bevel=0.0) for k in (-1, 1)])
+        # escotilha emoldurada (como a do 76 mm): sulco escuro seguindo o contorno em ponta + tampa interna
+        outer, inner = B.offset_poly(door, 0.10), B.offset_poly(door, 0.128)
+        B.cut(dp, [B.loft(f"dring{tx}", outer, outer, 0.145, 0.3, M["core"], bevel=0.0)])
+        B.loft(f"dringbed{tx}", outer, outer, 0.14, 0.153, M["black"], bevel=0.0, tags=tags)
+        B.plate(f"dlid{tx}", inner, 0.13, 0.166, M["armor_mid"], slope=0.012, bevel=0.006, tags=tags)
         for k in (-1, 1):
-            B.box(f"dhinge{tx}{k}", cx + k * 0.15, y0 + 0.055, 0.12, 0.04, 0.15, 0.175, M["steel"], bevel=0.008,
+            B.box(f"dhinge{tx}{k}", cx + k * 0.295, sy + 0.02, 0.035, 0.22, 0.15, 0.175, M["steel"], bevel=0.008,
                   tags=tags)
-        B.box(f"dgrip{tx}", cx, y1 - 0.11, 0.12, 0.03, 0.16, 0.18, M["steel"], bevel=0.006, tags=tags)
+        B.box(f"dpad{tx}", cx, y0 + 0.19, 0.12, 0.032, 0.166, 0.186, M["steel"], bevel=0.006, tags=tags)
         # luz de estado num rebaixo da faixa
         B.box(f"dslot{tx}", cx, sy - 0.31, 0.30, 0.06, 0.075, 0.085, M["black"], bevel=0.0, tags=tags)
         B.box(f"dled{tx}", cx, sy - 0.31, 0.22, 0.022, 0.085, 0.092, M["glow_dim"], bevel=0.0, tags=tags)
@@ -400,11 +423,21 @@ def floor(M, T="floor"):
     B.torus("fl_ring", px, py, 0.05, ring_r * 0.85, 0.05, M["armor_mid"], tags=tags)
     B.plate("fl_trunk", B.rpoly(px, py, 1.62, 1.62, 0, chamfer=0.46), 0.02, 0.07, M["core_mid"], slope=0.03,
             tags=tags)
-    B.cyl("fl_hub", px, py, 0.05, ring_r * 0.32, 0.08, M["armor"], axis="Z", verts=48, tags=tags)
+    # cubo octogonal (cinza medio) com centro escuro e eixo de aco
+    w = ring_r * 0.62
+    oct_ = lambda s: B.rpoly(px, py, s, s, 0, chamfer=s / (2 + math.sqrt(2)))  # noqa: E731
+    B.plate("fl_hub", oct_(w), 0.05, 0.12, M["armor_mid"], slope=0.03, tags=tags)
+    B.plate("fl_hubc", oct_(w * 0.52), 0.10, 0.125, M["core"], slope=0.015, tags=tags)
+    B.plate("fl_hubs", oct_(w * 0.18), 0.12, 0.15, M["steel"], slope=0.01, bevel=0.006, tags=tags)
+    B.bolts("fl_hubb", B.ring_points(px, py, w * 0.38, 8, math.pi / 8), 0.125, 0.018, M["steel"], tags=tags)
+    # setas apontando para fora (sentido do giro do anel)
     for k in range(4):
         a = k * math.pi / 2
         cx, cy = px + math.cos(a) * ring_r * 0.6, py + math.sin(a) * ring_r * 0.6
-        B.box(f"fl_chev{k}", cx, cy, 0.16, 0.16, 0.05, 0.08, M["armor"], bevel=0.01, tags=tags)
+        arrow = [(0.10, 0.0), (-0.06, 0.10), (-0.02, 0.0), (-0.06, -0.10)]
+        ca, sa = math.cos(a), math.sin(a)
+        arrow = [(cx + x * ca - y * sa, cy + x * sa + y * ca) for x, y in arrow]
+        B.plate(f"fl_chev{k}", arrow, 0.05, 0.08, M["armor"], slope=0.01, bevel=0.006, tags=tags)
     for k in (-1, 1):
         hx, hy = px + k * 0.74, py - 0.74
         B.cyl(f"fl_hoist{k}", hx, hy, 0.10, 0.14, 0.12, M["armor_mid"], axis="Z", verts=8, bevel=0.01, tags=tags)

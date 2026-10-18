@@ -36,7 +36,8 @@
   "interval": 0.15,
   "off": "turret_off.png",
   "off_normals": "turret1_normals.png",
-  "shadow": "turret_shadow.png"
+  "shadow": "turret_shadow.png",
+  "shadow_size": 4.15
  },
  "barrel": {
   "ys": [
@@ -46,9 +47,9 @@
   "root": 1.0,
   "length": 3.0,
   "pad": 0.45,
-  "sprite_w": 0.56,
-  "sprite_len": 3.45,
-  "center": 2.275,
+  "sprite_w": 0.62,
+  "sprite_len": 3.5100000000000002,
+  "center": 2.305,
   "muzzle": 3.95,
   "anim": "recoil",
   "frames": [
@@ -122,7 +123,7 @@
  "lights": [
   {
    "loc": [
-    -1.52,
+    -1.56,
     0.0
    ],
    "size": 1.8,
