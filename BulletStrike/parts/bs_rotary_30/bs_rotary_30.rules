@@ -952,6 +952,36 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			ValueFrom = PeakHeatGenerationValue
 		}
 		// ---- graficos ----
+		FireIntervalValue
+		{
+			Type = BuffableValue
+			Value
+			{
+				BaseValue = &~/FIRE_INTERVAL
+				Modifiers
+				[
+					{
+						Type = Buff
+						BuffType = RateOfFire
+						ModificationMode = Divide
+					}
+					{
+						Type = BuffRemap
+						BuffType = Overclock
+						ModificationMode = Multiply
+						RemapFrom = [0, 1]
+						RemapTo = [1, (&~/OVERCLOCK/FIRE_INTERVAL_FACTOR)]
+					}
+				]
+			}
+		}
+		InverseShotInterval
+		{
+			Type = MultiValue
+			Values = [FireIntervalValue]
+			OneOver = true
+			Mode = Add
+		}
 		Graphics
 		{
 			Type = Graphics
@@ -1052,7 +1082,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						Size = [0.8, 3.22]
 						AnimationFiles = ["barrel_spin1.png", "barrel_spin2.png", "barrel_spin3.png", "barrel1.png"]
 						NormalsAnimationFiles = ["barrel_normals1.png", "barrel_normals1.png", "barrel_normals1.png", "barrel_normals1.png"]
-						AnimationInterval = 0.05
+						AnimationInterval = 0.3333
 						AnimationStartTime = MinValue
 						ClampAnimation = true
 					}
@@ -1070,6 +1100,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					}
 				]
 			}
+			AnimationSpeedFactor = InverseShotInterval
 		}
 		OperationEffects
 		{
