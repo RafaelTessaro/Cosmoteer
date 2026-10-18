@@ -36,7 +36,7 @@ PART = {
     },
     "lights": [                    # luzes dinamicas em coordenadas da cabeca
         {"at": [0.0, -0.70], "size": 0.9, "color": [255, 120, 30], "z": 0.8},
-        {"at": [0.0, -0.10], "size": 0.45, "color": [255, 40, 30], "z": 0.9},
+        {"at": [0.0, -0.13], "size": 0.45, "color": [255, 40, 30], "z": 0.9},
     ],
     "preview_pattern": "pairs",
 }
@@ -50,20 +50,17 @@ SADDLE = [(-0.22, -0.665), (0.22, -0.665), (0.38, -0.545), (0.38, -0.30), (0.35,
           (0.13, 0.33), (-0.13, 0.33), (-0.35, 0.02), (-0.35, -0.26), (-0.38, -0.30), (-0.38, -0.545)]
 SADDLE_Z = (0.30, 0.58)
 SADDLE_SLOPE, SADDLE_GROOVE, SADDLE_PH = 0.08, 0.03, 0.03
-DY = -0.14                         # centro da cupula (parte larga da flecha)
-SWIRL = dict(r0=0.18, r1=0.27, sweep=-110, w0=0.046, w1=0.024, ex=0.80, ey=1.10)   # eliptico (sela alongada)
-SWIRL_A0 = (75, 195, 315)          # angulo de saida de cada braco (graus)
-WELL_R, DOME_R = 0.19, (0.160, 0.130, 0.095)
+DY = -0.13                         # centro da cupula (parte larga da flecha)
+# bracos finos (peso de linha de painel) e facetados (poucos segmentos retos), sem fechar lacos
+SWIRL = dict(sweep=-60, w0=0.022, w1=0.010, ex=0.82, ey=1.25, n=4)   # eliptico; vaos de 60 graus entre bracos
+SWIRL_A0 = (30, 150, 270)          # saida de cada braco (graus): nenhum termina perto da fenda de pips (y=-0.50)
+SWIRL_DCY = -0.025                 # centro do redemoinho um pouco atras da cupula (a proa e estreita)
+SWIRL_DIN, SWIRL_DR, SWIRL_RMAX = -0.03, 0.075, 0.27   # cada braco nasce 0.03 FORA do poco (vao claro) e cresce 0.075
+WELL_R, DOME_R = 0.165, (0.150, 0.122, 0.088)
 CRADLE = [(-0.33, 0.12), (0.33, 0.12), (0.385, 0.18), (0.385, 0.58), (0.345, 0.625), (0.0, 0.70),
           (-0.345, 0.625), (-0.385, 0.58), (-0.385, 0.18)]
-SLOT_Y = -0.485                    # fenda de pips atras da cupula
+SLOT_Y = -0.50                    # fenda de pips atras da cupula
 SBOLTS = [(-0.15, -0.57), (0.15, -0.57), (-0.163, 0.125), (0.163, 0.125)]
-
-
-def octo(cx, cy, r, rot=22.5):
-    """Octogono regular (rot=22.5: lados retos para frente/tras/lados)."""
-    return [(cx + math.cos(math.radians(rot + 45 * k)) * r, cy + math.sin(math.radians(rot + 45 * k)) * r)
-            for k in range(8)]
 
 
 def dome_poly(cx, cy, r):
@@ -92,9 +89,30 @@ def swirl_band(cx, cy, r0, r1, a0, sweep, w0, w1, ex=1.0, ey=1.0, n=20):
     return left + list(reversed(right))
 
 
+def inside(p, poly):
+    """Ponto dentro do poligono (paridade de cruzamentos)."""
+    x, y = p
+    res = False
+    for (x0, y0), (x1, y1) in zip(poly, poly[1:] + poly[:1]):
+        if (y0 > y) != (y1 > y) and x < x0 + (y - y0) * (x1 - x0) / (y1 - y0):
+            res = not res
+    return res
+
+
 def swirl_arms():
-    return [swirl_band(0, DY, a0=a, **{k: v for k, v in SWIRL.items() if k not in ("ex", "ey")},
-                       ex=SWIRL["ex"], ey=SWIRL["ey"]) for a in SWIRL_A0]
+    """3 bracos soltos em volta do poco escuro (mesmo afastamento da borda: rajadas de vento, sem lacos)."""
+    cx, cy = 0.0, DY + SWIRL_DCY
+    well = dome_poly(0, DY, WELL_R)
+    arms = []
+    for a in SWIRL_A0:
+        ca, sa = math.cos(math.radians(a)) * SWIRL["ex"], math.sin(math.radians(a)) * SWIRL["ey"]
+        lo, hi = 0.0, 0.5                        # raio da borda do poco nesta direcao (bissecao)
+        for _ in range(30):
+            mid = (lo + hi) / 2
+            lo, hi = (mid, hi) if inside((cx + mid * ca, cy + mid * sa), well) else (lo, mid)
+        r0 = lo - SWIRL_DIN
+        arms.append(swirl_band(cx, cy, r0, min(r0 + SWIRL_DR, SWIRL_RMAX), a, **SWIRL))
+    return arms
 
 
 def slot_rot(name, cx, cy, length, w, ztop, n, M, tags, rot, targets, depth=0.07, mat=None):
@@ -134,8 +152,8 @@ def head(M, T="head", phase=0.0):
     for i, y in enumerate(YS):
         yf = 0.70 - abs(y) * (0.075 / 0.345) - 0.03     # frente do chevron nesta calha
         B.box(f"cr_bed{i}", y, (0.30 + yf) / 2, 0.125, yf - 0.30, 0.34, 0.355, M["black"], bevel=0.0, tags=tags)
-        # bandeja de alimentacao (aco) no fundo da calha, logo atras da raiz do cano
-        B.box(f"cr_tray{i}", y, 0.355, 0.07, 0.05, 0.35, 0.39, S, bevel=0.006, tags=tags)
+        # bandeja de alimentacao escura no fundo da calha (aco aqui virava "teclado" a 1x)
+        B.box(f"cr_tray{i}", y, 0.355, 0.07, 0.05, 0.35, 0.39, KM, bevel=0.006, tags=tags)
     B.box("cr_band", 0, 0.255, 0.70, 0.05, 0.42, 0.47, S, bevel=0.008, tags=tags)
     for sx in (-1, 1):
         B.cyl(f"trun{sx}", sx * 0.43, 0.40, 0.34, 0.075, 0.09, KM, axis="X", verts=8, bevel=0.008, tags=tags)
@@ -144,6 +162,11 @@ def head(M, T="head", phase=0.0):
         tooth = [(0.352, 0.57), (0.395, 0.60), (0.402, 0.73), (0.378, 0.79), (0.352, 0.70)]
         B.plate(f"cr_tooth{sx}", tooth if sx > 0 else Mo.mirror(tooth), 0.26, 0.47, KM, slope=0.012,
                 bevel=0.006, tags=tags)
+        # bochecha clara fina com ponta em garra (fora do sprite do cano externo: x >= 0.358)
+        cheek = [(0.358, 0.22), (0.385, 0.20), (0.410, 0.235), (0.410, 0.50), (0.398, 0.645), (0.370, 0.575),
+                 (0.358, 0.52)]
+        B.plate(f"cr_cheek{sx}", cheek if sx > 0 else Mo.mirror(cheek), 0.36, 0.52, AM, slope=0.008, bevel=0.005,
+                tags=tags)
 
     # ombreiras (caixas de cinta blindadas) + laminas em garra que avancam ate os canos externos
     paul = [(-0.53, -0.44), (-0.64, -0.70), (-0.76, -0.70), (-0.89, -0.42), (-0.89, -0.22), (-0.94, -0.14),
@@ -198,11 +221,13 @@ def head(M, T="head", phase=0.0):
     zt = z1 + SADDLE_PH                          # topo do painel interno
     zg = z1 - 0.07                               # fundo dos sulcos (passa do painel: sem triangulos pretos)
     for k, band in enumerate(swirl_arms()):
-        B.cut(spn, [B.loft(f"sw_c{k}", band, band, zg, 0.95, K, bevel=0.0)])
-        B.cut(sa, [B.loft(f"sw_cb{k}", band, band, zg, 0.95, K, bevel=0.0)])
-        # fundo do sulco em nucleo medio: le como gravacao, nao como rachadura
-        B.loft(f"sw_bed{k}", band, band, zg - 0.01, zg + 0.004, KM, bevel=0.0, tags=tags)
-    # poco escuro em volta da cupula (os bracos do redemoinho saem dele)
+        # cortador um pouco mais largo: o bisel reaplicado come ~0.008 de cada borda do sulco
+        cb = B.offset_poly(band, -0.006)
+        B.cut(spn, [B.loft(f"sw_c{k}", cb, cb, zg, 0.95, K, bevel=0.0)])
+        B.cut(sa, [B.loft(f"sw_cb{k}", cb, cb, zg, 0.95, K, bevel=0.0)])
+        # fundo cinza medio: linha gravada no peso das linhas de painel do 76 mm (preto virava glifo de tinta)
+        B.loft(f"sw_bed{k}", cb, cb, zg - 0.01, zg + 0.004, AM, bevel=0.0, tags=tags)
+    # poco escuro em volta da cupula (recesso preto; os bracos ficam soltos em volta)
     well = dome_poly(0, DY, WELL_R)
     B.cut(spn, [B.loft("well_c", well, well, zg, 0.95, K, bevel=0.0)])
     B.cut(sa, [B.loft("well_cb", well, well, zg, 0.95, K, bevel=0.0)])
@@ -213,11 +238,13 @@ def head(M, T="head", phase=0.0):
     top = B.loft("dome_top", dome_poly(0, DY, DOME_R[1]), dome_poly(0, DY, DOME_R[2]), zd1, zd2, A, bevel=0.006,
                  tags=tags)
     # recesso escuro no topo com o gorro vermelho (gota apontando para a frente, como a proa)
-    rec = dome_poly(0, DY, 0.072)
+    rec = dome_poly(0, DY, 0.068)
     B.cut(top, [B.loft("cap_cut", rec, rec, zd2 - 0.03, 1.2, K, bevel=0.0)])
     B.loft("cap_bed", rec, rec, zd2 - 0.04, zd2 - 0.028, M["black"], bevel=0.0, tags=tags)
-    cap = [(0.0, DY + 0.072), (0.040, DY + 0.012), (0.032, DY - 0.030), (0.0, DY - 0.048), (-0.032, DY - 0.030),
-           (-0.040, DY + 0.012)]
+    cap0 = [(0.0, DY + 0.072), (0.040, DY + 0.012), (0.032, DY - 0.030), (0.0, DY - 0.048), (-0.032, DY - 0.030),
+            (-0.040, DY + 0.012)]
+    # gorro reduzido a 75 %: anel escuro de 1-2 px entre a luz e a borda do recesso (LED no soquete)
+    cap = [(x * 0.75, DY + 0.006 + (y - DY) * 0.75) for x, y in cap0]
     # vermelho proprio do gorro: M["red"] (forca 6) estoura para branco neste tamanho; este fica saturado,
     # apaga no turret_off (mat_glow) e deve ser reaproveitado por outras pecas que precisem de vermelho pequeno
     red = B.mat_glow("saci_red", (1.0, 0.05, 0.03), 1.8)
@@ -229,8 +256,10 @@ def head(M, T="head", phase=0.0):
     B.box("vis_bed", 0, DY + 0.168, 0.11, 0.05, zv - 0.006, zv + 0.004, M["black"], bevel=0.0, tags=tags)
     B.box("vis_lens", 0, DY + 0.166, 0.075, 0.016, zv, zv + 0.01, M["glow_dim"], bevel=0.0, tags=tags)
     # fenda com 3 pips atras da cupula (como a fenda da espinha do 76 mm)
-    Mo.slot_with_pips("sp", SLOT_Y, -0.10, 0.10, 0.045, zt, 3, M, tags, target=[spn, sa], depth=0.08,
+    Mo.slot_with_pips("sp", SLOT_Y, -0.085, 0.085, 0.045, zt, 3, M, tags, target=[spn, sa], depth=0.08,
                       vertical=False)
+    for o in [o for o in B.objects_with(T) if o.name.startswith("sp_pip")]:
+        o.data.materials[0] = M["glow_dim"]       # o gorro vermelho e a luz principal da sela
     # linhas de painel no degrau lateral da sela
     if spn is not None:
         B.cut(spn, [B.rbox(f"sapl{sx}", sx * 0.255, -0.28, 0.016, 0.07, z1 - 0.02, 0.95, K, rot=90, bevel=0.0)
@@ -243,7 +272,7 @@ def head(M, T="head", phase=0.0):
     for i in range(3):
         B.box(f"louver{i}", 0, -0.78 + i * 0.04, 0.44, 0.016, 0.20, 0.31, KM, bevel=0.003, tags=tags)
     for i, x in enumerate((-0.15, -0.05, 0.05, 0.15)):
-        B.box(f"vent_pip{i}", x, -0.69, 0.045, 0.02, 0.30, 0.32, M["glow"], bevel=0.0, tags=tags)
+        B.box(f"vent_pip{i}", x, -0.72, 0.035, 0.016, 0.29, 0.306, M["glow"], bevel=0.0, tags=tags)
     B.bolts("bolt", [(-0.66, -0.62), (0.66, -0.62)], 0.29, 0.02, S, tags=tags)
 
 
@@ -254,20 +283,22 @@ def barrel(M, L=1.2, T="barrel", phase=0.0):
     hot = (T, "hot")
     A, AM, K, KM, S = M["armor"], M["armor_mid"], M["core"], M["core_mid"], M["steel"]
     z = 0.50
-    # receptor escuro (fica sobre o berco) com tampa de alimentacao escura e trava de aco
+    # receptor escuro (fica sobre o berco) com tampa e trava escuras; so a dobradica e de aco
     rec = [(-0.056, 0.0), (0.056, 0.0), (0.064, 0.03), (0.064, 0.25), (0.05, 0.29), (-0.05, 0.29),
            (-0.064, 0.25), (-0.064, 0.03)]
     B.plate("b_recv", rec, z - 0.08, z + 0.05, KM, slope=0.012, tags=tags)
     B.box("b_cover", 0, 0.14, 0.074, 0.15, z + 0.045, z + 0.065, KM, bevel=0.006, tags=tags)
     B.box("b_hinge", 0, 0.222, 0.06, 0.014, z + 0.05, z + 0.07, S, bevel=0.004, tags=tags)
-    B.box("b_latch", 0, 0.04, 0.05, 0.03, z + 0.05, z + 0.075, S, bevel=0.005, tags=tags)
+    B.box("b_latch", 0, 0.04, 0.05, 0.03, z + 0.05, z + 0.075, KM, bevel=0.005, tags=tags)
     # camisa de resfriamento escura com fendas transversais (brasa fraca no fundo), como a do 76 mm
     y0j, y1j = 0.29, 0.60
     jk = B.cyl("b_jacket", 0, (y0j + y1j) / 2, z, 0.058, y1j - y0j, KM, axis="Y", verts=8, bevel=0.006,
                tags=tags)
-    B.cut(jk, [B.box(f"b_jc{i}", 0, 0.37 + i * 0.065, 0.14, 0.03, z + 0.025, z + 0.2, K, bevel=0.0)
-               for i in range(4)])
-    B.box("b_heat", 0, (y0j + y1j) / 2, 0.075, y1j - y0j - 0.08, z + 0.018, z + 0.029, M["ember"], bevel=0.0,
+    # so 2 fendas por cano: com 4 canos, 3 fendas viravam uma grade de 12 pontos laranja a 1x
+    B.cut(jk, [B.box(f"b_jc{i}", 0, 0.395 + i * 0.10, 0.14, 0.03, z + 0.025, z + 0.2, K, bevel=0.0)
+               for i in range(2)])
+    # brasa estreita: fenda escura com um brilho laranja no meio (calor leve)
+    B.box("b_heat", 0, (y0j + y1j) / 2, 0.035, y1j - y0j - 0.08, z + 0.018, z + 0.029, M["ember"], bevel=0.0,
           tags=tags)
     # aletas finas nas pontas da camisa
     for i, y in enumerate((y0j + 0.02, y1j - 0.02)):
@@ -286,11 +317,11 @@ def barrel(M, L=1.2, T="barrel", phase=0.0):
     # freio leve em ponta de flecha com fendas transversais escuras
     yb = L - 0.10
     brake = [(-0.056, yb - 0.10), (0.056, yb - 0.10), (0.066, yb - 0.07), (0.066, yb + 0.045),
-             (0.036, yb + 0.10), (-0.036, yb + 0.10), (-0.066, yb + 0.045), (-0.066, yb - 0.07)]
+             (0.026, yb + 0.10), (-0.026, yb + 0.10), (-0.066, yb + 0.045), (-0.066, yb - 0.07)]
     br = B.plate("b_brake", brake, z - 0.055, z + 0.055, A, slope=0.014, tags=tags)
     bc = [B.box(f"b_bc{i}", 0, yb - 0.055 + i * 0.048, 0.16, 0.02, z + 0.012, z + 0.2, K, bevel=0.0)
           for i in range(3)]
-    bc.append(B.box("b_bore_c", 0, L, 0.032, 0.06, z - 0.03, z + 0.2, K, bevel=0.0))
+    bc.append(B.box("b_bore_c", 0, L, 0.024, 0.06, z - 0.03, z + 0.2, K, bevel=0.0))
     B.cut(br, bc)
     # fundo escuro das fendas: e ele que esquenta (laranja so dentro das fendas, a casca clara nao fica rosada)
     B.box("b_brake_core", 0, yb - 0.008, 0.11, 0.125, z - 0.04, z + 0.016, K, bevel=0.0, tags=hot)
