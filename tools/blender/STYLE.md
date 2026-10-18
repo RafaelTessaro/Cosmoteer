@@ -97,12 +97,14 @@ PART = {
         "recoil": [0.26, 0.18, 0.10, 0.04],   # recoil per frame (tiles), first = shot
         "heat": [1.0, 0.9, 0.78, 0.64, 0.5, 0.36, 0.22, 0.1],  # heat glow per frame (cools down afterwards)
         "interval": 0.06,              # seconds per frame
+        "heat_color": (1.0, 0.13, 0.015),  # optional: heat color (plasma: (0.25, 0.85, 1.0) cyan)
         # for anim == "spin": "spin_frames": 3 (barrel(M, L, T, phase) with phase in [0,1) = fraction of the
         # angle between two barrels; the renderer asks for phases 1/4, 2/4, 3/4 and 0 for rest)
     },
     "turret_anim": {"frames": 8, "interval": 0.1},   # optional: looping animation of the head (radar, lights)
     "lights": [{"at": [x, y], "size": 1.4, "color": [255, 120, 30], "z": 0.8}],  # dynamic lights (head coordinates)
     "preview_pattern": "single",       # GIF preview: single | alternate | pairs | volley | rotary
+    "preview_fx": "fire",              # optional: "plasma" = cyan flash and no smoke (default by accent)
 }
 
 def head(M, T="head", phase=0.0): ...        # turret head; phase in [0,1) when turret_anim exists
@@ -333,3 +335,21 @@ and the vanilla `*_thruster_plume_light` (both `BulletUpper4`). The Carrapato ch
 vanilla mine light ring `shots/mine/mine_small_lights.png` (6-frame blink, additive) with a red glow. If own missile
 sprites are made later: top view, nose pointing +x (right), 2:1 canvas, transparent background, one diffuse + one
 normals PNG per body size; never use a Lower/Middle bucket (hidden under our roof).
+
+## 9. Known pitfalls (from the agents that already modeled weapons)
+
+- **Shallow cuts break the bevel:** `Mo.slot_with_pips`/`B.cut` that reach only about 0.02 into a chamfered plate create black triangles
+  (the bevel is reapplied after the boolean). Use depth >= panel_h + 0.04, and keep cutter walls at least 0.03 inside the edge of the
+  top face.
+- **Self-intersecting offsets:** `offset_ok` only detects edges that flip direction. Polygons with acute vertices next to other
+  edges (fangs, notches) can self-intersect without warning, and the boolean then returns an EMPTY mesh. If a part disappears from the
+  render, simplify the polygon or reduce the slope.
+- **Head ring over the barrels:** on large turrets the turret disk (ring) can cover the barrel roots when the head is drawn on top.
+  Cut the front arc of the disk at the cradle mouths.
+- **Heat on light armor:** tag only brakes/tips/collars as 'hot'. On plasma weapons use a cyan `heat_color` with low heat values.
+- **Cut floor on top of another face:** if the `slot_with_pips` depth equals the panel height, the cutter floor lands exactly on
+  the face of the plate underneath, and the coplanar boolean can leave a "lid" over nearby recesses. Use depth > panel_h.
+- **Thin tips after the chamfer:** concave outlines whose top face (after `slope`) pinches below ~0.02 tile create overlapping
+  triangles that render black (often on the mirrored side only). Widen the tip or draw the inner panel by hand
+  (as the Cigarra and the Tamanduá do).
+- The renderer prints `AVISO: '<obj>' ficou vazio depois das booleanas` when a piece disappears: always check the log.

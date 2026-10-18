@@ -101,6 +101,20 @@ def emission_pass(path, size, keep_tag=None):
 SHADOW_MARGIN = 8  # px de cada lado: a sombra fica maior que a torre e nao e cortada
 
 
+def warn_empty(tag):
+    """Avisa quando um objeto com a tag some depois das booleanas (malha vazia = recorte que engoliu a peca)."""
+    dg = bpy.context.evaluated_depsgraph_get()
+    for o in bpy.context.scene.objects:
+        if o.type != "MESH" or o.hide_render or not o.get(tag):
+            continue
+        eo = o.evaluated_get(dg)
+        me = eo.to_mesh()
+        n = len(me.vertices)
+        eo.to_mesh_clear()
+        if n == 0:
+            print(f"AVISO: '{o.name}' ficou vazio depois das booleanas (confira o poligono/recortes)")
+
+
 def shadow_from(img, offset_px=5, blur_px=4, opacity=0.55, margin=SHADOW_MARGIN):
     """Sombra projetada (deslocada para baixo-direita, borrada) num quadro com margem extra."""
     a = np.asarray(img.split()[-1], dtype=np.float32)
@@ -158,6 +172,8 @@ def _render_head(mod, out, P, only):
             samples(64)
             mod.head(M, "head", i / nfr)
             B.show_only(["head"])
+            if i == 0:
+                warn_empty("head")
             base = os.path.join(out, "turret" if nfr == 1 else f"turret{i + 1}")
             res = B.render_set(base, tsz, glow_halo=True, normals=True, off=(i == 0))
             if i == 0:
@@ -236,13 +252,16 @@ def render_gun(mod, out, only):
     hlen = L + pad + top
     bsz = (int(round(bw * PX)), int(round(hlen * PX)))
     if anim == "spin":
-        nspin = bar.get("spin_frames", 3)
+        # nspin+1 quadros de giro (fases 1/(n+1) .. 1 = volta completa entre canos) todos "quentes", e o
+        # repouso frio separado: em tiro continuo o jogo reinicia a animacao a cada tiro e o repouso nunca aparece,
+        # entao o calor nao pisca
+        nspin = bar.get("spin_frames", 3) + 1
         names = [f"barrel_spin{i + 1}.png" for i in range(nspin)] + ["barrel1.png"]
         norms = [f"barrel_spin_normals{i + 1}.png" for i in range(nspin)] + ["barrel_normals1.png"]
-        phases = [(i + 1) / (nspin + 1) for i in range(nspin)] + [0.0]
+        phases = [(i + 1) / nspin for i in range(nspin)] + [0.0]
         recoils = [bar.get("spin_recoil", 0.0)] * nspin + [0.0]
-        heats = list(bar.get("heat", [])) + [0.0] * (nspin + 1)
-        heats = heats[:nspin] + [0.0]
+        hl = list(bar.get("heat", [])) or [0.0]
+        heats = [hl[min(i, len(hl) - 1)] for i in range(nspin)] + [0.0]
     elif anim == "recoil":
         rec = list(bar["recoil"])
         heat = list(bar.get("heat", []))
@@ -268,6 +287,7 @@ def render_gun(mod, out, only):
                 samples(48)
                 mod.barrel(M, L, "barrel", ph)
                 objs = B.objects_with("barrel")
+                warn_empty("barrel")
                 done_phase = {key: {o.name: o.location.y for o in objs}}
             base_y = done_phase[key]
             for o in B.objects_with("barrel"):
@@ -281,7 +301,8 @@ def render_gun(mod, out, only):
             else:
                 os.replace(stem + "_normals.png", os.path.join(out, nn))
             if ht > 0 and B.objects_with("hot"):
-                heat_composite(res["on"], _heat_layer(stem, bsz, L), ht).save(stem + ".png")
+                heat_composite(res["on"], _heat_layer(stem, bsz, L, bar.get("heat_color", HEAT_COLOR)), ht).save(
+                    stem + ".png")
             for o in B.objects_with("barrel"):
                 o.location.y = base_y[o.name]
     meta["barrel"] = {
@@ -301,13 +322,18 @@ def render_gun(mod, out, only):
     meta["lights"] = [{"loc": [l["at"][1], l["at"][0]], "size": l.get("size", 1.2), "color": l.get("color", [255, 120, 30]),
                        "z": l.get("z", 1.0)} for l in P.get("lights", [])]
     meta["preview_pattern"] = P.get("preview_pattern", "alternate" if len(bar["ys"]) > 1 else "single")
+    meta["accent"] = accent if isinstance(accent, str) else "amber"
+    meta["preview_fx"] = P.get("preview_fx", "plasma" if meta["accent"] == "cyan" else "fire")
     meta["files"] = sorted(set(files))
     return meta
 
 
-def _heat_layer(stem, size, L):
+HEAT_COLOR = (1.0, 0.13, 0.015)  # laranja de metal quente (padrao); plasma usa heat_color ciano
+
+
+def _heat_layer(stem, size, L, color=HEAT_COLOR):
     """Brilho de calor das partes marcadas 'hot', mais forte perto da boca."""
-    heat_m = B.mat_glow("__heat", (1.0, 0.13, 0.015), 1.25)
+    heat_m = B.mat_glow("__heat", tuple(color), 1.25)
     sc = bpy.context.scene
     hot = [o for o in sc.objects if o.get("hot") and not o.hide_render]
     keep = {o.name: list(o.data.materials) for o in hot}

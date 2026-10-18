@@ -1041,15 +1041,16 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 				[
 					{
 						Size = [0.56, 1.63]
-						AnimationFiles = ["barrel_spin1.png", "barrel_spin2.png", "barrel_spin3.png", "barrel1.png"]
+						AnimationFiles = ["barrel_spin1.png", "barrel_spin2.png", "barrel_spin3.png", "barrel_spin4.png", "barrel1.png"]
 						NormalsAnimationFiles
 						[
 							"barrel_spin_normals1.png"
 							"barrel_spin_normals2.png"
 							"barrel_spin_normals3.png"
+							"barrel_spin_normals4.png"
 							"barrel_normals1.png"
 						]
-						AnimationInterval = 0.3333
+						AnimationInterval = 0.25
 						AnimationStartTime = MinValue
 						ClampAnimation = true
 					}

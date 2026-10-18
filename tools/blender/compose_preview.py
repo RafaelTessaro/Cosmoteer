@@ -88,7 +88,11 @@ def _flame(dr, cx, cy, L, W, ang_deg, col, steps=24):
     dr.polygon(pts, fill=col)
 
 
-def flash(scale, t, seed=0):
+FIRE_COLS = [(255, 90, 10, 140), (255, 150, 40, 200), (255, 215, 120, 240), (255, 250, 225, 255)]
+PLASMA_COLS = [(20, 140, 255, 140), (40, 200, 255, 200), (150, 240, 255, 240), (240, 255, 255, 255)]
+
+
+def flash(scale, t, seed=0, cols=None):
     """Clarao de boca: lingua de fogo para frente + jatos laterais saindo das fendas do freio de boca."""
     S = 4
     U = PX * scale * S
@@ -98,7 +102,7 @@ def flash(scale, t, seed=0):
     cx, cy = w / 2, h / 2
     k = (1 - t) ** 0.8
     rng = np.random.default_rng(seed)
-    cols = [(255, 90, 10, 140), (255, 150, 40, 200), (255, 215, 120, 240), (255, 250, 225, 255)]
+    cols = cols or FIRE_COLS
     for i, col in enumerate(cols):
         f = 1 - i * 0.2
         _flame(dr, cx, cy, U * (1.35 + 0.3 * rng.random()) * k * f, U * 0.27 * k * f, rng.uniform(-4, 4), col)
@@ -233,7 +237,11 @@ def make_all(d, paint=(46, 58, 74), scale=2):
         groups = [[0]] * 24
     else:  # alternate
         groups = [[k % nb] for k in range(max(4, nb * 2))]
-    gap = 10 if pattern in ("single", "volley") else (2 if pattern == "rotary" else 4)
+    # canhoes lentos: espera o calor esfriar entre os tiros; rotativos/metralhadoras: rajada rapida
+    gap = max(10, len(seq) + 2) if pattern in ("single", "volley") else (2 if pattern == "rotary" else 4)
+    # tamanho do clarao/fumaca pelo calibre (largura do sprite do cano; 0.46 = 76 mm)
+    fsc = 0.55 if spin else min(2.2, max(0.5, br["sprite_w"] / 0.46))
+    plasma = meta.get("preview_fx") == "plasma" or meta.get("accent") == "cyan"
     state = [len(seq) - 1] * nb             # indice do quadro atual de cada cano (comeca em repouso)
     shot_fx = []                            # (barril, idade)
     smokes = []
@@ -250,13 +258,13 @@ def make_all(d, paint=(46, 58, 74), scale=2):
         for item in shot_fx:
             bi, age = item
             if age < 3:
-                fx.append((flash(0.55 if spin or nb > 2 else 1.0, age / 3, seed=step * 7 + age),
-                           br["muzzle"] - 0.14, br["ys"][bi], True))
+                fx.append((flash(fsc, age / 3, seed=step * 7 + age, cols=PLASMA_COLS if plasma else None),
+                           br["muzzle"] - 0.14 * fsc, br["ys"][bi], True))
             item[1] += 1
         for item in smokes:
             bi, age, sd = item
-            if 0 < age < 9:
-                fx.append((smoke(0.6 if nb > 2 else 1.0, age / 9, seed=sd), br["muzzle"] + 0.25 + age * 0.03,
+            if 0 < age < 9 and not plasma:   # plasma nao solta fumaca
+                fx.append((smoke(max(0.6, fsc * 0.9), age / 9, seed=sd), br["muzzle"] + 0.25 * fsc + age * 0.03,
                            br["ys"][bi], False))
             item[1] += 1
         shot_fx = [x for x in shot_fx if x[1] < 3]
@@ -275,10 +283,14 @@ def make_all(d, paint=(46, 58, 74), scale=2):
         durs.append(40)
         tf += 1 if ntf > 1 else 0
     frames = _crop_frames(frames)
-    pal = [f.convert("RGB").quantize(colors=255, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+    # pecas grandes: limita o tamanho do GIF (envio maximo ~30 MB)
+    k = min(1.0, 760 / max(frames[0].size))
+    if k < 1:
+        frames = [f.resize((int(f.width * k), int(f.height * k)), Image.LANCZOS) for f in frames]
+    pal = [f.convert("RGB").quantize(colors=200, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
            for f in frames]
     pal[0].save(os.path.join(d, "preview_fire.gif"), save_all=True, append_images=pal[1:], duration=durs, loop=0,
-                optimize=False, disposal=1)
+                optimize=True, disposal=1)
     return len(frames)
 
 
