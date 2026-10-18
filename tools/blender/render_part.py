@@ -357,6 +357,24 @@ def _heat_layer(stem, size, L, color=HEAT_COLOR):
 
 
 # ============================================================================ lancadores de misseis
+def _oc_glow_sprite(em, blur_px=3.0, gain=1.1):
+    """turret_oc.png: emissao + halo como LUZ. O desfoque e feito na cor premultiplicada (a borda transparente e
+    preta no PNG: desfocar a cor crua escurecia o halo) e a opacidade do halo segue o brilho dele."""
+    a = np.asarray(em, dtype=np.float32) / 255.0
+    al = a[..., 3:4]
+    pm = a[..., :3] * al
+
+    def blur(arr):
+        im = Image.fromarray(np.clip(arr * 255, 0, 255).astype(np.uint8), "RGB")
+        return np.asarray(im.filter(ImageFilter.GaussianBlur(blur_px)), dtype=np.float32) / 255.0
+    hc = blur(pm) * gain
+    ha = np.clip(hc.max(axis=2, keepdims=True) * 1.6, 0, 1)
+    out_pm = pm + hc * (1 - al)
+    out_a = al + ha * (1 - al)
+    rgb = np.where(out_a > 1e-4, out_pm / np.maximum(out_a, 1e-4), 0)
+    return Image.fromarray(np.dstack([np.clip(rgb, 0, 1) * 255, out_a * 255]).astype(np.uint8), "RGBA")
+
+
 def render_launcher(mod, out, only):
     """Lancador de misseis de convés (STYLE.md secao 8).
 
@@ -489,9 +507,12 @@ def render_launcher(mod, out, only):
             mod.head(M, "head", 0.0)
             mod.oc_glow(M, "oc")
             B.show_only(["oc"])
+            warn_empty("oc")
+            for o in B.objects_with("oc"):
+                if o.type == "MESH" and not any(m is not None and "bs_glow" in m.keys() for m in o.data.materials):
+                    print(f"AVISO: '{o.name}' (tag oc) nao e emissivo: sai preto por cima da torre (STYLE.md 9)")
             em = emission_pass(os.path.join(out, "oc_raw.png"), (T, T))
-            halo = em.filter(ImageFilter.GaussianBlur(3))
-            Image.alpha_composite(halo, em).save(os.path.join(out, "turret_oc.png"))
+            _oc_glow_sprite(em).save(os.path.join(out, "turret_oc.png"))
         meta["turret"]["oc_glow"] = "turret_oc.png"
         files.append("turret_oc.png")
     meta["modes"] = modes

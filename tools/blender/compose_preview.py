@@ -307,10 +307,11 @@ def _reach(meta):
     return max(LAUNCH_REACH, meta["turret_size"] / 2 + 1.0)
 
 
-def _launcher_layer(d, meta, look, level, tframe=0, fx=None, side=None):
+def _launcher_layer(d, meta, look, level, tframe=0, fx=None, side=None, oc=False):
     """Casulo + nivel do rack (ResourceSprites) num quadrado centrado no pivo, ainda sem girar.
 
-    level: unidades carregadas (0..N). fx: [(img, frente, lado, aditivo)] em coordenadas da torre."""
+    level: unidades carregadas (0..N). fx: [(img, frente, lado, aditivo)] em coordenadas da torre.
+    oc: soma o brilho do overclock (turret_oc.png, OverclockGlowGraphics) por cima."""
     ts = meta["turret_size"]
     T = int(round(ts * PX))
     side = side or int(math.ceil(2 * _reach(meta) * PX)) + 4
@@ -327,6 +328,8 @@ def _launcher_layer(d, meta, look, level, tframe=0, fx=None, side=None):
     sh = meta["modes"][look].get("shutters")
     if sh:                      # persianas fechadas dos casulos sem unidade neste modo (quadro da torre)
         lay.alpha_composite(load(d, sh["file"]), (x0, y0))
+    if oc and meta["turret"].get("oc_glow"):
+        lay.alpha_composite(load(d, meta["turret"]["oc_glow"]), (x0, y0))
     for img, fwd, lat, additive in (fx or []):
         if additive:
             add_center(lay, img, c + lat * PX, c - fwd * PX, gain=1.2)
@@ -336,7 +339,7 @@ def _launcher_layer(d, meta, look, level, tframe=0, fx=None, side=None):
     return lay
 
 
-def _launcher_frame(d, meta, roof, look, level, tframe=0, angle=0.0, fx=None, scale=1, bg=(7, 9, 14)):
+def _launcher_frame(d, meta, roof, look, level, tframe=0, angle=0.0, fx=None, scale=1, bg=(7, 9, 14), oc=False):
     """Peca inteira: teto, sombra do casulo, casulo + rack + efeitos girados juntos (ChainedTo Turret)."""
     W, H = meta["size"]
     pvx, pvy = meta["pivot"]
@@ -350,7 +353,8 @@ def _launcher_frame(d, meta, roof, look, level, tframe=0, angle=0.0, fx=None, sc
     px, py = ox + pvx * PX, oy + pvy * PX
     base = rotate_about_center(_launcher_layer(d, meta, look, level, tframe), angle)
     paste_center(canvas, shadow_of(base), px, py)
-    lay = rotate_about_center(_launcher_layer(d, meta, look, level, tframe, fx), angle) if fx else base
+    lay = rotate_about_center(_launcher_layer(d, meta, look, level, tframe, fx, oc=oc), angle) if (fx or oc) \
+        else base
     paste_center(canvas, lay, px, py)
     if scale != 1:
         canvas = canvas.resize((cw * scale, ch * scale), Image.LANCZOS)
@@ -426,19 +430,24 @@ def make_all_launcher(d, meta, paint=(46, 58, 74), scale=2):
     units = len(meta["modes"][look]["units"])
     bg = (7, 9, 14)
 
-    # vista do jogo: 1x e 3x com o rack cheio (+ 1x dos outros modos)
-    def still(lk):
-        c = _launcher_frame(d, meta, roof, lk, len(meta["modes"][lk]["units"]))
+    # vista do jogo: 3x com o rack cheio do 1o modo + grade 1x com todos os modos (rack cheio) e, se houver,
+    # o 1o modo em overclock (turret_oc.png por cima); a grade cresce em colunas e nunca sai da folha
+    def still(lk, oc=False):
+        c = _launcher_frame(d, meta, roof, lk, len(meta["modes"][lk]["units"]), oc=oc)
         return crop_content(c, bg)
     one = still(look)
-    extra = [still(lk) for lk in looks[1:]]
+    smalls = [one] + [still(lk) for lk in looks[1:]]
+    if meta["turret"].get("oc_glow"):
+        smalls.append(still(look, oc=True))
     three = one.resize((one.width * 3, one.height * 3), Image.LANCZOS)
-    left_w = max([one.width] + [e.width for e in extra])
-    sheet = Image.new("RGBA", (left_w + three.width + 48, three.height + 32), bg + (255,))
-    y = 16 + three.height - one.height - sum(e.height + 12 for e in extra)
-    for im in extra + [one]:
-        sheet.alpha_composite(im, (16, max(16, y)))
-        y += im.height + 12
+    cw_, ch_ = max(s.width for s in smalls), max(s.height for s in smalls)
+    rows = max(1, (three.height + 12) // (ch_ + 12))
+    cols = -(-len(smalls) // rows)
+    left_w = cols * (cw_ + 12) - 12
+    sheet = Image.new("RGBA", (left_w + three.width + 48, max(three.height, rows * (ch_ + 12) - 12) + 32),
+                      bg + (255,))
+    for i, im in enumerate(smalls):
+        sheet.alpha_composite(im, (16 + (i // rows) * (cw_ + 12), 16 + (i % rows) * (ch_ + 12)))
     sheet.alpha_composite(three, (left_w + 32, 16))
     sheet.convert("RGB").save(os.path.join(d, "preview_ingame.png"))
 
