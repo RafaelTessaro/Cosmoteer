@@ -109,6 +109,8 @@
   }
  ],
  "preview_pattern": "alternate",
+ "accent": "cyan",
+ "preview_fx": "plasma",
  "files": [
   "barrel1.png",
   "barrel2.png",
@@ -137,7 +139,5 @@
   "turret_off.png",
   "turret_shadow.png",
   "walls.png"
- ],
- "accent": "cyan",
- "preview_fx": "plasma"
+ ]
 }

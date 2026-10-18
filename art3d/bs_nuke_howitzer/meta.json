@@ -134,6 +134,8 @@
   }
  ],
  "preview_pattern": "single",
+ "accent": "green",
+ "preview_fx": "fire",
  "files": [
   "barrel1.png",
   "barrel10.png",

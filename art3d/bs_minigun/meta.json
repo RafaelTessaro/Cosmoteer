@@ -90,6 +90,8 @@
   }
  ],
  "preview_pattern": "rotary",
+ "accent": "amber",
+ "preview_fx": "fire",
  "files": [
   "barrel1.png",
   "barrel_normals1.png",
@@ -110,7 +112,5 @@
   "turret_off.png",
   "turret_shadow.png",
   "walls.png"
- ],
- "accent": "amber",
- "preview_fx": "fire"
+ ]
 }
