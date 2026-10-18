@@ -2,12 +2,12 @@
 
 Mesma familia do 76 mm (nucleo escuro + placas claras com vaos), com identidade de carcara:
 planta em losango (mais larga na linha dos olhos, afina para o bico e para a nuca); bico em proa entre os
-canos (cera cinza com narinas escuras + bico claro facetado com crista central e dente tomial de cada lado),
-bochechas claras com o olho do carcara (recesso escuro em gota, fenda de lente ambar ao longo da cauda e
-viseira de aco), garras em lamina com fenda de luz fraca que avancam ate a raiz de cada cano (pistao no vao
-bochecha/garra), coroa central com canal sensor escuro em seta, penas varridas para tras na nuca (lamina de
-fora com degrau e fenda de pips, nivel de baixo por dentro), baia de exaustao entre as penas e calhas de
-alimentacao nos vaos ate as culatras.
+canos (cera cinza com narinas escuras + bico claro facetado com crista central, dente tomial de cada lado e
+entalhe do gancho na ponta), bochechas claras facetadas com o olho do carcara (recesso preto em gota com fenda
+fina de lente fraca na cauda), garras em lamina com fenda de luz fraca que avancam ate a raiz de cada cano
+(pistao no vao bochecha/garra), coroa central com canal sensor escuro em seta, penas varridas para tras na nuca
+(lamina de fora com degrau e fenda de pips, nivel de baixo cinza medio por dentro), baia de exaustao entre as penas
+e calhas de alimentacao nos vaos ate as culatras.
 Canos: culatra escura, camisa escura com fendas e brasa fraca, luva clara facetada com canal, extrator de
 gases facetado e colares, freio leve em ponta de flecha com fendas transversais escuras. Recuo alternado.
 """
@@ -63,12 +63,15 @@ CORE = sym([(0.24, -0.85), (0.44, -0.82), (0.60, -0.62), (0.74, -0.36), (0.82, -
 # berco escuro dos dois canos (sob o bico, entre as garras)
 CRADLE = [(-0.37, 0.16), (0.37, 0.16), (0.38, 0.22), (0.38, 0.74), (0.32, 0.84), (-0.32, 0.84), (-0.38, 0.74),
           (-0.38, 0.22)]
-# bochecha (a parte mais larga da cabeca, com o olho): frente em diagonal rasa, vao de 0.08 ate a garra
-CHEEK = [(0.39, 0.42), (0.39, -0.18), (0.46, -0.26), (0.78, -0.17), (0.89, 0.02), (0.89, 0.14), (0.79, 0.27)]
+# bochecha (a parte mais larga da cabeca, com o olho): quina viva na linha do olho, degrau no canto de tras,
+# frente em diagonal rasa com vao de 0.08 ate a garra
+CHEEK = [(0.39, 0.42), (0.39, -0.18), (0.46, -0.26), (0.71, -0.22), (0.77, -0.14), (0.84, -0.12), (0.915, 0.08),
+         (0.80, 0.27)]
 # garra em lamina: base paralela a frente da bochecha, borda de dentro paralela ao berco, ponta para a frente
 # junto ao cano e borda de fora varrida para tras (continua a cunha da bochecha ate o bico)
-TALON = [(0.74, 0.375), (0.43, 0.49), (0.36, 0.58), (0.345, 0.66), (0.345, 0.82), (0.365, 0.905), (0.395, 0.915),
-         (0.43, 0.80), (0.52, 0.64), (0.66, 0.48)]
+# (pontas recuadas 0.05: o bico lidera a frente por ~0.10)
+TALON = [(0.74, 0.375), (0.43, 0.49), (0.36, 0.58), (0.345, 0.66), (0.345, 0.78), (0.36, 0.855), (0.39, 0.865),
+         (0.43, 0.76), (0.52, 0.64), (0.66, 0.48)]
 # coroa (espinha central): estreita atras (nuca), frente em ponta que entra na cera do bico
 CROWN = [(-0.15, -0.62), (0.15, -0.62), (0.27, -0.44), (0.27, -0.10), (0.10, 0.22), (-0.10, 0.22), (-0.27, -0.10),
          (-0.27, -0.44)]
@@ -77,18 +80,20 @@ CAP = [(-0.07, -0.40), (0.07, -0.40), (0.07, -0.08), (0.0, 0.03), (-0.07, -0.08)
 # pena de fora: lamina varrida para tras com degrau na borda de tras (ponta dentro do raio 1.0)
 FEATHER1 = [(0.45, -0.33), (0.77, -0.24), (0.80, -0.31), (0.68, -0.56), (0.58, -0.70), (0.52, -0.70),
             (0.47, -0.82), (0.43, -0.77)]
-# pena de dentro: nivel mais baixo, enfiada sob a de fora (so o degrau de dentro aparece)
-FEATHER2 = [(0.28, -0.50), (0.48, -0.44), (0.50, -0.66), (0.40, -0.78), (0.29, -0.75)]
+# pena de dentro: nivel mais baixo (cinza medio), cunha com borda de fuga varrida; a ponta sai atras da de fora
+FEATHER2 = [(0.28, -0.48), (0.46, -0.44), (0.50, -0.64), (0.42, -0.88), (0.29, -0.64)]
 # cera do bico (base e topo)
 CERE_B = [(-0.125, 0.10), (0.125, 0.10), (0.13, 0.30), (-0.13, 0.30)]
 CERE_T = [(-0.075, 0.12), (0.075, 0.12), (0.08, 0.29), (-0.08, 0.29)]
 # bico: estacoes (y, meia largura embaixo, meia largura no topo, z da borda do topo, z da crista); dente tomial
 # em 0.655-0.705; ponta (y embaixo, y em cima, z em cima)
-BILL = [(0.315, 0.128, 0.060, 0.600, 0.632), (0.50, 0.127, 0.058, 0.595, 0.626), (0.64, 0.108, 0.046, 0.572, 0.604),
-        (0.655, 0.082, 0.034, 0.566, 0.598), (0.705, 0.092, 0.038, 0.556, 0.588), (0.84, 0.058, 0.022, 0.512, 0.540)]
-BILL_TIP = (0.955, 0.895, 0.478)
-# olho (lado direito): centro do recesso, raio, cauda para tras e para fora (gota)
-EYE = dict(c=(0.585, 0.11), r=0.068, tail=0.18, ang=-37.0)
+# (topo largo e crista baixa: as facetas de cima pegam a luz e o bico fica tao claro quanto as garras)
+BILL = [(0.315, 0.128, 0.075, 0.600, 0.620), (0.50, 0.127, 0.075, 0.595, 0.615), (0.64, 0.108, 0.058, 0.572, 0.592),
+        (0.655, 0.082, 0.043, 0.566, 0.586), (0.705, 0.092, 0.047, 0.556, 0.576), (0.84, 0.058, 0.028, 0.512, 0.530)]
+BILL_TIP = (0.965, 0.905, 0.478)
+# olho (lado direito): centro do recesso, raio, cauda para tras e para fora (gota); largo o bastante para
+# sobrar aro preto em volta da lente mesmo com o halo de emissao
+EYE = dict(c=(0.585, 0.11), r=0.076, tail=0.20, ang=-37.0)
 TALON_AX = 22.8                    # inclinacao do eixo longo da garra (graus, lado direito)
 GAP_YAW = 69.4                     # direcao do vao bochecha/garra (graus, lado direito)
 
@@ -182,11 +187,11 @@ def head(M, T="head", phase=0.0):
     for sx in (-1, 1):
         sd = "R" if sx > 0 else "L"
         # bochecha clara (a parte mais larga) com linha de painel atras do olho
-        ca, cpn = B.shard(f"cheek_{sd}", side_poly(CHEEK, sx), 0.26, 0.56, A, slope=0.06, groove=0.03,
+        ca, cpn = B.shard(f"cheek_{sd}", side_poly(CHEEK, sx), 0.26, 0.56, A, slope=0.05, groove=0.03,
                           panel_h=0.03, tags=tags)
         if cpn is not None:
-            B.cut(cpn, [B.rbox(f"cpl{sd}0", sx * 0.62, -0.075, 0.016, 0.22, 0.55, 0.9, K, rot=sx * 75, bevel=0.0)])
-        # olho do carcara: recesso em gota com fenda de lente ambar ao longo da cauda e viseira de aco na frente
+            B.cut(cpn, [B.rbox(f"cpl{sd}0", sx * 0.595, -0.07, 0.016, 0.16, 0.55, 0.9, K, rot=sx * 75, bevel=0.0)])
+        # olho do carcara: recesso preto em gota com fenda fina de lente (luz fraca) na cauda; aro preto em volta
         ex, ey = EYE["c"]
         ang = EYE["ang"] if sx > 0 else 180.0 - EYE["ang"]
         drop = teardrop(sx * ex, ey, EYE["r"], EYE["tail"], ang)
@@ -196,18 +201,15 @@ def head(M, T="head", phase=0.0):
                 B.cut(t, [B.loft(f"eye_cut{sd}{t.name}", drop, drop, zt - 0.09, 1.0, K, bevel=0.0)])
         B.loft(f"eye_bed{sd}", drop, drop, zt - 0.10, zt - 0.088, M["black"], bevel=0.0, tags=tags)
         ux, uy = math.cos(math.radians(ang)), math.sin(math.radians(ang))   # eixo da cauda
-        B.rbox(f"eye_lens{sd}", sx * ex + ux * 0.02, ey + uy * 0.02, 0.022, 0.11, zt - 0.072, zt - 0.06, M["glow"],
-               rot=sx * 53, bevel=0.0, tags=tags)
-        nx, ny = sx * 0.6, 0.8                                              # lado da frente do recesso
-        B.rbox(f"visor{sd}", sx * ex + nx * 0.088, ey + ny * 0.088, 0.03, 0.17, 0.57, 0.615, S, rot=sx * 53,
-               chamfer=0.012, slope=0.008, bevel=0.006, tags=tags)
+        B.rbox(f"eye_lens{sd}", sx * ex + ux * 0.04, ey + uy * 0.04, 0.016, 0.08, zt - 0.075, zt - 0.066,
+               M["glow_dim"], rot=sx * 53, bevel=0.0, tags=tags)
 
         # garra em lamina com fenda de luz fraca ao longo do eixo
         ta, tpn = B.shard(f"talon_{sd}", side_poly(TALON, sx), 0.26, 0.53, A, slope=0.04, groove=0.02,
                           panel_h=0.025, tags=tags)
-        tcx, tcy, trot = sx * 0.465, 0.635, sx * TALON_AX
-        slot_rot(f"tsl{sd}", tcx, tcy, 0.18, 0.03, 0.555, 0, M, tags, trot, [ta, tpn], depth=0.07)
-        B.rbox(f"tglow{sd}", tcx, tcy, 0.014, 0.14, 0.486, 0.498, M["glow_dim"], rot=trot, bevel=0.0, tags=tags)
+        tcx, tcy, trot = sx * 0.452, 0.62, sx * TALON_AX
+        slot_rot(f"tsl{sd}", tcx, tcy, 0.15, 0.03, 0.555, 0, M, tags, trot, [ta, tpn], depth=0.07)
+        B.rbox(f"tglow{sd}", tcx, tcy, 0.014, 0.115, 0.486, 0.498, M["glow_dim"], rot=trot, bevel=0.0, tags=tags)
         # pistao no vao bochecha/garra
         B.cyl(f"piston{sd}", sx * 0.60, 0.383, 0.32, 0.022, 0.24, S, axis="Y", verts=10, yaw=sx * GAP_YAW,
               tags=tags)
@@ -217,8 +219,9 @@ def head(M, T="head", phase=0.0):
         # penas da nuca: a de fora com fenda de 2 pips ao longo da haste, a de dentro mais baixa e enfiada
         fa, fpn = B.shard(f"feather1_{sd}", side_poly(FEATHER1, sx), 0.24, 0.48, A, slope=0.05, groove=0.025,
                           panel_h=0.03, tags=tags)
-        slot_rot(f"fsl{sd}", sx * 0.585, -0.48, 0.16, 0.04, 0.51, 2, M, tags, sx * -15, [fa, fpn], depth=0.08)
-        B.shard(f"feather2_{sd}", side_poly(FEATHER2, sx), 0.20, 0.38, A, slope=0.045, groove=0.02, panel_h=0.025,
+        slot_rot(f"fsl{sd}", sx * 0.585, -0.48, 0.16, 0.04, 0.51, 2, M, tags, sx * -15, [fa, fpn], depth=0.08,
+                 mat=M["glow_dim"])
+        B.shard(f"feather2_{sd}", side_poly(FEATHER2, sx), 0.20, 0.38, AM, slope=0.045, groove=0.02, panel_h=0.025,
                 tags=tags)
 
         # calha de alimentacao no vao coroa/bochecha: motor atras com contador, aneis de aco, boca na culatra
@@ -230,9 +233,8 @@ def head(M, T="head", phase=0.0):
         B.box(f"feedlid{sd}", sx * 0.335, 0.30, 0.05, 0.07, 0.44, 0.455, S, bevel=0.005, tags=tags)
         B.box(f"fmotor{sd}", sx * 0.385, -0.35, 0.12, 0.11, 0.26, 0.40, KM, bevel=0.012, tags=tags)
         B.box(f"fmotorc{sd}", sx * 0.385, -0.318, 0.08, 0.035, 0.40, 0.418, S, bevel=0.006, tags=tags)
-        for i in range(2):
-            B.box(f"fmled{sd}{i}", sx * (0.36 + i * 0.05), -0.378, 0.026, 0.024, 0.40, 0.409, M["glow_dim"],
-                  bevel=0.0, tags=tags)
+        # contador do motor: uma barrinha so (nao vira um segundo par de olhos)
+        B.box(f"fmled{sd}", sx * 0.385, -0.380, 0.060, 0.016, 0.40, 0.409, M["glow_dim"], bevel=0.0, tags=tags)
 
     # bico: cera cinza media com narinas escuras + bico claro com crista e dente tomial
     cere = B.loft("cere", CERE_B, CERE_T, 0.24, 0.60, AM, bevel=0.01, tags=tags)
@@ -240,9 +242,12 @@ def head(M, T="head", phase=0.0):
     for sx in (-1, 1):
         B.box(f"nostril{sx}", sx * 0.036, 0.26, 0.022, 0.06, 0.545, 0.556, M["black"], bevel=0.0, tags=tags)
     bill = beak("bill", BILL, BILL_TIP, 0.26, A, bevel=0.01, tags=tags)
-    B.cut(bill, [B.box("bill_pl", 0, 0.48, 0.30, 0.016, 0.55, 0.9, K, bevel=0.0)])
+    # linha de painel + entalhe do gancho perto da ponta (bico adunco do carcara)
+    B.cut(bill, [B.box("bill_pl", 0, 0.48, 0.30, 0.016, 0.55, 0.9, K, bevel=0.0),
+                 B.box("bill_hook", 0, 0.86, 0.20, 0.014, 0.495, 0.9, K, bevel=0.0)])
+    B.box("bill_hookd", 0, 0.86, 0.05, 0.014, 0.47, 0.498, K, bevel=0.0, tags=tags)   # fundo escuro do entalhe
 
-    # coroa clara com canal sensor escuro em seta (fenda de luz fraca na ponta, nervuras de aco atras)
+    # coroa clara com canal sensor escuro em seta (fenda de luz fraca na ponta, bloco sensor de aco atras)
     z0, z1, ph = 0.30, 0.62, 0.03
     cw, cpn = B.shard("crown", CROWN, z0, z1, A, slope=0.08, groove=0.035, panel_h=ph, tags=tags)
     zt = z1 + ph
@@ -251,15 +256,19 @@ def head(M, T="head", phase=0.0):
             B.cut(t, [B.loft(f"cap_cut{t.name}", CAP, CAP, zt - 0.08, 1.2, K, bevel=0.0)])
     B.loft("cap_bed", CAP, CAP, zt - 0.09, zt - 0.075, KM, bevel=0.0, tags=tags)
     B.box("cap_eye", 0, -0.06, 0.07, 0.016, zt - 0.076, zt - 0.068, M["glow_dim"], bevel=0.0, tags=tags)
-    for i, y in enumerate((-0.33, -0.26)):
-        B.box(f"cap_rib{i}", 0, y, 0.12, 0.022, zt - 0.076, zt - 0.06, S, bevel=0.004, tags=tags)
+    # bloco sensor de aco elevado no fundo do canal (eco da espinha com sensor do 76 mm): ponta em seta e
+    # janela escura no topo
+    sen = [(-0.052, -0.355), (0.052, -0.355), (0.052, -0.275), (0.0, -0.235), (-0.052, -0.275)]
+    B.plate("cap_sensor", sen, zt - 0.08, zt - 0.035, S, slope=0.012, bevel=0.005, tags=tags)
+    B.box("cap_win", 0, -0.31, 0.062, 0.026, zt - 0.036, zt - 0.031, M["black"], bevel=0.0, tags=tags)
 
-    # baia de exaustao traseira: persianas com fileira de 3 pips fracos entre duas delas
+    # baia de exaustao traseira: persianas altas (sobem acima da baia) com fileira de 3 pips; o do meio forte
     B.box("vent_bay", 0, -0.73, 0.40, 0.18, 0.20, 0.30, M["black"], bevel=0.0, tags=tags)
     for i in range(3):
-        B.box(f"louver{i}", 0, -0.79 + i * 0.05, 0.38, 0.018, 0.20, 0.31, KM, bevel=0.003, tags=tags)
+        B.box(f"louver{i}", 0, -0.79 + i * 0.05, 0.38, 0.018, 0.20, 0.33, KM, bevel=0.003, tags=tags)
     for i, x in enumerate((-0.10, 0.0, 0.10)):
-        B.box(f"vent_pip{i}", x, -0.765, 0.03, 0.014, 0.300, 0.307, M["glow_dim"], bevel=0.0, tags=tags)
+        B.box(f"vent_pip{i}", x, -0.765, 0.03, 0.014, 0.330, 0.337, M["glow"] if i == 1 else M["glow_dim"],
+              bevel=0.0, tags=tags)
 
 
 # ============================================================================ cano
@@ -337,13 +346,15 @@ def roof(M, T="roof"):
     B.bolts("rb", pts, 0.1, 0.022, S, tags=tags)
     for sx in (-1, 1):
         # canto de tras: respiro em diagonal com persianas fundas; luz fraca no fundo da persiana de fora
+        # (fundo das fendas em z 0.09, acima do painel verde do convés que termina em 0.08: nada de verde nas fendas)
         cx, cy = sx * 0.78, -0.80
-        v = B.rbox(f"cvent{sx}", cx, cy, 0.34, 0.17, 0.05, 0.11, KM, rot=sx * 40, chamfer=0.035, bevel=0.01,
+        v = B.rbox(f"cvent{sx}", cx, cy, 0.34, 0.17, 0.05, 0.13, KM, rot=sx * 40, chamfer=0.035, bevel=0.01,
                    tags=tags)
         a = math.radians(sx * 40)
         B.cut(v, [B.rbox(f"cvc{sx}{i}", cx - math.sin(a) * (i - 1) * 0.045, cy + math.cos(a) * (i - 1) * 0.045,
-                         0.27, 0.025, 0.07, 0.2, K, rot=sx * 40, bevel=0.0) for i in range(3)])
-        B.rbox(f"cled{sx}", cx + math.sin(a) * 0.045, cy - math.cos(a) * 0.045, 0.14, 0.018, 0.070, 0.078,
+                         0.27, 0.025, 0.09, 0.2, K, rot=sx * 40, bevel=0.0) for i in range(3)])
+        B.rbox(f"cvbed{sx}", cx, cy, 0.27, 0.12, 0.086, 0.092, M["black"], rot=sx * 40, bevel=0.0, tags=tags)
+        B.rbox(f"cled{sx}", cx + math.sin(a) * 0.045, cy - math.cos(a) * 0.045, 0.14, 0.018, 0.090, 0.098,
                M["glow_dim"], rot=sx * 40, bevel=0.0, tags=tags)
         # canto da frente: tampa triangular chanfrada com parafuso
         tri = [(sx * 0.92, 0.92), (sx * 0.64, 0.92), (sx * 0.92, 0.64)]
