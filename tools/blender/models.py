@@ -130,11 +130,11 @@ def hull_floor(M, w, h, pivot, ring_r, crew, T="floor"):
     # estantes de carregadores na fileira de tras + estacoes da tripulacao
     for tx in range(w):
         x = tx - w / 2 + 0.5
-        B.box(f"rack{tx}", x, -h / 2 + 0.22, 0.78, 0.26, 0.0, 0.16, M["armor_mid"], bevel=0.01, tags=tags)
+        B.box(f"rack{tx}", x, -h / 2 + 0.13, 0.78, 0.18, 0.0, 0.16, M["armor_mid"], bevel=0.01, tags=tags)
         for i in range(3):
-            B.box(f"mag{tx}{i}", x - 0.24 + i * 0.24, -h / 2 + 0.22, 0.16, 0.18, 0.16, 0.24, M["core_mid"],
+            B.box(f"mag{tx}{i}", x - 0.24 + i * 0.24, -h / 2 + 0.13, 0.16, 0.12, 0.16, 0.24, M["core_mid"],
                   bevel=0.01, tags=tags)
-            B.box(f"magled{tx}{i}", x - 0.24 + i * 0.24, -h / 2 + 0.22, 0.10, 0.03, 0.24, 0.26, M["glow_dim"],
+            B.box(f"magled{tx}{i}", x - 0.24 + i * 0.24, -h / 2 + 0.13, 0.10, 0.03, 0.24, 0.26, M["glow_dim"],
                   bevel=0.0, tags=tags)
     for i, (cx, cy, _r) in enumerate(crew):
         x, y = cx - w / 2, h / 2 - cy
