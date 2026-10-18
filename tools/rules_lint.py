@@ -176,6 +176,15 @@ ACTION_TARGET_FIELDS = {
 }
 
 
+# Campos que o jogo le como inteiro (Int32 / ModifiableInt): um literal fracionario derruba o carregamento
+# ("evaluated to 7666,667 which is not compatible with the desired type 'Int32'"). Para os ModifiableInt o valor
+# pode vir num bloco { BaseValue = ... }.
+INT_FIELDS = {'totaldamage', 'maxhealth', 'maxresources', 'maxstacksize', 'toquantity', 'fromquantity',
+              'togglequantity', 'toggleonresources', 'toggleoffresources', 'resupplythreshold', 'commandpoints',
+              'crewrequired', 'expandstartradius'}
+_FRACTION_RE = re.compile(r'^-?\d*\.\d*[1-9]\d*$')
+
+
 # ---------------------------------------------------------------------------
 # Report
 # ---------------------------------------------------------------------------
@@ -1393,6 +1402,15 @@ class Linter(object):
 
     def check_value(self, rf, node):
         v = node.value
+        if v and not node.is_str and _FRACTION_RE.match(v.strip()):
+            name = (node.name or '').lower()
+            if name == 'basevalue' and node.parent is not None:
+                name = (node.parent.name or '').lower()
+            if name in INT_FIELDS:
+                self.report.add(ERROR, rf, node.line, 'type',
+                                "'%s' is read as an integer by the game but has the fractional value %s "
+                                "(the mod fails to load)" % (node.name if node.name != 'BaseValue' else
+                                                             node.parent.name, v.strip()))
         if node.is_str:
             self.check_string(rf, node)
             if v and '(&' in v:

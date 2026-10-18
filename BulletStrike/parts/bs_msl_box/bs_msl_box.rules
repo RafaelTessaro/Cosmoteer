@@ -1356,7 +1356,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					Type = ExplosiveDamage
 					TotalDamage
 					{
-						BaseValue = 7666.667
+						BaseValue = 7667
 						EffectScaleExponent = 1
 					}
 					Radius = 3.5
@@ -1378,7 +1378,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					Type = ExplosiveDamage
 					TotalDamage
 					{
-						BaseValue = 2533.333
+						BaseValue = 2533
 						EffectScaleExponent = 1
 					}
 					Radius = 2.5
@@ -1413,7 +1413,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					Type = ExplosiveDamage
 					TotalDamage
 					{
-						BaseValue = 3833.333
+						BaseValue = 3833
 						EffectScaleExponent = 1
 					}
 					Radius = 3.5
@@ -1435,7 +1435,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					Type = ExplosiveDamage
 					TotalDamage
 					{
-						BaseValue = 1266.667
+						BaseValue = 1267
 						EffectScaleExponent = 1
 					}
 					Radius = 2.5

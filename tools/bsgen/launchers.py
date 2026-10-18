@@ -414,16 +414,17 @@ def cookoff_storages(lch, fam):
 
 
 def _cookoff_hits(ck, f):
-    """HitEffects do cook-off de UM storage; f = fracao do valor 'estoque cheio' do spec que ele carrega cheio."""
+    """HitEffects do cook-off de UM storage; f = fracao do valor 'estoque cheio' do spec que ele carrega cheio.
+    TotalDamage e inteiro no jogo (ModifiableInt): um valor fracionario derruba o carregamento do mod."""
     if ck["kind"] == "blast":
         return [
-            {"Type": "ExplosiveDamage", "TotalDamage": {"BaseValue": _num(ck["op_damage"] * f), "EffectScaleExponent": 1},
+            {"Type": "ExplosiveDamage", "TotalDamage": {"BaseValue": int(round(ck["op_damage"] * f)), "EffectScaleExponent": 1},
              "Radius": ck["op_radius"], "Delay": 0.05, "StatusType": "cosmoteer.fire",
              "StatusChancePerNDamage": f"{int(round(ck['fire_chance_per_1000'] * 100))}%", "StatusValue": 1,
              "StatusValueType": "Interpolated", "NDamage": 1000,
              "CrewKillChance": f"{int(round(ck['crew_kill_chance'] * 100))}%",
              "Filter": {"OperationalHealth": True, "StructuralHealth": False, "Friendlies": True}},
-            {"Type": "ExplosiveDamage", "TotalDamage": {"BaseValue": _num(ck["st_damage"] * f), "EffectScaleExponent": 1},
+            {"Type": "ExplosiveDamage", "TotalDamage": {"BaseValue": int(round(ck["st_damage"] * f)), "EffectScaleExponent": 1},
              "Radius": ck["st_radius"], "Delay": 0.05,
              "Filter": {"OperationalHealth": False, "StructuralHealth": True, "Friendlies": True, "Crew": False}},
         ]
