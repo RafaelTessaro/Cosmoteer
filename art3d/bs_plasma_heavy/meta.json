@@ -137,5 +137,7 @@
   "turret_off.png",
   "turret_shadow.png",
   "walls.png"
- ]
+ ],
+ "accent": "cyan",
+ "preview_fx": "plasma"
 }

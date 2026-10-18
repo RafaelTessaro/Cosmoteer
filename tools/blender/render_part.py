@@ -219,7 +219,8 @@ def render_gun(mod, out, only):
             else:
                 os.replace(stem + "_normals.png", os.path.join(out, nn))
             if ht > 0 and B.objects_with("hot"):
-                heat_composite(res["on"], _heat_layer(stem, bsz, L), ht).save(stem + ".png")
+                heat_composite(res["on"], _heat_layer(stem, bsz, L, bar.get("heat_color", HEAT_COLOR)), ht).save(
+                    stem + ".png")
             for o in B.objects_with("barrel"):
                 o.location.y = base_y[o.name]
     meta["barrel"] = {
@@ -271,13 +272,18 @@ def render_gun(mod, out, only):
     meta["lights"] = [{"loc": [l["at"][1], l["at"][0]], "size": l.get("size", 1.2), "color": l.get("color", [255, 120, 30]),
                        "z": l.get("z", 1.0)} for l in P.get("lights", [])]
     meta["preview_pattern"] = P.get("preview_pattern", "alternate" if len(bar["ys"]) > 1 else "single")
+    meta["accent"] = accent if isinstance(accent, str) else "amber"
+    meta["preview_fx"] = P.get("preview_fx", "plasma" if meta["accent"] == "cyan" else "fire")
     meta["files"] = sorted(set(files))
     return meta
 
 
-def _heat_layer(stem, size, L):
+HEAT_COLOR = (1.0, 0.13, 0.015)  # laranja de metal quente (padrao); plasma usa heat_color ciano
+
+
+def _heat_layer(stem, size, L, color=HEAT_COLOR):
     """Brilho de calor das partes marcadas 'hot', mais forte perto da boca."""
-    heat_m = B.mat_glow("__heat", (1.0, 0.13, 0.015), 1.25)
+    heat_m = B.mat_glow("__heat", tuple(color), 1.25)
     sc = bpy.context.scene
     hot = [o for o in sc.objects if o.get("hot") and not o.hide_render]
     keep = {o.name: list(o.data.materials) for o in hot}

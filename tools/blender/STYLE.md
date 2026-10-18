@@ -97,12 +97,14 @@ PART = {
         "recoil": [0.26, 0.18, 0.10, 0.04],   # recoil per frame (tiles), first = shot
         "heat": [1.0, 0.9, 0.78, 0.64, 0.5, 0.36, 0.22, 0.1],  # heat glow per frame (cools down afterwards)
         "interval": 0.06,              # seconds per frame
+        "heat_color": (1.0, 0.13, 0.015),  # optional: heat color (plasma: (0.25, 0.85, 1.0) cyan)
         # for anim == "spin": "spin_frames": 3 (barrel(M, L, T, phase) with phase in [0,1) = fraction of the
         # angle between two barrels; the renderer asks for phases 1/4, 2/4, 3/4 and 0 for rest)
     },
     "turret_anim": {"frames": 8, "interval": 0.1},   # optional: looping animation of the head (radar, lights)
     "lights": [{"at": [x, y], "size": 1.4, "color": [255, 120, 30], "z": 0.8}],  # dynamic lights (head coordinates)
     "preview_pattern": "single",       # GIF preview: single | alternate | pairs | volley | rotary
+    "preview_fx": "fire",              # optional: "plasma" = cyan flash and no smoke (default by accent)
 }
 
 def head(M, T="head", phase=0.0): ...        # turret head; phase in [0,1) when turret_anim exists
@@ -212,3 +214,15 @@ def item(M, T="item"): ...   # ONE unit centered on the origin, fitting in ~1x1 
   EMP (blue coils/glow), plasma cell (glowing cyan cylinder), nuclear shell (large shell, green band, radiation
   symbol made of 3 wedges).
 - Stacks of 5-6 must not look like a jumble: use an organized 2-layer arrangement (`stack_layout`).
+
+## 9. Known pitfalls (from the agents that already modeled weapons)
+
+- **Shallow cuts break the bevel:** `Mo.slot_with_pips`/`B.cut` that reach only about 0.02 into a chamfered plate create black triangles
+  (the bevel is reapplied after the boolean). Use depth >= panel_h + 0.04, and keep cutter walls at least 0.03 inside the edge of the
+  top face.
+- **Self-intersecting offsets:** `offset_ok` only detects edges that flip direction. Polygons with acute vertices next to other
+  edges (fangs, notches) can self-intersect without warning, and the boolean then returns an EMPTY mesh. If a part disappears from the
+  render, simplify the polygon or reduce the slope.
+- **Head ring over the barrels:** on large turrets the turret disk (ring) can cover the barrel roots when the head is drawn on top.
+  Cut the front arc of the disk at the cradle mouths.
+- **Heat on light armor:** tag only brakes/tips/collars as 'hot'. On plasma weapons use a cyan `heat_color` with low heat values.

@@ -1,14 +1,16 @@
 """Canhao de Plasma Pesado ("Curupira") - guardiao da floresta, de pes virados e cabelo de fogo; mesma familia do 76 mm.
 
-Cabeca em ponta de flecha: garras que avancam ate os canos, proa central bifurcada (repete as pontas dos
-trilhos), espinha com sensor e a chama do Curupira gravada num rebaixo, ombreiras com fenda de pips e,
-atras, uma crista de chamas angulares que varre PARA TRAS ate os cantos (os pes virados / o cabelo de
-fogo): duas camadas por lado (3 linguas embaixo, 2 em cima, calco escuro entre elas). Tanques de celulas de plasma
-com nivel ciano nos vaos, bobinas de carga pequenas atras deles, dutos ate os bercos, baia de exaustao
-traseira com pips ciano. Teto com estante de celulas de plasma (4 baias com celula ciano e nivel).
-Dois canos de trilho grossos: banco de capacitores escuro na raiz (copiado no berco da cabeca), dois
-pacotes de bobinas claras cortadas por um canal escuro no topo (pips ciano nos vaos), trilhos expostos e pontas
-abertas (duas pontas claras facetadas por cano com canal escuro no meio) - so as pontas esquentam.
+Cabeca em ponta de flecha: garras de ponta bifurcada que avancam ate os canos, proa central bifurcada (repete
+as pontas dos trilhos), espinha com sensor e a chama do Curupira gravada num rebaixo, ombreiras com tampa em
+lingua virada para tras e, atras, uma crista de chamas angulares que varre PARA TRAS (os pes virados / o
+cabelo de fogo): duas camadas por lado (3 linguas embaixo, 2 em cima, calco escuro entre elas), todas dentro
+de r 2.3 do pivo. Tanques de celulas de plasma com nivel ciano nos vaos, bobinas de carga pequenas atras
+deles, dutos ate os bercos em cunha, baia de exaustao traseira com pips ciano. Teto com estante de celulas em
+favo (4 baias hexagonais, 2 celulas com coluna de nivel cada). Piso proprio com estante e condutos ate o anel.
+Dois canos de trilho grossos: banco de capacitores escuro afunilado na raiz (copiado no berco da cabeca),
+pescoco escuro, dois pacotes de bobinas claras com colares cinza a cada 3 aneis (batida de 0.36 tile) e canal
+escuro estreito no topo (pips ciano nos vaos), trilhos expostos e pontas abertas (duas pontas claras facetadas
+por cano com canal escuro no meio) - so as pontas esquentam.
 """
 
 import math
@@ -33,6 +35,7 @@ PART = {
         "pad": 0.40,               # espaco atras da raiz para o recuo
         "anim": "recoil",
         "recoil": [0.32, 0.28, 0.22, 0.16, 0.11, 0.06, 0.03, 0.01],
+        "heat_color": (0.25, 0.85, 1.0),  # calor de plasma: brilho ciano nas pontas dos trilhos
         "heat": [0.36, 0.29, 0.22, 0.15, 0.08],   # calor fraco so nas pontas (o plasma brilha em ciano)
         "interval": 0.065,
     },
@@ -86,7 +89,8 @@ def head(M, T="head", phase=0.0):
     """Cabeca: casco em ponta de flecha, garras nos canos, crista de laminas de chama varrendo para tras."""
     tags = (T,)
     A, AM, K, KM, S = M["armor"], M["armor_mid"], M["core"], M["core_mid"], M["steel"]
-    flame_m = B.mat_glow("flame_glow", Mo.CYAN, 1.6)
+    # contorno da chama: cor do acento, fraco (o sensor continua sendo o foco, como no 76 mm)
+    flame_m = B.mat_glow("flame_glow", Mo.ACCENTS[PART["accent"]], 1.1)
 
     # anel giratorio e nucleo escuro (octogono em ponta de flecha)
     B.cyl("ring", 0, 0, 0.04, 1.74, 0.08, KM, axis="Z", verts=80, bevel=0.01, tags=tags)
@@ -100,10 +104,11 @@ def head(M, T="head", phase=0.0):
 
     # ---------------------------------------------------------------- crista de chamas (pes virados / cabelo de fogo)
     # duas camadas por lado varrendo para tras: chama baixa com 3 linguas (lateral, canto, traseira) e chama
-    # alta com 2 linguas por cima; as raizes somem sob a ombreira
-    low = [(-0.86, -0.58), (-1.50, -0.08), (-1.63, -0.36), (-1.80, -0.68), (-1.90, -1.01), (-1.71, -0.88),
-           (-1.54, -0.86), (-1.66, -1.24), (-1.79, -1.57), (-1.85, -1.85), (-1.62, -1.66), (-1.40, -1.36),
-           (-1.24, -1.26), (-1.22, -1.58), (-1.12, -1.90), (-0.98, -1.66), (-0.90, -1.30), (-0.84, -0.90)]
+    # alta com 2 linguas por cima; as raizes somem sob a ombreira. Todas as pontas ficam em r <= 2.3 do pivo
+    # (a cabeca gira sem varrer as pecas vizinhas nem a estante de celulas do teto)
+    low = [(-0.86, -0.58), (-1.50, -0.08), (-1.63, -0.36), (-1.80, -0.68), (-1.90, -1.00), (-1.71, -0.88),
+           (-1.55, -0.87), (-1.66, -1.18), (-1.73, -1.40), (-1.64, -1.60), (-1.46, -1.46), (-1.32, -1.32),
+           (-1.22, -1.28), (-1.20, -1.58), (-1.11, -1.88), (-0.98, -1.66), (-0.90, -1.30), (-0.84, -0.90)]
     up = [(-0.94, -0.52), (-1.40, -0.20), (-1.52, -0.52), (-1.64, -0.92), (-1.72, -1.40), (-1.50, -1.14),
           (-1.34, -1.10), (-1.32, -1.40), (-1.28, -1.70), (-1.12, -1.44), (-1.02, -1.10), (-0.96, -0.80)]
     for side, sx, f in (("L", -1, lambda p: p), ("R", 1, Mo.mirror)):
@@ -122,9 +127,12 @@ def head(M, T="head", phase=0.0):
     # ---------------------------------------------------------------- ombreiras, garras
     paul = [(-0.86, -0.62), (-1.18, -0.62), (-1.44, -0.36), (-1.54, 0.06), (-1.54, 0.50), (-1.36, 0.80),
             (-0.90, 0.88), (-0.86, 0.74), (-0.86, 0.30), (-0.96, 0.20), (-0.96, -0.30), (-0.86, -0.40)]
-    pcap = [(-1.10, -0.04), (-1.38, -0.04), (-1.46, 0.06), (-1.46, 0.48), (-1.32, 0.70), (-1.10, 0.72)]
-    claw = [(-1.54, 0.92), (-1.22, 0.94), (-0.90, 1.10), (-0.85, 1.36), (-0.85, 1.74), (-0.93, 1.88),
-            (-1.08, 1.80), (-1.58, 1.12)]
+    # tampa da ombreira em lingua de chama: borda externa termina numa ponta virada PARA TRAS (pes virados)
+    pcap = [(-1.08, -0.02), (-1.22, -0.06), (-1.34, -0.25), (-1.45, 0.02), (-1.46, 0.48), (-1.32, 0.70),
+            (-1.08, 0.72)]
+    # garra com ponta bifurcada (duas pontas + entalhe em V, ecoa as pontas abertas dos trilhos)
+    claw = [(-1.54, 0.92), (-1.22, 0.94), (-0.90, 1.10), (-0.85, 1.36), (-0.85, 1.74), (-0.89, 1.90),
+            (-0.97, 1.74), (-1.06, 1.86), (-1.14, 1.76), (-1.58, 1.12)]
     for side, sx, f in (("L", -1, lambda p: p), ("R", 1, Mo.mirror)):
         pa, pp = B.shard(f"paul_{side}", f(paul), 0.34, 0.84, A, slope=0.10, groove=0.045, panel_h=0.035,
                          tags=tags)
@@ -146,15 +154,17 @@ def head(M, T="head", phase=0.0):
     # ---------------------------------------------------------------- bercos escuros dos canos (raiz copiada)
     for sx in (-1, 1):
         cx = sx * BX
-        crad = [(cx - 0.29, 0.50), (cx + 0.29, 0.50), (cx + 0.30, 0.70), (cx + 0.30, 1.46), (cx + 0.18, 1.60),
-                (cx - 0.18, 1.60), (cx - 0.30, 1.46), (cx - 0.30, 0.70)]
+        # berco em cunha (frente afunilada, cantos de tras chanfrados), dentro da faixa x do sprite do cano
+        crad = [(cx - 0.21, 0.50), (cx + 0.21, 0.50), (cx + 0.30, 0.62), (cx + 0.30, 1.20), (cx + 0.15, 1.60),
+                (cx - 0.15, 1.60), (cx - 0.30, 1.20), (cx - 0.30, 0.62)]
         c = B.plate(f"cradle{sx}", crad, 0.28, 0.56, KM, slope=0.04, tags=tags)
-        B.cut(c, [B.box(f"crad_c{sx}", cx, 1.08, 0.40, 0.86, 0.48, 0.9, K, bevel=0.0)])
+        B.cut(c, [B.box(f"crad_c{sx}", cx, 0.985, 0.40, 0.67, 0.48, 0.9, K, bevel=0.0)])
         _breech(M, tags, f"hb{sx}", cx, ROOT)
-        B.cyl(f"cradcol{sx}", cx, 1.56, BZ, 0.255, 0.05, S, axis="Y", verts=8, bevel=0.006, tags=tags)
-        # guias de recuo de aco nas bordas do berco e injetor de plasma atras da culatra
+        # guias de recuo escuras (ponteira de aco) nas bordas do berco e injetor de plasma atras da culatra
         for k in (-1, 1):
-            B.cyl(f"crod{sx}{k}", cx + k * 0.258, 1.02, 0.56, 0.028, 0.92, S, axis="Y", verts=10, tags=tags)
+            B.cyl(f"crod{sx}{k}", cx + k * 0.258, 0.88, 0.56, 0.028, 0.56, KM, axis="Y", verts=10, tags=tags)
+            B.cyl(f"crodt{sx}{k}", cx + k * 0.258, 1.17, 0.56, 0.034, 0.05, S, axis="Y", verts=8, bevel=0.004,
+                  tags=tags)
         B.box(f"inj{sx}", cx, 0.72, 0.34, 0.16, 0.50, 0.66, KM, bevel=0.012, tags=tags)
         B.box(f"injr{sx}", cx, 0.79, 0.38, 0.04, 0.52, 0.68, S, bevel=0.006, tags=tags)
         B.box(f"injs{sx}", cx, 0.69, 0.20, 0.05, 0.655, 0.665, M["black"], bevel=0.0, tags=tags)
@@ -247,12 +257,15 @@ def head(M, T="head", phase=0.0):
 def _breech(M, tags, pre, x, y0):
     """Banco de capacitores escuro na raiz do cano (usado no cano e copiado no berco da cabeca)."""
     K, KM, S = M["core"], M["core_mid"], M["steel"]
-    B.cyl(f"{pre}_cap", x, y0 + 0.25, BZ, 0.235, 0.50, KM, axis="Y", verts=8, bevel=0.012, tags=tags)
-    for i, y in enumerate((0.08, 0.20, 0.32)):
-        B.cyl(f"{pre}_strap{i}", x, y0 + y, BZ, 0.25, 0.035, K, axis="Y", verts=8, bevel=0.005, tags=tags)
-    B.cyl(f"{pre}_capr", x, y0 + 0.47, BZ, 0.245, 0.05, S, axis="Y", verts=8, bevel=0.006, tags=tags)
-    for k in (-1, 1):  # barramentos de aco no topo
-        B.box(f"{pre}_bus{k}", x + k * 0.10, y0 + 0.24, 0.04, 0.40, BZ + 0.18, BZ + 0.25, S, bevel=0.006, tags=tags)
+    # corpo afunilado para a frente (le como cunha, nao como gaiola)
+    B.cyl(f"{pre}_cap", x, y0 + 0.25, BZ, 0.24, 0.50, KM, axis="Y", verts=8, bevel=0.012, tags=tags, r2=0.20)
+    for i, (y, r) in enumerate(((0.08, 0.25), (0.20, 0.24), (0.32, 0.23))):
+        B.cyl(f"{pre}_strap{i}", x, y0 + y, BZ, r, 0.035, K, axis="Y", verts=8, bevel=0.005, tags=tags)
+    B.cyl(f"{pre}_capr", x, y0 + 0.47, BZ, 0.215, 0.05, S, axis="Y", verts=8, bevel=0.006, tags=tags)
+    # espinha de barramento no topo: rebaixo preto com fenda ciano fraca
+    B.box(f"{pre}_bus", x, y0 + 0.23, 0.12, 0.40, BZ + 0.16, BZ + 0.255, KM, bevel=0.008, tags=tags)
+    B.box(f"{pre}_busb", x, y0 + 0.23, 0.06, 0.30, BZ + 0.255, BZ + 0.262, M["black"], bevel=0.0, tags=tags)
+    B.box(f"{pre}_busg", x, y0 + 0.23, 0.018, 0.22, BZ + 0.262, BZ + 0.267, M["glow_dim"], bevel=0.0, tags=tags)
 
 
 def barrel(M, L=2.8, T="barrel", phase=0.0):
@@ -262,26 +275,31 @@ def barrel(M, L=2.8, T="barrel", phase=0.0):
     A, AM, K, KM, S = M["armor"], M["armor_mid"], M["core"], M["core_mid"], M["steel"]
     z = BZ
     _breech(M, tags, "b", 0.0, 0.0)
+    # pescoco escuro: emenda a culatra (termina em 0.495) no tubo do primeiro pacote (sem fresta no sprite)
+    B.cyl("b_neck", 0, 0.56, z, 0.19, 0.15, KM, axis="Y", verts=8, bevel=0.006, tags=tags)
 
-    def coils(pre, y0, n, r, pitch=0.11, th=0.066, ends=(True, True)):
-        """Pacote de bobinas claras com pips ciano no fundo escuro entre elas (tubo escuro por dentro)."""
+    def coils(pre, y0, kinds, r, pitch=0.12, th=0.07):
+        """Pacote de bobinas com pips ciano no canal escuro do topo. kinds: 'c' = bobina clara,
+        'k' = colar cinza medio um pouco maior (marca uma batida de ~0.36 tile, como os colares do 76 mm)."""
+        n = len(kinds)
         yl = (n - 1) * pitch
-        B.cyl(f"{pre}_core", 0, y0 + yl / 2, z, 0.17, yl + 0.16, KM, axis="Y", verts=8, bevel=0.008, tags=tags)
-        B.box(f"{pre}_bed", 0, y0 + yl / 2, 0.13, yl, z + 0.15, z + 0.178, M["black"], bevel=0.0, tags=tags)
-        for i in range(n):
-            ring = B.cyl(f"{pre}{i}", 0, y0 + i * pitch, z, r, th, A, axis="Y", verts=8, bevel=0.008, tags=tags)
-            # canal escuro no topo das bobinas (continua o canal entre os trilhos)
-            B.cut(ring, [B.box(f"{pre}_cc{i}", 0, y0 + i * pitch, 0.10, th + 0.04, z + 0.17, z + 0.4, K, bevel=0.0)])
+        B.cyl(f"{pre}_core", 0, y0 + yl / 2, z, 0.17, yl + 0.12, KM, axis="Y", verts=8, bevel=0.008, tags=tags)
+        B.box(f"{pre}_bed", 0, y0 + yl / 2, 0.075, yl, z + 0.15, z + 0.178, M["black"], bevel=0.0, tags=tags)
+        for i, k in enumerate(kinds):
+            y = y0 + i * pitch
+            if k == "c":
+                ring = B.cyl(f"{pre}{i}", 0, y, z, r, th, A, axis="Y", verts=8, bevel=0.008, tags=tags)
+            else:
+                ring = B.cyl(f"{pre}{i}", 0, y, z, r + 0.025, 0.06, AM, axis="Y", verts=8, bevel=0.008, tags=tags)
+            # canal escuro estreito no topo (continua o canal entre os trilhos)
+            B.cut(ring, [B.box(f"{pre}_cc{i}", 0, y, 0.07, th + 0.04, z + 0.17, z + 0.4, K, bevel=0.0)])
         for i in range(n - 1):
-            B.box(f"{pre}_pip{i}", 0, y0 + (i + 0.5) * pitch, 0.06, 0.022, z + 0.178, z + 0.19,
-                  M["glow"] if i % 2 == 0 else M["glow_dim"], bevel=0.0, tags=tags)
-        # aros de aco nas pontas do pacote
-        for k, y in enumerate((y0 - 0.06, y0 + yl + 0.06)):
-            if ends[k]:
-                B.cyl(f"{pre}_end{k}", 0, y, z, r - 0.01, 0.035, S, axis="Y", verts=8, bevel=0.005, tags=tags)
+            both = kinds[i] == "c" and kinds[i + 1] == "c"
+            B.box(f"{pre}_pip{i}", 0, y0 + (i + 0.5) * pitch, 0.045, 0.024, z + 0.178, z + 0.19,
+                  M["glow"] if both else M["glow_dim"], bevel=0.0, tags=tags)
 
-    coils("b_coilA", 0.62, 7, 0.25)
-    coils("b_coilB", 1.86, 5, 0.235, ends=(True, False))
+    coils("b_coilA", 0.66, "kcckcck", 0.25)      # 0.66 .. 1.38
+    coils("b_coilB", 1.86, "kccck", 0.235)       # 1.86 .. 2.34 (o ultimo colar segura as pontas)
 
     def rails(pre, y0, y1, ch_glow=False):
         """Trecho de trilhos expostos: duas barras claras facetadas com canal escuro no meio."""
@@ -295,10 +313,10 @@ def barrel(M, L=2.8, T="barrel", phase=0.0):
             B.box(f"{pre}_g", 0, (y0 + y1) / 2, 0.022, y1 - y0 - 0.14, z + 0.09, z + 0.096, M["glow_dim"],
                   bevel=0.0, tags=tags)
 
-    rails("b_railA", 1.38, 1.76, ch_glow=True)
-    B.cyl("b_collar", 0, 2.35, z, 0.225, 0.05, AM, axis="Y", verts=8, bevel=0.008, tags=tags)
+    # trilhos entram 0.03 sob os colares das pontas (sem fresta)
+    rails("b_railA", 1.35, 1.89, ch_glow=True)
     # pontas abertas: duas pontas claras facetadas (nariz em seta) com canal escuro e portas transversais
-    y0 = 2.38
+    y0 = 2.36
     B.box("b_tipbase", 0, (y0 + L - 0.20) / 2, 0.20, L - 0.20 - y0, z - 0.10, z + 0.03, KM, bevel=0.0, tags=tags)
     for sx in (-1, 1):
         prong = [(sx * 0.045, y0), (sx * 0.205, y0), (sx * 0.232, y0 + 0.04), (sx * 0.232, L - 0.17),
@@ -337,41 +355,104 @@ def roof(M, T="roof"):
     pts = [(x, y) for x, y in B.ring_points(px, py, ring_r + 0.11, 36)
            if abs(x) < W / 2 - 0.06 and abs(y) < H / 2 - 0.06]
     B.bolts("rb", pts, 0.1, 0.022, M["steel"], tags=tags)
-    # estante de celulas na fileira de tras: faixa escura com 4 baias blindadas (celula ciano + nivel)
+    # estante de celulas na fileira de tras: 4 baias hexagonais em favo (ponta para a frente), cada uma com
+    # 2 celulas de plasma deitadas e uma coluna de nivel ciano; coletor escuro liga as baias
     sy = -H / 2 + 0.5
-    strip = B.plate("cellstrip", B.rpoly(0, sy, W - 0.14, 0.84, 0, chamfer=0.12), 0.05, 0.11, M["core_mid"],
-                    slope=0.025, tags=tags)
-    rec = [B.box(f"vc{k}", k + 1 - W / 2, sy, 0.10, 0.50, 0.075, 0.3, M["core"], bevel=0.0) for k in range(W - 1)]
-    B.cut(strip, rec)
-    for k in range(W - 1):
-        vx = k + 1 - W / 2
-        B.box(f"vbed{k}", vx, sy, 0.10, 0.50, 0.07, 0.08, M["black"], bevel=0.0, tags=tags)
-        for i in range(5):
-            B.box(f"vlouver{k}{i}", vx, sy - 0.20 + i * 0.10, 0.085, 0.026, 0.08, 0.105, M["core_mid"], bevel=0.004,
-                  tags=tags)
+    lit = (3, 4, 2, 3, 4, 3, 3, 2)
     for tx in range(W):
         cx = tx + 0.5 - W / 2
-        # moldura blindada em seta (aponta para a frente)
-        y0, y1 = sy - 0.32, sy + 0.34
-        bay = [(cx - 0.30, y0), (cx + 0.30, y0), (cx + 0.36, y0 + 0.06), (cx + 0.36, y1 - 0.14), (cx + 0.20, y1),
-               (cx - 0.20, y1), (cx - 0.36, y1 - 0.14), (cx - 0.36, y0 + 0.06)]
-        ba, bp = B.shard(f"bay{tx}", bay, 0.10, 0.16, M["armor_mid"], slope=0.02, groove=0.03, panel_h=0.015,
+        hexp = [(cx, sy - 0.44), (cx + 0.40, sy - 0.23), (cx + 0.40, sy + 0.23), (cx, sy + 0.44),
+                (cx - 0.40, sy + 0.23), (cx - 0.40, sy - 0.23)]
+        ba, bp = B.shard(f"bay{tx}", hexp, 0.05, 0.13, M["armor_mid"], slope=0.025, groove=0.03, panel_h=0.015,
                          tags=tags)
-        # janela da celula (horizontal) com a celula de plasma dentro
-        wy = sy + 0.02
+        inner = B.offset_poly(hexp, 0.10)
         for t in (ba, bp):
-            B.cut(t, [B.box(f"bwin{tx}", cx, wy, 0.56, 0.17, 0.12, 0.4, M["core"], bevel=0.0)])
-        B.box(f"bwbed{tx}", cx, wy, 0.56, 0.17, 0.10, 0.125, M["black"], bevel=0.0, tags=tags)
-        B.cyl(f"cell{tx}", cx, wy, 0.16, 0.06, 0.44, M["core_mid"], axis="X", verts=8, bevel=0.004, tags=tags)
-        B.box(f"cellg{tx}", cx, wy, 0.34, 0.026, 0.215, 0.222, M["glow_dim"], bevel=0.0, tags=tags)
-        for k in (-1, 1):
-            B.cyl(f"cellcap{tx}{k}", cx + k * 0.24, wy, 0.16, 0.068, 0.04, M["steel"], axis="X", verts=8,
+            if t is not None:
+                B.cut(t, [B.loft(f"bayc{tx}_{t.name}", inner, inner, 0.09, 0.4, M["core"], bevel=0.0)])
+        B.loft(f"baybed{tx}", inner, inner, 0.08, 0.095, M["black"], bevel=0.0, tags=tags)
+        for k, sxk in enumerate((-1, 1)):
+            x = cx + sxk * 0.13
+            n = lit[tx * 2 + k]
+            B.cyl(f"cell{tx}{k}", x, sy, 0.16, 0.085, 0.42, M["core_mid"], axis="Y", verts=8, bevel=0.006,
+                  tags=tags)
+            for e in (-1, 1):
+                B.cyl(f"cellcap{tx}{k}{e}", x, sy + e * 0.20, 0.16, 0.094, 0.04, M["steel"], axis="Y", verts=8,
+                      bevel=0.004, tags=tags)
+            # coluna de nivel: fenda preta no topo da celula com 4 pips (de tras para a frente)
+            B.box(f"lvlbed{tx}{k}", x, sy, 0.045, 0.30, 0.236, 0.246, M["black"], bevel=0.0, tags=tags)
+            for i in range(4):
+                B.box(f"lvl{tx}{k}{i}", x, sy - 0.105 + i * 0.07, 0.028, 0.045, 0.246, 0.252,
+                      M["glow"] if i < n else M["core_mid"], bevel=0.0, tags=tags)
+        # alca de aco na ponta da frente e luz de estado na ponta de tras (em rebaixo)
+        B.box(f"bhandle{tx}", cx, sy + 0.33, 0.14, 0.03, 0.13, 0.155, M["steel"], bevel=0.006, tags=tags)
+        B.box(f"bstat{tx}", cx, sy - 0.33, 0.10, 0.03, 0.10, 0.112, M["glow_dim"], bevel=0.0, tags=tags)
+    # coletor: tocos de tubo escuro com abracadeiras de aco ligando as baias vizinhas
+    for k in range(W - 1):
+        vx = k + 1 - W / 2
+        B.cyl(f"mani{k}", vx, sy, 0.10, 0.05, 0.30, M["core_mid"], axis="X", verts=8, bevel=0.005, tags=tags)
+        for e in (-1, 1):
+            B.cyl(f"manir{k}{e}", vx + e * 0.06, sy, 0.10, 0.058, 0.025, M["steel"], axis="X", verts=8,
                   bevel=0.004, tags=tags)
-        # nivel: 3 pips num rebaixo (dois acesos)
-        for t in (ba, bp):
-            B.cut(t, [B.box(f"lvlc{tx}", cx, sy - 0.20, 0.32, 0.06, 0.15, 0.4, M["core"], bevel=0.0)])
+
+
+# ============================================================================ piso
+def floor(M, T="floor"):
+    """Piso: placas, anel com cubo injetor ciano, 4 postos, estante de celulas e condutos ate o anel."""
+    from bsgen.common import crew_positions
+    tags = (T,)
+    W, H = PART["size"]
+    pv = PART["pivot"]
+    ring_r = PART["ring_r"]
+    KM, S = M["core_mid"], M["steel"]
+    px, py = pv[0] - W / 2, H / 2 - pv[1]
+    B.box("fl_base", 0, 0, W, H, -0.05, 0.0, M["core"], bevel=0.0, tags=tags)
+    for tx in range(W):
+        for ty in range(H):
+            x0, y1 = tx - W / 2 + 0.04, H / 2 - ty - 0.04
+            B.box(f"fl{tx}{ty}", x0 + 0.46, y1 - 0.46, 0.92, 0.92, 0.0, 0.03, KM, bevel=0.01, tags=tags)
+    # anel giratorio + cubo octogonal com o injetor de plasma (nucleo escuro, pips ciano em volta)
+    rr = ring_r * 0.85
+    B.torus("fl_ring", px, py, 0.05, rr, 0.05, M["armor_mid"], tags=tags)
+    w = ring_r * 0.62
+    oct_ = lambda s: B.rpoly(px, py, s, s, 0, chamfer=s / (2 + math.sqrt(2)))  # noqa: E731
+    B.plate("fl_hub", oct_(w), 0.05, 0.12, M["armor_mid"], slope=0.03, tags=tags)
+    B.plate("fl_hubc", oct_(w * 0.56), 0.10, 0.125, M["core"], slope=0.015, tags=tags)
+    B.plate("fl_hubs", oct_(w * 0.22), 0.12, 0.16, S, slope=0.01, bevel=0.006, tags=tags)
+    for i, (x, y) in enumerate(B.ring_points(px, py, w * 0.38, 8, math.pi / 8)):
+        B.box(f"fl_hubp{i}", x, y, 0.035, 0.035, 0.125, 0.132, M["glow_dim"], bevel=0.0, tags=tags)
+    for k in range(4):
+        a = k * math.pi / 2
+        cx, cy = px + math.cos(a) * ring_r * 0.6, py + math.sin(a) * ring_r * 0.6
+        arrow = [(0.10, 0.0), (-0.06, 0.10), (-0.02, 0.0), (-0.06, -0.10)]
+        ca, sa = math.cos(a), math.sin(a)
+        arrow = [(cx + x * ca - y * sa, cy + x * sa + y * ca) for x, y in arrow]
+        B.plate(f"fl_chev{k}", arrow, 0.05, 0.08, M["armor"], slope=0.01, bevel=0.006, tags=tags)
+    B.box("fl_led_t", px, py + rr * 1.1, 0.3, 0.04, 0.04, 0.07, M["glow"], bevel=0.0, tags=tags)
+    # estante de celulas na parede de tras: 4 bercos com 3 celulas deitadas (faixa ciano no topo)
+    ey = -H / 2 + 0.14
+    for tx in range(W):
+        cx = tx + 0.5 - W / 2
+        B.box(f"fl_rack{tx}", cx, ey, 0.82, 0.20, 0.0, 0.10, M["armor_mid"], bevel=0.01, tags=tags)
         for i in range(3):
-            B.box(f"lvl{tx}{i}", cx - 0.10 + i * 0.10, sy - 0.20, 0.06, 0.03, 0.155, 0.165,
-                  M["glow"] if i < 2 else M["core_mid"], bevel=0.0, tags=tags)
-        B.box(f"lvlbed{tx}", cx, sy - 0.20, 0.32, 0.06, 0.14, 0.155, M["black"], bevel=0.0, tags=tags)
-        B.box(f"bhandle{tx}", cx, y1 - 0.08, 0.16, 0.03, 0.17, 0.19, M["steel"], bevel=0.006, tags=tags)
+            x = cx - 0.26 + i * 0.26
+            B.cyl(f"fl_cell{tx}{i}", x, ey, 0.16, 0.065, 0.20, KM, axis="X", verts=8, bevel=0.005, tags=tags)
+            for e in (-1, 1):
+                B.cyl(f"fl_cc{tx}{i}{e}", x + e * 0.09, ey, 0.16, 0.072, 0.025, S, axis="X", verts=8, bevel=0.004,
+                      tags=tags)
+            B.box(f"fl_cg{tx}{i}", x, ey, 0.11, 0.022, 0.222, 0.23, M["glow_dim"], bevel=0.0, tags=tags)
+    # condutos de plasma: da estante ate o anel, passando entre os postos
+    for j, x in enumerate((-1.0, 0.0, 1.0)):
+        y0, y1 = ey + 0.10, py - math.sqrt(rr * rr - x * x)
+        B.cyl(f"fl_duct{j}", x, (y0 + y1) / 2, 0.07, 0.05, y1 - y0, KM, axis="Y", verts=8, bevel=0.005, tags=tags)
+        n = int((y1 - y0) / 0.30)
+        for i in range(n + 1):
+            B.cyl(f"fl_ductr{j}{i}", x, y0 + 0.06 + i * (y1 - y0 - 0.12) / max(n, 1), 0.07, 0.058, 0.025, S,
+                  axis="Y", verts=8, bevel=0.004, tags=tags)
+        B.box(f"fl_ductg{j}", x, (y0 + y1) / 2, 0.016, min(0.24, (y1 - y0) * 0.3), 0.12, 0.126, M["glow_dim"],
+              bevel=0.0, tags=tags)
+    # postos da tripulacao (mesmas posicoes que o gerador usa)
+    for i, (cx, cy, _r) in enumerate(crew_positions(W, H, 4, pv)):
+        x, y = cx - W / 2, H / 2 - cy
+        B.box(f"seat{i}", x, y + 0.02, 0.32, 0.30, 0.0, 0.14, M["armor"], bevel=0.04, tags=tags)
+        B.box(f"console{i}", x, y + 0.30, 0.42, 0.12, 0.0, 0.22, KM, bevel=0.02, tags=tags)
+        B.box(f"screen{i}", x, y + 0.30, 0.32, 0.06, 0.22, 0.24, M["screen"], bevel=0.0, tags=tags)
