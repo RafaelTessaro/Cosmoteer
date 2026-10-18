@@ -153,7 +153,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 		Turret
 		{
 			Type = TurretWeapon
-			Location = [1, 0.5]
+			Location = [1, 0.92]
 			Rotation = -90d
 			OperationalToggle = IsOperational
 			AutoFireToggle = AutoFireToggle
@@ -197,7 +197,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 		{
 			Type = CircleCollider
 			Location = &../Turret/Location
-			Radius = 0.69
+			Radius = 0.86
 			IsHigh = true
 		}
 		ReloadProgressBar
@@ -233,7 +233,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			GetTargetFrom = Turret
 			ResourceStorage = Splitter
 			FireTrigger
-			Location = [1.317, 0]
+			Location = [1.29, 0]
 			OperationalToggle = IsOperational
 			ResourcesUsed = 1
 			Recoil = 4
@@ -241,12 +241,12 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 		}
 		FlakEmitter1 : BaseFlakEmitter
 		{
-			Location = [1.317, -0.15]
+			Location = [1.29, -0.2]
 			FireTrigger = ShootTrigger1
 		}
 		FlakEmitter2 : BaseFlakEmitter
 		{
-			Location = [1.317, 0.15]
+			Location = [1.29, 0.2]
 			FireTrigger = ShootTrigger2
 		}
 		Emitter1Trigger
@@ -264,7 +264,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			Type = TriggeredEffects
 			ChainedTo = Turret
 			Trigger = Emitter1Trigger
-			Location = [1.317, -0.15]
+			Location = [1.29, -0.2]
 			MediaEffects
 			[
 				&<./Data/ships/terran/flak_cannon_large/particles/flak_cannon_shoot_flash_large.rules>
@@ -288,7 +288,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			Type = TriggeredEffects
 			ChainedTo = Turret
 			Trigger = Emitter2Trigger
-			Location = [1.317, 0.15]
+			Location = [1.29, 0.2]
 			MediaEffects
 			[
 				&<./Data/ships/terran/flak_cannon_large/particles/flak_cannon_shoot_flash_large.rules>
@@ -364,6 +364,17 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					}
 				]
 			}
+			OperationalLighting
+			{
+				Layer = "lights_add"
+				DamageLevels
+				[
+					{
+						File = "lights.png"
+						Size = [2, 2]
+					}
+				]
+			}
 		}
 		TurretGraphics
 		{
@@ -379,7 +390,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 				[
 					{
 						File = "turret_shadow.png"
-						Size = [1.38, 1.38]
+						Size = [2.25, 2.25]
 					}
 				]
 			}
@@ -389,9 +400,30 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 				DamageLevels
 				[
 					{
-						File = "turret.png"
-						NormalsFile = "turret_normals.png"
-						Size = [1.38, 1.38]
+						AnimationFiles
+						[
+							"turret1.png"
+							"turret2.png"
+							"turret3.png"
+							"turret4.png"
+							"turret5.png"
+							"turret6.png"
+							"turret7.png"
+							"turret8.png"
+						]
+						NormalsAnimationFiles
+						[
+							"turret1_normals.png"
+							"turret2_normals.png"
+							"turret3_normals.png"
+							"turret4_normals.png"
+							"turret5_normals.png"
+							"turret6_normals.png"
+							"turret7_normals.png"
+							"turret8_normals.png"
+						]
+						Size = [2, 2]
+						AnimationInterval = 0.18
 					}
 				]
 			}
@@ -402,8 +434,8 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 				[
 					{
 						File = "turret_off.png"
-						NormalsFile = "turret_normals.png"
-						Size = [1.38, 1.38]
+						NormalsFile = "turret1_normals.png"
+						Size = [2, 2]
 					}
 				]
 			}
@@ -412,7 +444,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 		{
 			Type = Graphics
 			ChainedTo = Turret
-			Location = [0.947, -0.15]
+			Location = [0.84, -0.2]
 			Rotation = 90d
 			OperationalToggle = IsOperational
 			ResetAnimationTrigger = Emitter1Trigger
@@ -422,17 +454,17 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 				DamageLevels
 				[
 					{
-						Size = [0.5, 0.9]
+						Size = [0.27, 1.12]
 						AnimationFiles = ["barrel2.png", "barrel3.png", "barrel4.png", "barrel5.png", "barrel1.png"]
 						NormalsAnimationFiles
 						[
-							"barrel_normals1.png"
-							"barrel_normals1.png"
-							"barrel_normals1.png"
-							"barrel_normals1.png"
+							"barrel_normals2.png"
+							"barrel_normals3.png"
+							"barrel_normals4.png"
+							"barrel_normals5.png"
 							"barrel_normals1.png"
 						]
-						AnimationInterval = 0.03
+						AnimationInterval = 0.05
 						AnimationStartTime = MinValue
 						ClampAnimation = true
 					}
@@ -446,7 +478,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					{
 						File = "barrel1.png"
 						NormalsFile = "barrel_normals1.png"
-						Size = [0.5, 0.9]
+						Size = [0.27, 1.12]
 					}
 				]
 			}
@@ -455,7 +487,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 		{
 			Type = Graphics
 			ChainedTo = Turret
-			Location = [0.947, 0.15]
+			Location = [0.84, 0.2]
 			Rotation = 90d
 			OperationalToggle = IsOperational
 			ResetAnimationTrigger = Emitter2Trigger
@@ -465,17 +497,17 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 				DamageLevels
 				[
 					{
-						Size = [0.5, 0.9]
+						Size = [0.27, 1.12]
 						AnimationFiles = ["barrel2.png", "barrel3.png", "barrel4.png", "barrel5.png", "barrel1.png"]
 						NormalsAnimationFiles
 						[
-							"barrel_normals1.png"
-							"barrel_normals1.png"
-							"barrel_normals1.png"
-							"barrel_normals1.png"
+							"barrel_normals2.png"
+							"barrel_normals3.png"
+							"barrel_normals4.png"
+							"barrel_normals5.png"
 							"barrel_normals1.png"
 						]
-						AnimationInterval = 0.03
+						AnimationInterval = 0.05
 						AnimationStartTime = MinValue
 						ClampAnimation = true
 					}
@@ -489,7 +521,27 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					{
 						File = "barrel1.png"
 						NormalsFile = "barrel_normals1.png"
-						Size = [0.5, 0.9]
+						Size = [0.27, 1.12]
+					}
+				]
+			}
+		}
+		Light1Graphics
+		{
+			Type = Graphics
+			ChainedTo = Turret
+			Location = [-0.78, 0]
+			OperationalToggle = IsOperational
+			OperationalRoofLighting
+			{
+				Layer = "roof_lights_fancy"
+				DamageLevels
+				[
+					{
+						File = "./Data/ships/common/light_blob.png"
+						Size = [0.9, 0.9]
+						Z = 0.8
+						VertexColor = [255, 120, 30]
 					}
 				]
 			}

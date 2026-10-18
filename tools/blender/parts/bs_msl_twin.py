@@ -1,11 +1,11 @@
 """Lancador de Misseis de Conves de Casulo Duplo ("Caipora") - lancador 3x3 medio, familia do 76 mm.
 
 Caipora = guardia da mata montada num porco-do-mato: "dois punhos" (casulos OCTOGONAIS 3-2-3, 8 tubos cada,
-inclinados 35 graus) em bracos blindados ladeando uma cupula facetada de lascas claras com UM olho-sensor
-(fenda ambar num visor inclinado), sobrancelha feroz em divisa e presas de queixada saindo do focinho;
-laminas-garra avancam pelos lados de fora dos casulos, quatro pes abertos no anel, escotilha do carregador e
-baia de exaustao de 5 pips atras. Overclock (turret_oc.png): o olho vira laranja e as baias de sopro/exaustao
-ficam em brasa.
+inclinados 35 graus, moldura em 4 lascas de canto e presas na aba da frente) em bracos blindados ladeando uma
+cupula facetada (quilha + 2 flancos inclinados) com UM olho-sensor (fenda ambar num visor inclinado),
+sobrancelha feroz em divisa e presas de queixada saindo do focinho; garras nascem sob o chanfro externo da
+frente dos casulos, quatro pes iguais (perna + dedo em seta) no anel, escotilha do carregador e baia de
+exaustao de 5 pips atras. Overclock (turret_oc.png): o olho vira laranja e as grelhas/baia ficam em brasa.
 Casulos modelados no proprio referencial (face no plano local, como a Tocandira) e girados; as bocas projetadas
 batem com launcher_layout (centros (+-0.85, 0.35), passo 0.24 x 0.24 na vista de cima, tube_r 0.085).
 """
@@ -51,12 +51,17 @@ RV = 0.24 / SIN                     # passo das fileiras no plano da face (0.24 
 # bocas no plano da face (u lateral, v descendo a face = frente na vista de cima); fileiras 3-2-3
 TUBES = [(u, v) for v, n in ((-RV, 3), (0.0, 2), (RV, 3)) for u in [(c - (n - 1) / 2) * PU for c in range(n)]]
 # octogono da face (plano da face): chanfro com 45 graus na vista de cima (CV = CU / SIN)
+# interno (placa das bocas, furo da moldura): a folga das bocas de canto depende dele, nao mexer
 HW, HH, CU = 0.395, 0.66, 0.10
 CV = CU / SIN
+# silhueta externa (moldura + corpo): octogono quase regular na vista de cima (0.88 x 0.85, chanfro 0.20)
+HWO, HHO, CUO = 0.44, 0.74, 0.20
+CVO = CUO / SIN
 POD_L = 0.72                        # comprimento do casulo ao longo do eixo dos tubos
+VENT_Y = -POD_L + 0.155             # centro da grelha de sopro no topo do casulo (referencial do eixo)
 
 BAND = {"he": (0.80, 0.327, 0.0), "cluster": (0.80, 0.62, 0.086), "limpet": (0.80, 0.035, 0.024),
-        "napalm": (0.80, 0.11, 0.0093), "emp": (0.062, 0.437, 0.80), "torpedo": (0.72, 0.74, 0.80)}
+        "napalm": (0.80, 0.11, 0.0093), "emp": (0.062, 0.437, 0.80), "torpedo": (0.62, 0.64, 0.70)}
 BAND_GLOW = {"he": (1.0, 0.473, 0.0), "cluster": (1.0, 0.78, 0.11), "limpet": (1.0, 0.044, 0.03),
              "napalm": (1.0, 0.186, 0.0155), "emp": (0.078, 0.546, 1.0), "torpedo": (0.9, 0.93, 1.0)}
 
@@ -142,6 +147,86 @@ def _pitched_cyl(name, x, y, z, r, length, mat, elev, yaw=0.0, verts=12, tags=()
     return ob
 
 
+def _loft_z(name, bottom, top, zb, zt, mat, bevel=0.012, tags=()):
+    """Como B.loft, mas com altura por vertice: zb/zt = funcoes planas (x, y) -> z (facetas inclinadas)."""
+    bottom, top = B._ccw(list(bottom)), B._ccw(list(top))
+    me = bpy.data.meshes.new(name)
+    bm = bmesh.new()
+    vb = [bm.verts.new((x, y, zb(x, y))) for x, y in bottom]
+    vt = [bm.verts.new((x, y, zt(x, y))) for x, y in top]
+    bm.faces.new(list(reversed(vb)))
+    bm.faces.new(vt)
+    n = len(bottom)
+    for i in range(n):
+        j = (i + 1) % n
+        bm.faces.new((vb[i], vb[j], vt[j], vt[i]))
+    bm.normal_update()
+    bm.to_mesh(me)
+    bm.free()
+    ob = bpy.data.objects.new(name, me)
+    bpy.context.scene.collection.objects.link(ob)
+    if bevel > 0:
+        md = ob.modifiers.new("bevel", "BEVEL")
+        md.width = bevel
+        md.segments = 2
+        md.limit_method = "ANGLE"
+        md.angle_limit = math.radians(30)
+    ob.data.materials.append(mat)
+    for t in tags:
+        ob[t] = True
+    return ob
+
+
+def _tshard(name, poly, z0, zfn, mat, slope=0.03, groove=0.02, panel_h=0.02, tags=()):
+    """Lasca com bisel duplo e topo inclinado (plano z = zfn(x, y)): faceta da cupula."""
+    sl = B.safe_offset(poly, slope)
+    a = _loft_z(name, poly, B.offset_poly(poly, sl), lambda x, y: z0, zfn, mat, tags=tags)
+    inner = B.robust_offset(poly, sl + groove)
+    if inner is None:
+        return a, None
+    b = _loft_z(name + "_pnl", inner, B.offset_poly(inner, 0.012), lambda x, y: zfn(x, y) - 0.004,
+                lambda x, y: zfn(x, y) + panel_h, mat, bevel=0.008, tags=tags)
+    return a, b
+
+
+def _hshard(name, poly, pnl, z0, z1, mat, slope=0.02, panel_h=0.02, tags=()):
+    """Lasca com painel desenhado a mao (pontas finas: o offset automatico se cruza)."""
+    a = B.plate(name, poly, z0, z1, mat, slope=slope, tags=tags)
+    b = B.plate(name + "_pnl", pnl, z1 - 0.004, z1 + panel_h, mat, slope=0.01, bevel=0.006, tags=tags)
+    return a, b
+
+
+def _clip_x(poly, lo=-9.0, hi=9.0):
+    """Recorta um poligono convexo na faixa lo <= x <= hi (Sutherland-Hodgman)."""
+    def clip(pts, keep, xv):
+        out = []
+        for i in range(len(pts)):
+            p, q = pts[i], pts[(i + 1) % len(pts)]
+            if keep(p):
+                out.append(p)
+            if keep(p) != keep(q):
+                out.append((xv, p[1] + (q[1] - p[1]) * (xv - p[0]) / (q[0] - p[0])))
+        return out
+    return clip(clip(list(poly), lambda p: p[0] >= lo, lo), lambda p: p[0] <= hi, hi)
+
+
+def _curve_poly(p0, p1, p2, w0, w1, n=8):
+    """Contorno de uma presa/garra curva: Bezier quadratica com meia-largura de w0 (base) a w1 (ponta)."""
+    left, right = [], []
+    for i in range(n + 1):
+        t = i / n
+        x = (1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * p1[0] + t * t * p2[0]
+        y = (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t * t * p2[1]
+        dx = 2 * (1 - t) * (p1[0] - p0[0]) + 2 * t * (p2[0] - p1[0])
+        dy = 2 * (1 - t) * (p1[1] - p0[1]) + 2 * t * (p2[1] - p1[1])
+        ln = math.hypot(dx, dy)
+        nx, ny = -dy / ln, dx / ln
+        w = w0 + (w1 - w0) * t
+        left.append((x + nx * w, y + ny * w))
+        right.append((x - nx * w, y - ny * w))
+    return left + right[::-1]
+
+
 # ============================================================================ casulo: face (referencial da face)
 def _pod_face(M, tags, sx):
     """Face do casulo no plano XY (x direita, y descendo a face = frente na vista de cima, z = para fora).
@@ -149,9 +234,9 @@ def _pod_face(M, tags, sx):
     fica longe da fileira de tras, senao cobre as bocas vazias."""
     K, KM, A, AM, S = M["core"], M["core_mid"], M["armor"], M["armor_mid"], M["steel"]
     blk = M["black"]
-    outer = _octo(HW, HH, CU, CV)
+    outer = _octo(HWO, HHO, CUO, CVO)
     # corpo escuro (nucleo) ao longo do eixo e fundo preto atras das bocas
-    B.plate("pbody", _octo(HW - 0.03, HH - 0.03, CU, CV), -POD_L, -0.03, KM, slope=0.0, bevel=0.01, tags=tags)
+    B.plate("pbody", _octo(HWO - 0.03, HHO - 0.03, CUO, CVO), -POD_L, -0.03, KM, slope=0.0, bevel=0.01, tags=tags)
     B.plate("pback", _octo(HW - 0.05, HH - 0.06, CU, CV), -0.16, -0.06, blk, slope=0.0, bevel=0.0, tags=tags)
     # placa das bocas (colmeia escura) com 8 furos e aro de aco em cada boca
     plate = B.plate("pplate", _octo(HW - 0.045, HH - 0.065, CU * 0.8, CV * 0.8), -0.07, 0.0, KM, slope=0.012,
@@ -165,63 +250,64 @@ def _pod_face(M, tags, sx):
     for k, v in enumerate((-RV / 2, RV / 2)):
         B.box(f"prib{k}", 0, v, 2 * (HW - 0.10), 0.028, -0.01, 0.018, S, bevel=0.004, tags=tags)
     B.bolts("pfbolt", [(u, v) for u in (-0.27, 0.27) for v in (-0.05, 0.05)], 0.008, 0.014, S, tags=tags)
-    # moldura octogonal clara baixa (bisel duplo) partida em 4 lascas por vaos escuros nas quinas
+    # moldura octogonal clara (bisel duplo) partida em 4 lascas de canto por vaos escuros no meio das arestas:
+    # cada chanfro de 45 graus e uma lasca so (le como octogono, nao como retangulo de canto cortado)
     fa, fp = B.shard("pframe", outer, -0.03, 0.03, A, slope=0.015, groove=0.018, panel_h=0.016, tags=tags)
     hole = _octo(HW - 0.055, HH - 0.085, CU * 0.75, CV * 0.75)
     for t in _pecas(fa, fp):
         cuts = [B.loft(f"phole_{t.name}", hole, hole, -0.3, 0.4, K, bevel=0.0)]
-        for j, (gu, gv) in enumerate(((HW - 0.03, -HH + CV + 0.03), (HW - 0.03, HH - CV - 0.03),
-                                      (-HW + 0.03, -HH + CV + 0.03), (-HW + 0.03, HH - CV - 0.03))):
-            cuts.append(B.box(f"pgap_{t.name}{j}", gu, gv, 0.10, 0.032, -0.3, 0.4, K, bevel=0.0))
+        for j, s in enumerate((-1, 1)):
+            cuts.append(B.box(f"pgapv_{t.name}{j}", 0, s * (HHO - 0.07), 0.036, 0.24, -0.3, 0.4, K, bevel=0.0))
+            cuts.append(B.box(f"pgapu_{t.name}{j}", s * (HWO - 0.05), 0, 0.18, 0.062, -0.3, 0.4, K, bevel=0.0))
         B.cut(t, cuts)
-    B.plate("pframe_bed", _octo(HW - 0.01, HH - 0.01, CU, CV), -0.05, -0.025, blk, slope=0.0, bevel=0.0, tags=tags)
-    # queixo em lamina na aba de baixo (aponta para a frente), com fenda escura
-    chin = [(-0.12, HH - 0.05), (0.12, HH - 0.05), (0.12, HH + 0.03), (0.035, HH + 0.16), (-0.035, HH + 0.16),
-            (-0.12, HH + 0.03)]
-    ca, cp = B.shard("pchin", chin, -0.05, 0.08, A, slope=0.022, groove=0.016, panel_h=0.02, tags=tags)
-    slot = [(-0.02, HH - 0.01), (0.02, HH - 0.01), (0.02, HH + 0.05), (0.0, HH + 0.09), (-0.02, HH + 0.05)]
-    for t in _pecas(ca, cp):
-        B.cut(t, [B.loft(f"pcslot_{t.name}", slot, slot, 0.02, 0.4, K, bevel=0.0)])
-    B.loft("pchin_bed", slot, slot, 0.012, 0.024, blk, bevel=0.0, tags=tags)
+    B.plate("pframe_bed", _octo(HWO - 0.01, HHO - 0.01, CUO, CVO), -0.05, -0.025, blk, slope=0.0, bevel=0.0,
+            tags=tags)
+    # duas presas curtas para a frente na aba de baixo, ladeando o vao do meio (sem furo: nao vira alca)
+    fang = [(-0.05, HHO - 0.06), (0.05, HHO - 0.06), (0.05, HHO + 0.05), (0.012, HHO + 0.16), (-0.012, HHO + 0.16),
+            (-0.05, HHO + 0.03)]
+    for j, s in enumerate((-1, 1)):
+        poly = [(s * 0.13 + x * s, y) for x, y in fang]
+        B.shard(f"pfang{j}", poly, -0.04, 0.07, A, slope=0.018, groove=0.012, panel_h=0.018, tags=tags)
 
 
 # ============================================================================ casulo: topo (referencial do eixo)
 def _pod_top(M, tags, sx):
     """Blindagem do topo e dos chanfros de cima (x direita, y = eixo dos tubos, face em y = 0, z = cima)."""
     K, KM, A, AM, S = M["core"], M["core_mid"], M["armor"], M["armor_mid"], M["steel"]
-    zt = HH - 0.03                                  # topo do corpo
+    zt = HHO - 0.03                                 # topo do corpo
     L = POD_L
     # topo em 2 lascas separadas por um vao em divisa apontando para a frente: a de tras tem a grelha de sopro
     # (tubos abertos atras), a da frente a fenda de 3 pips
-    w = HW - CU - 0.02
+    w = HWO - CUO - 0.02
     front = [(-w, -0.44), (0.0, -0.36), (w, -0.44), (w, -0.08), (w - 0.05, -0.04), (-w + 0.05, -0.04), (-w, -0.08)]
-    rear = [(-w, -L + 0.10), (-0.10, -L + 0.04), (0.10, -L + 0.04), (w, -L + 0.10), (w, -0.48), (0.0, -0.40),
+    rear = [(-w, -L + 0.08), (-0.12, -L + 0.04), (0.12, -L + 0.04), (w, -L + 0.08), (w, -0.48), (0.0, -0.40),
             (-w, -0.48)]
     fa, fp = B.shard("ptopf", front, zt - 0.02, zt + 0.05, A, slope=0.03, groove=0.022, panel_h=0.022, tags=tags)
     ra, rp = B.shard("ptopr", rear, zt - 0.02, zt + 0.05, A, slope=0.03, groove=0.022, panel_h=0.022, tags=tags)
     ztop = zt + 0.072
+    # grelha de sopro: 3 venezianas largas com 2 vaos (no overclock os 2 vaos ficam em brasa, ver oc_glow)
     for t in _pecas(ra, rp):
-        B.cut(t, [B.box(f"pvcut_{t.name}", 0, -L + 0.15, 0.34, 0.10, ztop - 0.10, ztop + 0.4, K, bevel=0.0)])
-    B.box("pvbed", 0, -L + 0.15, 0.34, 0.10, ztop - 0.11, ztop - 0.095, M["black"], bevel=0.0, tags=tags)
+        B.cut(t, [B.box(f"pvcut_{t.name}", 0, VENT_Y, 0.28, 0.11, ztop - 0.10, ztop + 0.4, K, bevel=0.0)])
+    B.box("pvbed", 0, VENT_Y, 0.28, 0.11, ztop - 0.11, ztop - 0.095, M["black"], bevel=0.0, tags=tags)
     for i in range(3):
-        B.box(f"pvlouv{i}", 0, -L + 0.12 + i * 0.03, 0.32, 0.012, ztop - 0.10, ztop - 0.06, KM, bevel=0.0,
+        B.box(f"pvlouv{i}", 0, VENT_Y - 0.045 + i * 0.045, 0.27, 0.016, ztop - 0.10, ztop - 0.06, KM, bevel=0.0,
               tags=tags)
     Mo.slot_with_pips("ppip", 0.0, -0.30, -0.12, 0.045, ztop, 3, M, tags, target=_pecas(fa, fp), depth=0.07)
     # linhas de painel diagonais nas abas da lasca da frente
-    _lines(fp, "ppl", [(s * 0.19, -0.22, 0.18, s * 28) for s in (-1, 1)], ztop)
-    # lascas dos chanfros de cima (referencial girado em torno do eixo)
-    ang = math.degrees(math.atan2(CV, CU))
+    _lines(fp, "ppl", [(s * 0.145, -0.22, 0.14, s * 28) for s in (-1, 1)], ztop)
+    # lascas dos chanfros de cima (referencial girado em torno do eixo): largas, continuam o octogono da face
+    ang = math.degrees(math.atan2(CVO, CUO))
     for k, s in enumerate((-1, 1)):
         antes = _cena()
-        wc = math.hypot(CU, CV) - 0.06
-        ch = B.rpoly(0, -L / 2 - 0.02, wc, L - 0.12, 0, chamfer=0.04)
-        a, p = B.shard(f"pch{k}", ch, -0.01, 0.04, A, slope=0.02, groove=0.014, panel_h=0.016, tags=tags)
+        wc = math.hypot(CUO, CVO) - 0.05
+        ch = B.rpoly(0, -L / 2 - 0.02, wc, L - 0.12, 0, chamfer=0.05)
+        a, p = B.shard(f"pch{k}", ch, -0.01, 0.04, A, slope=0.022, groove=0.016, panel_h=0.018, tags=tags)
         if s == sx:
             # lado de fora: 2 entalhes escuros (respiros)
             for t in _pecas(a, p):
                 B.cut(t, [B.box(f"pchc_{t.name}{i}", 0, -0.24 - i * 0.12, wc * 0.6, 0.035, 0.0, 0.4, K, bevel=0.0)
                           for i in range(2)])
-        _grupo(antes, f"pchg{k}", (s * (HW - CU / 2 - 0.004), 0, zt - CV / 2 + 0.03), (0, s * ang, 0))
+        _grupo(antes, f"pchg{k}", (s * (HWO - CUO / 2 - 0.004), 0, zt - CVO / 2 + 0.03), (0, s * ang, 0))
 
 
 def _pod(M, tags, sx):
@@ -236,7 +322,7 @@ def _pod(M, tags, sx):
 
 
 # ============================================================================ cupula (cabeca da Caipora)
-DOME = [(-0.20, -0.60), (0.20, -0.60), (0.35, -0.44), (0.37, 0.18), (0.25, 0.56), (-0.25, 0.56), (-0.37, 0.18),
+DOME = [(-0.20, -0.60), (0.20, -0.60), (0.35, -0.44), (0.36, 0.18), (0.25, 0.56), (-0.25, 0.56), (-0.36, 0.18),
         (-0.35, -0.44)]
 DOME_Z = (0.40, 1.00)
 # deslocamento de cada aresta ate o topo: traseira, chanfro tras, lado, chanfro frente, VISOR, chanfro, lado, chanfro
@@ -290,16 +376,22 @@ def _dome(M, tags, phase):
         rot = math.degrees(math.atan2(-(xb - xa), yb - ya))
         B.rbox(f"dgapbed{i}", (xa + xb) / 2, (ya + yb) / 2, 0.045, math.hypot(xb - xa, yb - ya), z0, z0 + 0.03,
                M["black"], rot=rot, bevel=0.0, tags=tags)
-    # coroa (topo) com bisel duplo
+    # coroa (topo) facetada: quilha central + 2 lascas de flanco inclinadas para fora, com vaos escuros
+    # entre elas (a luz de cima-esquerda acende um flanco e apaga o outro: le como armadura facetada)
     crown = B.offset_poly(top, 0.015)
-    B.shard("dcrown", crown, z1 - 0.01, z1 + 0.06, A, slope=0.03, groove=0.022, panel_h=0.022, tags=tags)
-    zc = z1 + 0.082
-    # crina: quilha em seta sobre a coroa com fenda de 3 pips (eco da espinha do 76 mm)
+    g = 0.085                                        # meia-largura do canal da quilha
+    ys = [p[1] for p in crown]
+    B.box("dkeel_bed", 0, (min(ys) + max(ys)) / 2, 2 * g + 0.01, max(ys) - min(ys), z1 - 0.005, z1 + 0.012,
+          M["black"], bevel=0.0, tags=tags)
+    for k, s in enumerate((-1, 1)):
+        fl = _clip_x(crown, lo=g) if s > 0 else _clip_x(crown, hi=-g)
+        _tshard(f"dcrown{k}", fl, z1 - 0.01, lambda x, y: z1 + 0.085 - 0.36 * (abs(x) - g), A, slope=0.026,
+                groove=0.02, panel_h=0.02, tags=tags)
     yb = top[4][1]
-    mane = [(-0.06, -0.50), (0.06, -0.50), (0.09, -0.42), (0.09, yb - 0.20), (0.0, yb - 0.10), (-0.09, yb - 0.20),
-            (-0.09, -0.42)]
-    ma, mp = B.shard("dmane", mane, zc - 0.01, zc + 0.05, A, slope=0.02, groove=0.016, panel_h=0.018, tags=tags)
-    Mo.slot_with_pips("dpip", 0.0, -0.42, -0.20, 0.042, zc + 0.068, 3, M, tags, target=_pecas(ma, mp), depth=0.06)
+    keel = [(-0.04, -0.47), (0.04, -0.47), (0.058, -0.42), (0.058, yb - 0.21), (0.0, yb - 0.11), (-0.058, yb - 0.21),
+            (-0.058, -0.42)]
+    # quilha sem luz: o olho e o unico ponto de luz da cabeca
+    B.shard("dkeel", keel, z1 - 0.01, z1 + 0.11, A, slope=0.018, groove=0.012, panel_h=0.02, tags=tags)
     # sobrancelha feroz: divisa clara e grossa apontando para a frente sobre o olho (borda da coroa)
     brow = [(-0.31, yb - 0.18), (-0.03, yb - 0.04), (0.03, yb - 0.04), (0.31, yb - 0.18), (0.34, yb - 0.07),
             (0.03, yb + 0.09), (-0.03, yb + 0.09), (-0.34, yb - 0.07)]
@@ -308,62 +400,75 @@ def _dome(M, tags, phase):
     snout = [(-0.17, 0.53), (0.17, 0.53), (0.15, 0.68), (0.07, 0.74), (-0.07, 0.74), (-0.15, 0.68)]
     sn = B.plate("dsnout", snout, 0.28, 0.46, KM, slope=0.025, bevel=0.008, tags=tags)
     B.cut(sn, [B.box(f"dsnc{i}", 0, 0.61 + i * 0.04, 0.20, 0.016, 0.42, 0.8, K, bevel=0.0) for i in range(3)])
-    # presas de queixada: crescentes saindo do focinho para a frente e curvando para fora
-    tusk = [(-0.13, 0.68), (-0.20, 0.57), (-0.27, 0.66), (-0.33, 0.76), (-0.40, 0.84), (-0.47, 0.88),
-            (-0.42, 0.925), (-0.32, 0.90), (-0.24, 0.83), (-0.17, 0.74)]
+    # presas de queixada: lascas grossas na base (flanco do focinho) afinando ate a ponta, curvando para fora
+    # e para a frente; painel a mao so na parte grossa (a ponta fina nao aguenta o offset)
+    tusk = _curve_poly((-0.15, 0.60), (-0.33, 0.64), (-0.34, 0.865), 0.068, 0.016, n=9)
+    tpnl = _curve_poly((-0.16, 0.615), (-0.31, 0.65), (-0.325, 0.80), 0.030, 0.008, n=7)
     for side, f in (("L", lambda p: p), ("R", Mo.mirror)):
-        B.plate(f"dtusk{side}", f(tusk), 0.36, 0.56, A, slope=0.025, bevel=0.01, tags=tags)
+        _hshard(f"dtusk{side}", f(tusk), f(tpnl), 0.36, 0.54, A, slope=0.02, panel_h=0.022, tags=tags)
 
 
 # ============================================================================ bracos, garras, pes, traseira
 def _arms(M, tags):
     K, KM, A, AM, S = M["core"], M["core_mid"], M["armor"], M["armor_mid"], M["steel"]
     yc, zc = POD_Y - POD_L / 2 * COS, Z0 - POD_L / 2 * SIN      # centro do casulo (munhao)
-    blade = [(-1.37, -0.35), (-1.37, 0.70), (-1.30, 0.88), (-1.12, 1.07), (-0.92, 1.23), (-0.78, 1.32),
-             (-0.74, 1.26), (-0.84, 1.11), (-0.99, 0.96), (-1.14, 0.83), (-1.25, 0.70), (-1.27, -0.35)]
-    blade_pnl = [(-1.335, 0.30), (-1.335, 0.695), (-1.268, 0.862), (-1.095, 1.04), (-0.905, 1.19), (-0.85, 1.215),
-                 (-0.89, 1.13), (-1.02, 0.99), (-1.17, 0.86), (-1.29, 0.70), (-1.295, 0.30)]
-    shoulder = [(-0.78, -0.66), (-1.30, -0.66), (-1.37, -0.76), (-1.24, -1.02), (-1.10, -1.10), (-1.02, -0.92),
-                (-0.86, -0.80)]
+    # garra: nasce por baixo do chanfro externo da frente do casulo (raiz escondida sob a moldura) e avanca
+    # curvando para dentro; baixa (z <= 0.42) para passar por baixo da face inclinada
+    claw = [(-1.14, 0.70), (-1.20, 0.56), (-1.30, 0.54), (-1.355, 0.66), (-1.36, 0.80), (-1.32, 0.93),
+            (-1.20, 1.075), (-1.02, 1.215), (-0.82, 1.335), (-0.775, 1.30), (-0.88, 1.18), (-1.01, 1.05),
+            (-1.10, 0.93), (-1.13, 0.82)]
+    claw_pnl = [(-1.325, 0.70), (-1.325, 0.80), (-1.29, 0.91), (-1.185, 1.04), (-1.02, 1.17), (-0.89, 1.25),
+                (-0.925, 1.195), (-1.035, 1.075), (-1.135, 0.955), (-1.165, 0.84), (-1.17, 0.70)]
+    # ombreira traseira em cunha com espora para tras; a aresta de dentro corre paralela ao pe de tras
+    # (vao escuro de 0.05): ombro + pe leem como uma perna so do exoesqueleto
+    shoulder = [(-0.74, -0.66), (-1.30, -0.66), (-1.37, -0.76), (-1.26, -1.00), (-1.10, -1.13), (-0.96, -1.05),
+                (-0.72, -0.70)]
+    # braco: lasca clara saindo do flanco da cupula e entrando por baixo do chanfro de dentro do casulo
+    arm = [(0.31, -0.20), (0.50, -0.20), (0.58, -0.12), (0.58, 0.02), (0.50, 0.10), (0.31, 0.10)]
     for side, sx, f in (("L", -1, lambda p: p), ("R", 1, Mo.mirror)):
         # munhao entre a cupula e o casulo
         B.cyl(f"trun{side}", sx * 0.41, yc, zc, 0.07, 0.14, S, axis="X", verts=12, bevel=0.006, tags=tags)
         B.box(f"trunb{side}", sx * 0.41, yc, 0.08, 0.30, 0.30, zc, KM, bevel=0.01, tags=tags)
-        # lamina-garra pelo lado de fora do casulo, ponta para a frente e para dentro (painel a mao)
-        ba = B.plate(f"blade{side}", f(blade), 0.40, 0.78, A, slope=0.025, tags=tags)
-        bp = B.plate(f"blade{side}_pnl", f(blade_pnl), 0.776, 0.80, A, slope=0.01, bevel=0.0, tags=tags)
-        Mo.slot_with_pips(f"bslot{side}", sx * 1.32, -0.24, 0.12, 0.04, 0.78, 3, M, tags, target=[ba], depth=0.07)
-        # fenda com luz ao longo da curva da lamina
-        bx, by, br = sx * 1.055, 1.015, sx * 42
+        _, ap = B.shard(f"arm{side}", Mo.mirror(arm) if sx < 0 else arm, 0.60, 0.80, A, slope=0.03, groove=0.018,
+                         panel_h=0.02, tags=tags)
+        _lines(ap, f"apl{side}", [(sx * 0.44, -0.05, 0.12, 0)], 0.82)
+        # garra (painel a mao: a ponta fina nao aguenta o offset automatico)
+        ba, bp = _hshard(f"blade{side}", f(claw), f(claw_pnl), 0.26, 0.40, A, slope=0.022, panel_h=0.022,
+                         tags=tags)
+        # fenda com luz fraca ao longo da curva da garra
+        bx, by, br = sx * 1.16, 0.985, sx * 40
         for t in (ba, bp):
-            B.cut(t, [B.rbox(f"bcut{side}{t.name}", bx, by, 0.05, 0.22, 0.74, 0.9, K, rot=br, bevel=0.0)])
-        B.rbox(f"bbed{side}", bx, by, 0.05, 0.22, 0.72, 0.745, M["black"], rot=br, bevel=0.0, tags=tags)
-        B.rbox(f"bglow{side}", bx, by, 0.016, 0.16, 0.745, 0.755, M["glow_dim"], rot=br, bevel=0.0, tags=tags)
-        # ombreira traseira (braco que segura o casulo) em cunha com espora para tras
+            B.cut(t, [B.rbox(f"bcut{side}{t.name}", bx, by, 0.05, 0.20, 0.34, 0.9, K, rot=br, bevel=0.0)])
+        B.rbox(f"bbed{side}", bx, by, 0.05, 0.20, 0.32, 0.345, M["black"], rot=br, bevel=0.0, tags=tags)
+        B.rbox(f"bglow{side}", bx, by, 0.016, 0.14, 0.345, 0.355, M["glow_dim"], rot=br, bevel=0.0, tags=tags)
         sa, sp = B.shard(f"shoulder{side}", f(shoulder), 0.30, 0.72, A, slope=0.04, groove=0.022, panel_h=0.028,
                          tags=tags)
         Mo.slot_with_pips(f"sslot{side}", sx * 1.17, -0.92, -0.76, 0.045, 0.748, 2, M, tags, target=_pecas(sa, sp),
                           depth=0.07)
-        _lines(sp, f"spl{side}", [(sx * 1.00, -0.75, 0.14, sx * -60)], 0.748)
+        _lines(sp, f"spl{side}", [(sx * 0.93, -0.80, 0.14, sx * -55)], 0.748)
 
 
 def _feet(M, tags):
-    """Quatro pes abertos no anel (base de 4 pernas da ref. 3): cunhas baixas com dedo escuro."""
+    """Quatro pes abertos no anel (base de 4 pernas da ref. 3), todos iguais: perna em cunha que abre para fora
+    + ponta em seta (dedo) apontando para fora, separadas por um entalhe reto escuro (junta do tornozelo, aberta
+    dos dois lados). Os da frente ficam no crescente livre entre as presas e as garras; os de tras entre a
+    escotilha e as ombreiras."""
     K, KM, A, AM, S = M["core"], M["core_mid"], M["armor"], M["armor_mid"], M["steel"]
-    foot = [(0.84, -0.09), (1.10, -0.09), (1.22, -0.13), (1.37, -0.05), (1.37, 0.05), (1.22, 0.13), (1.10, 0.09),
-            (0.84, 0.09)]
-    for k, a in enumerate((60, 148, 212, 300)):
+    leg = [(0.98, -0.066), (1.17, -0.085), (1.17, 0.085), (0.98, 0.066)]
+    toe = [(1.205, -0.12), (1.29, -0.10), (1.38, 0.0), (1.29, 0.10), (1.205, 0.12)]
+    gap = [(1.16, -0.115), (1.215, -0.115), (1.215, 0.115), (1.16, 0.115)]
+    for k, a in enumerate((26, 145, 215, 334)):
         ar = math.radians(a)
         ux, uy = math.sin(ar), math.cos(ar)          # direcao do pe (a partir de +Y)
         vx, vy = uy, -ux
 
         def tr(p):
             return [(r * ux + t * vx, r * uy + t * vy) for r, t in p]
-        fa, fp = B.shard(f"foot{k}", tr(foot), 0.22, 0.38, A, slope=0.025, groove=0.018, panel_h=0.02, tags=tags)
-        toe = tr([(1.12, -0.03), (1.26, -0.03), (1.26, 0.03), (1.12, 0.03)])
-        for t in _pecas(fa, fp):
-            B.cut(t, [B.loft(f"ftoe_{t.name}", toe, toe, 0.34, 0.6, K, bevel=0.0)])
-        B.loft(f"ftoebed{k}", toe, toe, 0.33, 0.342, M["black"], bevel=0.0, tags=tags)
+        B.shard(f"foot{k}", tr(leg), 0.22, 0.38, A, slope=0.022, groove=0.014, panel_h=0.02, tags=tags)
+        B.shard(f"ftoe{k}", tr(toe), 0.22, 0.36, A, slope=0.022, groove=0.014, panel_h=0.018, tags=tags)
+        # fundo escuro da junta (fora do anel ela mostraria o casco)
+        B.loft(f"fgap{k}", tr(gap), tr(gap), 0.20, 0.23, M["black"], bevel=0.0, tags=tags)
+        B.bolts(f"fbolt{k}", tr([(1.04, 0.0)]), 0.395, 0.018, S, tags=tags)
 
 
 def _rear(M, tags):
@@ -375,14 +480,15 @@ def _rear(M, tags):
     zh = 0.625
     inner = B.rpoly(0, -0.885, 0.42, 0.20, 0, chamfer=0.05)
     out = B.offset_poly(inner, -0.018)
+    lid = None
     if hp is not None:
         B.cut(hp, [B.loft("hring_c", out, out, zh - 0.03, zh + 0.4, K, bevel=0.0)])
-        B.plate("hlid", inner, zh - 0.05, zh + 0.005, A, slope=0.012, bevel=0.006, tags=tags)
+        lid = B.plate("hlid", inner, zh - 0.05, zh + 0.005, A, slope=0.012, bevel=0.006, tags=tags)
         B.loft("hring_bed", out, out, zh - 0.045, zh - 0.03, M["black"], bevel=0.0, tags=tags)
     B.box("hhandle", 0, -0.93, 0.18, 0.035, zh, zh + 0.03, S, bevel=0.008, tags=tags)
-    for i in range(4):
-        B.box(f"hled{i}", -0.105 + i * 0.07, -0.84, 0.04, 0.022, zh, zh + 0.012,
-              M["glow"] if i < 3 else M["black"], bevel=0.0, tags=tags)
+    # contador do carregador: 3 pips fracos numa fenda escura da tampa (LED sempre em recesso)
+    Mo.slot_with_pips("hcnt", -0.835, -0.11, 0.11, 0.036, zh + 0.005, 3, dict(M, glow=M["glow_dim"]), tags,
+                      target=lid, depth=0.04, vertical=False)
     # baia de exaustao com 5 pips
     B.box("vent_bay", 0, -1.16, 0.62, 0.20, 0.20, 0.36, M["black"], bevel=0.0, tags=tags)
     for i in range(5):
@@ -513,8 +619,8 @@ def cell(M, look, T="cell", form="tube", box=None):
         B.cut(og, [B.box(f"n_seam{k}", 0, 0, 0.012, 0.3, zb + 0.03, 0.5, M["core"], bevel=0.0) for k in range(1)] +
               [B.box("n_seam1", 0, 0, 0.3, 0.012, zb + 0.03, 0.5, M["core"], bevel=0.0)])
     elif look == "napalm":
-        # tampa laranja queimada (ogiva inteira), anel de aco na base
-        cap = _nose_paint("cap_napalm", (0.62, 0.075, 0.006))
+        # tampa laranja (ogiva inteira, matiz do brilho #FF6A1A), anel de aco na base
+        cap = _nose_paint("cap_napalm", (0.87, 0.16, 0.012))
         _lathe("n_ogive", prof + [(0.0, zt + 0.002)], cap, tags)
     else:
         _lathe("n_ogive", prof + [(0.0, zt + 0.002)], nose, tags)
@@ -524,9 +630,10 @@ def cell(M, look, T="cell", form="tube", box=None):
 
 
 def _torpedo(M, tags, band, box):
-    """Torpedo Boto: cassete escuro com 4 travas, anel branco e ogiva branca grande (tampa) cobrindo a face do
-    casulo, com costura escura e ponta de aco."""
-    white = _nose_paint("torp_white", (0.74, 0.76, 0.80))
+    """Torpedo Boto: cassete escuro (colar + 4 travas de aco) emoldurando uma ogiva grande e pontuda, pintada
+    no cinza claro frio da armadura (branco puro estoura e vira sino), anel branco fino na base, 2 costuras
+    escuras, 2 linhas de painel e buscador escuro na ponta com bico claro."""
+    white = _nose_paint("torp_white", (0.53, 0.555, 0.60))
     # box = [largura, profundidade] na vista de cima; no plano da face a altura e profundidade / SIN
     bw, bd = (box or [0.65, 0.65])
     hw, hh = bw / 2, bd / 2 / SIN
@@ -535,18 +642,43 @@ def _torpedo(M, tags, band, box):
     for k, (u, v) in enumerate(((-1, -1), (1, -1), (-1, 1), (1, 1))):
         B.box(f"t_lug{k}", u * (hw - 0.06), v * (hh - 0.10), 0.05, 0.08, 0.04, 0.075, M["steel"], bevel=0.006,
               tags=tags)
-    R, L = hw - 0.07, 0.30
-    sy = 1.32
-    B.plate("t_ring", [(x, y * sy) for x, y in B.rpoly(0, 0, 2 * (R + 0.03), 2 * (R + 0.03), 0, chamfer=0.09)],
-            0.05, 0.08, band, slope=0.01, bevel=0.004, tags=tags)
-    prof = _ogive(R, L, 0.08, tip_r=0.028)
+    # ogiva longa e fina (ponta para cima na imagem); cabe no quadro: ponta a ~0.34 na vista de cima (quadro 0.37)
+    R, L, zb = hw - 0.10, 0.37, 0.04
+    sy = 1.40
+    rho = (R * R + L * L) / (2 * R)
+    full = []
+    for k in range(25):
+        dz = L * k / 24
+        full.append((max(0.0, math.sqrt(max(0.0, rho * rho - dz * dz)) + R - rho), zb + dz))   # base -> ponta
+    cut_i = next(i for i, (r, z) in enumerate(full) if r < 0.08)
+    prof, tip = full[:cut_i], full[cut_i - 1:]
+    _lathe("t_ring", [(R + 0.025, 0.03), (R + 0.025, zb + 0.008), (0.0, zb + 0.008)], band, tags, verts=32, sy=sy)
     rt, zt = prof[-1]
-    _lathe("t_nose", prof + [(0.0, zt + 0.002)], white, tags, verts=32, sy=sy)
-    # costura escura a 35 % da ogiva
-    r_s, z_s = prof[3]
-    _lathe("t_seam", [(r_s + 0.004, z_s - 0.007), (r_s + 0.004, z_s + 0.007)], M["core"], tags, verts=32, sy=sy)
-    B.cyl("t_tip", 0, 0, (zt + 0.08 + L) / 2, rt, 0.08 + L - zt, M["steel"], axis="Z", verts=16, bevel=0.0,
-          tags=tags, r2=0.004)
+    og = _lathe("t_nose", prof + [(0.0, zt)], white, tags, verts=32, sy=sy)
+
+    def r_at(z):
+        for (ra, za), (rb, zb_) in zip(prof, prof[1:]):
+            if za <= z <= zb_:
+                return ra + (rb - ra) * (z - za) / (zb_ - za)
+        return prof[-1][0]
+    # 2 linhas de painel curtas no lado que olha para a camera (-y local), ao longo do eixo
+    za, zc = zb + 0.04, zb + 0.13
+    cuts = []
+    for k, x in enumerate((-0.07, 0.07)):
+        y_in = -sy * math.sqrt(max(r_at(zc) ** 2 - x * x, 0.0)) + 0.014
+        cuts.append(B.box(f"t_pl{k}", x, (-1.0 + y_in) / 2, 0.016, 1.0 + y_in, za, zc, M["core"], bevel=0.0))
+    B.cut(og, cuts)
+    # 2 costuras escuras finas (~30 % e ~60 % da ogiva)
+    for k, f in enumerate((0.30, 0.60)):
+        z_s = zb + L * f
+        r_s = r_at(z_s)
+        _lathe(f"t_seam{k}", [(r_s + 0.004, z_s - 0.006), (r_s + 0.004, z_s + 0.006), (0.0, z_s + 0.006)], M["core"],
+               tags, verts=32, sy=sy)
+    # buscador: ponta de aco continuando a curva da ogiva (le como bico, nao como furo) com junta escura
+    _lathe("t_seek", [(rt + 0.005, zt - 0.010), (rt + 0.005, zt + 0.002), (0.0, zt + 0.002)], M["core"], tags,
+           verts=24, sy=sy)
+    _lathe("t_tip", [(r, z + 0.002) for r, z in tip[:-1]] + [(0.0, tip[-1][1] + 0.002)], M["steel"], tags,
+           verts=24, sy=sy)
 
 
 # ============================================================================ overclock
@@ -565,10 +697,10 @@ def oc_glow(M, T="oc"):
     # grelhas de sopro dos casulos (mesmo referencial do topo)
     for sx in (-1, 1):
         antes = _cena()
-        zt = HH - 0.03 + 0.072
-        for i in range(3):
-            B.box(f"oc_pv{sx}{i}", 0, -POD_L + 0.135 + i * 0.03, 0.30, 0.014, zt - 0.10, zt - 0.09, vent_oc,
-                  bevel=0.0, tags=tags)
+        zt = HHO - 0.03 + 0.072
+        # 2 brasas nos vaos entre as 3 venezianas (0.045 de passo: nao viram uma barra so a 1x)
+        for i, dy in enumerate((-0.0225, 0.0225)):
+            B.box(f"oc_pv{sx}{i}", 0, VENT_Y + dy, 0.25, 0.024, zt - 0.10, zt - 0.088, vent_oc, bevel=0.0, tags=tags)
         _grupo(antes, f"oc_pod{sx}", (sx * POD_X, POD_Y, Z0), (PITCH, 0, 0))
 
 

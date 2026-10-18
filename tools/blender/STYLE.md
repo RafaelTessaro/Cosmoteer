@@ -357,3 +357,8 @@ normals PNG per body size; never use a Lower/Middle bucket (hidden under our roo
   the dark window. Cut with world-vertical walls (shift the cutter polygon by dz*tan(pitch) in local y).
 - **oc_glow() (launchers with overclock):** draw ONLY emissive objects with the 'oc' tag; anything non-emissive tagged 'oc'
   comes out black over the turret.
+- **Inclined pods (projection):** anything that sticks out of an inclined face shifts FORWARD in the top view by
+  height*cos(pitch); a tall frame can cover the empty back-row mouths. Keep the frame low (~0.045) and leave
+  ~0.1 of space between the opening and the back-row rims.
+- **Emission saturation:** with the Standard view, glows above ~1.5 of strength saturate (orange turns yellow). An overclock
+  "orange eye" uses strength 1.0-1.5 with color (1, 0.16, 0.01).

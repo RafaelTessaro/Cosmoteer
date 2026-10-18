@@ -149,7 +149,7 @@ Part : <./Data/ships/terran/base_part_terran.rules>/Part
 		{
 			Type = CircleCollider
 			Location = &../Turret/Location
-			Radius = 0.46
+			Radius = 0.42
 			IsHigh = true
 		}
 		ReloadProgressBar
@@ -165,7 +165,7 @@ Part : <./Data/ships/terran/base_part_terran.rules>/Part
 			ChainedTo = Turret
 			FireTrigger
 			GetTargetFrom = Turret
-			Location = [0.951, 0]
+			Location = [1.13, 0]
 			OperationalToggle = IsOperational
 			Bullet = &<../../shots/bs_shot_lmg_bullet/bs_shot_lmg_bullet.rules>
 			Spread = [-2.5d, 2.5d]
@@ -177,7 +177,7 @@ Part : <./Data/ships/terran/base_part_terran.rules>/Part
 		}
 		Emitter1 : TargetEmitter
 		{
-			Location = [0.951, 0]
+			Location = [1.13, 0]
 			FireTrigger = Turret
 		}
 		TargetEmitterProxy
@@ -191,7 +191,7 @@ Part : <./Data/ships/terran/base_part_terran.rules>/Part
 			Type = EmitterProxy
 			ComponentID = Emitter1
 			ChainedTo = Turret
-			Location = [0.951, 0]
+			Location = [1.13, 0]
 		}
 		FireEffect1
 		{
@@ -276,6 +276,17 @@ Part : <./Data/ships/terran/base_part_terran.rules>/Part
 					}
 				]
 			}
+			OperationalLighting
+			{
+				Layer = "lights_add"
+				DamageLevels
+				[
+					{
+						File = "lights.png"
+						Size = [1, 1]
+					}
+				]
+			}
 		}
 		TurretGraphics
 		{
@@ -291,7 +302,7 @@ Part : <./Data/ships/terran/base_part_terran.rules>/Part
 				[
 					{
 						File = "turret_shadow.png"
-						Size = [0.92, 0.92]
+						Size = [1.25, 1.25]
 					}
 				]
 			}
@@ -303,7 +314,7 @@ Part : <./Data/ships/terran/base_part_terran.rules>/Part
 					{
 						File = "turret.png"
 						NormalsFile = "turret_normals.png"
-						Size = [0.92, 0.92]
+						Size = [1, 1]
 					}
 				]
 			}
@@ -315,7 +326,7 @@ Part : <./Data/ships/terran/base_part_terran.rules>/Part
 					{
 						File = "turret_off.png"
 						NormalsFile = "turret_normals.png"
-						Size = [0.92, 0.92]
+						Size = [1, 1]
 					}
 				]
 			}
@@ -324,7 +335,7 @@ Part : <./Data/ships/terran/base_part_terran.rules>/Part
 		{
 			Type = Graphics
 			ChainedTo = Turret
-			Location = [0.681, 0]
+			Location = [0.725, 0]
 			Rotation = 90d
 			OperationalToggle = IsOperational
 			ResetAnimationTrigger = Emitter1Proxy
@@ -334,17 +345,10 @@ Part : <./Data/ships/terran/base_part_terran.rules>/Part
 				DamageLevels
 				[
 					{
-						Size = [0.5, 0.7]
-						AnimationFiles = ["barrel2.png", "barrel3.png", "barrel4.png", "barrel5.png", "barrel1.png"]
-						NormalsAnimationFiles
-						[
-							"barrel_normals1.png"
-							"barrel_normals1.png"
-							"barrel_normals1.png"
-							"barrel_normals1.png"
-							"barrel_normals1.png"
-						]
-						AnimationInterval = 0.06
+						Size = [0.2, 1.03]
+						AnimationFiles = ["barrel2.png", "barrel3.png", "barrel4.png", "barrel1.png"]
+						NormalsAnimationFiles = ["barrel_normals2.png", "barrel_normals3.png", "barrel_normals4.png", "barrel_normals1.png"]
+						AnimationInterval = 0.04
 						AnimationStartTime = MinValue
 						ClampAnimation = true
 					}
@@ -358,7 +362,27 @@ Part : <./Data/ships/terran/base_part_terran.rules>/Part
 					{
 						File = "barrel1.png"
 						NormalsFile = "barrel_normals1.png"
-						Size = [0.5, 0.7]
+						Size = [0.2, 1.03]
+					}
+				]
+			}
+		}
+		Light1Graphics
+		{
+			Type = Graphics
+			ChainedTo = Turret
+			Location = [-0.33, 0]
+			OperationalToggle = IsOperational
+			OperationalRoofLighting
+			{
+				Layer = "roof_lights_fancy"
+				DamageLevels
+				[
+					{
+						File = "./Data/ships/common/light_blob.png"
+						Size = [0.5, 0.5]
+						Z = 0.8
+						VertexColor = [255, 120, 30]
 					}
 				]
 			}
