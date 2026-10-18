@@ -2,6 +2,7 @@
 
     <venv-com-bpy>/bin/python tools/blender/render_part.py <id_curto> [--out DIR] [--quick] [--preview]
                                                           [--only turret,barrel,hull,cells]
+    (fabricas: --only hull | machine | f1,f8 = so esses quadros da maquina)
 
 Carrega o modelo de tools/blender/parts/<id_curto>.py (dicionario PART + funcoes de modelagem) e grava
 em art3d/<id_curto>/ (ou --out) os PNGs no formato do jogo e um meta.json que o gerador do mod
@@ -556,29 +557,38 @@ def render_factory(mod, out, only):
     M = fresh(accent)
     B.camera(W, H, (0, 0))
     samples(48)
-    mod.floor(M, "floor")
-    mod.roof(M, "roof")
-    B.show_only(["roof"])
-    B.render_set(os.path.join(out, "roof"), size, glow_halo=True, off=False)
-    B.show_only(["floor"])
-    fl = B.render_set(os.path.join(out, "floor"), size, glow_halo=True, off=False, normals=False)
-    base = Image.new("RGBA", size, (18, 19, 21, 255))
-    base.alpha_composite(fl["on"])
-    base.save(os.path.join(out, "floor.png"))
-    walls_png(W, H).save(os.path.join(out, "walls.png"))
+    # --only hull (teto, chao e paredes) / machine (todos os quadros) / f1,f8 (so esses quadros da maquina)
+    sel = {int(t[1:]) for t in only if t[:1] == "f" and t[1:].isdigit()}
+    if not only or "hull" in only:
+        mod.floor(M, "floor")
+        mod.roof(M, "roof")
+        warn_empty("roof")
+        warn_empty("floor")
+        B.show_only(["roof"])
+        B.render_set(os.path.join(out, "roof"), size, glow_halo=True, off=False)
+        B.show_only(["floor"])
+        fl = B.render_set(os.path.join(out, "floor"), size, glow_halo=True, off=False, normals=False)
+        base = Image.new("RGBA", size, (18, 19, 21, 255))
+        base.alpha_composite(fl["on"])
+        base.save(os.path.join(out, "floor.png"))
+        walls_png(W, H).save(os.path.join(out, "walls.png"))
     files += ["roof.png", "roof_normals.png", "floor.png", "walls.png"]
     names = []
     for i in range(nfr):
+        names.append(f"machine_on{i + 1}.png")
+        if only and "machine" not in only and (i + 1) not in sel:
+            continue
         M = fresh(accent)
         B.camera(W, H, (0, 0))
         samples(48)
         mod.machine(M, "machine", i / nfr)
+        if i == 0:
+            warn_empty("machine")
         B.show_only(["machine"])
         stem = os.path.join(out, f"machine_on{i + 1}")
         B.render_set(stem, size, glow_halo=True, off=(i == 0), normals=False)
         if i == 0:
             os.replace(stem + "_off.png", os.path.join(out, "machine_off.png"))
-        names.append(f"machine_on{i + 1}.png")
         if i == 0:
             em = emission_pass(os.path.join(out, "lights_raw.png"), size)
             glow = em.filter(ImageFilter.GaussianBlur(6))
@@ -644,6 +654,7 @@ def render_resource(mod, out, only):
     B.camera(1, 1, (0, 0))
     samples(64)
     _place_item(mod, M, (0, 0, 0), P.get("icon_scale", 0.8), P.get("icon_rot", 0), "unit_icon")
+    warn_empty("item")
     B.show_only(["item"])
     res = B.render_set(os.path.join(out, "nugget"), (PX, PX), glow_halo=True, off=False, normals=True)
     res["on"].save(os.path.join(out, "icon.png"))

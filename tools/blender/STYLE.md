@@ -383,3 +383,10 @@ normals PNG per body size; never use a Lower/Middle bucket (hidden under our roo
   the end of the piece under it floats over the hull.
 - **Overclock glow:** never cover a whole housing with an emissive slab (it reads as a flat orange sticker). Put small concentric
   emitters at the bottom of the recess and let `oc_occlude` (holdout) cut them with the rims and vanes in front.
+- **`B.shard` on short edges:** a polygon edge shorter than about 2*(slope+groove) (blade tips, small chamfers next to long edges)
+  can silently leave the inner panel EMPTY after the booleans, sometimes only on the mirrored side. The "chanfro reduzido" warning
+  is the hint; `render_factory`/`render_resource` now also print "ficou vazio".
+- **Cyan idle glow:** `M["glow_dim"]` is accent x 3.0, which renders near-white for cyan (brighter than a saturated cyan at
+  1.25-1.4). For cyan parts build explicit levels from `Mo.CYAN` (e.g. 0.16 / 0.34 / 0.70 / 1.25) so idle stays dimmer than active.
+- **Fast factory iteration:** `render_part.py <fabrica> --quick --only f1,f8` renders only those machine frames; `--only hull`
+  renders only roof/floor/walls.

@@ -1,0 +1,62 @@
+{
+ "version": 1,
+ "id": "rafaeltessaro.bs_factory_plasma",
+ "kind": "factory",
+ "size": [
+  3,
+  3
+ ],
+ "machine": {
+  "frames": [
+   "machine_on1.png",
+   "machine_on2.png",
+   "machine_on3.png",
+   "machine_on4.png",
+   "machine_on5.png",
+   "machine_on6.png",
+   "machine_on7.png",
+   "machine_on8.png",
+   "machine_on9.png",
+   "machine_on10.png",
+   "machine_on11.png",
+   "machine_on12.png"
+  ],
+  "off": "machine_off.png",
+  "interval": 0.12,
+  "size": [
+   3,
+   3
+  ],
+  "offset": [
+   0,
+   0
+  ]
+ },
+ "hull": {
+  "floor": "floor.png",
+  "walls": "walls.png",
+  "roof": "roof.png",
+  "roof_normals": "roof_normals.png",
+  "lights": "lights.png"
+ },
+ "files": [
+  "floor.png",
+  "lights.png",
+  "machine_off.png",
+  "machine_on1.png",
+  "machine_on10.png",
+  "machine_on11.png",
+  "machine_on12.png",
+  "machine_on2.png",
+  "machine_on3.png",
+  "machine_on4.png",
+  "machine_on5.png",
+  "machine_on6.png",
+  "machine_on7.png",
+  "machine_on8.png",
+  "machine_on9.png",
+  "roof.png",
+  "roof_normals.png",
+  "walls.png"
+ ]
+}

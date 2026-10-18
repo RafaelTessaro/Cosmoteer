@@ -220,7 +220,124 @@ def _font(size):
     return ImageFont.load_default()
 
 
+LOGO_HERO = os.path.join(HERE, "blender", "logo_hero.png")   # render 3D (tools/blender/render_logo.py)
+LOGO_TITLE = "BULLET STRIKE"
+LOGO_SUB = "ARMAS DE CONVÉS · MUNIÇÃO · OVERCLOCK"
+
+
 def logo():
+    """Logo da Workshop / lista de mods (512 x 512 RGB): imagem heroi 3D + titulo e subtitulo.
+    Sem a imagem 3D, cai no desenho procedural antigo."""
+    if os.path.exists(LOGO_HERO):
+        try:
+            return _logo_hero(LOGO_HERO)
+        except Exception as e:  # imagem corrompida: nao derruba o build
+            print(f"AVISO: logo 3D falhou ({e}); usando o logo procedural")
+    return _logo_procedural()
+
+
+def _gradient(h, stops):
+    """Coluna de cores (h x 3) interpolando stops [(t, (r, g, b))]."""
+    import numpy as np
+    ts = np.array([s[0] for s in stops], np.float32)
+    cs = np.array([s[1] for s in stops], np.float32)
+    t = np.linspace(0, 1, h, dtype=np.float32)
+    return np.stack([np.interp(t, ts, cs[:, k]) for k in range(3)], axis=-1)
+
+
+def _metal_title(W, text, size, slant=0.12, ss=3):
+    """Titulo em ambar metalico: degrade com 'horizonte' escuro no meio, brilho no topo das letras,
+    contorno escuro, sombra e brilho ambar por tras. Desenhado em ss x e reduzido (bordas limpas).
+    Devolve uma camada RGBA de largura W e a altura da caixa do texto."""
+    import numpy as np
+    f = _font(size * ss)
+    sw = 3 * ss                                # contorno
+    pad = 14 * ss
+    x0, y0, x1, y1 = f.getbbox(text)
+    tw, th = x1 - x0, y1 - y0
+    Wb, Hb = W * ss, th + 2 * pad
+    ox, oy = (Wb - tw) / 2 - x0, pad - y0
+
+    def mask(stroke=0, dy=0):
+        m = Image.new("L", (Wb, Hb), 0)
+        ImageDraw.Draw(m).text((ox, oy + dy), text, font=f, fill=255, stroke_width=stroke, stroke_fill=255)
+        return m
+
+    fill, outline = mask(), mask(sw)
+    # degrade metalico (de cima para baixo dentro da altura das letras)
+    col = _gradient(th, [(0.0, (255, 242, 196)), (0.30, (255, 205, 92)), (0.49, (246, 158, 34)),
+                         (0.51, (176, 82, 10)), (0.70, (236, 132, 24)), (1.0, (255, 196, 96))])
+    grad = np.zeros((Hb, Wb, 3), np.float32)
+    grad[:] = col[0]
+    grad[pad:pad + th] = col[:, None, :]
+    grad[pad + th:] = col[-1]
+    # brilho no topo de cada traco (mascara menos ela mesma deslocada para baixo)
+    a = np.asarray(fill, np.float32) / 255
+    below = np.asarray(mask(dy=2 * ss), np.float32) / 255
+    hi = np.clip(a - below, 0, 1)[..., None]
+    grad = grad * (1 - hi * 0.7) + np.array([255, 250, 228], np.float32) * hi * 0.7
+    letters = Image.fromarray(np.dstack([np.clip(grad, 0, 255), a * 255]).astype(np.uint8), "RGBA")
+    layer = Image.new("RGBA", (Wb, Hb), (0, 0, 0, 0))
+    # brilho ambar difuso atras, sombra deslocada, contorno escuro e as letras
+    glow = outline.filter(ImageFilter.GaussianBlur(9 * ss)).point(lambda v: int(v * 0.55))
+    layer.alpha_composite(Image.merge("RGBA", (*Image.new("RGB", (Wb, Hb), (255, 120, 16)).split(), glow)))
+    shadow = Image.new("L", (Wb, Hb), 0)
+    shadow.paste(outline.filter(ImageFilter.GaussianBlur(2 * ss)), (0, 3 * ss))
+    layer.alpha_composite(Image.merge("RGBA", (*Image.new("RGB", (Wb, Hb), (0, 0, 0)).split(),
+                                                shadow.point(lambda v: int(v * 0.85)))))
+    layer.alpha_composite(Image.merge("RGBA", (*Image.new("RGB", (Wb, Hb), (22, 13, 6)).split(), outline)))
+    layer.alpha_composite(letters)
+    if slant:
+        # italico "de ataque": o topo das letras avanca para a direita
+        cy = Hb / 2
+        layer = layer.transform((Wb, Hb), Image.AFFINE, (1, slant, -slant * cy, 0, 1, 0), Image.BICUBIC)
+    return layer.resize((W, Hb // ss), Image.LANCZOS), th // ss
+
+
+def _logo_hero(path):
+    import numpy as np
+    W = 512
+    bg = Image.open(path).convert("RGB")
+    if bg.size != (W, W):
+        bg = bg.resize((W, W), Image.LANCZOS)
+    img = bg.convert("RGBA")
+    # faixa de baixo escurecida (o titulo fica legivel sobre o conves)
+    t = np.clip((np.arange(W, dtype=np.float32) - 300) / 170, 0, 1)
+    ramp = (t * t * (3 - 2 * t) * 225).astype(np.uint8)
+    shade = Image.fromarray(np.repeat(ramp[:, None], W, axis=1), "L")
+    img.alpha_composite(Image.merge("RGBA", (*Image.new("RGB", (W, W), (2, 3, 6)).split(), shade)))
+    # titulo: o maior que cabe em ~90 % da largura
+    size = 72
+    while size > 40 and _font(size).getbbox(LOGO_TITLE)[2] > W * 0.90:
+        size -= 1
+    title, th = _metal_title(W, LOGO_TITLE, size)
+    ty = 404
+    img.alpha_composite(title, (0, ty - 14))
+    # subtitulo: claro com contorno escuro, o maior que cabe em ~93 % da largura; separadores em ambar
+    parts = LOGO_SUB.split(" · ")
+    sep = "  ·  "
+    for sz in range(24, 13, -1):
+        f2 = _font(sz)
+        widths = [f2.getlength(p) for p in parts]
+        total = sum(widths) + f2.getlength(sep) * (len(parts) - 1)
+        if total <= W * 0.93:
+            break
+    x = (W - total) / 2
+    y = ty + th + 20
+    txt = Image.new("RGBA", (W, W), (0, 0, 0, 0))
+    d = ImageDraw.Draw(txt)
+    for i, p in enumerate(parts):
+        d.text((x, y), p, font=f2, fill=(226, 232, 242, 255), stroke_width=2, stroke_fill=(4, 5, 8, 255))
+        x += widths[i]
+        if i < len(parts) - 1:
+            d.text((x, y), sep, font=f2, fill=(255, 170, 40, 255), stroke_width=2, stroke_fill=(4, 5, 8, 255))
+            x += f2.getlength(sep)
+    img.alpha_composite(txt)
+    return img.convert("RGB")
+
+
+def _logo_procedural():
+    """Logo antigo em 2D procedural (reserva quando tools/blender/logo_hero.png nao existe)."""
     W = 512
     img = Image.new("RGBA", (W, W), (0, 0, 0, 255))
     d = ImageDraw.Draw(img)

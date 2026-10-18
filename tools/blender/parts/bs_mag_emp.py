@@ -1,16 +1,19 @@
 """Carregador EMP (EMP Magazine) - municao de pulso eletromagnetico; pilha de 4.
 
 Mesma familia do Carregador Padrao e do Perfurante (nucleo escuro um pouco maior que as cascas, casca clara
-chanfrada com bisel duplo, contador de 4 LEDs numa fenda escura), mas com cara de peca eletrica:
-  * cabeca clara de chanfros grandes (frente = +Y) com a janela escura mostrando a celula capacitora deitada
-    (cilindro azul aceso, aneis escuros de segmento e tampas de aco), no lugar das balas de latao;
-  * dois pinos de contato curtos e rombudos na boca (aco com ponta de cobre), em garfo: silhueta diferente das
-    3 pontas afiadas do Perfurante e da cunha do Padrao;
+chanfrada com bisel duplo, contador de 4 LEDs numa fenda escura), mas com cara de peca eletrica e silhueta e cor
+proprias (o Padrao tem janela de balas + alca; o Perfurante tem 3 pontas afiadas + tampa clara):
+  * cabeca clara em cunha (frente = +Y, chanfros grandes) com linhas de painel e a fenda vertical escura
+    mostrando a celula capacitora em pe (cilindro azul aceso, 2 aneis escuros de segmento, tampas de aco), no
+    lugar das balas de latao;
+  * dois pinos de contato curtos e rombudos, juntos na ponta da cunha (garfo de "taser"): bloco isolante
+    escuro, hastes de aco e pontas de cobre;
   * contador de 4 LEDs AZUIS no vao entre a cabeca e o corpo;
-  * corpo azul-marinho (cor propria da linha EMP) abracado por duas bobinas de cobre (3 espiras grossas cada)
-    que passam alem do contorno dos dois lados: costelas de cobre na silhueta;
-  * pe azul-marinho com chanfros grandes e borne de aco num recesso escuro (sem alca, sem tampa clara).
-Unidade modelada centrada na origem (eixo longo em Y, ~0.69 x 1.0), cabendo em 1 x 1; o renderizador escala
+  * corpo azul-marinho (cor propria da linha EMP) abracado por duas bobinas de cobre (2 espiras grossas cada)
+    que passam alem do contorno dos dois lados: costelas de cobre na silhueta; parafusos na faixa do meio;
+  * pe azul-marinho chanfrado com borne de aco (sem alca e sem tampa clara: a base da unidade fica escura).
+Os brilhos usam forca baixa (azul eletrico sem estourar em ciano/branco).
+Unidade modelada centrada na origem (eixo longo em Y, ~0.74 x 1.04), cabendo em 1 x 1; o renderizador escala
 para a pilha (stack_layout igual ao do Perfurante: lado a lado, piramide e 2 x 2).
 A fabrica (parts/bs_factory_mag_emp.py) usa esta unidade em miniatura no berco de carga e os mesmos materiais.
 """
@@ -40,7 +43,6 @@ BLUE = (0.18, 0.42, 1.0)           # azul eletrico (LEDs, celula)
 
 # geometria compartilhada (a fabrica conta com estas medidas)
 HALF_W = 0.37                      # meia largura nas costelas de cobre
-TOP_Z = 0.345                      # altura maxima (topo das espiras / celula)
 
 
 def mats():

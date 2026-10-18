@@ -6,20 +6,23 @@ das torres de plasma (cilindro escuro facetado com tampas e coluna de nivel cian
   * nucleo escuro em capsula (octogono alongado) por baixo de tudo: moldura escura fina em volta das pecas;
   * corpo cilindrico de 8 faces escuro (aco azulado) com uma janela longa recortada no topo, mostrando o nucleo
     de plasma ciano brilhando (tubo ciano saturado + barra de nivel clara no meio);
-  * duas bobinas magneticas (aneis de aco facetados com enrolamento de cobre aparecendo nas ranhuras) mais
-    largas que o corpo: a silhueta fica em "carretel" com nervuras, bem diferente das caixas dos carregadores;
+  * duas bobinas magneticas mais largas que o corpo (colares de aco facetados nas bordas, tambor escuro de aco
+    canhao no meio partido por uma fenda estreita onde aparece o enrolamento energizado em ciano, como as
+    cintas das celulas das torres; sem cobre, que e a marca do carregador EMP): a silhueta fica em "carretel"
+    com nervuras, bem diferente das caixas dos carregadores;
   * tampas blindadas claras nas duas pontas (lascas com bisel duplo e cantos chanfrados): a de cima com o
     terminal de contato de aco num recesso escuro, a de baixo com o contador de 4 LEDs ciano numa fenda vazada.
 Unidade centrada na origem, ~0.40 x 0.96, altura maxima ~0.40. A fabrica (parts/bs_factory_plasma.py) usa
 cell() em miniatura no berco de enchimento, com o nivel do plasma subindo (level) e os LEDs acendendo.
 Pilha: as celulas ficam em pe lado a lado numa fileira (como as bandejas de celulas das torres de plasma),
-1 no centro ate 4 em fileira.
+1 no centro ate 4 em fileira, com um leve desencontro em y para as bobinas vizinhas nao virarem uma faixa so.
 """
 
 import bs3d as B
 import models as Mo
 
-PITCH = 0.228   # distancia entre as celulas na fileira da pilha (tiles)
+PITCH = 0.240   # distancia entre as celulas na fileira da pilha (tiles)
+STAG = 0.028    # desencontro em y alternado das celulas vizinhas na pilha
 PART = {
     "id": "rafaeltessaro.bs_plasma_cell",
     "kind": "resource",
@@ -29,9 +32,9 @@ PART = {
     # fileira de celulas em pe (bandeja de celulas das torres), centrada
     "stack_layout": {
         1: [(0, 0, 0)],
-        2: [(-PITCH / 2, 0, 0), (PITCH / 2, 0, 0)],
-        3: [(-PITCH, 0, 0), (0, 0, 0), (PITCH, 0, 0)],
-        4: [(-1.5 * PITCH, 0, 0), (-PITCH / 2, 0, 0), (PITCH / 2, 0, 0), (1.5 * PITCH, 0, 0)],
+        2: [(-PITCH / 2, STAG, 0), (PITCH / 2, -STAG, 0)],
+        3: [(-PITCH, -STAG, 0), (0, STAG, 0), (PITCH, -STAG, 0)],
+        4: [(-1.5 * PITCH, STAG, 0), (-PITCH / 2, -STAG, 0), (PITCH / 2, STAG, 0), (1.5 * PITCH, -STAG, 0)],
     },
     "stack_rot": [0, 0, 0, 0, 0, 0],
 }
@@ -42,23 +45,28 @@ BODY_Z = 0.175          # altura do eixo do corpo
 CAP_Y0, CAP_Y1 = 0.285, 0.48   # tampas: de |y| = CAP_Y0 ate CAP_Y1
 CAP_X = 0.19            # meia largura das tampas
 RING_Y = 0.212          # centro das bobinas (|y|)
-RING_R = 0.232          # raio das bobinas (mais largas que tudo: nervuras na silhueta)
+RING_R = 0.226          # raio das bobinas (mais largas que tudo: nervuras na silhueta)
 WIN_Y = 0.150           # janela: y em [-WIN_Y, WIN_Y]
 WIN_W = 0.10            # largura da janela
 
 
 def _mats():
-    """Materiais proprios (aco azulado escuro do corpo, cobre das bobinas, plasma ciano saturado)."""
+    """Materiais proprios (aco azulado escuro do corpo, aco canhao das bobinas, plasma ciano saturado).
+    O cobre fica so para a fabrica (carretel do injetor de bobina)."""
     return {
         # metal (sem desgaste de pintura: pecas escuras pequenas nao clareiam, STYLE.md 9 / armadilha a)
         "body": B.mat_metal("pc_body", (0.035, 0.048, 0.060), rough=0.32, metal=0.85),
+        "drum": B.mat_metal("pc_drum", (0.085, 0.090, 0.098), rough=0.38, metal=0.9),
         "copper": B.mat_metal("pc_copper", (0.62, 0.30, 0.12), rough=0.30, metal=1.0),
         "glass": B.mat_metal("pc_glass", (0.010, 0.030, 0.036), rough=0.12, metal=0.3),
-        # plasma: ciano saturado (forca baixa para nao estourar em branco) + barra de nivel clara
+        # plasma: ciano saturado (forca baixa para nao estourar em branco) + barra de nivel ciano claro (nucleo
+        # quente, mas ainda ciano: R baixo, sem virar branco puro)
         "plasma": B.mat_glow("pc_plasma", Mo.CYAN, 1.25),
-        "level": B.mat_glow("pc_level", (0.55, 0.95, 1.0), 2.6),
+        "level": B.mat_glow("pc_level", (0.32, 0.95, 1.0), 1.3),
         # LEDs do contador: ciano (forca media: le como LED ciano, nao como borrao branco)
         "led": B.mat_glow("pc_led", Mo.CYAN, 2.0),
+        # enrolamento energizado visto pela fenda das bobinas (ciano baixo, no fundo escuro)
+        "seam": B.mat_glow("pc_seam", Mo.CYAN, 0.38),
     }
 
 
@@ -66,11 +74,14 @@ def _cap(name, sy, M, X, tags, leds):
     """Tampa blindada clara de uma ponta (sy = +1 em cima, -1 embaixo)."""
     A, K, S = M["armor"], M["core"], M["steel"]
     y0, y1 = CAP_Y0, CAP_Y1
-    pts = [(-CAP_X, y0), (CAP_X, y0), (CAP_X, y1 - 0.095), (CAP_X - 0.095, y1), (-CAP_X + 0.095, y1),
-           (-CAP_X, y1 - 0.095)]
+    pts = [(-CAP_X, y0), (CAP_X, y0), (CAP_X, y1 - 0.105), (CAP_X - 0.105, y1), (-CAP_X + 0.105, y1),
+           (-CAP_X, y1 - 0.105)]
     poly = [(x, sy * y) for x, y in pts]
     ca, cp = B.shard(name, poly, 0.04, 0.33, A, slope=0.035, groove=0.016, panel_h=0.025, tags=tags)
     yc = sy * (y0 + y1) / 2
+    # ranhura transversal no painel junto da bobina (tampa em dois degraus)
+    if cp is not None:
+        B.cut(cp, [B.box(f"{name}_gr", 0, sy * (y0 + 0.075), 0.40, 0.018, 0.30, 0.6, K, bevel=0.0)])
     if sy > 0:
         # terminal de contato: pino octogonal de aco baixo sobre um colar escuro, furo escuro no meio
         B.cyl(name + "_tcol", 0, yc + 0.01, 0.37, 0.068, 0.02, K, axis="Z", verts=8, bevel=0.0, tags=tags)
@@ -82,14 +93,14 @@ def _cap(name, sy, M, X, tags, leds):
                               bevel=0.0) for sx in (-1, 1)])
     else:
         # contador de 4 LEDs ciano numa fenda VAZADA (sem filete do bisel tampando o leito, armadilha b)
-        sx_, sy_ = 0.27, 0.06
+        sx_, sy_ = 0.29, 0.06
         for k, t in enumerate((ca, cp)):
             if t is not None:
                 B.cut(t, [B.box(f"{name}_lc{k}", 0, yc, sx_, sy_, 0.05, 0.8, K, bevel=0.0)])
         B.box(name + "_lbed", 0, yc, sx_, sy_, 0.06, 0.07, M["black"], bevel=0.0, tags=tags)
         for i in range(4):
             on = i < leds
-            B.box(f"{name}_led{i}", -0.0975 + i * 0.065, yc, 0.040, 0.032, 0.07, 0.30,
+            B.box(f"{name}_led{i}", -0.105 + i * 0.07, yc, 0.036, 0.030, 0.07, 0.30,
                   X["led"] if on else M["core_mid"], bevel=0.0, tags=tags)
     return ca, cp
 
@@ -127,13 +138,17 @@ def cell(M, tags, level=1.0, leds=4, name="pc"):
         for sx in (-1, 1):
             B.box(f"{name}_tick{i}{sx}", sx * (WIN_W / 2 + 0.012), yy, 0.022, 0.012, zt - 0.03, zt + 0.004, S,
                   bevel=0.0, tags=tags)
-    # bobinas magneticas: enrolamento de cobre entre dois colares de aco facetados (mais largos que as tampas)
+    # bobinas magneticas: dois colares de aco facetados (mais largos que as tampas) e, entre eles, o tambor
+    # escuro partido ao meio; pela fenda do meio aparece o enrolamento energizado em ciano, mais fundo
     for k, sy in enumerate((-1, 1)):
         y = sy * RING_Y
-        B.cyl(f"{name}_cu{k}", 0, y, BODY_Z, RING_R - 0.018, 0.088, X["copper"], axis="Y", verts=8, bevel=0.0,
+        for j, dy in enumerate((-0.025, 0.025)):
+            B.cyl(f"{name}_dr{k}{j}", 0, y + dy, BODY_Z, RING_R - 0.016, 0.030, X["drum"], axis="Y", verts=8,
+                  bevel=0.003, tags=tags)
+        B.cyl(f"{name}_seam{k}", 0, y, BODY_Z, RING_R - 0.034, 0.030, X["seam"], axis="Y", verts=8, bevel=0.0,
               tags=tags)
-        for j, dy in enumerate((-0.036, 0.036)):
-            B.cyl(f"{name}_ring{k}{j}", 0, y + dy, BODY_Z, RING_R, 0.026, S, axis="Y", verts=8, bevel=0.004,
+        for j, dy in enumerate((-0.050, 0.050)):
+            B.cyl(f"{name}_ring{k}{j}", 0, y + dy, BODY_Z, RING_R, 0.024, S, axis="Y", verts=8, bevel=0.004,
                   tags=tags)
     # tampas blindadas
     _cap(name + "_capT", 1, M, X, tags, leds)
