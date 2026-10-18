@@ -159,6 +159,7 @@ Stats
 	BSAmmoMagStdUsageFmt = "<white>Standard Magazine Use:</white> <good>{0:0.###}</good><gray>/ammo (</gray><good>{1:0.###}</good><gray>/sec)</gray>"
 	BSAmmoTristeelUsageFmt = "<white>Tri-Steel Use:</white> <good>{0:0.###}</good><gray>/ammo (</gray><good>{1:0.###}</good><gray>/sec)</gray>"
 	BSAmmoCopperUsageFmt = "<white>Copper Use:</white> <good>{0:0.###}</good><gray>/ammo (</gray><good>{1:0.###}</good><gray>/sec)</gray>"
+	BSAmmoSulfurUsageFmt = "<white>Sulfur Use:</white> <good>{0:0.###}</good><gray>/ammo (</gray><good>{1:0.###}</good><gray>/sec)</gray>"
 	BSAmmoCoilUsageFmt = "<white>Coil Use:</white> <good>{0:0.###}</good><gray>/ammo (</gray><good>{1:0.###}</good><gray>/sec)</gray>"
 	BSAmmoEnrichedUraniumUsageFmt = "<white>Enriched Uranium Use:</white> <good>{0:0.###}</good><gray>/ammo (</gray><good>{1:0.###}</good><gray>/sec)</gray>"
 }

@@ -43,10 +43,9 @@ def pct(x):
 
 
 def use_stat(res):
-    """ID da linha 'uso de <insumo>' ([por item, por segundo]). Enxofre reaproveita a linha vanilla AmmoSulfurUsage
-    (factory_ammo.rules); os demais insumos tem linha propria (registrada em infra.part_stats)."""
-    if res == "sulfur":
-        return "AmmoSulfurUsage"
+    """ID da linha 'uso de <insumo>' ([por item, por segundo]). Todos os insumos (enxofre inclusive) tem linha propria,
+    registrada junta em infra.part_stats: AddMany so acrescenta no fim de PartStats, entao reaproveitar a linha vanilla
+    AmmoSulfurUsage separaria o enxofre dos outros insumos da mesma fabrica no tooltip."""
     short = res.split(".")[-1]
     if short.startswith("bs_"):
         short = short[3:]

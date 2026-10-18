@@ -651,7 +651,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 		AmmoCapacity = (&~/Part/Components/Output/GridRect/2) * (&~/Part/Components/Output/GridRect/3) * (&<../../resources/bs_plasma_cell/bs_plasma_cell.rules>/MaxStackSize)
 		Input0PerAmmo = (&~/Part/Components/Input0Splitter/FromQuantity) / (&~/Part/Components/Input0Splitter/ToQuantity) / (&~/Part/Components/ResourceConverter/ToQuantity)
 		Input0PerSecond = (&~/Part/Components/Input0Splitter/FromQuantity) / (&~/Part/Components/Input0Splitter/ToQuantity) / (&~/Part/Components/ResourceConverter/Interval/BaseValue)
-		AmmoSulfurUsage = [&../Input0PerAmmo, &../Input0PerSecond]
+		BSAmmoSulfurUsage = [&../Input0PerAmmo, &../Input0PerSecond]
 		Input1PerAmmo = (&~/Part/Components/Input1Splitter/FromQuantity) / (&~/Part/Components/Input1Splitter/ToQuantity) / (&~/Part/Components/ResourceConverter/ToQuantity)
 		Input1PerSecond = (&~/Part/Components/Input1Splitter/FromQuantity) / (&~/Part/Components/Input1Splitter/ToQuantity) / (&~/Part/Components/ResourceConverter/Interval/BaseValue)
 		BSAmmoCoilUsage = [&../Input1PerAmmo, &../Input1PerSecond]
@@ -670,10 +670,10 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 		Stats
 		{
 			BSFactoryOutput = (&~/Part/Stats/BSFactoryOutput) * (&~/OVERCLOCK/SPEED_FACTOR)
-			AmmoSulfurUsage
+			BSAmmoSulfurUsage
 			[
-				(&~/Part/Stats/AmmoSulfurUsage/0)
-				(&~/Part/Stats/AmmoSulfurUsage/1) * (&~/OVERCLOCK/SPEED_FACTOR)
+				(&~/Part/Stats/BSAmmoSulfurUsage/0)
+				(&~/Part/Stats/BSAmmoSulfurUsage/1) * (&~/OVERCLOCK/SPEED_FACTOR)
 			]
 			BSAmmoCoilUsage
 			[

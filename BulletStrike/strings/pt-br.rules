@@ -159,6 +159,7 @@ Stats
 	BSAmmoMagStdUsageFmt = "<white>Uso de carregador padrão:</white> <good>{0:0.###}</good><gray>/munição (</gray><good>{1:0.###}</good><gray>/s)</gray>"
 	BSAmmoTristeelUsageFmt = "<white>Uso de triaço:</white> <good>{0:0.###}</good><gray>/munição (</gray><good>{1:0.###}</good><gray>/s)</gray>"
 	BSAmmoCopperUsageFmt = "<white>Uso de cobre:</white> <good>{0:0.###}</good><gray>/munição (</gray><good>{1:0.###}</good><gray>/s)</gray>"
+	BSAmmoSulfurUsageFmt = "<white>Uso de enxofre:</white> <good>{0:0.###}</good><gray>/munição (</gray><good>{1:0.###}</good><gray>/s)</gray>"
 	BSAmmoCoilUsageFmt = "<white>Uso de bobina:</white> <good>{0:0.###}</good><gray>/munição (</gray><good>{1:0.###}</good><gray>/s)</gray>"
 	BSAmmoEnrichedUraniumUsageFmt = "<white>Uso de urânio enriquecido:</white> <good>{0:0.###}</good><gray>/munição (</gray><good>{1:0.###}</good><gray>/s)</gray>"
 }
