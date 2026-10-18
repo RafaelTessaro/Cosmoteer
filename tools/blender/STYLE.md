@@ -283,3 +283,13 @@ fill order) and `modes.<type>.overlays[{range, files, normals}]`, plus `backblas
 
 Overlay noses: light nose cone + a 2-3 px band in the missile colour (spec `missile_types[].glow`): Jararaca amber,
 Piranha yellow, Carrapato red, Taturana orange, Poraquê blue, Boto white, Iara green. Keep the 1-2 % emissive budget.
+
+### 8.4 Missiles in flight (no images to model)
+
+The projectiles reuse vanilla textures, so the 3D team has nothing to render for them (`tools/bsgen/shots.py`):
+every missile, cluster child, torpedo warhead and decoy is `shots/missile_he/missile_he.png` (+ normals) scaled to its
+`BoxPhysics` (vanilla ratio: box [1.5, .5] -> sprite [2, 1]) in `BulletUpper3`, plus a blob glow in the type colour
+and the vanilla `*_thruster_plume_light` (both `BulletUpper4`). The Carrapato charge stuck on the enemy hull is the
+vanilla mine light ring `shots/mine/mine_small_lights.png` (6-frame blink, additive) with a red glow. If own missile
+sprites are made later: top view, nose pointing +x (right), 2:1 canvas, transparent background, one diffuse + one
+normals PNG per body size; never use a Lower/Middle bucket (hidden under our roof).

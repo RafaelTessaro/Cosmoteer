@@ -1,0 +1,150 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Projetil: Limpet charge - Carrapato (Caipora)
+
+STAT_DAMAGE = 6500
+STAT_RADIUS = 2.5
+STAT_FUSE = 2.5
+ID = "rafaeltessaro.bs_msl_twin_limpet_charge"
+Range = 0
+IdealRange = 0
+Speed = 12
+BLAST
+{
+	HitEffects
+	[
+		{
+			Type = ExplosiveDamage
+			TotalDamage
+			{
+				BaseValue = 6500
+				EffectScaleExponent = 1
+			}
+			Radius = 2.5
+			CrewKillChance = 50%
+		}
+	]
+	MediaEffects
+	[
+		&<./Data/shots/missile_he/particles/missile_he_hit.rules>
+		&<./Data/shots/missile_he/particles/missile_he_flash.rules>
+		&<./Data/shots/missile_he/particles/missile_he_smoke.rules>
+		: /BASE_SOUNDS/AudioExterior
+		{
+			RandomSounds
+			[
+				"./Data/shots/missile_he/sounds/launcher_rocket_impact_01.wav"
+				"./Data/shots/missile_he/sounds/launcher_rocket_impact_02.wav"
+				"./Data/shots/missile_he/sounds/launcher_rocket_impact_03.wav"
+			]
+			Volume = 0.77
+			SpeedVariation = 0.15
+			MaxConcurrent = 16
+		}
+		: /BASE_SHAKE
+		{
+			ShakeAmount = 0.12
+			Duration = 0.5
+		}
+	]
+}
+Components
+{
+	Physics
+	{
+		Type = CirclePhysics
+		Radius = 0.25
+		Density = 1
+	}
+	Magnet
+	{
+		Type = ProximityAcceleration
+		Range = 8
+		Acceleration = 30
+		AccelerateTowardsShips = true
+		AccelerateTowardsBullets = false
+		AccelerateTowardsFriendlies = false
+		AccelerateTowardsEnemies = true
+	}
+	Fuse
+	{
+		Type = DeathByLifetime
+		Lifetime = 2.5
+		OnDeath = &~/BLAST
+	}
+	Sprite
+	{
+		Type = AnimatedSprite
+		RenderBucket = BulletUpper3
+		Animation
+		{
+			AtlasSprite
+			{
+				Texture
+				{
+					File = "./Data/shots/mine/mine_small_lights.png"
+					MipLevels = max
+				}
+				Size = [1.5, 1.5]
+				TargetBlendMode = Add
+			}
+			FrameCount = 6
+			FrameSize = [128, 128]
+			FramesPerRow = 6
+			FramesPerSecond = 7
+		}
+	}
+	GlowSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Z = 0
+		IsLight = true
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [1.5, 1.5]
+			VertexColor = [255, 59, 48]
+			TargetBlendMode = Add
+			Shader = "./Data/common_effects/fancy_light.shader"
+			_z = 1
+			_nrmlStrengthLimit = 1
+			_litReflectiveStrength = 24
+			_litAdditiveStrength = 0.05
+			_unlitAdditiveStrength = 0.125
+		}
+	}
+	Hit
+	{
+		Type = PenetratingHit
+		SourcePartCollisionDelay = 1.5 / (&/Simulation/PhysicsUpdatesPerSecond)
+		FriendlyShipLowCollisions = false
+		FriendlyShipHighCollisions = false
+		Penetration = 1000
+		PenetrationSpeed = 0.05
+		ShieldCollisions
+		{
+			Shields = false
+		}
+		HitOperational
+		{
+		}
+		HitStructural = &HitOperational
+		PenetratingOperational
+		{
+		}
+		PenetratingStructural
+		{
+		}
+		FinishedPenetratingOperational
+		{
+		}
+		FinishedPenetratingStructural
+		{
+		}
+	}
+}

@@ -906,7 +906,12 @@ Every risky mechanic is a **selectable variant** in the spec (`mechanic_variants
 | `selector_ids` | T24 | `shared` | per_launcher | 1 |
 | `early_overclock` | - | `disabled` | enabled | 1 |
 | `cluster_children` | T11 | `inherit_target_and_magnet` | magnet_only | 2 |
-| `limpet_anchor` | T14 / T14b | `F1` | F2, F3, F4 | 2 |
+| `cluster_randomize_target` | T11 | `off` | on (experiment build only) | 2 |
+| `limpet_anchor` | T14 / T14b | `F1` | F1_drill, F2, F3, F4 | 2 |
+| `limpet_repeating` | T14 / Q11 | `off` | isolated_file (SW-only `_rep.rules`, no launcher fires it) | 2 |
+| `limpet_defusable` | T14 | `off` | on (charge Targetable 500 / 600 'missile') | 2 |
+| `emp_rider` | T16 | `on` | off | 2 |
+| `emp_shield_drain` | T16 | `area` | single_part | 2 |
 | `torpedo_decoys` | T17 | `spawn_on_stage` | emitter | 2 |
 | `category_limits` | T18 | `on` | off | 2 |
 | `ciws_vs_own_missiles` | T09 | `as_is` | enemies_only | 2 |
@@ -914,5 +919,6 @@ Every risky mechanic is a **selectable variant** in the spec (`mechanic_variants
 
 Generator stages (`tools/bs_data.py` `BUILD_LAUNCHERS` / `BUILD_PAYLOADS`):
 - **Stage 1 (built):** Tocandira (`rafaeltessaro.bs_msl_box`) with Muriçoca (micro HE) and Taturana-mirim (micro incendiary); the whole launch logic (family magazines, crewed autoloader, rack latch, ripple salvo with LIFO cells, per-mode switch delay, DryFlush, per-family cook-off), the `bs_missile_type` selector with all 7 choices, techs `bs_msl_box` and `bs_msl_napalm`, placeholder art and the 3D art contract (`tools/blender/STYLE.md` section 8, `render_part.py` kind `launcher`). The OC wiring is generated and tested behind `early_overclock=enabled` but stays off (mod rule).
-- **Stage 2:** Caipora and Mula-sem-Cabeça, payloads Piranha, Carrapato, Poraquê, Boto, Iara, layouts 3-2-3 / heavy16 / torpedo, the nuclear category limit.
+- **Stage 2 (built): payloads.** Every missile file of `missile_types[].variants[].files`, for every launcher tier, is generated (`tools/bsgen/shots.py`): Jararaca and Taturana on Caipora/Mula, Piranha (carrier with proximity / timed / impact BURST + child with late homing, hull magnet and missile spacing), Carrapato (missile + slow PenetratingHit charge with magnet and blinking beacon; fallbacks F1_drill, F2 Part status `rafaeltessaro.bs_limpet_<twin|quad>` registered in `statuses.rules`, F3 HitObject Speed-0 charge, F4 impact blast; isolated SW-only Repeating file behind `limpet_repeating`), Poraquê (area battery drain + direct hit + structural blast + disruptor_drain rider), Boto and Iara (1.5 s launch stage -> warhead + decoys from two SpawnBullets; Iara with the Boiúna mushroom). The numbers each payload needs beyond the variant tables are in `missile_types[].payload_params` (a structured copy of `payload_mechanic`, no new balance number). `tools/bs_data.py` aborts if a file list, the effective damage, the salvo alpha or a payload hard limit (children per carrier, children HP pool, carrier HP, drain per EMP part, torpedo >= 80000 needs a per-ship limit) differs from the spec. Files of launchers that are not built yet exist but no part fires them. The Mula's `bs_limit_nuke` category comes from the spec (`category_limits=off` strips it).
+- **Stage 3:** Caipora and Mula-sem-Cabeça, layouts 3-2-3 / heavy16 / torpedo, the decoy emitter of the `torpedo_decoys=emitter` fallback.
 - `tools/bs_data.py` aborts the build if the generated salvo size, salvo duration, cycle, alpha or cook-off stock differ from the `computed` numbers in this spec.

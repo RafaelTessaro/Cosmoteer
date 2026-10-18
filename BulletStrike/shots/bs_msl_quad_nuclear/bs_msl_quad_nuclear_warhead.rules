@@ -1,0 +1,207 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Projetil: Torpedo warhead - Iara (Mula-sem-Cabeça)
+
+STAT_DAMAGE = 160000
+STAT_RADIUS = 9
+ID = "rafaeltessaro.bs_msl_quad_nuclear_warhead"
+Range = 600
+IdealRange = 600
+Speed = 0
+Components
+{
+	Physics
+	{
+		Type = BoxPhysics
+		Size = [2, 0.65]
+		Density = 0.1
+	}
+	Homing
+	{
+		Type = TargetHoming
+		TurnVelocity = 90d
+		VelocityCompensation = 60%
+	}
+	Retarget
+	{
+		Type = SameShipRetarget
+	}
+	Acceleration
+	{
+		Type = Acceleration
+		Acceleration = 12
+	}
+	DeathByLifetime
+	{
+		Type = DeathByLifetime
+		Lifetime = 14.5
+	}
+	Sprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper3
+		IsLit = true
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/shots/missile_he/missile_he.png"
+				MipLevels = max
+			}
+			Size = [2.667, 1.333]
+		}
+		NormalsTexture
+		{
+			File = "./Data/shots/missile_he/missile_he_normals.png"
+			MipLevels = max
+		}
+	}
+	GlowSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Z = 0
+		IsLight = true
+		Offset = [-1.2, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [6, 2.93]
+			VertexColor = [124, 255, 107]
+			TargetBlendMode = Add
+			Shader = "./Data/common_effects/fancy_light.shader"
+			_z = 1
+			_nrmlStrengthLimit = 1
+			_litReflectiveStrength = 24
+			_litAdditiveStrength = 0.05
+			_unlitAdditiveStrength = 0.125
+		}
+	}
+	MediaEffects
+	{
+		Type = MediaEffects
+		Offset = [-1.2, 0]
+		Rotation = 180d
+		MediaEffects = [&<./Data/shots/missile_nuke/particles/missile_nuke_thruster_plume_light.rules>]
+	}
+	Targetable
+	{
+		Type = Targetable
+		Health = 6500
+		TargetCategory = "missile"
+		OnDeath = &../Hit/HitFriendly
+	}
+	Hit
+	{
+		Type = SimpleHit
+		SourcePartCollisionDelay = 1.5 / (&/Simulation/PhysicsUpdatesPerSecond)
+		FriendlyShipLowCollisions = false
+		FriendlyShipHighCollisions = false
+		HitShield
+		{
+			HitEffects
+			[
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 120000
+						EffectScaleExponent = 1
+					}
+					Radius = 9
+					ExpandDuration = 0.8
+					ExpandStartRadius = 2
+					ExpandLoss = 100%
+					ImpulsePerNDamage = 10
+					NDamage = 1000
+					Filter
+					{
+						OperationalHealth = true
+						StructuralHealth = false
+					}
+				}
+			]
+			MediaEffects = &../HitOperational/MediaEffects
+		}
+		HitOperational
+		{
+			HitEffects
+			[
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 120000
+						EffectScaleExponent = 1
+					}
+					Radius = 9
+					ExpandDuration = 0.8
+					ExpandStartRadius = 2
+					ExpandLoss = 100%
+					ImpulsePerNDamage = 10
+					NDamage = 1000
+					Filter
+					{
+						OperationalHealth = true
+						StructuralHealth = false
+					}
+				}
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 40000
+						EffectScaleExponent = 1
+					}
+					Radius = 7
+					ExpandDuration = 0.8
+					ExpandStartRadius = 2
+					ExpandLoss = 100%
+					Filter
+					{
+						OperationalHealth = false
+						StructuralHealth = true
+					}
+				}
+			]
+			MediaEffects
+			[
+				&<./Data/shots/missile_nuke/particles/missile_nuke_flash_light.rules>
+				&<./Data/shots/missile_nuke/particles/missile_nuke_flash.rules>
+				&<./Data/shots/missile_nuke/particles/missile_nuke_shockwave.rules>
+				&<./Data/shots/missile_nuke/particles/missile_nuke_hit.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds = ["./Data/shots/missile_nuke/missile_nuke_hit.wav"]
+					Volume = 1
+					SpeedVariation = 0.15
+					MaxConcurrent = 4
+				}
+				: /BASE_SHAKE
+				{
+					ShakeAmount = 0.35
+					Duration = 0.5
+				}
+			]
+		}
+		HitStructural = &HitOperational
+		HitFriendly
+		{
+			MediaEffects
+			[
+				&<./Data/shots/missile_nuke/particles/missile_nuke_flash.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds = ["./Data/shots/missile_nuke/missile_nuke_hit.wav"]
+					Volume = 1
+					SpeedVariation = 0.15
+					MaxConcurrent = 4
+				}
+			]
+		}
+	}
+}

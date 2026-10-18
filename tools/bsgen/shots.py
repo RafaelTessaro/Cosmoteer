@@ -305,8 +305,12 @@ def build_explosive(s):
 #   - Targetable categoria "missile" (PD/flak vanilla e SW:ACD derrubam); abatido = so efeito (HitFriendly);
 #   - explosoes SEM Friendlies = true; numeros escalaveis como { BaseValue; EffectScaleExponent = 1 };
 #   - sprite e brilho em buckets Upper (os Lower das particulas de propulsor ficariam sob o nosso teto).
+# Os mesmos campos de convés vao em TODO projetil filho (submunicao, carga grudenta, ogiva, isca): nao se
+# sabe se um filho de SpawnBullets herda a nave de origem (missiles_gaps §2.1/§6 Q2).
 MSL_D = f"{D}/missile_he"
 MSL_T = f"{D}/missile_thermal"
+MSL_E = f"{D}/missile_emp"
+MSL_N = f"{D}/missile_nuke"
 MISSILE_MEDIA = {
     "he": {"particles": [f"{MSL_D}/particles/missile_he_hit.rules", f"{MSL_D}/particles/missile_he_flash.rules",
                          f"{MSL_D}/particles/missile_he_smoke.rules"],
@@ -317,11 +321,41 @@ MISSILE_MEDIA = {
                              f"{MSL_T}/particles/missile_thermal_flash.rules"],
                "sounds": [f"{MSL_T}/missile_thermal_hit.wav"],
                "plume": f"{MSL_T}/particles/missile_thermal_thruster_plume_light.rules"},
+    # missile_emp.rules l.198-213 (orbe/raios/onda de choque; buckets Disruptor*/Upper4)
+    "emp": {"particles": [f"{MSL_E}/particles/missile_emp_hit_orb.rules", f"{MSL_E}/particles/missile_emp_hit_bolts.rules",
+                          f"{MSL_E}/particles/missile_emp_hit_shockwave.rules"],
+            "sounds": [f"{MSL_E}/sounds/launcher_emp_impact_0{i}.wav" for i in (1, 2)],
+            "plume": f"{MSL_E}/particles/missile_emp_thruster_plume_light.rules"},
+    # cogumelo da Boiuna (bs_shot_nuke_howitzer_nuclear = missile_nuke_stage1.rules l.163-169)
+    "nuclear": {"particles": [f"{MSL_N}/particles/missile_nuke_flash_light.rules", f"{MSL_N}/particles/missile_nuke_flash.rules",
+                              f"{MSL_N}/particles/missile_nuke_shockwave.rules", f"{MSL_N}/particles/missile_nuke_hit.rules"],
+                "sounds": [f"{MSL_N}/missile_nuke_hit.wav"],
+                "plume": f"{MSL_N}/particles/missile_nuke_thruster_plume_light.rules"},
+    # abatida / fiasco da Iara: so o clarao (HitFriendly do missile_nuke_stage1.rules l.190-200)
+    "nuclear_fizzle": {"particles": [f"{MSL_N}/particles/missile_nuke_flash.rules"], "sounds": [f"{MSL_N}/missile_nuke_hit.wav"]},
+    # abertura da Piranha (clarao em petalas): clarao + fumaca, sem a bola de fogo do impacto
+    "burst": {"particles": [f"{MSL_D}/particles/missile_he_flash.rules", f"{MSL_D}/particles/missile_he_smoke.rules"],
+              "sounds": [f"{MSL_D}/sounds/launcher_rocket_impact_0{i}.wav" for i in (1, 2, 3)]},
+    # Carrapato gruda: "clank" metalico + clarao (sem explosao: a carga explode depois)
+    "clank": {"particles": [f"{D}/bullet_med/particles/bullet_hit_med_sparks.rules",
+                            f"{D}/bullet_med/particles/bullet_flash_med.rules", f"{MSL_D}/particles/missile_he_flash.rules"],
+              "sounds": SOUNDS["med"]},
+    # isca: estalo pequeno, sem dano
+    "pop": {"particles": [f"{MSL_D}/particles/missile_he_flash.rules"],
+            "sounds": [f"{MSL_D}/sounds/launcher_rocket_impact_0{i}.wav" for i in (1, 2, 3)]},
 }
+MEDIA_OF = {"cluster": "he", "limpet": "he", "torpedo": "he"}
+# descarga do PEM (missile_emp.rules l.165-178)
+EMP_DRAIN_MEDIA = [f"{MSL_E}/particles/missile_emp_hit_sizzle.rules", f"{MSL_E}/particles/missile_emp_lightning.rules",
+                   f"{MSL_E}/particles/missile_emp_drain.rules"]
+EMP_DRAIN_SOUNDS = [f"{D}/disruptor_bolt/sounds/disruptor_discharge_0{i}.wav" for i in (1, 2, 3, 4)]
+# luzes vermelhas piscando da mina vanilla (mine_deployed.rules l.179-197): o "bip" do Carrapato
+LIMPET_BLINK = f"{D}/mine/mine_small_lights.png"
+LIMPET_STATUS_FX = "./Data/statuses/disruptor_drain/particles/electron_sizzle.rules"
 
 
-def _missile_media(s, shake=True):
-    mm = MISSILE_MEDIA[s["payload"]]
+def _missile_media(s, shake=True, key=None):
+    mm = MISSILE_MEDIA[key or MEDIA_OF.get(s["payload"], s["payload"])]
     media = [f"&<{p}>" for p in mm["particles"]]
     media.append(Inh("/BASE_SOUNDS/AudioExterior", {"RandomSounds": [Q(x) for x in mm["sounds"]],
                                                    "Volume": s.get("volume", 0.7), "SpeedVariation": 0.15,
@@ -331,24 +365,86 @@ def _missile_media(s, shake=True):
     return media
 
 
-def _missile_hit(s, hit_op, hit_shield):
+def _deck_flags(s, hit_type="SimpleHit"):
     v = s.get("variants", {})
     delay = "0.3" if v.get("source_part_collision_delay") == "s_0_3" else "1.5 / (&/Simulation/PhysicsUpdatesPerSecond)"
-    hit = {"Type": "SimpleHit", "SourcePartCollisionDelay": delay,
-           "FriendlyShipLowCollisions": False, "FriendlyShipHighCollisions": False}
+    return {"Type": hit_type, "SourcePartCollisionDelay": delay,
+            "FriendlyShipLowCollisions": False, "FriendlyShipHighCollisions": False}
+
+
+def _missile_hit(s, hit_op, hit_shield, friendly_key=None):
+    hit = _deck_flags(s)
     hit["HitShield"] = hit_shield if hit_shield is not None else "&HitOperational"
     hit["HitOperational"] = hit_op
     hit["HitStructural"] = "&HitOperational"
-    hit["HitFriendly"] = {"MediaEffects": _missile_media(s, shake=False)}
+    hit["HitFriendly"] = {"MediaEffects": _missile_media(s, shake=False, key=friendly_key)}
     return hit
 
 
+def _homing(s, turn, delay):
+    v = s.get("variants", {})
+    homing = {"Type": "TargetHoming", "TurnVelocity": f"{turn}d"}
+    if delay is not None:
+        homing["Delay"] = delay
+    if v.get("homing_avoidance") == "raycast_250":
+        homing["AvoidanceRaycastDistance"] = 250
+    elif v.get("homing_avoidance") == "no_avoid_friendlies":
+        homing["AvoidsFriendlies"] = False
+    homing["VelocityCompensation"] = "60%"
+    return homing
+
+
+def _glow_sprite(w, color, size):
+    return {"Type": "Sprite", "RenderBucket": "BulletUpper4", "Z": 0, "IsLight": True,
+            "Offset": [round(-w * 0.45, 3), 0],
+            "Sprite": {**GLOW, "Size": size, "VertexColor": color, "TargetBlendMode": "Add",
+                       "Shader": Q("./Data/common_effects/fancy_light.shader"),
+                       "_z": 1, "_nrmlStrengthLimit": 1, "_litReflectiveStrength": 24,
+                       "_litAdditiveStrength": 0.05, "_unlitAdditiveStrength": 0.125}}
+
+
+def _missile_visuals(s, glow=True, plume=True):
+    """Corpo (missile_he.png escalado, BulletUpper3) + brilho da cor do tipo (Upper4) + luz do propulsor (Upper4)."""
+    w, h = s["sprite_wh"]
+    comps = {"Sprite": {"Type": "Sprite", "RenderBucket": "BulletUpper3", "IsLit": True,
+                        "Sprite": {"Texture": {"File": Q(f"{MSL_D}/missile_he.png"), "MipLevels": "max"}, "Size": [w, h]},
+                        "NormalsTexture": {"File": Q(f"{MSL_D}/missile_he_normals.png"), "MipLevels": "max"}}}
+    if glow:
+        comps["GlowSprite"] = _glow_sprite(w, s["glow_color"], s["glow_size"])
+    if plume:
+        mm = MISSILE_MEDIA[s.get("plume_key") or MEDIA_OF.get(s["payload"], s["payload"])]
+        comps["MediaEffects"] = {"Type": "MediaEffects", "Offset": [s["plume_offset"], 0], "Rotation": "180d",
+                                 "MediaEffects": [f"&<{mm['plume']}>"]}
+    return comps
+
+
+def _targetable(hp):
+    # abatido no ar: so o efeito, sem dano em area ("No AOE damage when shot down", missile_he.rules l.116)
+    return {"Type": "Targetable", "Health": hp, "TargetCategory": Q("missile"), "OnDeath": "&../Hit/HitFriendly"}
+
+
+def _arc(deg_pair):
+    return [f"{a}d" for a in deg_pair]
+
+
+def _proximity_accel(rng, accel, ships, bullets, friendlies, enemies, categories=None):
+    """ProximityAcceleration: imã (buzzdroid.rules l.37-44) ou afastamento entre misseis (mine.rules l.20-30)."""
+    e = {"Type": "ProximityAcceleration", "Range": rng, "Acceleration": accel, "AccelerateTowardsShips": ships,
+         "AccelerateTowardsBullets": bullets}
+    if categories:
+        e["AccelerateTowardsBulletCategories"] = list(categories)
+    e["AccelerateTowardsFriendlies"] = friendlies
+    e["AccelerateTowardsEnemies"] = enemies
+    return e
+
+
+# ----------------------------------------------------------------------------- cargas (payloads)
 def _payload_he(s):
     d = s["damage"]
     fx = [{"Type": "ExplosiveDamage", "TotalDamage": _val(d["ExplosiveDamage"]), "Radius": d["Radius"]},
           {"Type": "Impulse", "Impulse": _val(d.get("Impulse", 0))}]
     stats = {"STAT_DAMAGE": d["ExplosiveDamage"], "STAT_RADIUS": d["Radius"]}
-    return {"HitEffects": fx, "MediaEffects": _missile_media(s)}, None, stats
+    return {"stats": stats, "hit": _missile_hit(s, {"HitEffects": fx, "MediaEffects": _missile_media(s)}, None)}
 
 
 def _payload_napalm(s):
@@ -356,16 +452,27 @@ def _payload_napalm(s):
     0.30.4 e 0.30.5) + fogo garantido na peca (bullet_med.rules l.129-132 / bullet_large_overclock_shrapnel
     l.113-114) + poca de calor que reacende (missile_thermal.rules l.128-139, com valor literal)."""
     d = s["damage"]
+    v = s.get("variants", {})
     fire = {"Type": "StatusApplication", "StatusType": "cosmoteer.fire", "StatusChance": _val(d["fire_StatusChance"]),
             "StatusValue": d["fire_StatusValue_interpolated"], "ValueType": "Interpolated"}
-    if s.get("variants", {}).get("napalm_fire") == "all_hit_part_tiles":
+    if v.get("napalm_fire") == "all_hit_part_tiles":
         fire["ApplyToAllHitPartTiles"] = True
     heat_pool = {"Type": "GridStatusApplication", "StatusType": "cosmoteer.heat", "StatusValue": 0,
                  "StatusValuePool": d["heat_StatusValuePool"], "ValueFalloff": 1, "MaxCost": d["heat_MaxCost"],
                  "FalloffPadding": 0.5, "EmptyTileCost": 1000, "AllowDiagonals": True,
                  "Filter": {"Friendlies": False, "TargetedFriendlies": True}}
     blast = {"Type": "ExplosiveDamage", "TotalDamage": _val(d["blast_ExplosiveDamage"]), "Radius": d["blast_radius"]}
-    hit_op = {"HitEffects": [blast, fire, heat_pool], "MediaEffects": _missile_media(s)}
+    fx = [blast, fire]
+    if v.get("napalm_gel") == "on":
+        # SO no build de teste T15 (variante napalm_gel=on): "gel" GridStatusApplication de fogo (fire.rules
+        # l.121-158), valores iniciais derivados dos numeros do spec (chance da peca, valor bruto = % x 75)
+        pct = float(str(d["fire_StatusValue_interpolated"]).rstrip("%")) / 100
+        fx.append({"Type": "GridStatusApplication", "StatusType": "cosmoteer.fire",
+                   "StatusChance": _val(d["fire_StatusChance"]), "StatusValue": round(pct * 75, 2),
+                   "MaxCost": d["heat_MaxCost"], "AllowDiagonals": True, "BlockedByWalls": True,
+                   "Filter": {"Friendlies": False, "TargetedFriendlies": True}})
+    fx.append(heat_pool)
+    hit_op = {"HitEffects": fx, "MediaEffects": _missile_media(s)}
     shield_blast = {"Type": "ExplosiveDamage", "TotalDamage": _val(d["shield_blast"]), "Radius": d["blast_radius"]}
     hit_shield = {"HitEffects": [shield_blast,
                                  {"Type": "StatusApplication", "StatusType": "cosmoteer.heat", "StatusValue": d["shield_heat"],
@@ -373,53 +480,337 @@ def _payload_napalm(s):
                   "MediaEffects": "&../HitOperational/MediaEffects"}
     stats = {"STAT_DAMAGE": d["blast_ExplosiveDamage"], "STAT_RADIUS": d["blast_radius"],
              "STAT_HEAT_POOL": d["heat_StatusValuePool"], "STAT_FIRE_CHANCE": d["fire_StatusChance"]}
-    return hit_op, hit_shield, stats
+    return {"stats": stats, "hit": _missile_hit(s, hit_op, hit_shield)}
 
 
-MISSILE_PAYLOADS = {"he": _payload_he, "napalm": _payload_napalm}
+def _child(s, role):
+    return next(c for c in s.get("children", []) if c["role"] == role)
+
+
+def _payload_cluster(s):
+    """Piranha (forma do MIRV Discord do SW, missile_discord.rules l.48-96/170-172, em tipos vanilla): o
+    portador NAO tem ogiva; tres gatilhos abrem o cardume (proximidade 25 m, tempo de vida, impacto)."""
+    d, p, v = s["damage"], s["params"], s.get("variants", {})
+    child = _child(s, "child")
+    b = p["burst"]
+    spawn = {"Type": "SpawnBullets", "Bullet": "&~/CHILD", "Count": d["children"], "Distance": list(b["Distance"]),
+             "Arc": _arc(b["Arc_deg"]), "Spread": _arc(b["Spread_deg"]), "InheritVelocity": b["InheritVelocity"],
+             "HealthFactor": _val(b["HealthFactor"])}
+    if v.get("cluster_randomize_target") == "on":
+        spawn["RandomizeTarget"] = True          # experimento T11 (nunca no build padrao)
+    root = {"CHILD": f"&<{child['file']}.rules>",
+            "BURST": {"HitEffects": [spawn], "MediaEffects": _missile_media(s, shake=False, key="burst")}}
+    pf = p["proximity_fuse"]
+    start = pf["StartDelay_magnet_only"] if v.get("cluster_children") == "magnet_only" else pf["StartDelay"]
+    death = {
+        "ProximityFuse": {"Type": "DeathByEnemyProximity", "Interval": pf["Interval"], "Range": d["proximity_range"],
+                          "StartDelay": start, "DetectsShips": pf["DetectsShips"], "DetectsBullets": pf["DetectsBullets"],
+                          "FactorEffectsWith": pf["FactorEffectsWith"], "OnDeath": "&~/BURST"},
+        "TimedFuse": {"Type": "DeathByLifetime", "Lifetime": s["lifetime"], "OnDeath": "&~/BURST"},
+    }
+    hit = _deck_flags(s)
+    hit.update({"HitShield": "&~/BURST", "HitOperational": "&~/BURST", "HitStructural": "&~/BURST",
+                "HitFriendly": {"MediaEffects": _missile_media(s, shake=False, key="burst")}})
+    stats = {"STAT_DAMAGE": d["child_total"], "STAT_RADIUS": d["child_radius"], "STAT_CHILDREN": d["children"],
+             "STAT_CHILD_DAMAGE": d["child_ExplosiveDamage"], "STAT_CHILD_HP": d["child_hp"],
+             "STAT_BURST_RANGE": d["proximity_range"]}
+    return {"stats": stats, "root": root, "death": death, "hit": hit}
+
+
+def _limpet_blast(s):
+    d = s["damage"]
+    pct = int(round(float(str(d["charge_CrewKillChance"]).rstrip("%"))))
+    # CrewKillChance: campo vanilla de ExplosiveDamage (missile_launcher_he.rules l.308)
+    return [{"Type": "ExplosiveDamage", "TotalDamage": _val(d["charge_ExplosiveDamage"]), "Radius": d["charge_radius"],
+             "CrewKillChance": f"{pct}%"}]
+
+
+def _payload_limpet(s):
+    """Carrapato: gruda (carga filha) e explode 2,5 s depois; em escudo so estoura (nao gruda em bolha).
+    limpet_anchor: F1 broca lenta + imã (padrao) | F1_drill sem imã | F2 status de peca | F3 carga
+    parada no referencial do alvo | F4 explosao no impacto. Mesma espoleta, explosao e raio em todos."""
+    d, p, v = s["damage"], s["params"], s.get("variants", {})
+    anchor = v.get("limpet_anchor", "F1")
+    impact = {"Type": "Damage", "Damage": _val(d["impact_Damage"])}
+    impulse = {"Type": "Impulse", "Impulse": _val(p["impact"]["Impulse"])}
+    root = {}
+    hit_op = {"Offset": list(p["impact"]["Offset"])}
+    media_key = "clank"
+    if s.get("repeating"):
+        # variante isolada so-SW (Type = Repeating: missile_intruder.rules l.130-134 do SW:ACD)
+        r = p["repeating_isolated"]
+        fx = [impact, {"Type": "Repeating", "Count": r["Count"], "Interval": r["Interval"],
+                       "InitialDelay": r["InitialDelay"], "RequireHitPart": r["RequireHitPart"],
+                       "HitEffects": _limpet_blast(s), "MediaEffects": _missile_media(s)}, impulse]
+    elif anchor in ("F1", "F1_drill", "F3"):
+        charge = _child(s, "charge")
+        root["CHARGE"] = f"&<{charge['file']}.rules>"
+        if anchor == "F3":
+            hit_op["FrameOfReference"] = "HitObject"
+        fx = [impact, {"Type": "SpawnBullets", "Bullet": "&~/CHARGE", "Count": 1, "Distance": 0, "Spread": ["0d", "0d"],
+                       "InheritVelocity": anchor == "F3"}, impulse]
+    elif anchor == "F2":
+        st = s["status"]
+        fx = [impact, {"Type": "StatusApplication", "StatusType": st["id"], "StatusDuration": st["duration"],
+                       "StatusValue": st["value"]}, impulse]
+    else:  # F4: ultimo recurso, a mesma explosao no impacto
+        fx = [impact] + _limpet_blast(s) + [impulse]
+        media_key = None
+    hit_op["HitEffects"] = fx
+    hit_op["MediaEffects"] = _missile_media(s, key=media_key)
+    hit_shield = {"HitEffects": [{"Type": "ExplosiveDamage", "TotalDamage": _val(d["shield_pop_ExplosiveDamage"]),
+                                  "Radius": d["shield_pop_radius"]}],
+                  "MediaEffects": _missile_media(s)}
+    stats = {"STAT_DAMAGE": d["impact_Damage"] + d["charge_ExplosiveDamage"], "STAT_RADIUS": d["charge_radius"],
+             "STAT_CHARGE_DAMAGE": d["charge_ExplosiveDamage"], "STAT_FUSE": d["fuse_s"]}
+    out = {"stats": stats, "hit": _missile_hit(s, hit_op, hit_shield)}
+    if root:
+        out["root"] = root
+    return out
+
+
+def _payload_emp(s):
+    """Poraque (missile_emp.rules l.151-196, escalado para 1500 de dreno por peca PEM; filtros SEM Friendlies)."""
+    d, p, v = s["damage"], s["params"], s.get("variants", {})
+    dr = p["drain"]
+    drain = {"Type": "ExplosiveResourceDrain", "ResourceType": dr["ResourceType"],
+             "TotalDrain": _val(d["battery_TotalDrain"]), "Radius": d["drain_radius"], "Slices": dr["Slices"],
+             "Filter": dict(dr["Filter"]), "MediaEffectsOnDrainFactor": dr["MediaEffectsOnDrainFactor"],
+             "MediaEffectsOnDrain": [f"&<{x}>" for x in EMP_DRAIN_MEDIA] +
+                                    [Inh("/BASE_SOUNDS/AudioExterior", {"RandomSounds": [Q(x) for x in EMP_DRAIN_SOUNDS],
+                                                                        "Volume": 1, "SpeedVariation": 0.2,
+                                                                        "MaxConcurrent": s.get("max_conc", 16)})]}
+    direct = {"Type": "Damage", "Damage": _val(d["direct_Damage"])}
+    struct = {"Type": "ExplosiveDamage", "TotalDamage": _val(d["structural_ExplosiveDamage"]), "Radius": d["structural_radius"],
+              "Filter": {"OperationalHealth": False, "StructuralHealth": True}}
+    tail = [direct, struct]
+    if v.get("emp_rider", "on") == "on":
+        r = p["rider"]
+        tail.append({"Type": "StatusApplication", "StatusType": r["StatusType"], "StatusDuration": r["StatusDuration"],
+                     "StatusValue": _val(r["StatusValue"])})
+    hit_op = {"HitEffects": [drain] + tail, "MediaEffects": _missile_media(s)}
+    hit_shield = None
+    if v.get("emp_shield_drain") == "single_part":
+        # fallback T16: o dreno em area pode nao alcancar o gerador pela borda da bolha
+        hit_shield = {"HitEffects": [{"Type": "ResourceDrain", "ResourceType": dr["ResourceType"],
+                                      "Amount": _val(d["battery_TotalDrain"]), "TreatShieldAsPart": True,
+                                      "MediaEffectsOnDrain": drain["MediaEffectsOnDrain"]}] + tail,
+                      "MediaEffects": "&../HitOperational/MediaEffects"}
+    stats = {"STAT_DAMAGE": d["direct_Damage"] + d["structural_ExplosiveDamage"], "STAT_RADIUS": d["structural_radius"],
+             "STAT_DRAIN": d["battery_TotalDrain"], "STAT_DRAIN_RADIUS": d["drain_radius"]}
+    return {"stats": stats, "hit": _missile_hit(s, hit_op, hit_shield)}
+
+
+def _torpedo_hit(s):
+    """Ogiva do Boto/Iara (forma de missile_nuke_stage1.rules l.141-176, literais, SEM Friendlies):
+    explosao em expansao operacional + explosao so estrutural; no escudo so o bloco operacional."""
+    d, p = s["damage"], s["params"]
+    ex = p["expand"]
+    exp = {"ExpandDuration": ex["ExpandDuration"], "ExpandStartRadius": ex["ExpandStartRadius"], "ExpandLoss": ex["ExpandLoss"]}
+    op = {"Type": "ExplosiveDamage", "TotalDamage": _val(d["warhead_operational"]), "Radius": d["op_radius"], **exp}
+    if p.get("impulse"):
+        op.update({"ImpulsePerNDamage": p["impulse"]["ImpulsePerNDamage"], "NDamage": p["impulse"]["NDamage"]})
+    op["Filter"] = {"OperationalHealth": True, "StructuralHealth": False}
+    st = {"Type": "ExplosiveDamage", "TotalDamage": _val(d["warhead_structural"]), "Radius": d["struct_radius"], **exp,
+          "Filter": {"OperationalHealth": False, "StructuralHealth": True}}
+    nuclear = s["payload"] == "nuclear"
+    hit_op = {"HitEffects": [op, st], "MediaEffects": _missile_media(s)}
+    hit_shield = {"HitEffects": [dict(op)], "MediaEffects": "&../HitOperational/MediaEffects"}
+    return _missile_hit(s, hit_op, hit_shield, friendly_key="nuclear_fizzle" if nuclear else None)
+
+
+def _torpedo_stats(s):
+    d = s["damage"]
+    return {"STAT_DAMAGE": d["warhead_operational"] + d["warhead_structural"], "STAT_RADIUS": d["op_radius"],
+            "STAT_STRUCT_RADIUS": d["struct_radius"], "STAT_DECOYS": d["decoys"], "STAT_DECOY_HP": d["decoy_hp"]}
+
+
+def _payload_torpedo(s):
+    """Boto / Iara: estagio de lancamento (1,5 s) -> ogiva + N iscas por dois SpawnBullets no mesmo OnDeath
+    (padrao do missile_nuke_stage1.rules l.31-50). Impacto antes do fim do estagio ja detona (Hit da ogiva).
+    torpedo_decoys=emitter: torpedo de um estagio; as iscas saem de um segundo emissor do lancador."""
+    v = s.get("variants", {})
+    if v.get("torpedo_decoys") == "emitter":
+        return {"stats": _torpedo_stats(s), "hit": _torpedo_hit(s)}
+    p = s["params"]
+    wh, dc = _child(s, "warhead"), _child(s, "decoy")
+    sd = p["spawn_decoys"]
+    ls = p["launch_stage"]
+    root = {"WARHEAD": f"&<{wh['file']}.rules>", "DECOY": f"&<{dc['file']}.rules>"}
+    deploy = {"Type": "DeathByLifetime", "Lifetime": ls["Lifetime"], "FactorEffectsWith": ls["FactorEffectsWith"],
+              "OnDeath": {"HitEffects": [
+                  {"Type": "SpawnBullets", "Bullet": "&~/WARHEAD", "Count": 1, "InheritVelocity": p["warhead"]["InheritVelocity"],
+                   "HealthFactor": _val(p["warhead"]["HealthFactor"])},
+                  {"Type": "SpawnBullets", "Bullet": "&~/DECOY", "Count": s["damage"]["decoys"], "Distance": list(sd["Distance"]),
+                   "Arc": _arc(sd["Arc_deg"]), "Spread": _arc(sd["Spread_deg"]), "InheritVelocity": sd["InheritVelocity"]},
+              ]}}
+    return {"stats": _torpedo_stats(s), "root": root, "death": {"Deploy": deploy},
+            "hit": f"&<{wh['file']}.rules>/Components/Hit"}
+
+
+MISSILE_PAYLOADS = {"he": _payload_he, "napalm": _payload_napalm, "cluster": _payload_cluster,
+                    "limpet": _payload_limpet, "emp": _payload_emp, "torpedo": _payload_torpedo,
+                    "nuclear": _payload_torpedo}
 
 
 def build_missile(s):
-    """Missil de convés: nucleo comum + carga (s['payload'])."""
-    hit_op, hit_shield, stats = MISSILE_PAYLOADS[s["payload"]](s)
-    top = dict(stats)
+    """Missil de convés (arquivo que o lancador dispara): nucleo comum + carga (s['payload'])."""
+    pl = MISSILE_PAYLOADS[s["payload"]](s)
+    top = dict(pl["stats"])
     top.update({"ID": Q(s["id"]), "Range": s["range"], "IdealRange": s["range"], "Speed": s["speed"]})
-    v = s.get("variants", {})
-    homing = {"Type": "TargetHoming", "TurnVelocity": f"{s['turn']}d", "Delay": s["homing_delay"]}
-    if v.get("homing_avoidance") == "raycast_250":
-        homing["AvoidanceRaycastDistance"] = 250
-    elif v.get("homing_avoidance") == "no_avoid_friendlies":
-        homing["AvoidsFriendlies"] = False
-    homing["VelocityCompensation"] = "60%"
-    mm = MISSILE_MEDIA[s["payload"]]
-    w, h = s["sprite_wh"]
-    gl = s["glow_size"]
+    top.update(pl.get("root", {}))
     comps = {
         "Physics": {"Type": "BoxPhysics", "Size": list(s["box"]), "Density": 0.1},
-        "Homing": homing,
+        "Homing": _homing(s, s["turn"], s["homing_delay"]),
         "Retarget": {"Type": "SameShipRetarget"},
         "Acceleration": {"Type": "Acceleration", "Acceleration": s["accel"]},
         "NegativeAcceleration": {"Type": "Acceleration", "Acceleration": [-90, 0], "AccelerationOverTime": [0, 0.75],
                                  "Direction": "FrameOfReferenceVelocity"},
-        "DeathByLifetime": {"Type": "DeathByLifetime", "Lifetime": s["lifetime"]},
-        "Sprite": {"Type": "Sprite", "RenderBucket": "BulletUpper3", "IsLit": True,
-                   "Sprite": {"Texture": {"File": Q(f"{MSL_D}/missile_he.png"), "MipLevels": "max"}, "Size": [w, h]},
-                   "NormalsTexture": {"File": Q(f"{MSL_D}/missile_he_normals.png"), "MipLevels": "max"}},
-        "GlowSprite": {"Type": "Sprite", "RenderBucket": "BulletUpper4", "Z": 0, "IsLight": True,
-                       "Offset": [round(-w * 0.45, 3), 0],
-                       "Sprite": {**GLOW, "Size": gl, "VertexColor": s["glow_color"], "TargetBlendMode": "Add",
-                                  "Shader": Q("./Data/common_effects/fancy_light.shader"),
-                                  "_z": 1, "_nrmlStrengthLimit": 1, "_litReflectiveStrength": 24,
-                                  "_litAdditiveStrength": 0.05, "_unlitAdditiveStrength": 0.125}},
-        "MediaEffects": {"Type": "MediaEffects", "Offset": [s["plume_offset"], 0], "Rotation": "180d",
-                         "MediaEffects": [f"&<{mm['plume']}>"]},
-        # abatido no ar: so o efeito, sem dano em area ("No AOE damage when shot down", missile_he.rules l.116)
-        "Targetable": {"Type": "Targetable", "Health": s["hp"], "TargetCategory": Q("missile"),
-                       "OnDeath": "&../Hit/HitFriendly"},
-        "Hit": _missile_hit(s, hit_op, hit_shield),
     }
+    comps.update(pl.get("death") or {"DeathByLifetime": {"Type": "DeathByLifetime", "Lifetime": s["lifetime"]}})
+    comps.update(_missile_visuals(s))
+    comps["Targetable"] = _targetable(s["hp"])
+    comps["Hit"] = pl["hit"]
     top["Components"] = comps
     return top
+
+
+# ----------------------------------------------------------------------------- projeteis filhos
+def build_cluster_child(c):
+    """Submunicao da Piranha: homing tardio e fraco + imã de casco (buzz droid) + afastamento (mina);
+    um brilho barato (desempenho). cluster_children=magnet_only: sem TargetHoming, so o imã."""
+    v = c.get("variants", {})
+    p = c["params"]["child"]
+    top = {"STAT_DAMAGE": c["damage"], "STAT_RADIUS": c["radius"], "ID": Q(c["id"]), "Range": c["range"],
+           "IdealRange": c["range"], "Speed": c["speed"]}
+    comps = {"Physics": {"Type": "BoxPhysics", "Size": list(c["box"]), "Density": 0.1}}
+    if v.get("cluster_children") != "magnet_only":
+        comps["Homing"] = _homing(c, c["turn"], c["homing_delay"])
+        comps["Retarget"] = {"Type": "SameShipRetarget"}
+    comps["Acceleration"] = {"Type": "Acceleration", "Acceleration": c["accel"]}
+    m = p["magnet"]
+    comps["Magnet"] = _proximity_accel(m["Range"], m["Acceleration"], True, False, False, True)
+    strip = v.get("performance_strip") == "on"
+    if not strip:
+        sp = p["spacing"]
+        comps["Spacing"] = _proximity_accel(sp["Range"], sp["Acceleration"], False, True, True, False, sp["BulletCategories"])
+    comps["DeathByLifetime"] = {"Type": "DeathByLifetime", "Lifetime": c["lifetime"]}
+    comps.update(_missile_visuals(c, glow=not strip, plume=False))
+    comps["Targetable"] = _targetable(c["hp"])
+    fx = [{"Type": "ExplosiveDamage", "TotalDamage": _val(c["damage"]), "Radius": c["radius"]},
+          {"Type": "Impulse", "Impulse": _val(p["impulse"])}]
+    comps["Hit"] = _missile_hit(c, {"HitEffects": fx, "MediaEffects": _missile_media(c)}, None)
+    top["Components"] = comps
+    return top
+
+
+def build_limpet_charge(c):
+    """Carga do Carrapato (receita do buzz droid do SW em tipos vanilla: imã buzzdroid.rules l.37-44 +
+    PenetratingHit lento l.78-81): fica no casco e explode pela espoleta (DeathByLifetime -> BLAST).
+    SEM Targetable no padrao (regra do usuario; e o PD da vitima nao atira no proprio casco)."""
+    v = c.get("variants", {})
+    p = c["params"]["charge"]
+    top = {"STAT_DAMAGE": c["damage"]["charge_ExplosiveDamage"], "STAT_RADIUS": c["damage"]["charge_radius"],
+           "STAT_FUSE": c["damage"]["fuse_s"], "ID": Q(c["id"]), "Range": 0, "IdealRange": 0, "Speed": c["speed"],
+           "BLAST": {"HitEffects": _limpet_blast(c), "MediaEffects": _missile_media(c)}}
+    comps = {"Physics": {"Type": "CirclePhysics", "Radius": p["radius"], "Density": p["density"]}}
+    if v.get("limpet_anchor", "F1") == "F1":
+        m = p["magnet"]
+        comps["Magnet"] = _proximity_accel(m["Range"], m["Acceleration"], True, False, False, True)
+    comps["Fuse"] = {"Type": "DeathByLifetime", "Lifetime": c["damage"]["fuse_s"], "OnDeath": "&~/BLAST"}
+    bs = c["blink_size"]
+    comps["Sprite"] = {"Type": "AnimatedSprite", "RenderBucket": "BulletUpper3",
+                       "Animation": {"AtlasSprite": {"Texture": {"File": Q(LIMPET_BLINK), "MipLevels": "max"},
+                                                     "Size": [bs, bs], "TargetBlendMode": "Add"},
+                                     "FrameCount": 6, "FrameSize": [128, 128], "FramesPerRow": 6,
+                                     "FramesPerSecond": 7}}
+    comps["GlowSprite"] = {"Type": "Sprite", "RenderBucket": "BulletUpper4", "Z": 0, "IsLight": True,
+                           "Sprite": {**GLOW, "Size": [bs, bs], "VertexColor": c["glow_color"], "TargetBlendMode": "Add",
+                                      "Shader": Q("./Data/common_effects/fancy_light.shader"),
+                                      "_z": 1, "_nrmlStrengthLimit": 1, "_litReflectiveStrength": 24,
+                                      "_litAdditiveStrength": 0.05, "_unlitAdditiveStrength": 0.125}}
+    if v.get("limpet_defusable") == "on":
+        comps["Targetable"] = {"Type": "Targetable", "Health": c["defusable_hp"], "TargetCategory": Q("missile"),
+                               "OnDeath": {"MediaEffects": _missile_media(c, shake=False, key="pop")}}
+    hit = _deck_flags(c, "PenetratingHit")
+    hit.update({"Penetration": p["Penetration"], "PenetrationSpeed": p["PenetrationSpeed"],
+                "ShieldCollisions": {"Shields": False},
+                "HitOperational": {}, "HitStructural": "&HitOperational",
+                "PenetratingOperational": {}, "PenetratingStructural": {},
+                "FinishedPenetratingOperational": {}, "FinishedPenetratingStructural": {}})
+    comps["Hit"] = hit
+    top["Components"] = comps
+    return top
+
+
+def build_torpedo_warhead(w):
+    """Ogiva (2o estagio do Boto/Iara): Speed 0 + InheritVelocity (herda o estagio), homing 90d."""
+    top = {"STAT_DAMAGE": w["damage"]["warhead_operational"] + w["damage"]["warhead_structural"],
+           "STAT_RADIUS": w["damage"]["op_radius"], "ID": Q(w["id"]), "Range": w["range"], "IdealRange": w["range"],
+           "Speed": 0}
+    comps = {
+        "Physics": {"Type": "BoxPhysics", "Size": list(w["box"]), "Density": 0.1},
+        "Homing": _homing(w, w["turn"], None),
+        "Retarget": {"Type": "SameShipRetarget"},
+        "Acceleration": {"Type": "Acceleration", "Acceleration": w["accel"]},
+        "DeathByLifetime": {"Type": "DeathByLifetime", "Lifetime": w["lifetime"]},
+    }
+    comps.update(_missile_visuals(w))
+    comps["Targetable"] = _targetable(w["hp"])
+    comps["Hit"] = _torpedo_hit(w)
+    top["Components"] = comps
+    return top
+
+
+def build_torpedo_decoy(c):
+    """Isca do Boto/Iara: parece o torpedo, gasta tiros de PD e piscinas de flak; SimpleHit sem dano."""
+    p = c["params"]["decoy"]
+    top = {"STAT_DAMAGE": 0, "ID": Q(c["id"]), "Range": c["range"], "IdealRange": c["range"], "Speed": c["speed"]}
+    sp = p["spacing"]
+    comps = {
+        "Physics": {"Type": "BoxPhysics", "Size": list(c["box"]), "Density": 0.1},
+        "Homing": _homing(c, c["turn"], c["homing_delay"]),
+        "Retarget": {"Type": "SameShipRetarget"},
+        "Acceleration": {"Type": "Acceleration", "Acceleration": c["accel"]},
+        "Spacing": _proximity_accel(sp["Range"], sp["Acceleration"], False, True, True, False, sp["BulletCategories"]),
+        "DeathByLifetime": {"Type": "DeathByLifetime", "Lifetime": c["lifetime"]},
+    }
+    comps.update(_missile_visuals(c))
+    comps["Targetable"] = _targetable(c["hp"])
+    hit = _deck_flags(c)
+    hit.update({"HitShield": "&HitOperational", "HitOperational": {"MediaEffects": _missile_media(c, shake=False, key="pop")},
+                "HitStructural": "&HitOperational",
+                "HitFriendly": {"MediaEffects": _missile_media(c, shake=False, key="pop")}})
+    comps["Hit"] = hit
+    top["Components"] = comps
+    return top
+
+
+MISSILE_CHILD_BUILDERS = {"child": build_cluster_child, "charge": build_limpet_charge,
+                          "warhead": build_torpedo_warhead, "decoy": build_torpedo_decoy}
+
+
+def build_missile_part(c):
+    """Arquivo filho de um missil (mesma pasta; referenciado pelo nome relativo, como o flak_oc)."""
+    return MISSILE_CHILD_BUILDERS[c["role"]](c)
+
+
+def build_limpet_status(st):
+    """F2 do Carrapato: status de PECA proprio (molde statuses/disruptor_drain: Layer = Part; ApplyNewInstance;
+    TickInterval; ParentMediaEffectsToShip). Um tique em TickInterval = a mesma explosao da carga.
+    So entra no build com limpet_anchor=F2 (depois do teste T14b); registrado por AddMany no statuses.rules."""
+    return {
+        "ID": st["id"],
+        "Layer": "Part",
+        "StatusCombineMode": "ApplyNewInstance",
+        "TickInterval": st["tick"],
+        "TickingEffects": [{"Type": "ExplosiveDamage", "TotalDamage": _val(st["damage"]), "Radius": st["radius"],
+                            "CrewKillChance": st["crew_kill"],
+                            # efeito de status: a fonte e a propria nave (disruptor_drain.rules l.17-22)
+                            "Filter": {"Friendlies": True, "Neutrals": True, "Self": True}}],
+        "ParentMediaEffectsToShip": True,
+        "ContinuousMediaEffects": [f"&<{LIMPET_STATUS_FX}>"],
+    }
 
 
 def build_flak_beam(s):
@@ -452,6 +843,14 @@ def build_flak_beam(s):
     return top
 
 
+def _cloud_filter(s):
+    """Variante ciws_vs_own_missiles=enemies_only (fallback T09): filtro de projeteis explicito so de inimigos na
+    nuvem (formato do BulletCollisions do pd_shot.rules l.92-99, sem Friendlies). Padrao: nuvem como a vanilla."""
+    if not s.get("enemies_only"):
+        return {}
+    return {"BulletCollisions": {"Enemies": True, "Junk": True, "Neutrals": True, "Friendlies": False}}
+
+
 def build_flak_cloud(s):
     """Nuvem de estilhacos que fica parada e consome projeteis (flak_large_overclock_field.rules)."""
     top = {
@@ -473,7 +872,7 @@ def build_flak_cloud(s):
             "LifetimeDeath": {"Type": "DeathByLifetime", "Lifetime": "&~/LIFETIME"},
             "DamagePoolDeath": {"Type": "DeathByDamagePool", "DamagePool": "DamagePool"},
             "DamagePool": {"Type": "DamagePool", "Damage": {"BaseValue": "(&~/DAMAGE_POOL)", "EffectScaleExponent": 1}},
-            "VolHit": {"Type": "VolumeHit", "BeamAttenuationDamagePool": "DamagePool",
+            "VolHit": {"Type": "VolumeHit", "BeamAttenuationDamagePool": "DamagePool", **_cloud_filter(s),
                        "HitBullet": {"HitEffects": [{"Type": "Damage", "Damage": 0, "DamagePool": "DamagePool",
                                                      "MaxDamageFromPool": {"BaseValue": "(&~/MAX_BULLET_DAMAGE)",
                                                                            "EffectScaleExponent": 1}}],

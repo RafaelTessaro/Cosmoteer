@@ -61,6 +61,23 @@ def main():
                              f"{c['missiles_per_salvo']} em {fmt(c['salvo_duration_s'])} s | {fmt(c['cycle_s'])} s | "
                              f"{lch['spec']['range_m'][m['type']]} m | {m['res']} |")
         lines.append("")
+    if D.MISSILES:
+        built = {lch["id"] for lch in D.LAUNCHERS}
+        lines += ["## Mísseis (arquivos de projétil gerados)", "",
+                  "> Um arquivo por tipo de míssil e por lançador, como no spec (`missile_types[].variants[].files`). "
+                  "Dano efetivo = direto + 50 % das explosões (convenção do spec). Lançador ainda não gerado = "
+                  "o arquivo existe, mas nenhuma peça o dispara (estágio 3).", "",
+                  "| Míssil | Codinome | Lançador | HP | Velocidade / acel. / giro | Alcance | Dano explosivo | Efetivo | Arquivos |",
+                  "|---|---|---|---|---|---|---|---|---|"]
+        for s in D.MISSILES:
+            lname = next(L["codename"] for L in D.MSPEC["launchers"] if L["id"] == s["launcher"])
+            if s["launcher"] not in built:
+                lname += " (estágio 3)"
+            files = ", ".join(f"`{f}`" for f in [s["file"]] + [c["file"] for c in s["children"]])
+            lines.append(f"| {s['name_pt']} | {s['codename']} | {lname} | {fmt(s['hp'])} | "
+                         f"{s['speed']} / {s['accel']} / {s['turn']}° | {s['range']} m | {fmt(s['alpha'])} | "
+                         f"{fmt(s['eff'])} | {files} |")
+        lines.append("")
     lines += ["## Munições", "", "| Recurso | Pilha por tile | Observação |", "|---|---|---|"]
     for r in D.RESOURCES:
         lines.append(f"| **{r['name_pt']}** | {r['max_stack']} | {r['note']} |")

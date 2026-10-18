@@ -1,0 +1,139 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Projetil: Decoy Torpedo (Boto) - Caipora
+
+STAT_DAMAGE = 24000
+STAT_RADIUS = 4
+STAT_STRUCT_RADIUS = 5
+STAT_DECOYS = 4
+STAT_DECOY_HP = 600
+ID = "rafaeltessaro.bs_msl_twin_torpedo"
+Range = 400
+IdealRange = 400
+Speed = 30
+WARHEAD = &<bs_msl_twin_torpedo_warhead.rules>
+DECOY = &<bs_msl_twin_torpedo_decoy.rules>
+Components
+{
+	Physics
+	{
+		Type = BoxPhysics
+		Size = [2, 0.65]
+		Density = 0.1
+	}
+	Homing
+	{
+		Type = TargetHoming
+		TurnVelocity = 90d
+		Delay = 0.3
+		VelocityCompensation = 60%
+	}
+	Retarget
+	{
+		Type = SameShipRetarget
+	}
+	Acceleration
+	{
+		Type = Acceleration
+		Acceleration = 12
+	}
+	NegativeAcceleration
+	{
+		Type = Acceleration
+		Acceleration = [-90, 0]
+		AccelerationOverTime = [0, 0.75]
+		Direction = FrameOfReferenceVelocity
+	}
+	Deploy
+	{
+		Type = DeathByLifetime
+		Lifetime = 1.5
+		FactorEffectsWith = Targetable
+		OnDeath
+		{
+			HitEffects
+			[
+				{
+					Type = SpawnBullets
+					Bullet = &~/WARHEAD
+					Count = 1
+					InheritVelocity = true
+					HealthFactor
+					{
+						BaseValue = 1
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = SpawnBullets
+					Bullet = &~/DECOY
+					Count = 4
+					Distance = [0.5, 1.5]
+					Arc = [-60d, 120d]
+					Spread = [-10d, 10d]
+					InheritVelocity = true
+				}
+			]
+		}
+	}
+	Sprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper3
+		IsLit = true
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/shots/missile_he/missile_he.png"
+				MipLevels = max
+			}
+			Size = [2.667, 1.333]
+		}
+		NormalsTexture
+		{
+			File = "./Data/shots/missile_he/missile_he_normals.png"
+			MipLevels = max
+		}
+	}
+	GlowSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Z = 0
+		IsLight = true
+		Offset = [-1.2, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [6, 2.93]
+			VertexColor = [244, 247, 255]
+			TargetBlendMode = Add
+			Shader = "./Data/common_effects/fancy_light.shader"
+			_z = 1
+			_nrmlStrengthLimit = 1
+			_litReflectiveStrength = 24
+			_litAdditiveStrength = 0.05
+			_unlitAdditiveStrength = 0.125
+		}
+	}
+	MediaEffects
+	{
+		Type = MediaEffects
+		Offset = [-1.2, 0]
+		Rotation = 180d
+		MediaEffects = [&<./Data/shots/missile_he/particles/missile_he_thruster_plume_light.rules>]
+	}
+	Targetable
+	{
+		Type = Targetable
+		Health = 4500
+		TargetCategory = "missile"
+		OnDeath = &../Hit/HitFriendly
+	}
+	Hit = &<bs_msl_twin_torpedo_warhead.rules>/Components/Hit
+}

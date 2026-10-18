@@ -467,8 +467,9 @@ with open(MSPEC_PATH, encoding="utf-8") as fh:
 
 # Estagio do gerador: quais lancadores e quais cargas ja sao gerados. Os demais continuam so no spec.
 BUILD_LAUNCHERS = ["rafaeltessaro.bs_msl_box"]          # estagio 1: Tocandira (inicio de jogo)
-BUILD_PAYLOADS = {"he", "napalm"}                       # estagio 1: alto-explosivo + incendiario
-GENERATOR_STAGE = 1
+# estagio 2: todas as cargas, em todos os niveis de lancador do spec (Caipora e Mula entram no estagio 3)
+BUILD_PAYLOADS = {"he", "cluster", "limpet", "napalm", "emp", "torpedo", "nuclear"}
+GENERATOR_STAGE = 2
 
 
 def _variants():
@@ -488,6 +489,10 @@ def _variants():
 
 
 MISSILE_VARIANTS = _variants()
+# ciws_vs_own_missiles (T09): a nuvem de estilhacos das nossas CIWS ganha filtro so de inimigos no fallback
+for _s in SHOTS:
+    if _s["kind"] == "cloud" and MISSILE_VARIANTS.get("ciws_vs_own_missiles") == "enemies_only":
+        _s["enemies_only"] = True
 MISSILE_TYPES = {m["id"]: m for m in MSPEC["missile_types"]}
 FAMILY_OF = {"missile_part_he": "HE", "missile_part_thermal": "Thermal", "missile_part_emp": "EMP",
              "missile_part_nuke": "Nuke"}
@@ -520,8 +525,10 @@ FX["launch_s"] = {
     "ready": [f"{T}/missile_launcher/sounds/launcher_ready_0{i}.wav" for i in (1, 2, 3)],
 }
 
-MISSILES = []          # especificacao de cada arquivo de missil (shots.build_missile)
+MISSILES = []          # especificacao de cada arquivo de missil (shots.build_missile), um por (tipo, lancador)
+MISSILE_STATUSES = []  # status proprios (so com limpet_anchor=F2): registrados por AddMany no statuses.rules
 LAUNCHERS = []
+_LAUNCHER_SPEC = {L["id"]: L for L in MSPEC["launchers"]}
 
 
 def _parse_box(physics):
@@ -529,25 +536,195 @@ def _parse_box(physics):
     return nums
 
 
-def _missile_shot_spec(L, mode, mtype):
-    """Arquivo de projetil de um modo (variante do tipo de missil para este lancador)."""
-    var = next(v for v in mtype["variants"] if v["launcher"] == L["id"])
+def _body_visuals(box):
+    """Escala do corpo a partir da caixa de fisica (missil vanilla: BoxPhysics [1.5, .5], sprite [2, 1])."""
+    scale = box[0] / 1.5
+    return {"sprite_wh": [round(2 * scale, 3), round(1 * scale, 3)],
+            "glow_size": [round(4.5 * scale, 2), round(2.2 * scale, 2)], "plume_offset": round(-0.6 * box[0], 3)}, scale
+
+
+def _missile_shot_spec(L, mtype, var):
+    """Arquivo de projetil de uma variante (tipo de missil x lancador), com os arquivos filhos na mesma pasta."""
     short = _short(var["shot_id"])
     fl = var["flight"]
     box = _parse_box(fl["physics"])
-    scale = box[0] / 1.5                               # missil vanilla: BoxPhysics [1.5, .5], sprite [2, 1]
+    vis, scale = _body_visuals(box)
     glow = _hex_rgb(mtype["glow"])
     s = {"kind": "missile", "payload": mtype["id"], "file": short, "dir": short, "id": var["shot_id"],
          "title": f"{var['variant_name_en']} ({var['variant_codename']}) - {L['codename']}",
          "range": fl["range_m"], "speed": fl["speed"], "accel": fl["accel"], "turn": fl["turn_deg_s"],
          "homing_delay": fl["homing_delay_s"], "hp": fl["hp"], "lifetime": fl["lifetime_s"], "box": box,
-         "sprite_wh": [round(2 * scale, 3), round(1 * scale, 3)], "glow_color": glow,
-         "glow_size": [round(4.5 * scale, 2), round(2.2 * scale, 2)], "plume_offset": round(-0.6 * box[0], 3),
+         "sprite_wh": vis["sprite_wh"], "glow_color": glow,
+         "glow_size": vis["glow_size"], "plume_offset": vis["plume_offset"],
          "damage": dict(var["damage"]), "shake": round(min(0.15, 0.04 + 0.1 * scale), 3),
          "volume": round(min(1.0, 0.45 + 0.4 * scale), 2), "max_conc": 16,
          "variants": MISSILE_VARIANTS, "codename": var["variant_codename"],
-         "name_en": var["variant_name_en"], "name_pt": var["variant_name_ptbr"]}
+         "name_en": var["variant_name_en"], "name_pt": var["variant_name_ptbr"],
+         "launcher": L["id"], "tier": L["tier"], "params": mtype.get("payload_params", {}),
+         "spec_files": list(var["files"]), "children": [], "extras": []}
+    if mtype["id"] == "nuclear":
+        # cogumelo da Boiuna: mesmo tremor / volume do obuseiro nuclear
+        s.update({"shake": 0.35, "volume": 1.0, "max_conc": 4})
+    _PAYLOAD_SPECS.get(mtype["id"], lambda *_: None)(s, L, mtype, var)
+    s["alpha"], s["eff"] = _missile_alpha_eff(s)
     return s
+
+
+def _sub(s, role, suffix, title, **kw):
+    """Projetil filho: mesma pasta, ID e arquivo com sufixo; herda variantes, cor e parametros do pai."""
+    c = {"role": role, "payload": s["payload"], "file": f"{s['file']}_{suffix}", "id": f"{s['id']}_{suffix}",
+         "title": f"{title} - {s['codename']} ({_LAUNCHER_SPEC[s['launcher']]['codename']})",
+         "variants": s["variants"], "params": s["params"], "glow_color": s["glow_color"], "damage": s["damage"],
+         "tier": s["tier"]}
+    c.update(kw)
+    return c
+
+
+def _spec_cluster(s, L, mtype, var):
+    d, cp = s["damage"], s["params"]["child"]
+    box = list(cp["physics_box"])
+    vis, _ = _body_visuals(box)
+    lifetime = d["child_lifetime_s"]
+    s["children"].append(_sub(
+        s, "child", "child", "Cluster submunition", damage=d["child_ExplosiveDamage"], radius=d["child_radius"],
+        speed=d["child_speed"], accel=d["child_accel"], turn=d["child_turn_deg_s"],
+        homing_delay=d["child_homing_delay_s"], hp=d["child_hp"], lifetime=lifetime,
+        range=round(d["child_speed"] * lifetime), box=box, volume=0.5, max_conc=10, shake=0.03, **vis))
+
+
+def _spec_limpet(s, L, mtype, var):
+    d, p = s["damage"], s["params"]
+    anchor = MISSILE_VARIANTS.get("limpet_anchor", "F1")
+    lshort = _short(L["id"]).rsplit("_", 1)[-1]
+    if anchor in ("F1", "F1_drill", "F3"):
+        cp = p["charge"]
+        s["children"].append(_sub(
+            s, "charge", "charge", "Limpet charge", speed=0 if anchor == "F3" else cp["speed"],
+            blink_size=round(0.6 * d["charge_radius"], 2), defusable_hp=p["defusable_targetable_hp"][L["tier"]],
+            volume=s["volume"], max_conc=s["max_conc"], shake=s["shake"]))
+    elif anchor == "F2":
+        sp = p["status_F2"]
+        st = {"id": f"{sp['id_prefix']}_{lshort}", "dir": f"bs_limpet_{lshort}", "tick": sp["TickInterval"],
+              "duration": sp["StatusDuration"], "value": sp["StatusValue"], "damage": d["charge_ExplosiveDamage"],
+              "radius": d["charge_radius"], "crew_kill": d["charge_CrewKillChance"],
+              "title": f"Limpet charge status - {L['codename']}"}
+        if abs(sp["TickInterval"] - d["fuse_s"]) > 1e-9:
+            raise ValueError("Carrapato F2: TickInterval do status difere da espoleta do spec")
+        s["status"] = st
+        MISSILE_STATUSES.append(st)
+    if MISSILE_VARIANTS.get("limpet_repeating") == "isolated_file":
+        rep = dict(s)
+        rep.update({"file": f"{s['file']}_rep", "id": f"{s['id']}_rep", "repeating": True, "children": [],
+                    "extras": [], "title": s["title"] + " - SW-only Repeating variant (isolated, no launcher uses it)"})
+        s["extras"].append(rep)
+
+
+def _spec_torpedo(s, L, mtype, var):
+    d, p = s["damage"], s["params"]
+    ls = p["launch_stage"]["Lifetime"]
+    if abs(ls - d["launch_stage_s"]) > 1e-9:
+        raise ValueError(f"{s['id']}: estagio de lancamento {ls} s difere do spec {d['launch_stage_s']} s")
+    dp = p["decoy"]
+    dbox = list(dp["physics_box"])
+    dvis, _ = _body_visuals(dbox)
+    emitter = MISSILE_VARIANTS.get("torpedo_decoys") == "emitter"
+    if not emitter:
+        s["children"].append(_sub(
+            s, "warhead", "warhead", "Torpedo warhead", range=s["range"], box=s["box"], turn=s["turn"],
+            accel=s["accel"], hp=s["hp"], lifetime=round(s["lifetime"] - ls, 3), sprite_wh=s["sprite_wh"],
+            glow_size=s["glow_size"], plume_offset=s["plume_offset"], volume=s["volume"], max_conc=s["max_conc"],
+            shake=s["shake"]))
+    # isca: Speed 0 + InheritVelocity no padrao; disparada por emissor (fallback T17) sai na velocidade do torpedo
+    s["children"].append(_sub(
+        s, "decoy", "decoy", "Torpedo decoy", range=s["range"], box=dbox, speed=s["speed"] if emitter else 0,
+        turn=dp["turn_deg_s"], homing_delay=dp["homing_delay_s"], accel=dp["accel"], hp=d["decoy_hp"],
+        lifetime=dp["lifetime_s"], volume=0.4, max_conc=8, shake=0, **dvis))
+    if emitter:
+        # o lancador (estagio 3) poe um segundo emissor por celula de torpedo: Burst = iscas, sem ResourceStorage
+        s["decoy_emitter"] = {"file": s["children"][-1]["file"], "burst": d["decoys"],
+                              "burst_delay": p["emitter_fallback"]["BurstDelay"]}
+
+
+_PAYLOAD_SPECS = {"cluster": _spec_cluster, "limpet": _spec_limpet, "torpedo": _spec_torpedo,
+                  "nuclear": _spec_torpedo}
+
+
+def _missile_alpha_eff(s):
+    """(dano explosivo por missil, dano efetivo por missil) na convencao do spec: efetivo = direto + 50 %
+    de todo ExplosiveDamage (balance_checks.conventions)."""
+    d, p = s["damage"], s["payload"]
+    if p == "he":
+        alpha, direct = d["ExplosiveDamage"], 0
+    elif p == "napalm":
+        alpha, direct = d["blast_ExplosiveDamage"], 0
+    elif p == "cluster":
+        alpha, direct = d["children"] * d["child_ExplosiveDamage"], 0
+    elif p == "limpet":
+        alpha, direct = d["charge_ExplosiveDamage"], d["impact_Damage"]
+    elif p == "emp":
+        alpha, direct = d["structural_ExplosiveDamage"], d["direct_Damage"]
+    else:  # torpedo / nuclear
+        alpha, direct = d["warhead_operational"] + d["warhead_structural"], 0
+    return alpha, direct + 0.5 * alpha
+
+
+def _check_missile(s, var, L):
+    """Os arquivos gerados tem que reproduzir os numeros do spec (variants[] e balance_checks.hard_limits)."""
+    errs = []
+    d, p = s["damage"], s["payload"]
+    if abs(s["eff"] - var["eff_damage_per_missile"]) > 0.05:
+        errs.append(f"dano efetivo {s['eff']}, spec {var['eff_damage_per_missile']}")
+    if s["alpha"] * var["per_salvo"] != var["alpha_explosive_per_salvo"]:
+        errs.append(f"alfa {s['alpha']} x {var['per_salvo']}, spec {var['alpha_explosive_per_salvo']}")
+    files = [f"shots/{s['dir']}/{s['file']}.rules"] + [f"shots/{s['dir']}/{c['file']}.rules" for c in s["children"]]
+    spec_files = [f.split(" ", 1)[0] for f in s["spec_files"] if "_rep.rules" not in f]
+    if MISSILE_VARIANTS.get("torpedo_decoys") == "emitter":
+        spec_files = [f for f in spec_files if not f.endswith("_warhead.rules")]
+    if MISSILE_VARIANTS.get("limpet_anchor", "F1") in ("F2", "F4"):
+        spec_files = [f for f in spec_files if not f.endswith("_charge.rules")]
+    if sorted(files) != sorted(spec_files):
+        errs.append(f"arquivos {files}, spec {spec_files}")
+    if p == "cluster":
+        he_hp = next(v["flight"]["hp"] for v in MISSILE_TYPES["he"]["variants"] if v["launcher"] == L["id"])
+        if s["hp"] > he_hp:
+            errs.append(f"portador HP {s['hp']} > HE {he_hp}")
+        if d["children"] > 6:
+            errs.append(f"{d['children']} filhos por portador (> 6)")
+        if d["children"] * d["child_hp"] != d["children_hp_pool"] or d["children_hp_pool"] < s["hp"]:
+            errs.append("HP dos filhos: soma diverge do spec ou menor que o do portador")
+        if d["children"] * d["child_ExplosiveDamage"] != d["child_total"]:
+            errs.append("child_total diverge de children x child_ExplosiveDamage")
+        if d["children"] * var["per_salvo"] > 96:
+            errs.append("mais de 96 filhos por salva")
+    if p == "emp" and d["battery_TotalDrain"] / var["ammo"]["parts_per_missile"] > 1500:
+        errs.append("dreno por peca PEM > 1500")
+    if p in ("torpedo", "nuclear") and s["alpha"] >= 80000:
+        if not L.get("per_ship_limit") and MISSILE_VARIANTS.get("category_limits") != "off":
+            errs.append(f"torpedo de {s['alpha']} por tiro sem limite por nave")
+    if p == "nuclear":
+        # "same chain and shared DECOY as the late Boto": as iscas da Iara tem os numeros das do Boto da Mula
+        boto = next(v["damage"] for v in MISSILE_TYPES["torpedo"]["variants"] if v["launcher"] == L["id"])
+        if (d["decoys"], d["decoy_hp"]) != (boto["decoys"], boto["decoy_hp"]):
+            errs.append("iscas da Iara diferem das do Boto do mesmo lancador")
+    if errs:
+        raise ValueError(f"{s['id']}: missil diverge do spec: " + "; ".join(errs))
+
+
+def _convert_missiles():
+    """Todos os arquivos de missil do spec (todas as variantes por lancador), mesmo os de lancadores que ainda
+    nao sao gerados: o estagio 3 (Caipora, Mula) so liga os lancadores."""
+    for mt in MSPEC["missile_types"]:
+        if mt["id"] not in BUILD_PAYLOADS:
+            continue
+        for var in mt["variants"]:
+            L = _LAUNCHER_SPEC[var["launcher"]]
+            s = _missile_shot_spec(L, mt, var)
+            _check_missile(s, var, L)
+            MISSILES.append(s)
+
+
+_convert_missiles()
+MISSILE_BY_ID = {s["id"]: s for s in MISSILES}
 
 
 def _cell_layout(L, mode):
@@ -572,6 +749,19 @@ def _attach_art3d_launcher(lch):
         lch["crew_pos"] = [tuple(c) for c in meta["crew_pos"]]
 
 
+def _launcher_categories(L):
+    """TypeCategories do lancador. A Mula entra no pool bs_limit_nuke (Max 2, com a Boiuna) pelo proprio spec;
+    category_limits=off (fallback T18) tira os pools de limite, como o fallback da Boiuna/Mapinguari."""
+    cats = list(L["type_categories"])
+    if MISSILE_VARIANTS.get("category_limits") == "off":
+        cats = [c for c in cats if not c.startswith("bs_limit_")]
+    known = {lim["category"] for lim in LIMIT_DEFS}
+    unknown = [c for c in cats if c.startswith("bs_limit_") and c not in known]
+    if unknown:
+        raise ValueError(f"{L['codename']}: pool de limite sem CategoryLimits: {unknown}")
+    return cats
+
+
 def _convert_launchers():
     for L in MSPEC["launchers"]:
         if L["id"] not in BUILD_LAUNCHERS:
@@ -584,9 +774,7 @@ def _convert_launchers():
         for m in L["modes"]:
             if m["missile_type"] not in BUILD_PAYLOADS:
                 continue
-            mt = MISSILE_TYPES[m["missile_type"]]
-            shot = _missile_shot_spec(L, m, mt)
-            MISSILES.append(shot)
+            shot = MISSILE_BY_ID[m["shot_id"]]
             fam = FAMILY_OF[m["resource"]]
             oc_c = m["computed"].get("oc") or {}
             mode = {"type": m["missile_type"], "index": m["toggle_index"], "codename": m["codename"],
@@ -609,7 +797,7 @@ def _convert_launchers():
             "size": L["size"], "crew": L["crew"], "cp": L["command_points"], "hp": L["max_health"],
             "cost": L["build_cost"], "ring": L.get("prohibit_ring_tiles", 1), "arc": L["firing_arc_deg"],
             "rotate": L["rotate_speed_deg_s"], "threshold": L["fire_threshold_deg"],
-            "categories": list(L["type_categories"]),
+            "categories": _launcher_categories(L),
             "ripple": f"{round(L['ripple_delay_s'] * 30)}/30", "ripple_s": round(L["ripple_delay_s"] * 30) / 30,
             "burst_delay": "2/30",
             "toggle_id": tid, "available": [m["index"] for m in modes], "default_mode": modes[0]["index"],
@@ -648,8 +836,7 @@ def _check_launcher(lch, L):
         if abs(cycle - c["cycle_s"]) > 0.01:
             errs.append(f"{m['type']}: ciclo {cycle:.4f} s, spec {c['cycle_s']}")
         shot = next(s_ for s_ in MISSILES if s_["file"] == m["shot"])
-        d = shot["damage"]
-        per = d.get("ExplosiveDamage", d.get("blast_ExplosiveDamage", 0))
+        per = shot["alpha"]
         if per * n != c["alpha_explosive"]:
             errs.append(f"{m['type']}: alfa {per * n}, spec {c['alpha_explosive']}")
     if len(lch["modes"]) == len(L["modes"]):
@@ -663,6 +850,11 @@ def _check_launcher(lch, L):
 
 
 _convert_launchers()
+# com um lancador no pool nuclear, o substantivo do limite deixa de ser so "obuseiro nuclear"
+_NUKE_POOL_NOUNS = {"en": ["Nuclear Weapon", "Nuclear Weapons"], "pt": ["Arma Nuclear", "Armas Nucleares"]}
+for _l in LIMIT_DEFS:
+    if any(_l["category"] in _lch["categories"] for _lch in LAUNCHERS) and _l["category"] == "bs_limit_nuke":
+        _l.update(_NUKE_POOL_NOUNS)
 for _lch in LAUNCHERS:
     for _l in LIMIT_DEFS:
         if _l["match"] in _lch["short"]:

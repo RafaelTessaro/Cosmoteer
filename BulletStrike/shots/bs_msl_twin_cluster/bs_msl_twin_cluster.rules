@@ -1,0 +1,190 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Projetil: Cluster Missile (Transformer) (Piranha) - Caipora
+
+STAT_DAMAGE = 6300
+STAT_RADIUS = 1.75
+STAT_CHILDREN = 4
+STAT_CHILD_DAMAGE = 1575
+STAT_CHILD_HP = 300
+STAT_BURST_RANGE = 25
+ID = "rafaeltessaro.bs_msl_twin_cluster"
+Range = 400
+IdealRange = 400
+Speed = 45
+CHILD = &<bs_msl_twin_cluster_child.rules>
+BURST
+{
+	HitEffects
+	[
+		{
+			Type = SpawnBullets
+			Bullet = &~/CHILD
+			Count = 4
+			Distance = [0, 0.8]
+			Arc = [-25d, 50d]
+			Spread = [-5d, 5d]
+			InheritVelocity = false
+			HealthFactor
+			{
+				BaseValue = 1
+				EffectScaleExponent = 1
+			}
+		}
+	]
+	MediaEffects
+	[
+		&<./Data/shots/missile_he/particles/missile_he_flash.rules>
+		&<./Data/shots/missile_he/particles/missile_he_smoke.rules>
+		: /BASE_SOUNDS/AudioExterior
+		{
+			RandomSounds
+			[
+				"./Data/shots/missile_he/sounds/launcher_rocket_impact_01.wav"
+				"./Data/shots/missile_he/sounds/launcher_rocket_impact_02.wav"
+				"./Data/shots/missile_he/sounds/launcher_rocket_impact_03.wav"
+			]
+			Volume = 0.77
+			SpeedVariation = 0.15
+			MaxConcurrent = 16
+		}
+	]
+}
+Components
+{
+	Physics
+	{
+		Type = BoxPhysics
+		Size = [1.2, 0.4]
+		Density = 0.1
+	}
+	Homing
+	{
+		Type = TargetHoming
+		TurnVelocity = 230d
+		Delay = 0.15
+		VelocityCompensation = 60%
+	}
+	Retarget
+	{
+		Type = SameShipRetarget
+	}
+	Acceleration
+	{
+		Type = Acceleration
+		Acceleration = 65
+	}
+	NegativeAcceleration
+	{
+		Type = Acceleration
+		Acceleration = [-90, 0]
+		AccelerationOverTime = [0, 0.75]
+		Direction = FrameOfReferenceVelocity
+	}
+	ProximityFuse
+	{
+		Type = DeathByEnemyProximity
+		Interval = 0.05
+		Range = 25
+		StartDelay = 0.4
+		DetectsShips = true
+		DetectsBullets = false
+		FactorEffectsWith = Targetable
+		OnDeath = &~/BURST
+	}
+	TimedFuse
+	{
+		Type = DeathByLifetime
+		Lifetime = 11
+		OnDeath = &~/BURST
+	}
+	Sprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper3
+		IsLit = true
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/shots/missile_he/missile_he.png"
+				MipLevels = max
+			}
+			Size = [1.6, 0.8]
+		}
+		NormalsTexture
+		{
+			File = "./Data/shots/missile_he/missile_he_normals.png"
+			MipLevels = max
+		}
+	}
+	GlowSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Z = 0
+		IsLight = true
+		Offset = [-0.72, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [3.6, 1.76]
+			VertexColor = [255, 228, 92]
+			TargetBlendMode = Add
+			Shader = "./Data/common_effects/fancy_light.shader"
+			_z = 1
+			_nrmlStrengthLimit = 1
+			_litReflectiveStrength = 24
+			_litAdditiveStrength = 0.05
+			_unlitAdditiveStrength = 0.125
+		}
+	}
+	MediaEffects
+	{
+		Type = MediaEffects
+		Offset = [-0.72, 0]
+		Rotation = 180d
+		MediaEffects = [&<./Data/shots/missile_he/particles/missile_he_thruster_plume_light.rules>]
+	}
+	Targetable
+	{
+		Type = Targetable
+		Health = 1050
+		TargetCategory = "missile"
+		OnDeath = &../Hit/HitFriendly
+	}
+	Hit
+	{
+		Type = SimpleHit
+		SourcePartCollisionDelay = 1.5 / (&/Simulation/PhysicsUpdatesPerSecond)
+		FriendlyShipLowCollisions = false
+		FriendlyShipHighCollisions = false
+		HitShield = &~/BURST
+		HitOperational = &~/BURST
+		HitStructural = &~/BURST
+		HitFriendly
+		{
+			MediaEffects
+			[
+				&<./Data/shots/missile_he/particles/missile_he_flash.rules>
+				&<./Data/shots/missile_he/particles/missile_he_smoke.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_01.wav"
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_02.wav"
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_03.wav"
+					]
+					Volume = 0.77
+					SpeedVariation = 0.15
+					MaxConcurrent = 16
+				}
+			]
+		}
+	}
+}

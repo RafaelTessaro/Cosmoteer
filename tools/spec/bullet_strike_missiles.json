@@ -2629,7 +2629,53 @@
      "eff_per_bullet_eq": 843.8,
      "ratio_to_he": 0.895
     }
-   ]
+   ],
+   "payload_params": {
+    "note": "Structured copy of payload_mechanic (generator input). child_physics_box is the Muriçoca micro-missile body (not a balance number).",
+    "burst": {
+     "Distance": [
+      0,
+      0.8
+     ],
+     "Arc_deg": [
+      -25,
+      50
+     ],
+     "Spread_deg": [
+      -5,
+      5
+     ],
+     "InheritVelocity": false,
+     "HealthFactor": 1
+    },
+    "proximity_fuse": {
+     "Interval": 0.05,
+     "StartDelay": 0.4,
+     "StartDelay_magnet_only": 1.0,
+     "DetectsShips": true,
+     "DetectsBullets": false,
+     "FactorEffectsWith": "Targetable"
+    },
+    "timed_fuse": "DeathByLifetime, Lifetime = class lifetime_s, OnDeath = BURST",
+    "child": {
+     "physics_box": [
+      0.8,
+      0.28
+     ],
+     "impulse": 10,
+     "magnet": {
+      "Range": 30,
+      "Acceleration": 25
+     },
+     "spacing": {
+      "Range": 3,
+      "Acceleration": -10,
+      "BulletCategories": [
+       "missile"
+      ]
+     }
+    }
+   }
   },
   {
    "id": "limpet",
@@ -2738,7 +2784,49 @@
      "eff_per_bullet_eq": 937.5,
      "ratio_to_he": 0.994
     }
-   ]
+   ],
+   "payload_params": {
+    "note": "Structured copy of payload_mechanic / fallback (generator input).",
+    "impact": {
+     "Offset": [
+      -0.4,
+      0
+     ],
+     "Impulse": 20
+    },
+    "charge": {
+     "physics": "CirclePhysics",
+     "radius": 0.25,
+     "density": 1,
+     "speed": 12,
+     "magnet": {
+      "Range": 8,
+      "Acceleration": 30
+     },
+     "Penetration": 1000,
+     "PenetrationSpeed": 0.05,
+     "Targetable": false
+    },
+    "status_F2": {
+     "id_prefix": "rafaeltessaro.bs_limpet",
+     "Layer": "Part",
+     "StatusCombineMode": "ApplyNewInstance",
+     "TickInterval": 2.5,
+     "StatusDuration": 2.6,
+     "StatusValue": 1,
+     "note": "one status per launcher (rafaeltessaro.bs_limpet_<twin|quad>): the blast radius differs per tier"
+    },
+    "repeating_isolated": {
+     "Count": 1,
+     "Interval": 1,
+     "InitialDelay": 2.5,
+     "RequireHitPart": true
+    },
+    "defusable_targetable_hp": {
+     "mid": 500,
+     "late": 600
+    }
+   }
   },
   {
    "id": "napalm",
@@ -2886,7 +2974,29 @@
      "eff_per_bullet_eq": 250.0,
      "ratio_to_he": 0.398
     }
-   ]
+   ],
+   "payload_params": {
+    "note": "Structured copy of payload_mechanic (generator input).",
+    "heat_pool": {
+     "StatusValue": 0,
+     "ValueFalloff": 1,
+     "FalloffPadding": 0.5,
+     "EmptyTileCost": 1000,
+     "AllowDiagonals": true,
+     "Filter": {
+      "Friendlies": false,
+      "TargetedFriendlies": true
+     }
+    },
+    "gel_test_T15": {
+     "note": "napalm_gel=on only (test build, never the default): starting values derived from the shipped numbers, to be replaced by the T15 result",
+     "StatusChance": "= fire_StatusChance",
+     "StatusValue_raw": "= fire_StatusValue_interpolated x 75 (FIRE_MAX_HEALTH)",
+     "MaxCost": "= heat_MaxCost",
+     "AllowDiagonals": true,
+     "BlockedByWalls": true
+    }
+   }
   },
   {
    "id": "emp",
@@ -2989,7 +3099,26 @@
      "eff_per_bullet_eq": 126.7,
      "ratio_to_he": 0.252
     }
-   ]
+   ],
+   "payload_params": {
+    "note": "Structured copy of payload_mechanic / fallback (generator input).",
+    "drain": {
+     "ResourceType": "battery",
+     "Slices": 1,
+     "MediaEffectsOnDrainFactor": 0.0005,
+     "Filter": {
+      "Ships": true,
+      "Shields": true
+     }
+    },
+    "rider": {
+     "StatusType": "cosmoteer.disruptor_drain",
+     "StatusDuration": 3,
+     "StatusValue": 0.1,
+     "counted": false
+    },
+    "shield_fallback": "emp_shield_drain=single_part: HitShield drains with one ResourceDrain { TreatShieldAsPart = true; Amount = battery_TotalDrain } instead of the area drain"
+   }
   },
   {
    "id": "torpedo",
@@ -3102,7 +3231,62 @@
      "eff_per_bullet_eq": 1000.0,
      "ratio_to_he": 0.871
     }
-   ]
+   ],
+   "payload_params": {
+    "note": "Structured copy of payload_mechanic / fallback (generator input).",
+    "launch_stage": {
+     "Lifetime": 1.5,
+     "FactorEffectsWith": "Targetable",
+     "LinearDamping": null
+    },
+    "warhead": {
+     "Speed": 0,
+     "InheritVelocity": true,
+     "HealthFactor": 1,
+     "homing_delay_s": null
+    },
+    "spawn_decoys": {
+     "Distance": [
+      0.5,
+      1.5
+     ],
+     "Arc_deg": [
+      -60,
+      120
+     ],
+     "Spread_deg": [
+      -10,
+      10
+     ],
+     "InheritVelocity": true
+    },
+    "decoy": {
+     "physics_box": [
+      1.2,
+      0.4
+     ],
+     "turn_deg_s": 70,
+     "homing_delay_s": 0.4,
+     "accel": 12,
+     "lifetime_s": 9,
+     "spacing": {
+      "Range": 3.5,
+      "Acceleration": -6,
+      "BulletCategories": [
+       "missile"
+      ]
+     }
+    },
+    "expand": {
+     "ExpandDuration": 0.5,
+     "ExpandStartRadius": 1.5,
+     "ExpandLoss": "100%"
+    },
+    "emitter_fallback": {
+     "BurstDelay": 0.1,
+     "note": "torpedo_decoys=emitter: single-stage torpedo + decoys from a second emitter per torpedo cell (Burst = decoys), no ResourceStorage"
+    }
+   }
   },
   {
    "id": "nuclear",
@@ -3168,7 +3352,67 @@
      "eff_per_bullet_eq": 1111.1,
      "ratio_to_he": 0.702
     }
-   ]
+   ],
+   "payload_params": {
+    "note": "Same chain and decoy as the late Boto (own decoy file per the files list); structured copy of payload_mechanic.",
+    "launch_stage": {
+     "Lifetime": 1.5,
+     "FactorEffectsWith": "Targetable",
+     "LinearDamping": null
+    },
+    "warhead": {
+     "Speed": 0,
+     "InheritVelocity": true,
+     "HealthFactor": 1,
+     "homing_delay_s": null
+    },
+    "spawn_decoys": {
+     "Distance": [
+      0.5,
+      1.5
+     ],
+     "Arc_deg": [
+      -60,
+      120
+     ],
+     "Spread_deg": [
+      -10,
+      10
+     ],
+     "InheritVelocity": true
+    },
+    "decoy": {
+     "physics_box": [
+      1.2,
+      0.4
+     ],
+     "turn_deg_s": 70,
+     "homing_delay_s": 0.4,
+     "accel": 12,
+     "lifetime_s": 9,
+     "spacing": {
+      "Range": 3.5,
+      "Acceleration": -6,
+      "BulletCategories": [
+       "missile"
+      ]
+     }
+    },
+    "expand": {
+     "ExpandDuration": 0.8,
+     "ExpandStartRadius": 2,
+     "ExpandLoss": "100%"
+    },
+    "emitter_fallback": {
+     "BurstDelay": 0.1,
+     "note": "torpedo_decoys=emitter: single-stage torpedo + decoys from a second emitter per torpedo cell (Burst = decoys), no ResourceStorage"
+    },
+    "impulse": {
+     "ImpulsePerNDamage": 10,
+     "NDamage": 1000
+    },
+    "media": "Boiuna mushroom (bs_shot_nuke_howitzer_nuclear particles)"
+   }
   }
  ],
  "resources_factories": {
@@ -6162,7 +6406,8 @@
    "stage": 2,
    "options": {
     "F1": "PenetratingHit crawler charge + magnet (buzz-droid combination)",
-    "F2": "mod Part status charge",
+    "F1_drill": "F1 charge without the magnet (pure slow PenetratingHit drill): first fallback of T14",
+    "F2": "mod Part status charge (rafaeltessaro.bs_limpet_<launcher>, registered with AddMany in statuses.rules; only after T14b)",
     "F3": "HitObject frame Speed-0 charge",
     "F4": "impact blast (same fuse/blast numbers)"
    }
@@ -6201,6 +6446,51 @@
    "options": {
     "off": "full child visuals",
     "on": "strip child glow and delete the child Spacing component (Count unchanged)"
+   }
+  },
+  "limpet_repeating": {
+   "default": "off",
+   "test": "T14 / Q11",
+   "stage": 2,
+   "options": {
+    "off": "no Repeating anywhere",
+    "isolated_file": "also write the SW-only isolated variant shots/bs_msl_<l>_limpet/bs_msl_<l>_limpet_rep.rules (Repeating { Count 1; InitialDelay 2.5; RequireHitPart true }); no launcher references it; check it with schema_check --extra SW"
+   }
+  },
+  "limpet_defusable": {
+   "default": "off",
+   "test": "T14",
+   "stage": 2,
+   "options": {
+    "off": "charge has no Targetable (user's rule; avoids the victim's PD firing into its own hull)",
+    "on": "charge Targetable 500 (mid) / 600 (late), category 'missile'"
+   }
+  },
+  "emp_rider": {
+   "default": "on",
+   "test": "T16",
+   "stage": 2,
+   "options": {
+    "on": "StatusApplication cosmoteer.disruptor_drain rider (StatusDuration 3, StatusValue .1, not counted)",
+    "off": "drop the rider"
+   }
+  },
+  "emp_shield_drain": {
+   "default": "area",
+   "test": "T16",
+   "stage": 2,
+   "options": {
+    "area": "HitShield = HitOperational (area ExplosiveResourceDrain reaches the bubble)",
+    "single_part": "HitShield drains with one ResourceDrain { TreatShieldAsPart = true } of the same total"
+   }
+  },
+  "cluster_randomize_target": {
+   "default": "off",
+   "test": "T11",
+   "stage": 2,
+   "options": {
+    "off": "no RandomizeTarget",
+    "on": "RandomizeTarget = true on the carrier's SpawnBullets (T11 experiment build only, never shipped)"
    }
   }
  }

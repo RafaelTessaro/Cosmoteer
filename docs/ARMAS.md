@@ -42,6 +42,28 @@
 | **Caixa de Micromísseis de Convés** | Tocandira | Início | 2x2 | 1 | Micromíssil (Muriçoca) | 12 em 0,7 s | 9,1 s | 300 m | missile_part_he |
 | **Caixa de Micromísseis de Convés** | Tocandira | Início | 2x2 | 1 | Micromíssil Incendiário (Taturana-mirim) | 12 em 0,7 s | 9,1 s | 300 m | missile_part_thermal |
 
+## Mísseis (arquivos de projétil gerados)
+
+> Um arquivo por tipo de míssil e por lançador, como no spec (`missile_types[].variants[].files`). Dano efetivo = direto + 50 % das explosões (convenção do spec). Lançador ainda não gerado = o arquivo existe, mas nenhuma peça o dispara (estágio 3).
+
+| Míssil | Codinome | Lançador | HP | Velocidade / acel. / giro | Alcance | Dano explosivo | Efetivo | Arquivos |
+|---|---|---|---|---|---|---|---|---|
+| Micromíssil | Muriçoca | Tocandira | 380 | 55 / 85 / 300° | 300 m | 1.600 | 800,0 | `bs_msl_box_he` |
+| Míssil Alto-Explosivo | Jararaca | Caipora (estágio 3) | 1.050 | 45 / 65 / 230° | 400 m | 7.000 | 3.500,0 | `bs_msl_twin_he` |
+| Míssil Alto-Explosivo | Jararaca | Mula-sem-Cabeça (estágio 3) | 2.200 | 45 / 60 / 200° | 600 m | 7.500 | 3.750,0 | `bs_msl_quad_he` |
+| Míssil de Submunições (Transformer) | Piranha | Caipora (estágio 3) | 1.050 | 45 / 65 / 230° | 400 m | 6.300 | 3.150,0 | `bs_msl_twin_cluster`, `bs_msl_twin_cluster_child` |
+| Míssil de Submunições (Transformer) | Piranha | Mula-sem-Cabeça (estágio 3) | 2.200 | 45 / 60 / 200° | 600 m | 13.500 | 6.750,0 | `bs_msl_quad_cluster`, `bs_msl_quad_cluster_child` |
+| Míssil Grudento | Carrapato | Caipora (estágio 3) | 1.050 | 45 / 65 / 230° | 400 m | 6.500 | 3.500,0 | `bs_msl_twin_limpet`, `bs_msl_twin_limpet_charge` |
+| Míssil Grudento | Carrapato | Mula-sem-Cabeça (estágio 3) | 2.200 | 45 / 60 / 200° | 600 m | 14.000 | 7.500,0 | `bs_msl_quad_limpet`, `bs_msl_quad_limpet_charge` |
+| Micromíssil Incendiário | Taturana-mirim | Tocandira | 380 | 55 / 85 / 300° | 300 m | 600 | 300,0 | `bs_msl_box_napalm` |
+| Míssil de Napalm | Taturana | Caipora (estágio 3) | 1.050 | 45 / 65 / 230° | 400 m | 3.000 | 1.500,0 | `bs_msl_twin_napalm` |
+| Míssil de Napalm | Taturana | Mula-sem-Cabeça (estágio 3) | 2.200 | 45 / 60 / 200° | 600 m | 6.000 | 3.000,0 | `bs_msl_quad_napalm` |
+| Míssil PEM | Poraquê | Caipora (estágio 3) | 1.500 | 45 / 65 / 230° | 400 m | 2.000 | 1.300,0 | `bs_msl_twin_emp` |
+| Míssil PEM | Poraquê | Mula-sem-Cabeça (estágio 3) | 2.800 | 45 / 60 / 200° | 600 m | 3.000 | 1.900,0 | `bs_msl_quad_emp` |
+| Torpedo com Iscas | Boto | Caipora (estágio 3) | 4.500 | 30 / 12 / 90° | 400 m | 24.000 | 12.000,0 | `bs_msl_twin_torpedo`, `bs_msl_twin_torpedo_warhead`, `bs_msl_twin_torpedo_decoy` |
+| Torpedo com Iscas | Boto | Mula-sem-Cabeça (estágio 3) | 6.500 | 30 / 12 / 90° | 600 m | 48.000 | 24.000,0 | `bs_msl_quad_torpedo`, `bs_msl_quad_torpedo_warhead`, `bs_msl_quad_torpedo_decoy` |
+| Torpedo Nuclear | Iara | Mula-sem-Cabeça (estágio 3) | 6.500 | 30 / 12 / 90° | 600 m | 160.000 | 80.000,0 | `bs_msl_quad_nuclear`, `bs_msl_quad_nuclear_warhead`, `bs_msl_quad_nuclear_decoy` |
+
 ## Munições
 
 | Recurso | Pilha por tile | Observação |

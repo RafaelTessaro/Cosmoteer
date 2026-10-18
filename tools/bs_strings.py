@@ -197,25 +197,35 @@ MISSILE_TXT = {  # tipo: (nome curto en, nome curto pt, descricao en, descricao 
            "A fast, direct high-explosive warhead: the reference missile. Big salvos saturate point defense.",
            "Ogiva alto-explosiva rápida e direta: o míssil de referência. Salvas grandes saturam a defesa de ponto."),
     "cluster": ("Cluster", "Submunições",
-                "Opens 25 m from the enemy hull and releases a school of mini-missiles that spread over several parts.",
-                "Abre a 25 m do casco inimigo e solta um cardume de minimísseis que se espalham por várias peças."),
+                "Opens 25 m from the enemy hull (or on impact, or at the end of its flight) and releases a school of "
+                "mini-missiles that spread over several parts. Shot down before it opens, it releases nothing.",
+                "Abre a 25 m do casco inimigo (ou no impacto, ou no fim do voo) e solta um cardume de minimísseis que "
+                "se espalham por várias peças. Abatido antes de abrir, não solta nada."),
     "limpet": ("Limpet", "Grudento",
-               "Sticks to the hull and explodes 2.5 s later, with a high chance to kill crew rushing in to repair.",
-               "Gruda no casco e explode 2,5 s depois, com alta chance de matar a tripulação que vier consertar."),
+               "Sticks to the hull and explodes 2.5 s later, with a high chance to kill crew rushing in to repair. "
+               "Shot down in flight it is lost; on a shield it only pops.",
+               "Gruda no casco e explode 2,5 s depois, com alta chance de matar a tripulação que vier consertar. "
+               "Abatido no voo, se perde; num escudo só estoura."),
     "napalm": ("Napalm", "Napalm",
                "Small blast, guaranteed fire on the part it hits and a heat pool that keeps lighting new fires. "
                "Useless against armor; extinguishers and foam are the counter.",
                "Explosão pequena, fogo garantido na peça atingida e calor em volta que continua acendendo incêndios. "
                "Inútil contra blindagem; extintor e espuma são o contra."),
     "emp": ("EMP", "PEM",
-            "Drains batteries and shields in an area. Bullet Strike weapons have no battery and are immune.",
-            "Drena baterias e escudos em área. As armas do Bullet Strike não usam bateria e são imunes."),
+            "Drains batteries and shields in an area and keeps draining powered parts for a few seconds. "
+            "Bullet Strike weapons have no battery and are immune.",
+            "Drena baterias e escudos em área e continua drenando as peças com energia por alguns segundos. "
+            "As armas do Bullet Strike não usam bateria e são imunes."),
     "torpedo": ("Decoy Torpedo", "Torpedo com Iscas",
-                "A slow, tough torpedo that releases decoys to fool point defense before it strikes.",
-                "Torpedo lento e resistente que solta iscas para enganar a defesa de ponto antes de acertar."),
+                "A slow, tough torpedo: 1.5 s after launch the warhead separates among decoys that soak up point "
+                "defense and flak.",
+                "Torpedo lento e resistente: 1,5 s depois do lançamento a ogiva se separa no meio de iscas que gastam "
+                "a defesa de ponto e a flak."),
     "nuclear": ("Nuclear Torpedo", "Torpedo Nuclear",
-                "Heavy-battery only. Dies to area flak on its own: mask it with a heavy salvo fired right after it.",
-                "Só na bateria pesada. Sozinho morre para flak de área: esconda-o com uma salva pesada logo depois."),
+                "Heavy battery only. Counts toward the nuclear limit (2 per ship, shared with the Boiúna) and overclock "
+                "never speeds up its reload. Dies to area flak on its own: mask it with a heavy salvo fired right after it.",
+                "Só na bateria pesada. Conta no limite nuclear (2 por nave, junto com a Boiúna) e o overclock nunca "
+                "acelera a recarga. Sozinho morre para flak de área: esconda-o com uma salva pesada logo depois."),
 }
 RES_WORD = {"missile_part_he": ("H.E. Missile Parts", "peças de míssil A.E."),
             "missile_part_thermal": ("T.C. Missile Parts", "peças de míssil T.C."),

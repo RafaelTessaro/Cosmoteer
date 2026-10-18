@@ -79,7 +79,15 @@ def shot_file(out, s):
         top = shots.build_flak_cloud(s)
         rel = f"shots/{s['dir']}/{sid}.rules"
     elif kind == "missile":
-        # missil de convés (bsgen/shots.py build_missile); filhos/cargas extras virao no mesmo diretorio
+        # missil de convés (bsgen/shots.py build_missile). Os filhos (submunicao, carga, ogiva, isca) vao na
+        # mesma pasta e o pai os referencia pelo nome relativo (como o flak_oc); extras = variantes isoladas
+        # que nenhum lancador dispara (ex.: Carrapato com Repeating, so-SW, limpet_repeating=isolated_file).
+        for c in s.get("children", []):
+            out.text(f"shots/{s['dir']}/{c['file']}.rules",
+                     render(shots.build_missile_part(c), HEADER + f"\nProjetil: {c['title']}"))
+        for x in s.get("extras", []):
+            out.text(f"shots/{s['dir']}/{x['file']}.rules",
+                     render(shots.build_missile(x), HEADER + f"\nProjetil: {x['title']}"))
         top = shots.build_missile(s)
         rel = f"shots/{s['dir']}/{sid}.rules"
     else:
@@ -129,6 +137,12 @@ def build(args):
         shot_rel[s["file"]] = shot_file(out, s)
     for s in DATA.MISSILES:
         shot_rel[s["file"]] = shot_file(out, s)
+    # status proprios dos misseis (so com limpet_anchor=F2, depois do teste T14b)
+    status_paths = []
+    for st in DATA.MISSILE_STATUSES:
+        rel = f"statuses/{st['dir']}/{st['dir']}.rules"
+        out.text(rel, render(shots.build_limpet_status(st), HEADER + f"\nStatus: {st['title']}"))
+        status_paths.append(rel)
 
     part_paths = []
     # armas
@@ -194,7 +208,7 @@ def build(args):
     en, pt = DATA.strings()
     out.text("strings/en.rules", infra.strings_file(en, DATA.MOD_TAG_EN))
     out.text("strings/pt-br.rules", infra.strings_file(pt, DATA.MOD_TAG_PT))
-    out.text("mod.rules", infra.mod_rules(DATA.MOD, part_paths, res_paths, DATA.VERSION, DATA.LIMITS))
+    out.text("mod.rules", infra.mod_rules(DATA.MOD, part_paths, res_paths, DATA.VERSION, DATA.LIMITS, status_paths))
     if art:
         art.misc_art(out)
 

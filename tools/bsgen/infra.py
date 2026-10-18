@@ -6,7 +6,7 @@ from bsgen import common as C
 COMPAT = ["0.30.4", "0.30.4a", "0.30.4b", "0.30.4c", "0.30.5"]
 
 
-def mod_rules(data, part_paths, resource_paths, version, limits=()):
+def mod_rules(data, part_paths, resource_paths, version, limits=(), status_paths=()):
     desc_lines = data["description_en"]
     top = {
         "ID": C.MOD_ID,
@@ -54,6 +54,11 @@ def mod_rules(data, part_paths, resource_paths, version, limits=()):
     actions.append({"Action": "AddMany",
                     "AddTo": Q("<modes/pvp/pvp_buildbattle/techs_buildbattle.rules>/PartsWhitelist"),
                     "ManyToAdd": "&<techs/bs_techs_buildbattle.rules>/PartsWhitelist"})
+    if status_paths:
+        # status proprios (Carrapato F2): o sistema de status e moddavel desde a 0.30.0; lista vanilla em
+        # statuses/statuses.rules l.5-13. So entra com limpet_anchor=F2 (teste T14b antes).
+        actions.append({"Action": "AddMany", "AddTo": Q("<statuses/statuses.rules>/Statuses"),
+                        "ManyToAdd": [f"&<{p}>" for p in status_paths]})
     if limits:
         # limite por nave (ex.: obuseiros nucleares). Mesmo padrao em 2 passos do SW:ACD (mod.rules l.263-356),
         # para os dois mods poderem criar a lista sem conflito.

@@ -1,0 +1,215 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Projetil: Napalm Missile (Taturana) - Caipora
+
+STAT_DAMAGE = 3000
+STAT_RADIUS = 2.5
+STAT_HEAT_POOL = 1600
+STAT_FIRE_CHANCE = 1
+ID = "rafaeltessaro.bs_msl_twin_napalm"
+Range = 400
+IdealRange = 400
+Speed = 45
+Components
+{
+	Physics
+	{
+		Type = BoxPhysics
+		Size = [1.2, 0.4]
+		Density = 0.1
+	}
+	Homing
+	{
+		Type = TargetHoming
+		TurnVelocity = 230d
+		Delay = 0.15
+		VelocityCompensation = 60%
+	}
+	Retarget
+	{
+		Type = SameShipRetarget
+	}
+	Acceleration
+	{
+		Type = Acceleration
+		Acceleration = 65
+	}
+	NegativeAcceleration
+	{
+		Type = Acceleration
+		Acceleration = [-90, 0]
+		AccelerationOverTime = [0, 0.75]
+		Direction = FrameOfReferenceVelocity
+	}
+	DeathByLifetime
+	{
+		Type = DeathByLifetime
+		Lifetime = 11
+	}
+	Sprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper3
+		IsLit = true
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/shots/missile_he/missile_he.png"
+				MipLevels = max
+			}
+			Size = [1.6, 0.8]
+		}
+		NormalsTexture
+		{
+			File = "./Data/shots/missile_he/missile_he_normals.png"
+			MipLevels = max
+		}
+	}
+	GlowSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Z = 0
+		IsLight = true
+		Offset = [-0.72, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [3.6, 1.76]
+			VertexColor = [255, 106, 26]
+			TargetBlendMode = Add
+			Shader = "./Data/common_effects/fancy_light.shader"
+			_z = 1
+			_nrmlStrengthLimit = 1
+			_litReflectiveStrength = 24
+			_litAdditiveStrength = 0.05
+			_unlitAdditiveStrength = 0.125
+		}
+	}
+	MediaEffects
+	{
+		Type = MediaEffects
+		Offset = [-0.72, 0]
+		Rotation = 180d
+		MediaEffects = [&<./Data/shots/missile_thermal/particles/missile_thermal_thruster_plume_light.rules>]
+	}
+	Targetable
+	{
+		Type = Targetable
+		Health = 1050
+		TargetCategory = "missile"
+		OnDeath = &../Hit/HitFriendly
+	}
+	Hit
+	{
+		Type = SimpleHit
+		SourcePartCollisionDelay = 1.5 / (&/Simulation/PhysicsUpdatesPerSecond)
+		FriendlyShipLowCollisions = false
+		FriendlyShipHighCollisions = false
+		HitShield
+		{
+			HitEffects
+			[
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 3000
+						EffectScaleExponent = 1
+					}
+					Radius = 2.5
+				}
+				{
+					Type = StatusApplication
+					StatusType = cosmoteer.heat
+					StatusValue = 160
+					ApplyToAllHitPartTiles = true
+					DivideValueByPartArea = true
+				}
+			]
+			MediaEffects = &../HitOperational/MediaEffects
+		}
+		HitOperational
+		{
+			HitEffects
+			[
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 3000
+						EffectScaleExponent = 1
+					}
+					Radius = 2.5
+				}
+				{
+					Type = StatusApplication
+					StatusType = cosmoteer.fire
+					StatusChance
+					{
+						BaseValue = 1
+						EffectScaleExponent = 1
+					}
+					StatusValue = 60%
+					ValueType = Interpolated
+				}
+				{
+					Type = GridStatusApplication
+					StatusType = cosmoteer.heat
+					StatusValue = 0
+					StatusValuePool = 1600
+					ValueFalloff = 1
+					MaxCost = 3
+					FalloffPadding = 0.5
+					EmptyTileCost = 1000
+					AllowDiagonals = true
+					Filter
+					{
+						Friendlies = false
+						TargetedFriendlies = true
+					}
+				}
+			]
+			MediaEffects
+			[
+				&<./Data/shots/missile_thermal/particles/missile_thermal_hit_cone.rules>
+				&<./Data/shots/missile_thermal/particles/missile_thermal_shockwave.rules>
+				&<./Data/shots/missile_thermal/particles/missile_thermal_flash.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds = ["./Data/shots/missile_thermal/missile_thermal_hit.wav"]
+					Volume = 0.77
+					SpeedVariation = 0.15
+					MaxConcurrent = 16
+				}
+				: /BASE_SHAKE
+				{
+					ShakeAmount = 0.12
+					Duration = 0.5
+				}
+			]
+		}
+		HitStructural = &HitOperational
+		HitFriendly
+		{
+			MediaEffects
+			[
+				&<./Data/shots/missile_thermal/particles/missile_thermal_hit_cone.rules>
+				&<./Data/shots/missile_thermal/particles/missile_thermal_shockwave.rules>
+				&<./Data/shots/missile_thermal/particles/missile_thermal_flash.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds = ["./Data/shots/missile_thermal/missile_thermal_hit.wav"]
+					Volume = 0.77
+					SpeedVariation = 0.15
+					MaxConcurrent = 16
+				}
+			]
+		}
+	}
+}

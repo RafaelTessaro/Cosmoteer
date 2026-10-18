@@ -40,8 +40,10 @@ traçantes, clarões de boca, granadas explodindo, flak enchendo o céu. É *tir
 - **Lança-mísseis de convés** (em construção): a **Tocandira** (início, 2x2) já está no mod: uma caixa de
   micromísseis estilo RAM que dispara 12 micromísseis em sequência. A tripulação enche um paiol interno com as
   peças de míssil do jogo base; um autocarregador recarrega as células **só enquanto há tripulação no posto**.
-  Mísseis Muriçoca (alto-explosivo) e Taturana-mirim (incendiário). Caipora (meio) e Mula-sem-Cabeça (fim) vêm
-  na próxima etapa. Projeto completo em [docs/MISSEIS_PROJETO.md](docs/MISSEIS_PROJETO.md).
+  Mísseis Muriçoca (alto-explosivo) e Taturana-mirim (incendiário). Os mísseis do meio e do fim de jogo já são
+  gerados (Jararaca, Piranha de submunições, Carrapato grudento, Taturana, Poraquê PEM, Boto com iscas e o torpedo
+  nuclear Iara); os lançadores Caipora (meio) e Mula-sem-Cabeça (fim) vêm na próxima etapa. Projeto completo em
+  [docs/MISSEIS_PROJETO.md](docs/MISSEIS_PROJETO.md).
 - **Overclock** nas armas de meio e fim de jogo: mais cadência, dano ou alcance em troca de calor.
 - **Aba própria "Bullet Strike"** no menu de construção, techs no modo **Carreira** e no **Build & Battle**.
 - **Limite por nave:** no máximo 2 obuseiros nucleares e 2 torres de 406 mm (a arma do encouraçado),

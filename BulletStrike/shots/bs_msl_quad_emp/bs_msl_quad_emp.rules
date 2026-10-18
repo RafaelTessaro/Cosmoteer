@@ -1,0 +1,233 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Projetil: EMP Missile (Poraquê) - Mula-sem-Cabeça
+
+STAT_DAMAGE = 3400
+STAT_RADIUS = 2.5
+STAT_DRAIN = 4500
+STAT_DRAIN_RADIUS = 10
+ID = "rafaeltessaro.bs_msl_quad_emp"
+Range = 600
+IdealRange = 600
+Speed = 45
+Components
+{
+	Physics
+	{
+		Type = BoxPhysics
+		Size = [1.5, 0.5]
+		Density = 0.1
+	}
+	Homing
+	{
+		Type = TargetHoming
+		TurnVelocity = 200d
+		Delay = 0.15
+		VelocityCompensation = 60%
+	}
+	Retarget
+	{
+		Type = SameShipRetarget
+	}
+	Acceleration
+	{
+		Type = Acceleration
+		Acceleration = 60
+	}
+	NegativeAcceleration
+	{
+		Type = Acceleration
+		Acceleration = [-90, 0]
+		AccelerationOverTime = [0, 0.75]
+		Direction = FrameOfReferenceVelocity
+	}
+	DeathByLifetime
+	{
+		Type = DeathByLifetime
+		Lifetime = 15
+	}
+	Sprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper3
+		IsLit = true
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/shots/missile_he/missile_he.png"
+				MipLevels = max
+			}
+			Size = [2, 1]
+		}
+		NormalsTexture
+		{
+			File = "./Data/shots/missile_he/missile_he_normals.png"
+			MipLevels = max
+		}
+	}
+	GlowSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Z = 0
+		IsLight = true
+		Offset = [-0.9, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [4.5, 2.2]
+			VertexColor = [79, 195, 255]
+			TargetBlendMode = Add
+			Shader = "./Data/common_effects/fancy_light.shader"
+			_z = 1
+			_nrmlStrengthLimit = 1
+			_litReflectiveStrength = 24
+			_litAdditiveStrength = 0.05
+			_unlitAdditiveStrength = 0.125
+		}
+	}
+	MediaEffects
+	{
+		Type = MediaEffects
+		Offset = [-0.9, 0]
+		Rotation = 180d
+		MediaEffects = [&<./Data/shots/missile_emp/particles/missile_emp_thruster_plume_light.rules>]
+	}
+	Targetable
+	{
+		Type = Targetable
+		Health = 2800
+		TargetCategory = "missile"
+		OnDeath = &../Hit/HitFriendly
+	}
+	Hit
+	{
+		Type = SimpleHit
+		SourcePartCollisionDelay = 1.5 / (&/Simulation/PhysicsUpdatesPerSecond)
+		FriendlyShipLowCollisions = false
+		FriendlyShipHighCollisions = false
+		HitShield = &HitOperational
+		HitOperational
+		{
+			HitEffects
+			[
+				{
+					Type = ExplosiveResourceDrain
+					ResourceType = battery
+					TotalDrain
+					{
+						BaseValue = 4500
+						EffectScaleExponent = 1
+					}
+					Radius = 10
+					Slices = 1
+					Filter
+					{
+						Ships = true
+						Shields = true
+					}
+					MediaEffectsOnDrainFactor = 0.0005
+					MediaEffectsOnDrain
+					[
+						&<./Data/shots/missile_emp/particles/missile_emp_hit_sizzle.rules>
+						&<./Data/shots/missile_emp/particles/missile_emp_lightning.rules>
+						&<./Data/shots/missile_emp/particles/missile_emp_drain.rules>
+						: /BASE_SOUNDS/AudioExterior
+						{
+							RandomSounds
+							[
+								"./Data/shots/disruptor_bolt/sounds/disruptor_discharge_01.wav"
+								"./Data/shots/disruptor_bolt/sounds/disruptor_discharge_02.wav"
+								"./Data/shots/disruptor_bolt/sounds/disruptor_discharge_03.wav"
+								"./Data/shots/disruptor_bolt/sounds/disruptor_discharge_04.wav"
+							]
+							Volume = 1
+							SpeedVariation = 0.2
+							MaxConcurrent = 16
+						}
+					]
+				}
+				{
+					Type = Damage
+					Damage
+					{
+						BaseValue = 400
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 3000
+						EffectScaleExponent = 1
+					}
+					Radius = 2.5
+					Filter
+					{
+						OperationalHealth = false
+						StructuralHealth = true
+					}
+				}
+				{
+					Type = StatusApplication
+					StatusType = cosmoteer.disruptor_drain
+					StatusDuration = 3
+					StatusValue
+					{
+						BaseValue = 0.1
+						EffectScaleExponent = 1
+					}
+				}
+			]
+			MediaEffects
+			[
+				&<./Data/shots/missile_emp/particles/missile_emp_hit_orb.rules>
+				&<./Data/shots/missile_emp/particles/missile_emp_hit_bolts.rules>
+				&<./Data/shots/missile_emp/particles/missile_emp_hit_shockwave.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/missile_emp/sounds/launcher_emp_impact_01.wav"
+						"./Data/shots/missile_emp/sounds/launcher_emp_impact_02.wav"
+					]
+					Volume = 0.85
+					SpeedVariation = 0.15
+					MaxConcurrent = 16
+				}
+				: /BASE_SHAKE
+				{
+					ShakeAmount = 0.14
+					Duration = 0.5
+				}
+			]
+		}
+		HitStructural = &HitOperational
+		HitFriendly
+		{
+			MediaEffects
+			[
+				&<./Data/shots/missile_emp/particles/missile_emp_hit_orb.rules>
+				&<./Data/shots/missile_emp/particles/missile_emp_hit_bolts.rules>
+				&<./Data/shots/missile_emp/particles/missile_emp_hit_shockwave.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/missile_emp/sounds/launcher_emp_impact_01.wav"
+						"./Data/shots/missile_emp/sounds/launcher_emp_impact_02.wav"
+					]
+					Volume = 0.85
+					SpeedVariation = 0.15
+					MaxConcurrent = 16
+				}
+			]
+		}
+	}
+}

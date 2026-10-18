@@ -1,0 +1,231 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Projetil: Limpet Missile (Carrapato) - Caipora
+
+STAT_DAMAGE = 6750
+STAT_RADIUS = 2.5
+STAT_CHARGE_DAMAGE = 6500
+STAT_FUSE = 2.5
+ID = "rafaeltessaro.bs_msl_twin_limpet"
+Range = 400
+IdealRange = 400
+Speed = 45
+CHARGE = &<bs_msl_twin_limpet_charge.rules>
+Components
+{
+	Physics
+	{
+		Type = BoxPhysics
+		Size = [1.2, 0.4]
+		Density = 0.1
+	}
+	Homing
+	{
+		Type = TargetHoming
+		TurnVelocity = 230d
+		Delay = 0.15
+		VelocityCompensation = 60%
+	}
+	Retarget
+	{
+		Type = SameShipRetarget
+	}
+	Acceleration
+	{
+		Type = Acceleration
+		Acceleration = 65
+	}
+	NegativeAcceleration
+	{
+		Type = Acceleration
+		Acceleration = [-90, 0]
+		AccelerationOverTime = [0, 0.75]
+		Direction = FrameOfReferenceVelocity
+	}
+	DeathByLifetime
+	{
+		Type = DeathByLifetime
+		Lifetime = 11
+	}
+	Sprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper3
+		IsLit = true
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/shots/missile_he/missile_he.png"
+				MipLevels = max
+			}
+			Size = [1.6, 0.8]
+		}
+		NormalsTexture
+		{
+			File = "./Data/shots/missile_he/missile_he_normals.png"
+			MipLevels = max
+		}
+	}
+	GlowSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Z = 0
+		IsLight = true
+		Offset = [-0.72, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [3.6, 1.76]
+			VertexColor = [255, 59, 48]
+			TargetBlendMode = Add
+			Shader = "./Data/common_effects/fancy_light.shader"
+			_z = 1
+			_nrmlStrengthLimit = 1
+			_litReflectiveStrength = 24
+			_litAdditiveStrength = 0.05
+			_unlitAdditiveStrength = 0.125
+		}
+	}
+	MediaEffects
+	{
+		Type = MediaEffects
+		Offset = [-0.72, 0]
+		Rotation = 180d
+		MediaEffects = [&<./Data/shots/missile_he/particles/missile_he_thruster_plume_light.rules>]
+	}
+	Targetable
+	{
+		Type = Targetable
+		Health = 1050
+		TargetCategory = "missile"
+		OnDeath = &../Hit/HitFriendly
+	}
+	Hit
+	{
+		Type = SimpleHit
+		SourcePartCollisionDelay = 1.5 / (&/Simulation/PhysicsUpdatesPerSecond)
+		FriendlyShipLowCollisions = false
+		FriendlyShipHighCollisions = false
+		HitShield
+		{
+			HitEffects
+			[
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 3000
+						EffectScaleExponent = 1
+					}
+					Radius = 2
+				}
+			]
+			MediaEffects
+			[
+				&<./Data/shots/missile_he/particles/missile_he_hit.rules>
+				&<./Data/shots/missile_he/particles/missile_he_flash.rules>
+				&<./Data/shots/missile_he/particles/missile_he_smoke.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_01.wav"
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_02.wav"
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_03.wav"
+					]
+					Volume = 0.77
+					SpeedVariation = 0.15
+					MaxConcurrent = 16
+				}
+				: /BASE_SHAKE
+				{
+					ShakeAmount = 0.12
+					Duration = 0.5
+				}
+			]
+		}
+		HitOperational
+		{
+			Offset = [-0.4, 0]
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
+					{
+						BaseValue = 250
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = SpawnBullets
+					Bullet = &~/CHARGE
+					Count = 1
+					Distance = 0
+					Spread = [0d, 0d]
+					InheritVelocity = false
+				}
+				{
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 20
+						EffectScaleExponent = 1
+					}
+				}
+			]
+			MediaEffects
+			[
+				&<./Data/shots/bullet_med/particles/bullet_hit_med_sparks.rules>
+				&<./Data/shots/bullet_med/particles/bullet_flash_med.rules>
+				&<./Data/shots/missile_he/particles/missile_he_flash.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/bullet_med/sounds/cannon_impact_01.wav"
+						"./Data/shots/bullet_med/sounds/cannon_impact_02.wav"
+						"./Data/shots/bullet_med/sounds/cannon_impact_03.wav"
+						"./Data/shots/bullet_med/sounds/cannon_impact_04.wav"
+					]
+					Volume = 0.77
+					SpeedVariation = 0.15
+					MaxConcurrent = 16
+				}
+				: /BASE_SHAKE
+				{
+					ShakeAmount = 0.12
+					Duration = 0.5
+				}
+			]
+		}
+		HitStructural = &HitOperational
+		HitFriendly
+		{
+			MediaEffects
+			[
+				&<./Data/shots/missile_he/particles/missile_he_hit.rules>
+				&<./Data/shots/missile_he/particles/missile_he_flash.rules>
+				&<./Data/shots/missile_he/particles/missile_he_smoke.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_01.wav"
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_02.wav"
+						"./Data/shots/missile_he/sounds/launcher_rocket_impact_03.wav"
+					]
+					Volume = 0.77
+					SpeedVariation = 0.15
+					MaxConcurrent = 16
+				}
+			]
+		}
+	}
+}
