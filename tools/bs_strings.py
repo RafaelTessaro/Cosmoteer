@@ -295,6 +295,13 @@ def _launcher_strings(D, en, pt):
         crew_en = f"{lch['crew']} crew"
         crew_pt = f"{lch['crew']} tripulante" + ("s" if lch["crew"] > 1 else "")
         fl_en, fl_pt = LAUNCHER_FLAVOR.get(lch["short"], ("Deck missile launcher.", "Lança-mísseis de convés."))
+        # salva parcial (variante dry_flush do spec): o texto segue o mecanismo gerado
+        dry_en, dry_pt = {
+            "debounced": ("; when the magazine stays dry for a whole reload, the partial rack still fires",
+                          "; se o paiol fica vazio por uma recarga inteira, o rack parcial dispara mesmo assim"),
+            "instant": ("; a dry magazine still fires the partial rack",
+                        "; com o paiol vazio, o rack parcial dispara mesmo assim"),
+        }.get(D.MISSILE_VARIANTS.get("dry_flush", "debounced"), ("", ""))
         oc_en = " Can be overclocked." if lch.get("oc") else ""
         oc_pt = " Aceita overclock." if lch.get("oc") else ""
         # salvas de tamanhos diferentes por modo (Mula: 48 finos, 16 pesados, 4 torpedos, 2 Iara)
@@ -322,8 +329,8 @@ def _launcher_strings(D, en, pt):
             f"({_num_en(m0['reload'])} s each; reloading stops while nobody mans it): one salvo every "
             f"{_num_en(cycle, 1)} s. Range {rng} m. Missiles: {mis_en}.{var_en}\n\nNeeds no power: {crew_en} and vanilla "
             f"{res_en} carried into its internal magazines ({mag_en}). Switching the missile type costs one "
-            f"full reload; a dry magazine still fires the partial rack. The missiles fly over your own deck and can "
-            f"be shot down by point defense. A loaded launcher cooks off when it burns or is destroyed.{oc_en}{lim_en}"
+            f"full reload{dry_en}. The missiles "
+            f"fly over your own deck and can be shot down by point defense. A loaded launcher cooks off when it burns or is destroyed.{oc_en}{lim_en}"
             "<string id='BSModTag'/>")
         pt["Parts"][k + "Desc"] = (
             f"{fl_pt} \"{lch['codename']}\"\n\n{TIER_PT[lch['tier']]} - lança-mísseis de convés. Com o rack cheio, "
@@ -331,9 +338,20 @@ def _launcher_strings(D, en, pt):
             f"{unit_pt} por vez ({_num_pt(m0['reload'])} s cada; sem tripulação no posto a recarga para): uma "
             f"salva a cada {_num_pt(cycle, 1)} s. Alcance {rng} m. Mísseis: {mis_pt}.{var_pt}\n\nNão usa energia: "
             f"{crew_pt} e {res_pt} do jogo base levadas até os paióis internos ({mag_pt}). Trocar o tipo de "
-            f"míssil custa uma recarga completa; com o paiol vazio, o rack parcial dispara mesmo assim. Os mísseis "
-            f"passam por cima do próprio convés e podem ser abatidos pela defesa de ponto. Carregado, o lançador "
-            f"explode quando pega fogo ou é destruído.{oc_pt}{lim_pt}<string id='BSModTag'/>")
+            f"míssil custa uma recarga completa{dry_pt}. Os mísseis passam por cima do próprio convés e podem ser abatidos pela defesa de "
+            f"ponto. Carregado, o lançador explode quando pega fogo ou é destruído.{oc_pt}{lim_pt}<string id='BSModTag'/>")
+        if lch["tier"] == "early":
+            # tech do Build & Battle que libera as pecas de missil vanilla do lancador de inicio (bs_data.buildbattle_techs)
+            res_and_en = " and ".join(RES_WORD[f["res"]][0] for f in lch["families"])
+            res_and_pt = " e as ".join(RES_WORD[f["res"]][1] for f in lch["families"])
+            en["Parts"][k + "Ammo"] = f"{lch['codename']} Missile Parts"
+            pt["Parts"][k + "Ammo"] = f"Peças de Míssil da {lch['codename']}"
+            en["Parts"][k + "AmmoDesc"] = (
+                f"Unlocks the vanilla {res_and_en} that the {lch['name_en']} \"{lch['codename']}\" fires. In Build & "
+                f"Battle the launcher itself is always available, but its missile parts are not.")
+            pt["Parts"][k + "AmmoDesc"] = (
+                f"Libera as {res_and_pt} do jogo base que a {lch['name_pt']} \"{lch['codename']}\" dispara. No Build "
+                f"& Battle o lançador já vem liberado, mas as peças de míssil não.")
         if lch.get("oc"):
             o = lch["spec"]["overclock"]
             en["Parts"][k + "Overclock"] = f"Overclocked {lch['name_en']}"
@@ -347,19 +365,24 @@ def _launcher_strings(D, en, pt):
             ex_pt = "".join(f" ({m['codename']}: {_num_pt(m['oc_factor'])} vez)" for m in emp)
             nn_en = "".join(f" It never speeds up the reload of the {m['codename']} {m['name_en'].lower()}." for m in no_oc)
             nn_pt = "".join(f" Nunca acelera a recarga do {m['name_pt'].lower()} {m['codename']}." for m in no_oc)
+            pre = D.MISSILE_VARIANTS.get("prefilled_switch", "full_delay") == "full_delay"
+            pre_en = (" A rack that is already full when you switch to its missile type waits a normal (not overclocked) "
+                      "reload." if pre else "")
+            pre_pt = (" Um rack que já estava cheio na troca de míssil espera a recarga normal (sem overclock)."
+                      if pre else "")
             vent_en = " About 1 in 16 missiles is vented from the magazine every salvo (torpedoes exempt)." if vent else ""
             vent_pt = (" Cerca de 1 em cada 16 mísseis é descartado do paiol a cada salva (torpedos isentos)."
                        if vent else "")
             en["Parts"][k + "OverclockDesc"] = (
                 f"\"{o.get('name_en', '')}\": the autoloader works {_num_en(fac[0])}x faster{ex_en}; ripple, damage and "
                 f"range stay the same.{nn_en} Costs {oc['heat_per_part']} heat per missile part loaded plus "
-                f"{oc['heat_per_second']} heat/s (needs radiators).{vent_en} Switching it off pauses the launcher for 3 s, "
+                f"{oc['heat_per_second']} heat/s (needs radiators).{vent_en}{pre_en} Switching it off pauses the launcher for 3 s, "
                 f"and the magazine empties faster. Without enough cooling it overheats, catches fire and cooks off with "
                 f"its stock.")
             pt["Parts"][k + "OverclockDesc"] = (
                 f"\"{o.get('name_ptbr', '')}\": o autocarregador trabalha {_num_pt(fac[0])} vez mais rápido{ex_pt}; "
                 f"ripple, dano e alcance não mudam.{nn_pt} Custa {oc['heat_per_part']} de calor por peça de míssil "
-                f"carregada mais {oc['heat_per_second']} de calor/s (precisa de radiador).{vent_pt} Desligar dá uma "
+                f"carregada mais {oc['heat_per_second']} de calor/s (precisa de radiador).{vent_pt}{pre_pt} Desligar dá uma "
                 f"pausa de 3 s e o paiol esvazia mais rápido. Sem refrigeração suficiente, esquenta, pega fogo e explode "
                 f"junto com o estoque.")
         for m in lch["modes"]:

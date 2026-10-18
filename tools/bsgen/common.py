@@ -35,8 +35,14 @@ def size_class(w, h):
     return "base_large_part_terran"
 
 
-def base_part_path(w, h, overclock):
-    base = size_class(w, h)
+BASE_PARTS = ("base_part_terran", "base_med_part_terran", "base_large_part_terran")
+
+
+def base_part_path(w, h, overclock, base=None):
+    """base: arquivo base pedido pelo spec (sem o sufixo _overclock); None = regra por area (size_class)."""
+    base = base or size_class(w, h)
+    if base not in BASE_PARTS:
+        raise ValueError(f"arquivo base desconhecido: {base}")
     if overclock:
         base += "_overclock"
     return f"<./Data/ships/terran/{base}.rules>/Part"

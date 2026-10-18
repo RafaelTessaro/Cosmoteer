@@ -256,6 +256,21 @@ Techs
 		Prerequisites = [rafaeltessaro.bs_bb_bs_flak_heavy]
 	}
 	{
+		ID = rafaeltessaro.bs_bb_bs_msl_box_ammo
+		NameKey = "Parts/BSMslBoxAmmo"
+		DescriptionKey = "Parts/BSMslBoxAmmoDesc"
+		Icon = &<../parts/bs_msl_box/bs_msl_box.rules>/Part/EditorIcon
+		Category = [weapons]
+		PartsUnlocked = [&<../parts/bs_msl_box/bs_msl_box.rules>/Part/ID]
+		ResourcesUnlocked
+		[
+			&<./Data/resources/missile_part_he/missile_part_he.rules>/ID
+			&<./Data/resources/missile_part_thermal/missile_part_thermal.rules>/ID
+		]
+		Cost = 5000
+		FundsThresholdBeforeOffered = 0
+	}
+	{
 		ID = rafaeltessaro.bs_bb_bs_msl_twin
 		NameKey = &<../parts/bs_msl_twin/bs_msl_twin.rules>/Part/NameKey
 		DescriptionKey = &<../parts/bs_msl_twin/bs_msl_twin.rules>/Part/DescriptionKey

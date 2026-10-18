@@ -16,6 +16,7 @@ MODE_he
 	MISSILES_PER_UNIT = 1
 	RELOAD = 0.264
 	VENT = 6
+	DRY_DELAY = (&CELLS) * (&RELOAD)
 	OC_FACTOR = 1.5
 	SALVO_TIME = ((&CELLS) - 1) * (&~/RIPPLE)
 	CYCLE = (&CELLS) * (&RELOAD) + (&SALVO_TIME)
@@ -28,6 +29,7 @@ MODE_cluster
 	MISSILES_PER_UNIT = 1
 	RELOAD = 0.6
 	VENT = 4
+	DRY_DELAY = (&CELLS) * (&RELOAD)
 	OC_FACTOR = 1.5
 	SALVO_TIME = ((&CELLS) - 1) * (&~/RIPPLE)
 	CYCLE = (&CELLS) * (&RELOAD) + (&SALVO_TIME)
@@ -40,6 +42,7 @@ MODE_limpet
 	MISSILES_PER_UNIT = 1
 	RELOAD = 0.6
 	VENT = 4
+	DRY_DELAY = (&CELLS) * (&RELOAD)
 	OC_FACTOR = 1.5
 	SALVO_TIME = ((&CELLS) - 1) * (&~/RIPPLE)
 	CYCLE = (&CELLS) * (&RELOAD) + (&SALVO_TIME)
@@ -52,6 +55,7 @@ MODE_napalm
 	MISSILES_PER_UNIT = 1
 	RELOAD = 0.6
 	VENT = 4
+	DRY_DELAY = (&CELLS) * (&RELOAD)
 	OC_FACTOR = 1.5
 	SALVO_TIME = ((&CELLS) - 1) * (&~/RIPPLE)
 	CYCLE = (&CELLS) * (&RELOAD) + (&SALVO_TIME)
@@ -64,6 +68,7 @@ MODE_emp
 	MISSILES_PER_UNIT = 1
 	RELOAD = 0.6
 	VENT = 3
+	DRY_DELAY = (&CELLS) * (&RELOAD)
 	OC_FACTOR = 1.2
 	SALVO_TIME = ((&CELLS) - 1) * (&~/RIPPLE)
 	CYCLE = (&CELLS) * (&RELOAD) + (&SALVO_TIME)
@@ -76,6 +81,7 @@ MODE_torpedo
 	MISSILES_PER_UNIT = 1
 	RELOAD = 2.37
 	VENT = 0
+	DRY_DELAY = (&CELLS) * (&RELOAD)
 	OC_FACTOR = 1.5
 	SALVO_TIME = ((&CELLS) - 1) * (&~/RIPPLE)
 	CYCLE = (&CELLS) * (&RELOAD) + (&SALVO_TIME)
@@ -88,6 +94,7 @@ MODE_nuclear
 	MISSILES_PER_UNIT = 1
 	RELOAD = 9.97
 	VENT = 0
+	DRY_DELAY = (&CELLS) * (&RELOAD)
 	SALVO_TIME = ((&CELLS) - 1) * (&~/RIPPLE)
 	CYCLE = (&CELLS) * (&RELOAD) + (&SALVO_TIME)
 	OC_CYCLE = &CYCLE
@@ -530,11 +537,37 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				]
 			}
 		}
-		DryFlush_he
+		PrefilledSwitch_he
+		{
+			Type = TriggerProxy
+			ComponentID = ModeOn_he
+			ProxyToggle = ReadyRack_he
+		}
+		PrefilledDelay_he
+		{
+			Type = Timer
+			StartTrigger = PrefilledSwitch_he
+			StartExpired = true
+			Duration = (&~/MODE_he/CELLS) * (&~/MODE_he/RELOAD)
+		}
+		DryPending_he
 		{
 			Type = MultiToggle
 			Toggles = [RackAny_he, { Toggle=MagCanLoad_he; Invert=true }]
 			Mode = All
+		}
+		DryWait_he
+		{
+			Type = ValueTween
+			IsOnToggle = DryPending_he
+			OnTweenDuration = &~/MODE_he/DRY_DELAY
+			OffTweenDuration = 0.1
+		}
+		DryFlush_he
+		{
+			Type = ThresholdToggle
+			ValueFrom = DryWait_he
+			MinAmount = 100%
 		}
 		CanFire_he
 		{
@@ -545,7 +578,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		RackReady_he
 		{
 			Type = MultiToggle
-			Toggles = [ModeToggle_he, ModeSwitchDelay_he, CanFire_he]
+			Toggles = [ModeToggle_he, ModeSwitchDelay_he, PrefilledDelay_he, CanFire_he]
 			Mode = All
 		}
 		MagOrRack_he
@@ -1350,11 +1383,37 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				]
 			}
 		}
-		DryFlush_cluster
+		PrefilledSwitch_cluster
+		{
+			Type = TriggerProxy
+			ComponentID = ModeOn_cluster
+			ProxyToggle = ReadyRack_cluster
+		}
+		PrefilledDelay_cluster
+		{
+			Type = Timer
+			StartTrigger = PrefilledSwitch_cluster
+			StartExpired = true
+			Duration = (&~/MODE_cluster/CELLS) * (&~/MODE_cluster/RELOAD)
+		}
+		DryPending_cluster
 		{
 			Type = MultiToggle
 			Toggles = [RackAny_cluster, { Toggle=MagCanLoad_cluster; Invert=true }]
 			Mode = All
+		}
+		DryWait_cluster
+		{
+			Type = ValueTween
+			IsOnToggle = DryPending_cluster
+			OnTweenDuration = &~/MODE_cluster/DRY_DELAY
+			OffTweenDuration = 0.1
+		}
+		DryFlush_cluster
+		{
+			Type = ThresholdToggle
+			ValueFrom = DryWait_cluster
+			MinAmount = 100%
 		}
 		CanFire_cluster
 		{
@@ -1365,7 +1424,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		RackReady_cluster
 		{
 			Type = MultiToggle
-			Toggles = [ModeToggle_cluster, ModeSwitchDelay_cluster, CanFire_cluster]
+			Toggles = [ModeToggle_cluster, ModeSwitchDelay_cluster, PrefilledDelay_cluster, CanFire_cluster]
 			Mode = All
 		}
 		MagOrRack_cluster
@@ -2170,11 +2229,37 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				]
 			}
 		}
-		DryFlush_limpet
+		PrefilledSwitch_limpet
+		{
+			Type = TriggerProxy
+			ComponentID = ModeOn_limpet
+			ProxyToggle = ReadyRack_limpet
+		}
+		PrefilledDelay_limpet
+		{
+			Type = Timer
+			StartTrigger = PrefilledSwitch_limpet
+			StartExpired = true
+			Duration = (&~/MODE_limpet/CELLS) * (&~/MODE_limpet/RELOAD)
+		}
+		DryPending_limpet
 		{
 			Type = MultiToggle
 			Toggles = [RackAny_limpet, { Toggle=MagCanLoad_limpet; Invert=true }]
 			Mode = All
+		}
+		DryWait_limpet
+		{
+			Type = ValueTween
+			IsOnToggle = DryPending_limpet
+			OnTweenDuration = &~/MODE_limpet/DRY_DELAY
+			OffTweenDuration = 0.1
+		}
+		DryFlush_limpet
+		{
+			Type = ThresholdToggle
+			ValueFrom = DryWait_limpet
+			MinAmount = 100%
 		}
 		CanFire_limpet
 		{
@@ -2185,7 +2270,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		RackReady_limpet
 		{
 			Type = MultiToggle
-			Toggles = [ModeToggle_limpet, ModeSwitchDelay_limpet, CanFire_limpet]
+			Toggles = [ModeToggle_limpet, ModeSwitchDelay_limpet, PrefilledDelay_limpet, CanFire_limpet]
 			Mode = All
 		}
 		MagOrRack_limpet
@@ -2990,11 +3075,37 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				]
 			}
 		}
-		DryFlush_napalm
+		PrefilledSwitch_napalm
+		{
+			Type = TriggerProxy
+			ComponentID = ModeOn_napalm
+			ProxyToggle = ReadyRack_napalm
+		}
+		PrefilledDelay_napalm
+		{
+			Type = Timer
+			StartTrigger = PrefilledSwitch_napalm
+			StartExpired = true
+			Duration = (&~/MODE_napalm/CELLS) * (&~/MODE_napalm/RELOAD)
+		}
+		DryPending_napalm
 		{
 			Type = MultiToggle
 			Toggles = [RackAny_napalm, { Toggle=MagCanLoad_napalm; Invert=true }]
 			Mode = All
+		}
+		DryWait_napalm
+		{
+			Type = ValueTween
+			IsOnToggle = DryPending_napalm
+			OnTweenDuration = &~/MODE_napalm/DRY_DELAY
+			OffTweenDuration = 0.1
+		}
+		DryFlush_napalm
+		{
+			Type = ThresholdToggle
+			ValueFrom = DryWait_napalm
+			MinAmount = 100%
 		}
 		CanFire_napalm
 		{
@@ -3005,7 +3116,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		RackReady_napalm
 		{
 			Type = MultiToggle
-			Toggles = [ModeToggle_napalm, ModeSwitchDelay_napalm, CanFire_napalm]
+			Toggles = [ModeToggle_napalm, ModeSwitchDelay_napalm, PrefilledDelay_napalm, CanFire_napalm]
 			Mode = All
 		}
 		MagOrRack_napalm
@@ -3810,11 +3921,37 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				]
 			}
 		}
-		DryFlush_emp
+		PrefilledSwitch_emp
+		{
+			Type = TriggerProxy
+			ComponentID = ModeOn_emp
+			ProxyToggle = ReadyRack_emp
+		}
+		PrefilledDelay_emp
+		{
+			Type = Timer
+			StartTrigger = PrefilledSwitch_emp
+			StartExpired = true
+			Duration = (&~/MODE_emp/CELLS) * (&~/MODE_emp/RELOAD)
+		}
+		DryPending_emp
 		{
 			Type = MultiToggle
 			Toggles = [RackAny_emp, { Toggle=MagCanLoad_emp; Invert=true }]
 			Mode = All
+		}
+		DryWait_emp
+		{
+			Type = ValueTween
+			IsOnToggle = DryPending_emp
+			OnTweenDuration = &~/MODE_emp/DRY_DELAY
+			OffTweenDuration = 0.1
+		}
+		DryFlush_emp
+		{
+			Type = ThresholdToggle
+			ValueFrom = DryWait_emp
+			MinAmount = 100%
 		}
 		CanFire_emp
 		{
@@ -3825,7 +3962,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		RackReady_emp
 		{
 			Type = MultiToggle
-			Toggles = [ModeToggle_emp, ModeSwitchDelay_emp, CanFire_emp]
+			Toggles = [ModeToggle_emp, ModeSwitchDelay_emp, PrefilledDelay_emp, CanFire_emp]
 			Mode = All
 		}
 		MagOrRack_emp
@@ -4630,11 +4767,37 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				]
 			}
 		}
-		DryFlush_torpedo
+		PrefilledSwitch_torpedo
+		{
+			Type = TriggerProxy
+			ComponentID = ModeOn_torpedo
+			ProxyToggle = ReadyRack_torpedo
+		}
+		PrefilledDelay_torpedo
+		{
+			Type = Timer
+			StartTrigger = PrefilledSwitch_torpedo
+			StartExpired = true
+			Duration = (&~/MODE_torpedo/CELLS) * (&~/MODE_torpedo/RELOAD)
+		}
+		DryPending_torpedo
 		{
 			Type = MultiToggle
 			Toggles = [RackAny_torpedo, { Toggle=MagCanLoad_torpedo; Invert=true }]
 			Mode = All
+		}
+		DryWait_torpedo
+		{
+			Type = ValueTween
+			IsOnToggle = DryPending_torpedo
+			OnTweenDuration = &~/MODE_torpedo/DRY_DELAY
+			OffTweenDuration = 0.1
+		}
+		DryFlush_torpedo
+		{
+			Type = ThresholdToggle
+			ValueFrom = DryWait_torpedo
+			MinAmount = 100%
 		}
 		CanFire_torpedo
 		{
@@ -4645,7 +4808,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 		RackReady_torpedo
 		{
 			Type = MultiToggle
-			Toggles = [ModeToggle_torpedo, ModeSwitchDelay_torpedo, CanFire_torpedo]
+			Toggles = [ModeToggle_torpedo, ModeSwitchDelay_torpedo, PrefilledDelay_torpedo, CanFire_torpedo]
 			Mode = All
 		}
 		MagOrRack_torpedo
@@ -5409,11 +5572,24 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			StartExpired = true
 			Duration = (&~/MODE_nuclear/CELLS) * (&~/MODE_nuclear/RELOAD)
 		}
-		DryFlush_nuclear
+		DryPending_nuclear
 		{
 			Type = MultiToggle
 			Toggles = [RackAny_nuclear, { Toggle=MagCanLoad_nuclear; Invert=true }]
 			Mode = All
+		}
+		DryWait_nuclear
+		{
+			Type = ValueTween
+			IsOnToggle = DryPending_nuclear
+			OnTweenDuration = &~/MODE_nuclear/DRY_DELAY
+			OffTweenDuration = 0.1
+		}
+		DryFlush_nuclear
+		{
+			Type = ThresholdToggle
+			ValueFrom = DryWait_nuclear
+			MinAmount = 100%
 		}
 		CanFire_nuclear
 		{
@@ -7943,7 +8119,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.898438, -1.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_he
@@ -7955,67 +8131,67 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_he_p0_0.png"
 							NormalsFile = "cells_he_p0_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p0_1.png"
 							NormalsFile = "cells_he_p0_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p0_2.png"
 							NormalsFile = "cells_he_p0_2_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p0_3.png"
 							NormalsFile = "cells_he_p0_3_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p0_4.png"
 							NormalsFile = "cells_he_p0_4_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p0_5.png"
 							NormalsFile = "cells_he_p0_5_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p0_6.png"
 							NormalsFile = "cells_he_p0_6_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p0_7.png"
 							NormalsFile = "cells_he_p0_7_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p0_8.png"
 							NormalsFile = "cells_he_p0_8_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p0_9.png"
 							NormalsFile = "cells_he_p0_9_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p0_10.png"
 							NormalsFile = "cells_he_p0_10_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p0_11.png"
 							NormalsFile = "cells_he_p0_11_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p0_12.png"
 							NormalsFile = "cells_he_p0_12_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 					]
 				}
@@ -8023,7 +8199,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.898438, -0.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_he
@@ -8035,67 +8211,67 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_he_p1_0.png"
 							NormalsFile = "cells_he_p1_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p1_1.png"
 							NormalsFile = "cells_he_p1_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p1_2.png"
 							NormalsFile = "cells_he_p1_2_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p1_3.png"
 							NormalsFile = "cells_he_p1_3_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p1_4.png"
 							NormalsFile = "cells_he_p1_4_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p1_5.png"
 							NormalsFile = "cells_he_p1_5_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p1_6.png"
 							NormalsFile = "cells_he_p1_6_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p1_7.png"
 							NormalsFile = "cells_he_p1_7_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p1_8.png"
 							NormalsFile = "cells_he_p1_8_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p1_9.png"
 							NormalsFile = "cells_he_p1_9_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p1_10.png"
 							NormalsFile = "cells_he_p1_10_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p1_11.png"
 							NormalsFile = "cells_he_p1_11_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p1_12.png"
 							NormalsFile = "cells_he_p1_12_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 					]
 				}
@@ -8103,7 +8279,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.898438, 0.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_he
@@ -8115,67 +8291,67 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_he_p2_0.png"
 							NormalsFile = "cells_he_p2_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p2_1.png"
 							NormalsFile = "cells_he_p2_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p2_2.png"
 							NormalsFile = "cells_he_p2_2_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p2_3.png"
 							NormalsFile = "cells_he_p2_3_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p2_4.png"
 							NormalsFile = "cells_he_p2_4_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p2_5.png"
 							NormalsFile = "cells_he_p2_5_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p2_6.png"
 							NormalsFile = "cells_he_p2_6_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p2_7.png"
 							NormalsFile = "cells_he_p2_7_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p2_8.png"
 							NormalsFile = "cells_he_p2_8_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p2_9.png"
 							NormalsFile = "cells_he_p2_9_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p2_10.png"
 							NormalsFile = "cells_he_p2_10_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p2_11.png"
 							NormalsFile = "cells_he_p2_11_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p2_12.png"
 							NormalsFile = "cells_he_p2_12_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 					]
 				}
@@ -8183,7 +8359,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.898438, 1.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_he
@@ -8195,67 +8371,67 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_he_p3_0.png"
 							NormalsFile = "cells_he_p3_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p3_1.png"
 							NormalsFile = "cells_he_p3_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p3_2.png"
 							NormalsFile = "cells_he_p3_2_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p3_3.png"
 							NormalsFile = "cells_he_p3_3_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p3_4.png"
 							NormalsFile = "cells_he_p3_4_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p3_5.png"
 							NormalsFile = "cells_he_p3_5_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p3_6.png"
 							NormalsFile = "cells_he_p3_6_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p3_7.png"
 							NormalsFile = "cells_he_p3_7_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p3_8.png"
 							NormalsFile = "cells_he_p3_8_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p3_9.png"
 							NormalsFile = "cells_he_p3_9_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p3_10.png"
 							NormalsFile = "cells_he_p3_10_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p3_11.png"
 							NormalsFile = "cells_he_p3_11_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 						{
 							File = "cells_he_p3_12.png"
 							NormalsFile = "cells_he_p3_12_normals.png"
-							Size = [4.8, 4.8]
+							Size = [1.046875, 1.1875]
 						}
 					]
 				}
@@ -8376,7 +8552,6 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Type = ProgressBar
 					OperationalToggle = IsOperational
 					ShowProgressFor = ReadyRack_he
-					ValueRange = [0, &~/MODE_he/CELLS]
 				}
 			}
 		}
@@ -8918,7 +9093,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.898438, -1.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_cluster
@@ -8930,27 +9105,27 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_cluster_p0_0.png"
 							NormalsFile = "cells_cluster_p0_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_cluster_p0_1.png"
 							NormalsFile = "cells_cluster_p0_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_cluster_p0_2.png"
 							NormalsFile = "cells_cluster_p0_2_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_cluster_p0_3.png"
 							NormalsFile = "cells_cluster_p0_3_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_cluster_p0_4.png"
 							NormalsFile = "cells_cluster_p0_4_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 					]
 				}
@@ -8958,7 +9133,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.898438, -0.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_cluster
@@ -8970,27 +9145,27 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_cluster_p1_0.png"
 							NormalsFile = "cells_cluster_p1_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_cluster_p1_1.png"
 							NormalsFile = "cells_cluster_p1_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_cluster_p1_2.png"
 							NormalsFile = "cells_cluster_p1_2_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_cluster_p1_3.png"
 							NormalsFile = "cells_cluster_p1_3_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_cluster_p1_4.png"
 							NormalsFile = "cells_cluster_p1_4_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 					]
 				}
@@ -8998,7 +9173,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.898438, 0.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_cluster
@@ -9010,27 +9185,27 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_cluster_p2_0.png"
 							NormalsFile = "cells_cluster_p2_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_cluster_p2_1.png"
 							NormalsFile = "cells_cluster_p2_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_cluster_p2_2.png"
 							NormalsFile = "cells_cluster_p2_2_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_cluster_p2_3.png"
 							NormalsFile = "cells_cluster_p2_3_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_cluster_p2_4.png"
 							NormalsFile = "cells_cluster_p2_4_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 					]
 				}
@@ -9038,7 +9213,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.898438, 1.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_cluster
@@ -9050,27 +9225,27 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_cluster_p3_0.png"
 							NormalsFile = "cells_cluster_p3_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_cluster_p3_1.png"
 							NormalsFile = "cells_cluster_p3_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_cluster_p3_2.png"
 							NormalsFile = "cells_cluster_p3_2_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_cluster_p3_3.png"
 							NormalsFile = "cells_cluster_p3_3_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_cluster_p3_4.png"
 							NormalsFile = "cells_cluster_p3_4_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 					]
 				}
@@ -9135,7 +9310,6 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Type = ProgressBar
 					OperationalToggle = IsOperational
 					ShowProgressFor = ReadyRack_cluster
-					ValueRange = [0, &~/MODE_cluster/CELLS]
 				}
 			}
 		}
@@ -9677,7 +9851,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.898438, -1.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_limpet
@@ -9689,27 +9863,27 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_limpet_p0_0.png"
 							NormalsFile = "cells_limpet_p0_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_limpet_p0_1.png"
 							NormalsFile = "cells_limpet_p0_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_limpet_p0_2.png"
 							NormalsFile = "cells_limpet_p0_2_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_limpet_p0_3.png"
 							NormalsFile = "cells_limpet_p0_3_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_limpet_p0_4.png"
 							NormalsFile = "cells_limpet_p0_4_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 					]
 				}
@@ -9717,7 +9891,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.898438, -0.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_limpet
@@ -9729,27 +9903,27 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_limpet_p1_0.png"
 							NormalsFile = "cells_limpet_p1_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_limpet_p1_1.png"
 							NormalsFile = "cells_limpet_p1_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_limpet_p1_2.png"
 							NormalsFile = "cells_limpet_p1_2_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_limpet_p1_3.png"
 							NormalsFile = "cells_limpet_p1_3_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_limpet_p1_4.png"
 							NormalsFile = "cells_limpet_p1_4_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 					]
 				}
@@ -9757,7 +9931,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.898438, 0.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_limpet
@@ -9769,27 +9943,27 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_limpet_p2_0.png"
 							NormalsFile = "cells_limpet_p2_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_limpet_p2_1.png"
 							NormalsFile = "cells_limpet_p2_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_limpet_p2_2.png"
 							NormalsFile = "cells_limpet_p2_2_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_limpet_p2_3.png"
 							NormalsFile = "cells_limpet_p2_3_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_limpet_p2_4.png"
 							NormalsFile = "cells_limpet_p2_4_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 					]
 				}
@@ -9797,7 +9971,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.898438, 1.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_limpet
@@ -9809,27 +9983,27 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_limpet_p3_0.png"
 							NormalsFile = "cells_limpet_p3_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_limpet_p3_1.png"
 							NormalsFile = "cells_limpet_p3_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_limpet_p3_2.png"
 							NormalsFile = "cells_limpet_p3_2_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_limpet_p3_3.png"
 							NormalsFile = "cells_limpet_p3_3_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_limpet_p3_4.png"
 							NormalsFile = "cells_limpet_p3_4_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 					]
 				}
@@ -9894,7 +10068,6 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Type = ProgressBar
 					OperationalToggle = IsOperational
 					ShowProgressFor = ReadyRack_limpet
-					ValueRange = [0, &~/MODE_limpet/CELLS]
 				}
 			}
 		}
@@ -10436,7 +10609,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.898438, -1.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_napalm
@@ -10448,27 +10621,27 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_napalm_p0_0.png"
 							NormalsFile = "cells_napalm_p0_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_napalm_p0_1.png"
 							NormalsFile = "cells_napalm_p0_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_napalm_p0_2.png"
 							NormalsFile = "cells_napalm_p0_2_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_napalm_p0_3.png"
 							NormalsFile = "cells_napalm_p0_3_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_napalm_p0_4.png"
 							NormalsFile = "cells_napalm_p0_4_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 					]
 				}
@@ -10476,7 +10649,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.898438, -0.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_napalm
@@ -10488,27 +10661,27 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_napalm_p1_0.png"
 							NormalsFile = "cells_napalm_p1_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_napalm_p1_1.png"
 							NormalsFile = "cells_napalm_p1_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_napalm_p1_2.png"
 							NormalsFile = "cells_napalm_p1_2_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_napalm_p1_3.png"
 							NormalsFile = "cells_napalm_p1_3_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_napalm_p1_4.png"
 							NormalsFile = "cells_napalm_p1_4_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 					]
 				}
@@ -10516,7 +10689,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.898438, 0.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_napalm
@@ -10528,27 +10701,27 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_napalm_p2_0.png"
 							NormalsFile = "cells_napalm_p2_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_napalm_p2_1.png"
 							NormalsFile = "cells_napalm_p2_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_napalm_p2_2.png"
 							NormalsFile = "cells_napalm_p2_2_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_napalm_p2_3.png"
 							NormalsFile = "cells_napalm_p2_3_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_napalm_p2_4.png"
 							NormalsFile = "cells_napalm_p2_4_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 					]
 				}
@@ -10556,7 +10729,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.898438, 1.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_napalm
@@ -10568,27 +10741,27 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_napalm_p3_0.png"
 							NormalsFile = "cells_napalm_p3_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_napalm_p3_1.png"
 							NormalsFile = "cells_napalm_p3_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_napalm_p3_2.png"
 							NormalsFile = "cells_napalm_p3_2_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_napalm_p3_3.png"
 							NormalsFile = "cells_napalm_p3_3_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_napalm_p3_4.png"
 							NormalsFile = "cells_napalm_p3_4_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 					]
 				}
@@ -10653,7 +10826,6 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Type = ProgressBar
 					OperationalToggle = IsOperational
 					ShowProgressFor = ReadyRack_napalm
-					ValueRange = [0, &~/MODE_napalm/CELLS]
 				}
 			}
 		}
@@ -11195,7 +11367,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.898438, -1.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_emp
@@ -11207,27 +11379,27 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_emp_p0_0.png"
 							NormalsFile = "cells_emp_p0_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_emp_p0_1.png"
 							NormalsFile = "cells_emp_p0_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_emp_p0_2.png"
 							NormalsFile = "cells_emp_p0_2_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_emp_p0_3.png"
 							NormalsFile = "cells_emp_p0_3_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_emp_p0_4.png"
 							NormalsFile = "cells_emp_p0_4_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 					]
 				}
@@ -11235,7 +11407,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.898438, -0.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_emp
@@ -11247,27 +11419,27 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_emp_p1_0.png"
 							NormalsFile = "cells_emp_p1_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_emp_p1_1.png"
 							NormalsFile = "cells_emp_p1_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_emp_p1_2.png"
 							NormalsFile = "cells_emp_p1_2_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_emp_p1_3.png"
 							NormalsFile = "cells_emp_p1_3_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_emp_p1_4.png"
 							NormalsFile = "cells_emp_p1_4_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 					]
 				}
@@ -11275,7 +11447,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.898438, 0.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_emp
@@ -11287,27 +11459,27 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_emp_p2_0.png"
 							NormalsFile = "cells_emp_p2_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_emp_p2_1.png"
 							NormalsFile = "cells_emp_p2_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_emp_p2_2.png"
 							NormalsFile = "cells_emp_p2_2_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_emp_p2_3.png"
 							NormalsFile = "cells_emp_p2_3_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_emp_p2_4.png"
 							NormalsFile = "cells_emp_p2_4_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 					]
 				}
@@ -11315,7 +11487,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.898438, 1.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_emp
@@ -11327,27 +11499,27 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_emp_p3_0.png"
 							NormalsFile = "cells_emp_p3_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_emp_p3_1.png"
 							NormalsFile = "cells_emp_p3_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_emp_p3_2.png"
 							NormalsFile = "cells_emp_p3_2_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_emp_p3_3.png"
 							NormalsFile = "cells_emp_p3_3_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 						{
 							File = "cells_emp_p3_4.png"
 							NormalsFile = "cells_emp_p3_4_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 0.96875]
 						}
 					]
 				}
@@ -11412,7 +11584,6 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Type = ProgressBar
 					OperationalToggle = IsOperational
 					ShowProgressFor = ReadyRack_emp
-					ValueRange = [0, &~/MODE_emp/CELLS]
 				}
 			}
 		}
@@ -11550,7 +11721,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.90625, -1.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_torpedo
@@ -11562,12 +11733,12 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_torpedo_p0_0.png"
 							NormalsFile = "cells_torpedo_p0_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 1.046875]
 						}
 						{
 							File = "cells_torpedo_p0_1.png"
 							NormalsFile = "cells_torpedo_p0_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 1.046875]
 						}
 					]
 				}
@@ -11575,7 +11746,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.90625, -0.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_torpedo
@@ -11587,12 +11758,12 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_torpedo_p1_0.png"
 							NormalsFile = "cells_torpedo_p1_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 1.046875]
 						}
 						{
 							File = "cells_torpedo_p1_1.png"
 							NormalsFile = "cells_torpedo_p1_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 1.046875]
 						}
 					]
 				}
@@ -11600,7 +11771,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.90625, 0.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_torpedo
@@ -11612,12 +11783,12 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_torpedo_p2_0.png"
 							NormalsFile = "cells_torpedo_p2_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 1.046875]
 						}
 						{
 							File = "cells_torpedo_p2_1.png"
 							NormalsFile = "cells_torpedo_p2_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 1.046875]
 						}
 					]
 				}
@@ -11625,7 +11796,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.90625, 1.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_torpedo
@@ -11637,12 +11808,12 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_torpedo_p3_0.png"
 							NormalsFile = "cells_torpedo_p3_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 1.046875]
 						}
 						{
 							File = "cells_torpedo_p3_1.png"
 							NormalsFile = "cells_torpedo_p3_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 1.046875]
 						}
 					]
 				}
@@ -11707,7 +11878,6 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Type = ProgressBar
 					OperationalToggle = IsOperational
 					ShowProgressFor = ReadyRack_torpedo
-					ValueRange = [0, &~/MODE_torpedo/CELLS]
 				}
 			}
 		}
@@ -11791,7 +11961,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.90625, -0.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_nuclear
@@ -11803,12 +11973,12 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_nuclear_p1_0.png"
 							NormalsFile = "cells_nuclear_p1_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 1.046875]
 						}
 						{
 							File = "cells_nuclear_p1_1.png"
 							NormalsFile = "cells_nuclear_p1_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 1.046875]
 						}
 					]
 				}
@@ -11816,7 +11986,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					Type = ResourceSprites
 					ChainedTo = Turret
-					Location = [0, 0]
+					Location = [0.90625, 0.75]
 					Rotation = 90d
 					Layer = "roof_turrets"
 					ResourceStorage = ReadyRack_nuclear
@@ -11828,12 +11998,12 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 						{
 							File = "cells_nuclear_p2_0.png"
 							NormalsFile = "cells_nuclear_p2_0_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 1.046875]
 						}
 						{
 							File = "cells_nuclear_p2_1.png"
 							NormalsFile = "cells_nuclear_p2_1_normals.png"
-							Size = [4.8, 4.8]
+							Size = [0.890625, 1.046875]
 						}
 					]
 				}
@@ -11902,7 +12072,6 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Type = ProgressBar
 					OperationalToggle = IsOperational
 					ShowProgressFor = ReadyRack_nuclear
-					ValueRange = [0, &~/MODE_nuclear/CELLS]
 				}
 			}
 		}
@@ -11912,7 +12081,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			ComponentID = TargetEmitter
 			ChainedTo = Turret
 		}
-		// ---- cook-off por familia (escala com o estoque: carregador + racks) ----
+		// ---- cook-off: um par por storage (carregador + racks), linear nas pecas guardadas ----
 		OperationEffects
 		{
 			Type = ToggleEffects
@@ -11941,33 +12110,27 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			MediaEffects = &/COMMON_EFFECTS/HugePartDestroyed
 			Location = [2.5, 3]
 		}
-		Stock_HE
-		{
-			Type = MultiResourceStorage
-			ResourceType = missile_part_he
-			ResourceStorages = [MagStorage_HE, ReadyRack_he, ReadyRack_cluster, ReadyRack_limpet, ReadyRack_torpedo]
-		}
-		ScorchedEffects_HE
+		ScorchedEffects_Mag_HE
 		{
 			Type = TriggeredEffects
 			Trigger = ScorchedTrigger
 			Location = [2.5, 3]
-			FactorHitEffectsWith = Stock_HE
-			HitEffects = &../DestroyedEffects_HE/HitEffects
+			FactorHitEffectsWith = MagStorage_HE
+			HitEffects = &../DestroyedEffects_Mag_HE/HitEffects
 		}
-		DestroyedEffects_HE
+		DestroyedEffects_Mag_HE
 		{
 			Type = DeathEffects
 			OperationalToggle = ScorchedToggle
 			Location = [2.5, 3]
-			FactorHitEffectsWith = Stock_HE
+			FactorHitEffectsWith = MagStorage_HE
 			HitEffects
 			[
 				{
 					Type = ExplosiveDamage
 					TotalDamage
 					{
-						BaseValue = 183600
+						BaseValue = 122400
 						EffectScaleExponent = 1
 					}
 					Radius = 7
@@ -11989,7 +12152,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Type = ExplosiveDamage
 					TotalDamage
 					{
-						BaseValue = 61200
+						BaseValue = 40800
 						EffectScaleExponent = 1
 					}
 					Radius = 6
@@ -12004,26 +12167,248 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				}
 			]
 		}
-		Stock_Thermal
-		{
-			Type = MultiResourceStorage
-			ResourceType = missile_part_thermal
-			ResourceStorages = [MagStorage_Thermal, ReadyRack_napalm]
-		}
-		ScorchedEffects_Thermal
+		ScorchedEffects_Rack_he
 		{
 			Type = TriggeredEffects
 			Trigger = ScorchedTrigger
 			Location = [2.5, 3]
-			FactorHitEffectsWith = Stock_Thermal
-			HitEffects = &../DestroyedEffects_Thermal/HitEffects
+			FactorHitEffectsWith = ReadyRack_he
+			HitEffects = &../DestroyedEffects_Rack_he/HitEffects
 		}
-		DestroyedEffects_Thermal
+		DestroyedEffects_Rack_he
 		{
 			Type = DeathEffects
 			OperationalToggle = ScorchedToggle
 			Location = [2.5, 3]
-			FactorHitEffectsWith = Stock_Thermal
+			FactorHitEffectsWith = ReadyRack_he
+			HitEffects
+			[
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 61200
+						EffectScaleExponent = 1
+					}
+					Radius = 7
+					Delay = 0.05
+					StatusType = cosmoteer.fire
+					StatusChancePerNDamage = 50%
+					StatusValue = 1
+					StatusValueType = Interpolated
+					NDamage = 1000
+					CrewKillChance = 30%
+					Filter
+					{
+						OperationalHealth = true
+						StructuralHealth = false
+						Friendlies = true
+					}
+				}
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 20400
+						EffectScaleExponent = 1
+					}
+					Radius = 6
+					Delay = 0.05
+					Filter
+					{
+						OperationalHealth = false
+						StructuralHealth = true
+						Friendlies = true
+						Crew = false
+					}
+				}
+			]
+		}
+		ScorchedEffects_Rack_cluster
+		{
+			Type = TriggeredEffects
+			Trigger = ScorchedTrigger
+			Location = [2.5, 3]
+			FactorHitEffectsWith = ReadyRack_cluster
+			HitEffects = &../DestroyedEffects_Rack_cluster/HitEffects
+		}
+		DestroyedEffects_Rack_cluster
+		{
+			Type = DeathEffects
+			OperationalToggle = ScorchedToggle
+			Location = [2.5, 3]
+			FactorHitEffectsWith = ReadyRack_cluster
+			HitEffects
+			[
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 40800
+						EffectScaleExponent = 1
+					}
+					Radius = 7
+					Delay = 0.05
+					StatusType = cosmoteer.fire
+					StatusChancePerNDamage = 50%
+					StatusValue = 1
+					StatusValueType = Interpolated
+					NDamage = 1000
+					CrewKillChance = 30%
+					Filter
+					{
+						OperationalHealth = true
+						StructuralHealth = false
+						Friendlies = true
+					}
+				}
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 13600
+						EffectScaleExponent = 1
+					}
+					Radius = 6
+					Delay = 0.05
+					Filter
+					{
+						OperationalHealth = false
+						StructuralHealth = true
+						Friendlies = true
+						Crew = false
+					}
+				}
+			]
+		}
+		ScorchedEffects_Rack_limpet
+		{
+			Type = TriggeredEffects
+			Trigger = ScorchedTrigger
+			Location = [2.5, 3]
+			FactorHitEffectsWith = ReadyRack_limpet
+			HitEffects = &../DestroyedEffects_Rack_limpet/HitEffects
+		}
+		DestroyedEffects_Rack_limpet
+		{
+			Type = DeathEffects
+			OperationalToggle = ScorchedToggle
+			Location = [2.5, 3]
+			FactorHitEffectsWith = ReadyRack_limpet
+			HitEffects
+			[
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 40800
+						EffectScaleExponent = 1
+					}
+					Radius = 7
+					Delay = 0.05
+					StatusType = cosmoteer.fire
+					StatusChancePerNDamage = 50%
+					StatusValue = 1
+					StatusValueType = Interpolated
+					NDamage = 1000
+					CrewKillChance = 30%
+					Filter
+					{
+						OperationalHealth = true
+						StructuralHealth = false
+						Friendlies = true
+					}
+				}
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 13600
+						EffectScaleExponent = 1
+					}
+					Radius = 6
+					Delay = 0.05
+					Filter
+					{
+						OperationalHealth = false
+						StructuralHealth = true
+						Friendlies = true
+						Crew = false
+					}
+				}
+			]
+		}
+		ScorchedEffects_Rack_torpedo
+		{
+			Type = TriggeredEffects
+			Trigger = ScorchedTrigger
+			Location = [2.5, 3]
+			FactorHitEffectsWith = ReadyRack_torpedo
+			HitEffects = &../DestroyedEffects_Rack_torpedo/HitEffects
+		}
+		DestroyedEffects_Rack_torpedo
+		{
+			Type = DeathEffects
+			OperationalToggle = ScorchedToggle
+			Location = [2.5, 3]
+			FactorHitEffectsWith = ReadyRack_torpedo
+			HitEffects
+			[
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 30600
+						EffectScaleExponent = 1
+					}
+					Radius = 7
+					Delay = 0.05
+					StatusType = cosmoteer.fire
+					StatusChancePerNDamage = 50%
+					StatusValue = 1
+					StatusValueType = Interpolated
+					NDamage = 1000
+					CrewKillChance = 30%
+					Filter
+					{
+						OperationalHealth = true
+						StructuralHealth = false
+						Friendlies = true
+					}
+				}
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 10200
+						EffectScaleExponent = 1
+					}
+					Radius = 6
+					Delay = 0.05
+					Filter
+					{
+						OperationalHealth = false
+						StructuralHealth = true
+						Friendlies = true
+						Crew = false
+					}
+				}
+			]
+		}
+		ScorchedEffects_Mag_Thermal
+		{
+			Type = TriggeredEffects
+			Trigger = ScorchedTrigger
+			Location = [2.5, 3]
+			FactorHitEffectsWith = MagStorage_Thermal
+			HitEffects = &../DestroyedEffects_Mag_Thermal/HitEffects
+		}
+		DestroyedEffects_Mag_Thermal
+		{
+			Type = DeathEffects
+			OperationalToggle = ScorchedToggle
+			Location = [2.5, 3]
+			FactorHitEffectsWith = MagStorage_Thermal
 			IncludeWhenUnderConstruction = false
 			HitEffects
 			[
@@ -12034,7 +12419,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					StatusValue = 0
 					StatusValuePool
 					{
-						BaseValue = 64000
+						BaseValue = 48000
 						EffectScaleExponent = 1
 					}
 					MaxCost = 3
@@ -12048,26 +12433,58 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				}
 			]
 		}
-		Stock_EMP
-		{
-			Type = MultiResourceStorage
-			ResourceType = missile_part_emp
-			ResourceStorages = [MagStorage_EMP, ReadyRack_emp]
-		}
-		ScorchedEffects_EMP
+		ScorchedEffects_Rack_napalm
 		{
 			Type = TriggeredEffects
 			Trigger = ScorchedTrigger
 			Location = [2.5, 3]
-			FactorHitEffectsWith = Stock_EMP
-			HitEffects = &../DestroyedEffects_EMP/HitEffects
+			FactorHitEffectsWith = ReadyRack_napalm
+			HitEffects = &../DestroyedEffects_Rack_napalm/HitEffects
 		}
-		DestroyedEffects_EMP
+		DestroyedEffects_Rack_napalm
 		{
 			Type = DeathEffects
 			OperationalToggle = ScorchedToggle
 			Location = [2.5, 3]
-			FactorHitEffectsWith = Stock_EMP
+			FactorHitEffectsWith = ReadyRack_napalm
+			IncludeWhenUnderConstruction = false
+			HitEffects
+			[
+				{
+					Type = GridStatusApplication
+					StatusType = cosmoteer.heat
+					HitPartSourceRectType = Normal
+					StatusValue = 0
+					StatusValuePool
+					{
+						BaseValue = 16000
+						EffectScaleExponent = 1
+					}
+					MaxCost = 3
+					EmptyTileCost = Infinity
+					ValueFalloff = 1
+					FalloffPadding = 1
+					Filter
+					{
+						Self = true
+					}
+				}
+			]
+		}
+		ScorchedEffects_Mag_EMP
+		{
+			Type = TriggeredEffects
+			Trigger = ScorchedTrigger
+			Location = [2.5, 3]
+			FactorHitEffectsWith = MagStorage_EMP
+			HitEffects = &../DestroyedEffects_Mag_EMP/HitEffects
+		}
+		DestroyedEffects_Mag_EMP
+		{
+			Type = DeathEffects
+			OperationalToggle = ScorchedToggle
+			Location = [2.5, 3]
+			FactorHitEffectsWith = MagStorage_EMP
 			HitEffects
 			[
 				{
@@ -12075,7 +12492,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					ResourceType = battery
 					TotalDrain
 					{
-						BaseValue = 86400
+						BaseValue = 57600
 						EffectScaleExponent = 1
 					}
 					Radius
@@ -12093,33 +12510,66 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				}
 			]
 		}
-		Stock_Nuke
-		{
-			Type = MultiResourceStorage
-			ResourceType = missile_part_nuke
-			ResourceStorages = [MagStorage_Nuke, ReadyRack_nuclear]
-		}
-		ScorchedEffects_Nuke
+		ScorchedEffects_Rack_emp
 		{
 			Type = TriggeredEffects
 			Trigger = ScorchedTrigger
 			Location = [2.5, 3]
-			FactorHitEffectsWith = Stock_Nuke
-			HitEffects = &../DestroyedEffects_Nuke/HitEffects
+			FactorHitEffectsWith = ReadyRack_emp
+			HitEffects = &../DestroyedEffects_Rack_emp/HitEffects
 		}
-		DestroyedEffects_Nuke
+		DestroyedEffects_Rack_emp
 		{
 			Type = DeathEffects
 			OperationalToggle = ScorchedToggle
 			Location = [2.5, 3]
-			FactorHitEffectsWith = Stock_Nuke
+			FactorHitEffectsWith = ReadyRack_emp
+			HitEffects
+			[
+				{
+					Type = ExplosiveResourceDrain
+					ResourceType = battery
+					TotalDrain
+					{
+						BaseValue = 28800
+						EffectScaleExponent = 1
+					}
+					Radius
+					{
+						BaseValue = 12
+						EffectScaleExponent = 0.5
+					}
+					Slices = 1
+					Filter
+					{
+						Ships = true
+						Shields = true
+						Friendlies = true
+					}
+				}
+			]
+		}
+		ScorchedEffects_Mag_Nuke
+		{
+			Type = TriggeredEffects
+			Trigger = ScorchedTrigger
+			Location = [2.5, 3]
+			FactorHitEffectsWith = MagStorage_Nuke
+			HitEffects = &../DestroyedEffects_Mag_Nuke/HitEffects
+		}
+		DestroyedEffects_Mag_Nuke
+		{
+			Type = DeathEffects
+			OperationalToggle = ScorchedToggle
+			Location = [2.5, 3]
+			FactorHitEffectsWith = MagStorage_Nuke
 			HitEffects
 			[
 				{
 					Type = ExplosiveDamage
 					TotalDamage
 					{
-						BaseValue = 72000
+						BaseValue = 48000
 						EffectScaleExponent = 1
 					}
 					Radius = 8
@@ -12141,7 +12591,64 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					Type = ExplosiveDamage
 					TotalDamage
 					{
+						BaseValue = 16000
+						EffectScaleExponent = 1
+					}
+					Radius = 7
+					Delay = 0.05
+					Filter
+					{
+						OperationalHealth = false
+						StructuralHealth = true
+						Friendlies = true
+						Crew = false
+					}
+				}
+			]
+		}
+		ScorchedEffects_Rack_nuclear
+		{
+			Type = TriggeredEffects
+			Trigger = ScorchedTrigger
+			Location = [2.5, 3]
+			FactorHitEffectsWith = ReadyRack_nuclear
+			HitEffects = &../DestroyedEffects_Rack_nuclear/HitEffects
+		}
+		DestroyedEffects_Rack_nuclear
+		{
+			Type = DeathEffects
+			OperationalToggle = ScorchedToggle
+			Location = [2.5, 3]
+			FactorHitEffectsWith = ReadyRack_nuclear
+			HitEffects
+			[
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
 						BaseValue = 24000
+						EffectScaleExponent = 1
+					}
+					Radius = 8
+					Delay = 0.05
+					StatusType = cosmoteer.fire
+					StatusChancePerNDamage = 50%
+					StatusValue = 1
+					StatusValueType = Interpolated
+					NDamage = 1000
+					CrewKillChance = 30%
+					Filter
+					{
+						OperationalHealth = true
+						StructuralHealth = false
+						Friendlies = true
+					}
+				}
+				{
+					Type = ExplosiveDamage
+					TotalDamage
+					{
+						BaseValue = 8000
 						EffectScaleExponent = 1
 					}
 					Radius = 7

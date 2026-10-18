@@ -59,8 +59,10 @@ lançadores (e os do SW:ACD usam as mesmas peças).
 - **Recarga automática só com tripulação:** um autocarregador passa um míssil por vez do paiol para as células
   visíveis (dá para ver as ogivas carregadas no casulo). Sem tripulação no posto, a recarga para.
 - **Salva em sequência:** com todas as células cheias, sai a salva inteira em ripple (a última célula carregada
-  dispara primeiro); depois a recarga recomeça. Se o paiol acabar, a salva parcial sai mesmo assim.
-- **Trocar de míssil não dá salva grátis:** o tipo novo espera uma recarga completa.
+  dispara primeiro); depois a recarga recomeça. Se o paiol acabar de vez (uma recarga inteira sem chegar peça), a
+  salva parcial sai mesmo assim; uma entrega só atrasada não quebra a salva cheia.
+- **Trocar de míssil não dá salva grátis:** o tipo novo espera uma recarga completa (um rack que já estava cheio
+  espera a recarga sem overclock, então encher os racks antes da luta não rende cadência de overclock de graça).
 - **Overclock (meio e fim):** recarga 1,5 vez mais rápida (PEM 1,2 vez; o torpedo nuclear nunca acelera). Custa
   calor por peça carregada mais calor constante (precisa de radiador), descarta cerca de 1 em cada 16 mísseis por
   salva, dá uma pausa de 3 s ao desligar e esvazia o paiol mais rápido.

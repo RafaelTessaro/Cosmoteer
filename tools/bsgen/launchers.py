@@ -12,13 +12,18 @@ docs/MISSEIS_PROJETO.md. So tipos de componente vanilla:
       (thruster_boost.rules l.170-178): abre cheio e so fecha vazio, a salva sempre termina.
   (4) SALVA EM RIPPLE: torre com FireInterval = RIPPLE (multiplo do tick, point_defense 2/30); um ModeCycle
       por modo escolhe o emissor da celula em ordem LIFO (a ultima carregada sai primeiro), entao as
-      sobreposicoes ResourceSprites batem com o rack.
+      sobreposicoes ResourceSprites batem com o rack em toda salva cheia (limite cosmetico conhecido, teste T21:
+      salva parcial e resto de salva interrompida depois de voltar ao modo comecam pela ultima celula).
   (5) TROCA DE MODO: ModeSwitchDelay_k = uma recarga inteira do modo de destino (racks pre-carregados nunca
-      dao duas salvas seguidas).  (6) SALVA PARCIAL (DryFlush) quando a familia nao carrega mais nenhum missil.
-  (7) COOK-OFF por familia (DeathEffects escalado pelo estoque, fora dos blocos alternados).
+      dao duas salvas seguidas); rack JA CHEIO na troca espera a recarga sem a divisao do overclock
+      (PrefilledDelay_k, variante prefilled_switch).
+  (6) SALVA PARCIAL (DryFlush) so depois de DRY_DELAY = uma recarga inteira sem a familia carregar nenhum missil
+      (rampa ValueTween + limiar 100 %, padrao do chaingun): entrega atrasada nao vira salva picada.
+  (7) COOK-OFF por storage (carregador e cada rack, fora dos blocos alternados), linear nas pecas guardadas.
 
 Variantes de mecanica (spec mechanic_variants, sem mudar numeros): rack_gate, loader_crew_gate,
-mode_switch_delay, dry_flush, cassette, cell_sync, overlays, ai_firepower, torpedo_decoys (emissor de iscas).
+mode_switch_delay, prefilled_switch, dry_flush, cassette, cell_sync, overlays, ai_firepower, torpedo_decoys
+(emissor de iscas).
 
 Layouts das celulas (tools/launcher_layout.py): cassette (Tocandira), fine16 3-2-3 / torpedo2 (Caipora),
 fine48 / heavy16 / torpedo4 / torpedo2_inner com persianas nos casulos externos (Mula-sem-Cabeca).
@@ -28,6 +33,7 @@ import posixpath
 
 from rules_dsl import Q, VOID, Inh, comment
 from bsgen import common as C
+from launcher_layout import PX, overlay_rect, rect_placement
 from bsgen.guns import deck_hull_graphics, deck_turret_graphics, deck_light_graphics
 
 
@@ -52,6 +58,7 @@ def launcher_geometry(lch):
         g.update({"pivot": list(a3["pivot"]), "turret_size": a3["turret_size"], "collider": a3["collider"],
                   "backblast": [list(b) for b in a3.get("backblast", g["backblast"])]})
     combined = lch.get("variants", {}).get("overlays") == "combined"
+    T = int(round(g["turret_size"] * PX))
     modes = {}
     for m in lch["modes"]:
         if a3:
@@ -60,20 +67,24 @@ def launcher_geometry(lch):
             tubes = mm.get("tubes")
             for i, u in enumerate(units):
                 u["tubes"] = [list(t) for t in tubes[i]] if tubes else [u["pos"]]
-            overlays = [{"range": list(o["range"]), "files": list(o["files"]), "normals": list(o["normals"])}
-                        for o in mm["overlays"]]
+            # "rect": recorte do casulo gravado pelo render_part (STYLE.md 8.1); sem ele, o quadro inteiro da torre
+            overlays = [{"range": list(o["range"]), "files": list(o["files"]), "normals": list(o["normals"]),
+                         "rect": list(o.get("rect") or [0, 0, T, T])} for o in mm["overlays"]]
             shutters = dict(mm["shutters"]) if mm.get("shutters") else None
         else:
             units = m["geo"]["units"]
+            tr = m["geo"]["tube_r"]
             if combined:
                 f, n = overlay_files(lch, m["type"], None, len(units))
-                overlays = [{"range": [0, len(units)], "files": f, "normals": n}]
+                overlays = [{"range": [0, len(units)], "files": f, "normals": n,
+                             "rect": overlay_rect(units, tr, g["turret_size"])}]
             else:
                 overlays = []
                 for pod in m["geo"]["pods"]:
                     a, b = pod["range"]
                     f, n = overlay_files(lch, m["type"], pod["index"], b - a)
-                    overlays.append({"range": [a, b], "files": f, "normals": n, "pod": pod["index"]})
+                    overlays.append({"range": [a, b], "files": f, "normals": n, "pod": pod["index"],
+                                     "rect": overlay_rect(units[a:b], tr, g["turret_size"])})
             shutters = None
             if m["geo"].get("shutters"):
                 # casulos sem celula neste modo (Iara: casulos externos) mostram a persiana fechada
@@ -102,6 +113,9 @@ def _mode_constants(lch, m, has_burst):
     k = m["type"]
     d = {"CELLS": m["cells"], "PARTS": m["parts"], "MISSILES_PER_UNIT": m["mpu"], "RELOAD": m["reload"],
          "VENT": m["vent"]}
+    if lch.get("variants", {}).get("dry_flush", "debounced") == "debounced":
+        # salva parcial so depois de uma recarga inteira (sem overclock) sem nenhuma entrega da tripulacao
+        d["DRY_DELAY"] = "(&CELLS) * (&RELOAD)"
     if lch.get("oc") and m.get("oc_factor"):
         d["OC_FACTOR"] = m["oc_factor"]
     salvo = "((&CELLS) - 1) * (&~/RIPPLE)"
@@ -203,20 +217,42 @@ def _mode_logic(lch, m, comp, v, all_modes):
     if v.get("mode_switch_delay", "per_mode") == "per_mode":
         comp[f"ModeSwitchDelay_{k}"] = {"Type": "Timer", "StartTrigger": f"ModeOn_{k}", "StartExpired": True,
                                         "Duration": _interval(lch, m, f"({M}/CELLS) * ({M}/RELOAD)")}
-        delay = f"ModeSwitchDelay_{k}"
+        delays = [f"ModeSwitchDelay_{k}"]
     else:
-        delay = "ModeSwitchDelay"
+        delays = ["ModeSwitchDelay"]
+    if _prefilled_gate(lch, m, v):
+        # rack JA CHEIO na troca (carregado antes, sem pagar o calor do overclock): espera a recarga inteira SEM a
+        # divisao do overclock, entao ligar o overclock nao adianta a salva de um rack pre-carregado.
+        # TriggerProxy com ProxyToggle (base_part_overclock.rules WasOperationalOverclockDisabled)
+        comp[f"PrefilledSwitch_{k}"] = {"Type": "TriggerProxy", "ComponentID": f"ModeOn_{k}", "ProxyToggle": full}
+        if v.get("mode_switch_delay", "per_mode") == "per_mode":
+            comp[f"PrefilledDelay_{k}"] = {"Type": "Timer", "StartTrigger": f"PrefilledSwitch_{k}", "StartExpired": True,
+                                           "Duration": f"({M}/CELLS) * ({M}/RELOAD)"}
+            delays.append(f"PrefilledDelay_{k}")
+        else:
+            delays.append("PrefilledDelay")
     # (6) salva parcial quando a familia nao carrega mais nenhum missil deste modo
     can = [full]
     if gate == "salvo_timer":
         comp[f"SalvoContinue_{k}"] = {"Type": "MultiToggle", "Toggles": ["IsSalvoActive", f"RackAny_{k}"], "Mode": "All"}
         can.append(f"SalvoContinue_{k}")
-    if v.get("dry_flush", "on") == "on":
+    dry = v.get("dry_flush", "debounced")
+    if dry == "debounced":
+        # so dispara o rack parcial quando o paiol fica SEM carregar nada por DRY_DELAY seguidos: uma entrega
+        # atrasada da tripulacao nao vira uma salva picada (a trava espera o rack cheio). Rampa + limiar 100 %
+        # (chaingun.rules ShellChangingValueTween / IsShellFullyOpen); qualquer entrega derruba a rampa.
+        comp[f"DryPending_{k}"] = {"Type": "MultiToggle", "Toggles": [f"RackAny_{k}", _inv(f"MagCanLoad_{k}")],
+                                   "Mode": "All"}
+        comp[f"DryWait_{k}"] = {"Type": "ValueTween", "IsOnToggle": f"DryPending_{k}",
+                                "OnTweenDuration": f"{M}/DRY_DELAY", "OffTweenDuration": 0.1}
+        comp[f"DryFlush_{k}"] = {"Type": "ThresholdToggle", "ValueFrom": f"DryWait_{k}", "MinAmount": "100%"}
+        can.append(f"DryFlush_{k}")
+    elif dry == "instant":
         comp[f"DryFlush_{k}"] = {"Type": "MultiToggle", "Toggles": [f"RackAny_{k}", _inv(f"MagCanLoad_{k}")],
                                  "Mode": "All"}
         can.append(f"DryFlush_{k}")
     comp[f"CanFire_{k}"] = {"Type": "MultiToggle", "Toggles": can, "Mode": "Any"}
-    comp[f"RackReady_{k}"] = {"Type": "MultiToggle", "Toggles": [f"ModeToggle_{k}", delay, f"CanFire_{k}"],
+    comp[f"RackReady_{k}"] = {"Type": "MultiToggle", "Toggles": [f"ModeToggle_{k}"] + delays + [f"CanFire_{k}"],
                               "Mode": "All"}
     comp[f"MagOrRack_{k}"] = {"Type": "MultiToggle", "Toggles": [f"MagCanLoad_{k}", f"RackAny_{k}"], "Mode": "Any"}
     comp[f"HasMissiles_{k}"] = {"Type": "MultiToggle", "Toggles": [f"ModeToggle_{k}", f"MagOrRack_{k}"], "Mode": "All"}
@@ -248,6 +284,12 @@ def _mode_logic(lch, m, comp, v, all_modes):
             for i in range(n_max):
                 inner[f"ShootTrigger_{i}"] = {"Type": "ModeTrigger", "Mode": "ShootCycle", "TriggerInModes": [i]}
             comp[blk] = {"Type": "ToggledComponents", "Toggle": tog, "Components": inner}
+
+
+def _prefilled_gate(lch, m, v):
+    """Variante prefilled_switch: atraso extra (sem overclock) ao entrar num rack ja cheio; so faz sentido em
+    modos cuja recarga o overclock acelera."""
+    return bool(lch.get("oc") and m.get("oc_factor") and v.get("prefilled_switch", "full_delay") == "full_delay")
 
 
 def _cycle(cells, live=True):
@@ -318,9 +360,11 @@ def _fire_block(lch, m, geo, shot_path, v):
     ts = geo["turret_size"]
     for j, ov in enumerate(gm["overlays"]):
         a, b = ov["range"]
-        levels = [{"File": Q(f), "NormalsFile": Q(nf), "Size": [ts, ts]} for f, nf in zip(ov["files"], ov["normals"])]
+        # imagens recortadas no retangulo do casulo (STYLE.md 8.1): Location = centro dele no quadro da torre
+        loc, size = rect_placement(ov["rect"], ts)
+        levels = [{"File": Q(f), "NormalsFile": Q(nf), "Size": size} for f, nf in zip(ov["files"], ov["normals"])]
         inner[f"Cells_{j}"] = {
-            "Type": "ResourceSprites", "ChainedTo": "Turret", "Location": [0, 0], "Rotation": "90d",
+            "Type": "ResourceSprites", "ChainedTo": "Turret", "Location": loc, "Rotation": "90d",
             "Layer": Q("roof_turrets"), "ResourceStorage": f"ReadyRack_{k}", "RangeLow": a, "RangeHigh": b,
             "HasZeroResourceSprite": True, "ResourceLevels": levels}
     bbs = geo.get("backblast") or []
@@ -345,17 +389,70 @@ def _fire_block(lch, m, geo, shot_path, v):
                              "OperationalToggle": "IsOperational",
                              "OperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [img]},
                              "NonOperationalDoodad": {"Layer": Q("roof_turrets"), "DamageLevels": [dict(img)]}}
+    # sem ValueRange: o rack fornece a fracao de enchimento 0..1 (ProvidedValueRange padrao), como as barras
+    # vanilla sobre um storage simples (shield_gen_small.rules: ShowProgressFor = BatteryStorage)
     inner["ReloadProgressBar"] = {"Type": "ProgressBar", "OperationalToggle": "IsOperational",
-                                  "ShowProgressFor": f"ReadyRack_{k}", "ValueRange": [0, f"&~/MODE_{k}/CELLS"]}
+                                  "ShowProgressFor": f"ReadyRack_{k}"}
     return {"Type": "ToggledComponents", "Toggle": f"ModeToggle_{k}", "IncludeInBlueprints": True,
             "Components": inner}
 
 
+def _num(x):
+    """Numero do cook-off: inteiro quando exato, senao 3 casas."""
+    return int(round(x)) if abs(x - round(x)) < 1e-6 else round(x, 3)
+
+
+def cookoff_storages(lch, fam):
+    """Storages de uma familia que guardam pecas, com a capacidade em PECAS: o carregador (1 peca por recurso) e o
+    rack de cada modo da familia (CELLS unidades x PARTS pecas). [(componente, capacidade em recursos, pecas por
+    recurso, modo ou None)]."""
+    out = [(f"MagStorage_{fam['key']}", fam["mag"], 1, None)]
+    for m in lch["modes"]:
+        if m["family"] == fam["key"]:
+            out.append((f"ReadyRack_{m['type']}", m["cells"], m["parts"], m["type"]))
+    return out
+
+
+def _cookoff_hits(ck, f):
+    """HitEffects do cook-off de UM storage; f = fracao do valor 'estoque cheio' do spec que ele carrega cheio."""
+    if ck["kind"] == "blast":
+        return [
+            {"Type": "ExplosiveDamage", "TotalDamage": {"BaseValue": _num(ck["op_damage"] * f), "EffectScaleExponent": 1},
+             "Radius": ck["op_radius"], "Delay": 0.05, "StatusType": "cosmoteer.fire",
+             "StatusChancePerNDamage": f"{int(round(ck['fire_chance_per_1000'] * 100))}%", "StatusValue": 1,
+             "StatusValueType": "Interpolated", "NDamage": 1000,
+             "CrewKillChance": f"{int(round(ck['crew_kill_chance'] * 100))}%",
+             "Filter": {"OperationalHealth": True, "StructuralHealth": False, "Friendlies": True}},
+            {"Type": "ExplosiveDamage", "TotalDamage": {"BaseValue": _num(ck["st_damage"] * f), "EffectScaleExponent": 1},
+             "Radius": ck["st_radius"], "Delay": 0.05,
+             "Filter": {"OperationalHealth": False, "StructuralHealth": True, "Friendlies": True, "Crew": False}},
+        ]
+    if ck["kind"] == "heat_dump":
+        return [{"Type": "GridStatusApplication", "StatusType": "cosmoteer.heat", "HitPartSourceRectType": "Normal",
+                 "StatusValue": 0, "StatusValuePool": {"BaseValue": _num(ck["heat_pool"] * f), "EffectScaleExponent": 1},
+                 "MaxCost": 3, "EmptyTileCost": "Infinity", "ValueFalloff": 1, "FalloffPadding": 1,
+                 "Filter": {"Self": True}}]
+    if ck["kind"] == "drain":
+        return [{"Type": "ExplosiveResourceDrain", "ResourceType": "battery",
+                 "TotalDrain": {"BaseValue": _num(ck["drain"] * f), "EffectScaleExponent": 1},
+                 "Radius": {"BaseValue": ck["radius"], "EffectScaleExponent": 0.5}, "Slices": 1,
+                 "Filter": {"Ships": True, "Shields": True, "Friendlies": True}}]
+    return None
+
+
+_COOKOFF_KEYS = {"blast": ("op_damage", "st_damage"), "heat_dump": ("heat_pool",), "drain": ("drain",)}
+_COOKOFF_PATHS = {"op_damage": (0, "TotalDamage"), "st_damage": (1, "TotalDamage"), "heat_pool": (0, "StatusValuePool"),
+                  "drain": (0, "TotalDrain")}
+
+
 def _cookoff(lch, comp, center):
-    """(7) cook-off por familia, fora dos blocos (missile_launcher_he.rules l.271-330;
-    termico: missile_launcher_thermal.rules l.590-618)."""
+    """(7) cook-off linear nas pecas guardadas, fora dos blocos (missile_launcher_he.rules l.271-330; termico:
+    missile_launcher_thermal.rules l.590-618). Um par ScorchedEffects/DeathEffects POR STORAGE (carregador e cada
+    rack), escalado pela fracao de enchimento dele (FactorHitEffectsWith num storage simples, como
+    missile_launcher_nuke.rules MissileStorage) e com BaseValue = valor cheio do spec x pecas do storage /
+    cookoff.parts_full: cada peca guardada vale valor/parts_full, esteja no carregador ou num rack."""
     sz, on, off = C.effect_size(*lch["size"])
-    comp[comment("---- cook-off por familia (escala com o estoque: carregador + racks) ----")] = None
+    comp[comment("---- cook-off: um par por storage (carregador + racks), linear nas pecas guardadas ----")] = None
     comp["OperationEffects"] = {"Type": "ToggleEffects", "Location": center, "Toggle": "IsOperational",
                                 "ToggledOnMediaEffects": f"&/COMMON_EFFECTS/{on}",
                                 "ToggledOffMediaEffects": f"&/COMMON_EFFECTS/{off}"}
@@ -366,47 +463,70 @@ def _cookoff(lch, comp, center):
                                "MediaEffects": f"&/COMMON_EFFECTS/{sz}PartScorched"}
     comp["DestroyedEffects"] = {"Type": "DeathEffects", "MediaEffects": f"&/COMMON_EFFECTS/{sz}PartDestroyed",
                                 "Location": center}
-    for f in lch["families"]:
-        F = f["key"]
-        ck = lch["cookoff"].get(f["res"])
-        if not ck:
+    for fam in lch["families"]:
+        ck = lch["cookoff"].get(fam["res"])
+        if not ck or ck["kind"] not in _COOKOFF_KEYS:
             continue
-        racks = [f"ReadyRack_{k}" for k in f["modes"]]
-        comp[f"Stock_{F}"] = {"Type": "MultiResourceStorage", "ResourceType": f["res"],
-                              "ResourceStorages": [f"MagStorage_{F}"] + racks}
-        if ck["kind"] == "blast":
-            hits = [
-                {"Type": "ExplosiveDamage", "TotalDamage": {"BaseValue": int(ck["op_damage"]), "EffectScaleExponent": 1},
-                 "Radius": ck["op_radius"], "Delay": 0.05, "StatusType": "cosmoteer.fire",
-                 "StatusChancePerNDamage": f"{int(round(ck['fire_chance_per_1000'] * 100))}%", "StatusValue": 1,
-                 "StatusValueType": "Interpolated", "NDamage": 1000,
-                 "CrewKillChance": f"{int(round(ck['crew_kill_chance'] * 100))}%",
-                 "Filter": {"OperationalHealth": True, "StructuralHealth": False, "Friendlies": True}},
-                {"Type": "ExplosiveDamage", "TotalDamage": {"BaseValue": int(ck["st_damage"]), "EffectScaleExponent": 1},
-                 "Radius": ck["st_radius"], "Delay": 0.05,
-                 "Filter": {"OperationalHealth": False, "StructuralHealth": True, "Friendlies": True, "Crew": False}},
-            ]
-        elif ck["kind"] == "heat_dump":
-            hits = [{"Type": "GridStatusApplication", "StatusType": "cosmoteer.heat", "HitPartSourceRectType": "Normal",
-                     "StatusValue": 0, "StatusValuePool": {"BaseValue": ck["heat_pool"], "EffectScaleExponent": 1},
-                     "MaxCost": 3, "EmptyTileCost": "Infinity", "ValueFalloff": 1, "FalloffPadding": 1,
-                     "Filter": {"Self": True}}]
-        elif ck["kind"] == "drain":
-            hits = [{"Type": "ExplosiveResourceDrain", "ResourceType": "battery",
-                     "TotalDrain": {"BaseValue": ck["drain"], "EffectScaleExponent": 1},
-                     "Radius": {"BaseValue": ck["radius"], "EffectScaleExponent": 0.5}, "Slices": 1,
-                     "Filter": {"Ships": True, "Shields": True, "Friendlies": True}}]
-        else:
+        pf = ck["parts_full"]
+        for name, cap, ppr, mode in cookoff_storages(lch, fam):
+            tag = f"Mag_{fam['key']}" if mode is None else f"Rack_{mode}"
+            hits = _cookoff_hits(ck, cap * ppr / pf)
+            comp[f"ScorchedEffects_{tag}"] = {"Type": "TriggeredEffects", "Trigger": "ScorchedTrigger", "Location": center,
+                                              "FactorHitEffectsWith": name,
+                                              "HitEffects": f"&../DestroyedEffects_{tag}/HitEffects"}
+            dest = {"Type": "DeathEffects", "OperationalToggle": "ScorchedToggle", "Location": center,
+                    "FactorHitEffectsWith": name}
+            if ck["kind"] == "heat_dump":
+                dest["IncludeWhenUnderConstruction"] = False
+            dest["HitEffects"] = hits
+            comp[f"DestroyedEffects_{tag}"] = dest
+    _check_cookoff(lch, comp)
+
+
+def _check_cookoff(lch, comp):
+    """Confere o que o MOTOR calcula com os componentes gerados (nao a aritmetica do spec): cada DeathEffects vale
+    BaseValue x (recursos guardados / MaxResources do storage em FactorHitEffectsWith). Com o carregador cheio e o
+    maior rack da familia cheio (o 'estoque cheio' do spec) a soma tem que dar o valor do spec, e cada peca guardada
+    tem que valer valor/parts_full em qualquer storage. Aborta o build se divergir."""
+    errs = []
+    for fam in lch["families"]:
+        ck = lch["cookoff"].get(fam["res"])
+        if not ck or ck["kind"] not in _COOKOFF_KEYS:
             continue
-        comp[f"ScorchedEffects_{F}"] = {"Type": "TriggeredEffects", "Trigger": "ScorchedTrigger", "Location": center,
-                                        "FactorHitEffectsWith": f"Stock_{F}",
-                                        "HitEffects": f"&../DestroyedEffects_{F}/HitEffects"}
-        dest = {"Type": "DeathEffects", "OperationalToggle": "ScorchedToggle", "Location": center,
-                "FactorHitEffectsWith": f"Stock_{F}"}
-        if ck["kind"] == "heat_dump":
-            dest["IncludeWhenUnderConstruction"] = False
-        dest["HitEffects"] = hits
-        comp[f"DestroyedEffects_{F}"] = dest
+        sto = {name: (cap, ppr, mode) for name, cap, ppr, mode in cookoff_storages(lch, fam)}
+        # capacidade de verdade dos storages gerados (MaxResources do carregador / CELLS do modo para o rack)
+        for name, (cap, ppr, mode) in sto.items():
+            real = comp[name]["MaxResources"]
+            if mode:
+                if real != f"&~/MODE_{mode}/CELLS":
+                    errs.append(f"{name}: MaxResources {real} nao e &~/MODE_{mode}/CELLS")
+                real = lch_mode(lch, mode)["cells"]
+            if real != cap:
+                errs.append(f"{name}: capacidade {real} != {cap}")
+        racks = [(n, c * p) for n, (c, p, mo) in sto.items() if mo]
+        big = max(racks, key=lambda x: x[1])[0]
+        full_state = {n: 1.0 if (mo is None or n == big) else 0.0 for n, (c, p, mo) in sto.items()}
+        for key in _COOKOFF_KEYS[ck["kind"]]:
+            idx, field = _COOKOFF_PATHS[key]
+            total = 0.0
+            for tag_comp, d in comp.items():
+                if not (isinstance(d, dict) and d.get("Type") == "DeathEffects" and d.get("FactorHitEffectsWith") in sto):
+                    continue
+                name = d["FactorHitEffectsWith"]
+                base = d["HitEffects"][idx][field]["BaseValue"]
+                cap, ppr, _mo = sto[name]
+                per_part = base / (cap * ppr)
+                if abs(per_part - ck[key] / ck["parts_full"]) > 1e-3 * max(1.0, abs(per_part)):
+                    errs.append(f"{tag_comp}: {key} {per_part:.3f} por peca, spec {ck[key] / ck['parts_full']:.3f}")
+                total += base * full_state[name]
+            if abs(total - ck[key]) > 1e-3 * ck[key]:
+                errs.append(f"familia {fam['key']}: {key} com estoque cheio {total:.1f}, spec {ck[key]}")
+    if errs:
+        raise ValueError(f"{lch['codename']}: cook-off gerado diverge do spec: " + "; ".join(errs))
+
+
+def lch_mode(lch, k):
+    return next(m for m in lch["modes"] if m["type"] == k)
 
 
 # ----------------------------------------------------------------------------- peca
@@ -462,6 +582,12 @@ def build_launcher(lch, shot_paths):
         comp["ModeSwitchDelay"] = {"Type": "Timer", "StartTrigger": "ModeChanged", "StartExpired": True,
                                    "Duration": _interval(lch, longest, f"(&~/MODE_{longest['type']}/CELLS) * "
                                                                        f"(&~/MODE_{longest['type']}/RELOAD)")}
+        pre = [m for m in modes if _prefilled_gate(lch, m, v)]
+        if pre:
+            # rack ja cheio na troca: o atraso unico sem a divisao do overclock (variante prefilled_switch)
+            comp["PrefilledChanged"] = {"Type": "MultiTrigger", "Triggers": [f"PrefilledSwitch_{m['type']}" for m in pre]}
+            comp["PrefilledDelay"] = {"Type": "Timer", "StartTrigger": "PrefilledChanged", "StartExpired": True,
+                                      "Duration": f"(&~/MODE_{longest['type']}/CELLS) * (&~/MODE_{longest['type']}/RELOAD)"}
     for m in modes:
         _mode_logic(lch, m, comp, v, modes)
 
@@ -560,7 +686,8 @@ def build_launcher(lch, shot_paths):
                                     "DescriptionKey": Q(f"Parts/{lch['key']}OverclockDesc"),
                                     "StatsByCategory": [{"NameKey": Q(f"StatCategories/{lch['key']}_{m0['type']}"),
                                                          "Stats": st}]}
-    top["Part : " + C.base_part_path(w, h, bool(oc))] = part
+    # arquivo base do spec (launchers[].base_part; Caipora 3x3 = base_med como factory_he/reactor_med vanilla)
+    top["Part : " + C.base_part_path(w, h, bool(oc), base=lch.get("base_part"))] = part
     return top, {"geo": geo, "center": center}
 
 

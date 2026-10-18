@@ -37,7 +37,7 @@
 
 > Projeto completo em `docs/MISSEIS_PROJETO.md` (spec `tools/spec/bullet_strike_missiles.json`). Gerado por `tools/bsgen/launchers.py` e `tools/bsgen/shots.py`.
 
-**Como funciona (igual nos três lançadores):** a tripulação leva as peças de míssil do jogo base até um paiol interno por família (A.E., térmica, PEM, nuclear). Um autocarregador passa um míssil por vez do paiol para as células visíveis, **só com tripulação no posto**. Com o rack cheio sai a salva em sequência (a última célula carregada dispara primeiro); depois a recarga recomeça. Trocar o tipo de míssil custa uma recarga completa do tipo novo; com o paiol vazio, o rack parcial dispara mesmo assim. Sem energia. Carregado, o lançador explode junto com o estoque quando pega fogo ou é destruído.
+**Como funciona (igual nos três lançadores):** a tripulação leva as peças de míssil do jogo base até um paiol interno por família (A.E., térmica, PEM, nuclear). Um autocarregador passa um míssil por vez do paiol para as células visíveis, **só com tripulação no posto**. Com o rack cheio sai a salva em sequência (a última célula carregada dispara primeiro); depois a recarga recomeça. Trocar o tipo de míssil custa uma recarga completa do tipo novo (com overclock, um rack que já estava cheio na troca espera a recarga normal, sem overclock); se o paiol fica uma recarga inteira sem receber peças, o rack parcial dispara mesmo assim (uma entrega atrasada não quebra a salva cheia). Sem energia. Carregado, o lançador explode junto com o estoque quando pega fogo ou é destruído: cada peça guardada (no paiol ou já nas células) soma a mesma força à explosão.
 
 ### Lançadores
 
@@ -119,7 +119,7 @@
 | `rafaeltessaro.bs_msl_nuclear` | 110.000 | `rafaeltessaro.bs_msl_quad`, `rafaeltessaro.bs_nuclear`, `cosmoteer.factory_nuke` | Torpedo Nuclear (Iara) |
 | `rafaeltessaro.bs_msl_quad-overclock` | 160.000 | `rafaeltessaro.bs_msl_quad`, `cosmoteer.heat_management` | overclock da Mula-sem-Cabeça |
 
-No **Build & Battle** a Tocandira já vem liberada (lista branca) e a Caipora e a Mula-sem-Cabeça são techs de 5000 (com o overclock à parte), que também liberam as peças de míssil das suas famílias.
+No **Build & Battle** a Tocandira já vem liberada (lista branca), mas as peças de míssil A.E. e T.C. dela vêm da tech `rafaeltessaro.bs_bb_bs_msl_box_ammo` (5000, sempre oferecida), porque o jogo base só libera esses recursos com as techs dos lançadores vanilla; a Caipora e a Mula-sem-Cabeça são techs de 5000 (com o overclock à parte), que também liberam as peças de míssil das suas famílias.
 
 ## Munições
 

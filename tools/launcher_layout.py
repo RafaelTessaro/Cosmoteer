@@ -16,9 +16,51 @@ Layouts (unidade do rack = o que 1 missil do modo ocupa; "form" diz como a arte 
   "torpedo<N>"      1 unidade por casulo, no centro da face (Caipora 2, Mula 4)            form "torpedo" (1 nariz grande)
   "torpedo<N>_inner" so os N casulos mais internos; os outros ficam com a persiana fechada (Mula nuclear: 2)
 Para "heavy"/"torpedo" cada unidade traz "box" = [largura lateral, profundidade] do nariz em tiles.
+
+Sobreposicoes do rack: overlay_rect() da o retangulo de cada casulo (recorte das imagens dos niveis) e
+rect_placement() a posicao/tamanho do ResourceSprites correspondente.
 """
 
+import math
 import re
+
+PX = 64            # pixels por tile (bsgen/art.py PX), igual no gerador de regras e nos dois renderizadores
+
+
+def overlay_rect(units, tube_r, turret_box, pad_px=2):
+    """Retangulo (pixels [x0, y0, x1, y1] no quadro da torre, lado round(turret_box * 64), frente para cima) que
+    contem todos os narizes das unidades de UMA sobreposicao (um casulo de um modo). As imagens dos niveis do rack
+    sao recortadas nele (contrato STYLE.md secao 8.1) e o ResourceSprites usa o centro/tamanho dele.
+
+    Cobre o maior desenho dos dois renderizadores: o nariz 3D (render_part.py: quadro de 5 x tube_r por tubo;
+    heavy/torpedo: box x 1.15 centrado na unidade) e o placeholder procedural (bsgen/sprites.py, menor)."""
+    T = int(round(turret_box * PX))
+    xs0, xs1, ys0, ys1 = [], [], [], []
+    for u in units:
+        if u.get("form") in ("heavy", "torpedo"):
+            hw, hh = 0.575 * u["box"][0], 0.575 * u["box"][1]
+            pts = [u["pos"]]
+        else:
+            hw = hh = 2.5 * tube_r
+            pts = u["tubes"]
+        for fwd, lat in pts:
+            x, y = T / 2 + lat * PX, T / 2 - fwd * PX
+            xs0.append(x - hw * PX)
+            xs1.append(x + hw * PX)
+            ys0.append(y - hh * PX)
+            ys1.append(y + hh * PX)
+    return [max(0, math.floor(min(xs0)) - pad_px), max(0, math.floor(min(ys0)) - pad_px),
+            min(T, math.ceil(max(xs1)) + pad_px), min(T, math.ceil(max(ys1)) + pad_px)]
+
+
+def rect_placement(rect, turret_box):
+    """Retangulo em pixels -> (Location [frente, direita] no quadro da torre, Size [largura, altura]) em tiles,
+    para um sprite ChainedTo = Turret com Rotation = 90d (imagem com a frente para cima, como turret.png)."""
+    T = int(round(turret_box * PX))
+    x0, y0, x1, y1 = rect
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    loc = [round((T / 2 - cy) / PX, 7), round((cx - T / 2) / PX, 7)]
+    return [0 if v == 0 else v for v in loc], [round((x1 - x0) / PX, 7), round((y1 - y0) / PX, 7)]
 
 
 def _pod_rows(pod, who):

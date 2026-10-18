@@ -113,18 +113,33 @@ def factory_art(out, pdir, f, info):
     out.image(f"../docs/preview/{f['short']}.png", icon)
 
 
+def _inside(bb, box):
+    return bb[0] >= box[0] and bb[1] >= box[1] and bb[2] <= box[2] and bb[3] <= box[3]
+
+
 def launcher_art(out, pdir, lch, info):
     """Lancador de misseis: casulo (roof_doodads) + niveis do rack (roof_turrets) + casco + icone/blueprint.
 
     Com arte 3D (art3d/<id>/meta.json, kind 'launcher', STYLE.md secao 8) so copia os PNGs renderizados."""
     geo = info["geo"]
     w, h = lch["size"]
+    T = int(round(geo["turret_size"] * PX))
+
+    def uncrop(img, rect):
+        """Sobreposicao recortada (retangulo do casulo, STYLE.md 8.1) de volta no quadro inteiro da torre."""
+        cv = Image.new("RGBA", (T, T), (0, 0, 0, 0))
+        cv.alpha_composite(img, (rect[0], rect[1]))
+        return cv
+
     if lch.get("art3d"):
         A3.copy_files(out.root, pdir, lch["short"], lch["art3d"])
         load = lambda n: Image.open(A3.path(lch["short"], n)).convert("RGBA")  # noqa: E731
         meta = lch["art3d"]
         roof, pod = load(meta["hull"]["roof"]), load(meta["turret"]["frames"][0])
-        full = load(geo["modes"][lch["modes"][0]["type"]]["overlays"][0]["files"][-1])
+        full = None
+        for ov in geo["modes"][lch["modes"][0]["type"]]["overlays"]:
+            im = uncrop(load(ov["files"][-1]), ov["rect"])
+            full = im if full is None else Image.alpha_composite(full, im)
     else:
         a = S.ACCENTS["ammo"]
         ts = geo["turret_size"]
@@ -151,10 +166,14 @@ def launcher_art(out, pdir, lch, info):
             for ov in gm["overlays"]:
                 lo, hi = ov["range"]
                 pod_units = gm["units"][lo:hi]
+                box = tuple(ov["rect"])                         # recorte do casulo (launcher_layout.overlay_rect)
                 for j, (fname, nname) in enumerate(zip(ov["files"], ov["normals"])):
                     img, nimg = S.render_launcher_cells(ts, units0, pod_units[:j], tube_r, pitch, band)
-                    out.image(f"{pdir}/{fname}", img)
-                    out.image(f"{pdir}/{nname}", nimg)
+                    if img.getbbox() and not _inside(img.getbbox(), box):
+                        raise ValueError(f"{lch['short']}/{fname}: nariz fora do retangulo do casulo {box} "
+                                         f"(bbox {img.getbbox()})")
+                    out.image(f"{pdir}/{fname}", img.crop(box))
+                    out.image(f"{pdir}/{nname}", nimg.crop(box))
                     if m is m0 and j == len(ov["files"]) - 1:
                         full = img if full is None else Image.alpha_composite(full, img)
         crew = lch.get("crew_pos")

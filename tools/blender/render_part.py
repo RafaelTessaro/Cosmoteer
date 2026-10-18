@@ -339,7 +339,7 @@ def render_launcher(mod, out, only):
     As posicoes das celulas e a ordem de enchimento vem de tools/launcher_layout.py com os layouts por modo do
     spec (launchers[].modes[].layout); cada nivel do rack (cells_<tipo>_p<casulo>_<n>.png, no quadro da torre)
     e composto aqui colando o nariz renderizado nas primeiras n unidades do casulo."""
-    from launcher_layout import cell_layout
+    from launcher_layout import cell_layout, overlay_rect
     P = mod.PART
     W, H = P["size"]
     ts = P["turret_box"]
@@ -357,7 +357,7 @@ def render_launcher(mod, out, only):
     files += tfiles
     cells = P.get("cells") or pm["cells"]
     T = int(round(ts * PX))
-    cw = cells.get("tube_r", 0.09) * 5                     # quadro do nariz (tiles)
+    cw = cells.get("tube_r", 0.09) * 5                     # quadro do nariz (tiles); overlay_rect usa o mesmo
     cpx = max(8, int(round(cw * PX)))
     looks = P.get("looks", pm.get("looks", []))
     noses = {}
@@ -380,9 +380,15 @@ def render_launcher(mod, out, only):
             return None
         return Image.open(stem + ".png").convert("RGBA"), Image.open(stem + "_normals.png").convert("RGBA"), px
 
-    def paste(cv, nv, pc, pos):
+    def paste(cv, nv, pc, pos, origin=None):
+        """Cola a peca centrada em pos (coordenadas da torre); origin = canto do recorte do casulo no quadro da
+        torre (sobreposicoes do rack: a peca tem que caber inteira no recorte)."""
         img, nrm, px = pc
         x, y = int(round(T / 2 + pos[1] * PX - px[0] / 2)), int(round(T / 2 - pos[0] * PX - px[1] / 2))
+        if origin is not None:
+            x, y = x - origin[0], y - origin[1]
+            if x < 0 or y < 0 or x + px[0] > cv.size[0] or y + px[1] > cv.size[1]:
+                raise SystemExit(f"{P['id']}: nariz fora do retangulo do casulo (launcher_layout.overlay_rect)")
         cv.alpha_composite(img, (x, y))
         nv.alpha_composite(nrm, (x, y))
 
@@ -410,16 +416,19 @@ def render_launcher(mod, out, only):
             a, b = pod["range"]
             fn = [f"cells_{look}_p{pod['index']}_{j}.png" for j in range(b - a + 1)]
             nn = [f"cells_{look}_p{pod['index']}_{j}_normals.png" for j in range(b - a + 1)]
+            # quadro do nivel = retangulo do casulo no quadro da torre (STYLE.md 8.1), nao a torre inteira
+            rect = overlay_rect(lay["units"][a:b], lay["tube_r"], ts)
+            rw, rh = rect[2] - rect[0], rect[3] - rect[1]
             if nose:
                 for j in range(b - a + 1):
-                    cv = Image.new("RGBA", (T, T), (0, 0, 0, 0))
-                    nv = Image.new("RGBA", (T, T), (0, 0, 0, 0))
+                    cv = Image.new("RGBA", (rw, rh), (0, 0, 0, 0))
+                    nv = Image.new("RGBA", (rw, rh), (0, 0, 0, 0))
                     for u in lay["units"][a:a + j]:
                         for t in (u["tubes"] if form == "tube" else [u["pos"]]):
-                            paste(cv, nv, nose, t)
+                            paste(cv, nv, nose, t, origin=(rect[0], rect[1]))
                     cv.save(os.path.join(out, fn[j]))
                     nv.save(os.path.join(out, nn[j]))
-            overlays.append({"range": [a, b], "files": fn, "normals": nn})
+            overlays.append({"range": [a, b], "files": fn, "normals": nn, "rect": rect})
             files += fn + nn
         modes[look] = {"units": [u["pos"] for u in lay["units"]], "unit_pods": [u["pod"] for u in lay["units"]],
                        "tubes": [u["tubes"] for u in lay["units"]], "overlays": overlays}

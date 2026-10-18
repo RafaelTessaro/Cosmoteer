@@ -229,7 +229,7 @@ geometry**, so a finished model replaces them without changing the rules.
 | image(s) | layer | component | notes |
 |---|---|---|---|
 | `turret.png`, `turret_normals.png`, `turret_off.png`, `turret_shadow.png` (+ `turret<n>.png` frames if `turret_anim`) | pod: `roof_doodads`; shadow: `doodads_high` | `TurretGraphics` (ChainedTo Turret, Rotation 90d) | square of side `turret_box` centered on the pivot, forward = image top, exactly like a gun head. **The tube mouths are drawn EMPTY** (dark holes) |
-| `cells_<type>_p<pod>_<n>.png` + `cells_<type>_p<pod>_<n>_normals.png`, n = 0..units of that pod | `roof_turrets` (above the pod) | one `ResourceSprites` per pod and per missile mode (`RangeLow`/`RangeHigh` = the pod's rack units, `HasZeroResourceSprite = true`) | **same canvas as `turret.png`** (side `turret_box`, pivot at the center, zero offset). Level n shows the loaded noses of the first n rack units of that pod **in fill order**; everything else is transparent. Level 0 is fully transparent. Only pods that hold units in that mode get files (Iara: `p1`, `p2`) |
+| `cells_<type>_p<pod>_<n>.png` + `cells_<type>_p<pod>_<n>_normals.png`, n = 0..units of that pod | `roof_turrets` (above the pod) | one `ResourceSprites` per pod and per missile mode (`RangeLow`/`RangeHigh` = the pod's rack units, `HasZeroResourceSprite = true`, `Location` = centre of the pod rectangle, `Size` = its size) | **canvas = the pod's overlay rectangle**, a crop of the `turret.png` canvas (pixels `[x0, y0, x1, y1]` on the turret canvas, forward = image top) computed by `tools/launcher_layout.py` `overlay_rect()`: the bounding box of every nose of that pod in that mode (5 x `tube_r` square per tube; `box` x 1.15 for heavy/torpedo units) + 2 px. Level n shows the loaded noses of the first n rack units of that pod **in fill order**; everything else is transparent. Level 0 is fully transparent. Only pods that hold units in that mode get files (Iara: `p1`, `p2`). The crop keeps the textures small (Mula: 50-70 px per pod instead of 307 x 307, about 8 MiB of overlays for the three launchers instead of 128 MiB) |
 | `shutters_<type>.png` + `_normals.png` | `roof_turrets` | `Shutters` (`Graphics` inside that mode's `Fire_<type>` block, so it shows only in that mode) | only for `*_inner` layouts (Mula Iara): closed shutters over the pods that hold no unit in that mode (the outer pods), same canvas as `turret.png` |
 | `turret_oc.png` (no normals) | `roof_turrets` | `OverclockGlowGraphics` (`OperationalToggle = IsOverclocked`) | launchers with overclock (Caipora, Mula): ONLY the overclock glow on a transparent canvas the size of `turret.png` (Caipora: the dome eye turns orange + vent embers; Mula: the collar recess and the pod vents glow). Optional for a 3D model: without it the rules skip the component |
 | `floor.png`, `walls.png`, `roof.png`, `roof_normals.png`, `lights.png` | hull layers | `Graphics` | same as the guns (green roof, crew seats; launchers should show missile racks/cradles in the floor) |
@@ -243,8 +243,11 @@ point of the pod that fired (one point per pod; the Tocandira's single point puf
 `missile_launcher_shoot.rules` (bucket `Middle3`, it would be hidden under our roof). **No pod recoil**: recoil would
 move the pod but not the overlays.
 
-Fire order is **LIFO**: the last rack unit loaded fires first, so the overlay that disappears is always the tube that
-just fired. The rack unit of each mode is set by the spec (`launchers[].modes[].layout`, computed by
+Fire order is **LIFO**: the last rack unit loaded fires first, so on every full salvo the overlay that disappears is
+the tube that just fired. Known cosmetic limit (spec test T21): a partial salvo (the magazine stayed dry, DryFlush) or
+the rest of an interrupted salvo after switching back to its missile type starts at the LAST cell of the rack, so one
+empty-looking tube fires while a loaded-looking cell vanishes (the overlays draw the rack level, the cell cycle restarts
+at the top). Counts and damage are not affected; do not try to fix it in the art. The rack unit of each mode is set by the spec (`launchers[].modes[].layout`, computed by
 `tools/launcher_layout.py`); each unit has a **form** that tells the art what to draw:
 
 | layout | launcher / modes | rack units | form | what one loaded unit looks like |
@@ -298,9 +301,12 @@ coordinates. A layout with shutters and a model without `shutter()` stops the re
 
 `render_part.py <short> [--quick] [--out DIR] [--only turret,hull,cells]` writes the images and a `meta.json` with
 `kind: "launcher"`, `turret` (as for guns, plus `oc_glow`), `modes.<type>.units` / `tubes` / `unit_pods` (turret
-coordinates, fill order), `modes.<type>.overlays[{range, files, normals}]` and `modes.<type>.shutters{file, normals,
-pods}`, plus `backblast`, `crew_pos`, `hull`, `lights`. `tools/bs_data.py` checks that every mode has as many units as
-the spec's rack and that `*_inner` modes have shutters; `tools/check_art3d.py <short>` checks canvas sizes.
+coordinates, fill order), `modes.<type>.overlays[{range, files, normals, rect}]` (`rect` = the pod rectangle the level
+images are cropped to, from `overlay_rect()`; the rules place the `ResourceSprites` with it) and
+`modes.<type>.shutters{file, normals, pods}`, plus `backblast`, `crew_pos`, `hull`, `lights`. The renderer composes
+each level directly on the pod-rectangle canvas and stops with an error if a nose does not fit in it. `tools/bs_data.py` checks that every mode has as many units as
+the spec's rack and that `*_inner` modes have shutters; `tools/check_art3d.py <short>` checks canvas sizes (turret canvas for `turret*.png` / shutters, pod rectangle for the
+rack levels).
 
 ### 8.3 Style per launcher (same family look as the guns: dark core + light shards, LEDs in recesses)
 

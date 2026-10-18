@@ -95,6 +95,7 @@ Components
 	{
 		Type = DeathByLifetime
 		Lifetime = 15
+		FactorEffectsWith = Targetable
 		OnDeath = &~/BURST
 	}
 	Sprite
@@ -163,6 +164,7 @@ Components
 		SourcePartCollisionDelay = 1.5 / (&/Simulation/PhysicsUpdatesPerSecond)
 		FriendlyShipLowCollisions = false
 		FriendlyShipHighCollisions = false
+		FactorEffectsWith = Targetable
 		HitShield = &~/BURST
 		HitOperational = &~/BURST
 		HitStructural = &~/BURST

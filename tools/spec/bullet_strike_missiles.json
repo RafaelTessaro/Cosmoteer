@@ -133,13 +133,13 @@
    "1. Crew carry vanilla missile parts into ONE magazine per resource family (HE / thermal / EMP / nuke) - the user's 'internal storage space for missiles'. Consumers request only the family the selected mode uses.",
    "2. While (and only while) the launcher is crewed, the selected mode's AUTOLOADER moves one missile (PARTS parts -> 1 rack unit) every RELOAD seconds into the READY RACK. Vanilla reload timers keep counting unmanned; ours stop (gaps §4.4 #2).",
    "3. The rack is a LATCH (thruster_boost battery pattern): it opens only when every cell is loaded and stays open until the last cell fired, so a salvo always completes and an overclocked loader can never turn it into endless fire.",
-   "4. The turret fires one cell every RIPPLE through a per-mode ModeCycle in LIFO order, so the ResourceSprites overlays always match the real rack.",
-   "5. Switching INTO a mode starts that mode's ModeSwitchDelay (= one full reload of that mode, OC-divided): a pre-filled second rack can never give two salvos back to back, also when the switch happens mid-salvo.",
-   "6. When the family magazine cannot load one more missile of the mode, the partial rack still fires (DryFlush) - nothing is ever stranded.",
+   "4. The turret fires one cell every RIPPLE through a per-mode ModeCycle in LIFO order, so the ResourceSprites overlays match the real rack on every FULL salvo (the cycle restarts LIFO-aligned whenever the rack refills). Known cosmetic limit (T21): a partial DryFlush salvo, or the rest of an interrupted salvo after switching back into its mode, starts at the last cell, so one tube looks empty while a loaded-looking one fires; every emitter draws from the same ReadyRack_k, so counts and damage are unaffected.",
+   "5. Switching INTO a mode starts that mode's ModeSwitchDelay (= one full reload of that mode, OC-divided): a pre-filled second rack can never give two salvos back to back, also when the switch happens mid-salvo. A rack that is ALREADY FULL (latched) at the switch also waits PrefilledDelay_k = one full reload WITHOUT the overclock divide (variant prefilled_switch), because it was loaded without paying the overclock heat: racks pre-filled before combat give no free overclocked cadence.",
+   "6. When the family magazine has not been able to load one more missile of the mode for DRY_DELAY = CELLS x RELOAD seconds in a row (no crew delivery during a whole un-overclocked reload), the partial rack still fires (DryFlush, debounced by a ValueTween ramp + ThresholdToggle 100 %, chaingun ShellChangingValueTween pattern) - nothing is ever stranded, and a late crew trip never turns the latched rippled salvo into a trickle of mini-salvos (any delivery resets the wait).",
    "7. Interrupted salvo: the latch stays on and the remaining cells go to the next target, then the launcher reloads.",
-   "8. Cook-off: one stock-scaled DeathEffects per resource family, outside the toggled blocks; a scorched or destroyed loaded launcher explodes."
+   "8. Cook-off: one ScorchedEffects/DeathEffects pair PER STORAGE (each family magazine and every rack), outside the toggled blocks, each scaled by its own fill and weighted by its capacity in parts (BaseValue = family full-stock value x storage parts / cookoff.parts_full; a rack holds CELLS x PARTS parts): every stored part is worth value/parts_full wherever it sits, and magazine + largest rack full gives exactly the spec value; a scorched or destroyed loaded launcher explodes."
   ],
-  "component_sketch": "// ---- part root (Caipora shown; generated per launcher) ----\nRIPPLE = 4/30                                   // tick-aligned (point_defense FireInterval 2/30 precedent)\nOVERCLOCK { RELOAD_FACTOR = 1.5; HEAT_PER_PART = 425; HEAT_PER_SECOND = 100 }\nHEAT_TO_RESOURCE = &<./Data/statuses/heat/heat.rules>/STATUS_TO_RESOURCE_RATIO\nMODE_he      { CELLS = 16; PARTS = 2; RELOAD = 1.06; VENT = 2 }     // ... one block per mode (values in launchers[].modes)\nMODE_torpedo { CELLS = 2;  PARTS = 6; RELOAD = 4.65; VENT = 0 }\n\nMissileTypeToggle { Type = UIToggle; ToggleID = \"bs_missile_type\"; Default = 0; AvailableChoices = [0, 1, 2, 3, 4, 5]; AlwaysAllowInBuildMode = true }\nModeToggle_he { Type = ModeToggle; Mode = MissileTypeToggle; OnMode = 0 }          // ... _cluster 1, _limpet 2, _napalm 3, _emp 4, _torpedo 5\n\n// (1) ONE MAGAZINE PER RESOURCE FAMILY (HE / cluster / limpet / torpedo share MagStorage_HE), outside every ToggledComponents\nUsesHE     { Type = MultiToggle; Toggles = [ModeToggle_he, ModeToggle_cluster, ModeToggle_limpet, ModeToggle_torpedo]; Mode = Any }\nConsumeHE  { Type = MultiToggle; Toggles = [CommandConsumptionToggle, UsesHE]; Mode = All }\nMagStorage_HE  { Type = ResourceStorage; ResourceType = missile_part_he; MaxResources = 64; DelayBeforeReadyToUse = .5\n                 DropResourcesWhenDestroyed = true; DropResourcesWhenRemoved = true; ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver; UITileRect = [...] }\nMagConsumer_HE { Type = ResourceConsumer; ResourceType = missile_part_he; Storage = MagStorage_HE; DefaultPriority = &/PRIORITIES/Weapon_Supply\n                 OperationalToggle = ConsumeHE; ConsumptionToggleButtonOffset = [0, -.4] }\n// ... MagStorage_Thermal (napalm), MagStorage_EMP (emp), MagStorage_Nuke (nuclear, Mula only)\n\n// (2) PER MODE: rack latch, crewed autoloader, threshold toggles (thruster_boost.rules:176-199 patterns)\nReadyRack_he   { Type = ResourceStorage; ResourceType = missile_part_he; MaxResources = &~/MODE_he/CELLS\n                 ToggleOnResources = &~/MODE_he/CELLS; ToggleOffResources = 0; AnticipateMoreResourcesFrom = [MagStorage_HE]; DropResourcesWhenDestroyed = false }\nRackAny_he     { Type = MultiResourceStorage; ResourceType = missile_part_he; ResourceStorages = [ReadyRack_he]; ToggleOnResources = 1; ToggleOffResources = 0 }\nMagCanLoad_he  { Type = MultiResourceStorage; ResourceType = missile_part_he; ResourceStorages = [MagStorage_HE]\n                 ToggleOnResources = &~/MODE_he/PARTS; ToggleOffResources = (&ToggleOnResources) - 1 }       // family holds >= 1 missile of THIS mode\nLoaderOn_he    { Type = MultiToggle; Toggles = [IsOperational, ModeToggle_he, { Toggle = ReadyRack_he; Invert = true }]; Mode = All }   // crewed only\nAutoloader_he  { Type = ResourceConverter; OperationalToggle = LoaderOn_he; CheckResourceLimits = true\n                 FromStorage = MagStorage_HE; FromQuantity = &~/MODE_he/PARTS; ToStorage = ReadyRack_he; ToQuantity = 1\n                 Interval { BaseValue = &~/MODE_he/RELOAD\n                            Modifiers [ { Type = BuffRemap; BuffType = Overclock; RemapFrom = [0, 1]; RemapTo = [1, &~/OVERCLOCK/RELOAD_FACTOR]; ModificationMode = Divide } ] } }\n                 // EMP modes: RemapTo = [1, 1.2]; nuclear mode: same block WITHOUT the Modifiers list\n\n// (3) CROSS-MODE EXPLOIT: per-mode switch delay = one full reload of the mode you switch INTO (holds mid-salvo too)\nModeOn_he         { Type = ToggleTrigger; Toggle = ModeToggle_he; TriggerWhenOn = true; TriggerWhenOff = false }\nModeSwitchDelay_he { Type = Timer; StartTrigger = ModeOn_he; StartExpired = true\n                     Duration { BaseValue = (&~/MODE_he/CELLS) * (&~/MODE_he/RELOAD); Modifiers [ same BuffRemap Divide (none for nuclear) ] } }\n\n// (4) PARTIAL SALVO when the family magazine runs dry (DryFlush)\nDryFlush_he  { Type = MultiToggle; Toggles = [RackAny_he, { Toggle = MagCanLoad_he; Invert = true }]; Mode = All }\nCanFire_he   { Type = MultiToggle; Toggles = [ReadyRack_he, DryFlush_he]; Mode = Any }\nRackReady_he { Type = MultiToggle; Toggles = [ModeToggle_he, ModeSwitchDelay_he, CanFire_he]; Mode = All }\nHasMissiles_he { Type = MultiToggle; Toggles = [ModeToggle_he, { Type = MultiToggle; Toggles = [MagCanLoad_he, RackAny_he]; Mode = Any }]; Mode = All }\n// ... repeat (2)-(4) per mode\nRackReady      { Type = MultiToggle; Toggles = [RackReady_he, RackReady_cluster, ...]; Mode = Any }\nHasMissiles    { Type = MultiToggle; Toggles = [HasMissiles_he, ...]; Mode = Any }          // PartCrew HighPriorityPrerequisites + NoMissiles indicator\nFirePermission { Type = MultiToggle; Toggles = [RackReady, FireModeToggle]; Mode = All }\n\n// (5) TURRET (complete: emitter proxy for targeting, IsHigh collider chained to the turret)\nTurret { Type = TurretWeapon; Location = [pivot]; OperationalToggle = IsOperational; AutoFireToggle = AutoFireToggle\n         FireInterval = &~/RIPPLE; FirePermissionToggle = FirePermission\n         FiringArc = 360d; RotateSpeed = 75d; FireThresholdAngle = 25d\n         AllowFireWithBlockedLOS = true; IgnoreFriendlyShipLowLOSChecks = true\n         Emitter = TargetEmitterProxy                           // cannon_deck.rules:617 \"only used for targeting\"\n         AIFirepowerRating = &~/Part/StatsByCategory/0/Stats/DamagePerSecond\n         AutoTargets [ { TargetType = ShipParts; Toggle = AutoTargetToggle; EnableInDirectControlMode = true } ] }\nTurretCollider { Type = CircleCollider; ChainedTo = Turret; Radius = 1.25; IsHigh = true }\nTargetEmitterProxy { Type = EmitterProxy; ComponentID = Emitter_0; ChainedTo = Turret }   // Emitter_0 of the ACTIVE Fire_k (cannon_deck.rules:895, T/bsgen/guns.py:438)\n\n// (6) PER MODE FIRE BLOCK (only one active): ShootCycle INSIDE the block, per-mode ModeRange (fixes Iara/torpedo ripple, D-B2)\nFire_he { Type = ToggledComponents; Toggle = ModeToggle_he; IncludeInBlueprints = true\n  Components {\n    ShootCycle     { Type = ModeCycle; ModeRange = [0, 15]; IncrementTrigger = Turret; StartingMode = 15 }\n    ShootTrigger_0 { Type = ModeTrigger; Mode = ShootCycle; TriggerInModes = [0] }           // ... _15\n    Emitter_0 { Type = BulletEmitter; ChainedTo = Turret; GetTargetFrom = Turret; FireTrigger = ShootTrigger_0; OperationalToggle = IsOperational\n                Location = [cell 15 in fill order]                                          // LIFO: last cell filled fires first\n                Bullet = &<../../shots/bs_msl_twin_he/bs_msl_twin_he.rules>; ResourceStorage = ReadyRack_he; ResourcesUsed = 1\n                TargetLeadPrediction = false; Spread = [-4d, 4d]; Recoil = 0 }\n    // Emitter_1..15 : Emitter_0 { Location = ...; FireTrigger = ShootTrigger_i }\n    // Tocandira cassette emitters add: Burst = 2; BurstDelay = 2/30 (UseResourcePerShotInBurst default false -> 1 rack unit per pair)\n    EmitterAny     { Type = MultiTrigger; Triggers = [Emitter_0, ..., Emitter_15] }\n    CellsPodL      { Type = ResourceSprites; ChainedTo = Turret; Rotation = 90d; Location = [...]; Layer = \"roof_turrets\"\n                     ResourceStorage = ReadyRack_he; RangeLow = 0; RangeHigh = 8; HasZeroResourceSprite = true; ResourceLevels [ 9 entries ] }\n    CellsPodR : CellsPodL { Location = [...]; RangeLow = 8; RangeHigh = 16 }\n    ReloadProgressBar { Type = ProgressBar; OperationalToggle = IsOperational; ShowProgressFor = ReadyRack_he; ValueRange = [0, &~/MODE_he/CELLS] }\n    LaunchEffect_i { Type = TriggeredEffects; ChainedTo = Emitter_i; Trigger = Emitter_i; MediaEffects [ flash (Upper1), backblast (Upper), launch sound ] }\n  } }\n\n// (7) OVERCLOCK COSTS (base_*_overclock gives IsOverclocked / HEAT_TARGET_STORAGE / OverclockReset)\nOverclock_LoadHeat_he { Type = ResourceChange; OperationalToggle = IsOverclocked; Trigger = Autoloader_he\n                        ResourceStorage = &~/Part/^/0/HEAT_TARGET_STORAGE; Amount = (&~/OVERCLOCK/HEAT_PER_PART) * (&~/MODE_he/PARTS) * (&~/HEAT_TO_RESOURCE) }\nRackFullTrigger_he    { Type = ToggleTrigger; Toggle = ReadyRack_he; TriggerWhenOn = true; TriggerWhenOff = false }\nOverclock_Vent_he     { Type = ResourceChange; OperationalToggle = IsOverclocked; Trigger = RackFullTrigger_he\n                        ResourceStorage = MagStorage_HE; Amount = -(&~/MODE_he/VENT) }      // thruster_boost.rules:224 negative ResourceChange\n// constant heat: Overclock_ConstantHeatProducer (T/bsgen/common.py:133); nuclear mode has no LoadHeat and no Vent\n\n// (8) COOK-OFF PER FAMILY, outside the toggled blocks, ScorchedTrigger copied VERBATIM (fixes D-C1)\nStock_HE         { Type = MultiResourceStorage; ResourceType = missile_part_he; ResourceStorages = [MagStorage_HE, ReadyRack_he, ReadyRack_cluster, ReadyRack_limpet, ReadyRack_torpedo] }\nScorchedTrigger  { Type = ToggleTrigger; Toggle = ScorchedToggle; TriggerWhenOn = false; TriggerWhenOff = true }   // missile_launcher_he.rules:271-276\nScorchedEffects_HE  { Type = TriggeredEffects; Trigger = ScorchedTrigger; FactorHitEffectsWith = Stock_HE; HitEffects = &../DestroyedEffects_HE/HitEffects }\nDestroyedEffects_HE { Type = DeathEffects; OperationalToggle = ScorchedToggle; FactorHitEffectsWith = Stock_HE\n                      HitEffects [ { Type = ExplosiveDamage; TotalDamage = { BaseValue = 61200; EffectScaleExponent = 1 }; Radius = 5; StatusType = cosmoteer.fire\n                                     StatusChancePerNDamage = 50%; StatusValue = 1; StatusValueType = Interpolated; NDamage = 1000; CrewKillChance = 30% }\n                                   { Type = ExplosiveDamage; TotalDamage = { BaseValue = 20400; EffectScaleExponent = 1 }; Radius = 4; Filter { OperationalHealth = false; StructuralHealth = true } } ] }\n// thermal family: GridStatusApplication cosmoteer.heat dump (Filter { Self = true }); EMP family: ExplosiveResourceDrain battery; nuke family: big blast\n\n// FALLBACK if the latch behaves as a pure threshold (test T02), all timings unchanged (NGEN §14.1):\n// IsSalvoActive { Type = Timer; StartTrigger = Turret; ResetTrigger = Turret; Duration = RIPPLE x 1.5; StartExpired = true }\n// RackFull_k { Type = MultiResourceStorage; ResourceStorages = [ReadyRack_k]; ToggleOnResources = CELLS; ToggleOffResources = CELLS - 1 }\n// CanFire_k = Any[RackFull_k, All[IsSalvoActive, RackAny_k], DryFlush_k]\n",
+  "component_sketch": "// ---- part root (Caipora shown; generated per launcher) ----\nRIPPLE = 4/30                                   // tick-aligned (point_defense FireInterval 2/30 precedent)\nOVERCLOCK { RELOAD_FACTOR = 1.5; HEAT_PER_PART = 425; HEAT_PER_SECOND = 100 }\nHEAT_TO_RESOURCE = &<./Data/statuses/heat/heat.rules>/STATUS_TO_RESOURCE_RATIO\nMODE_he      { CELLS = 16; PARTS = 2; RELOAD = 1.06; VENT = 2 }     // ... one block per mode (values in launchers[].modes)\nMODE_torpedo { CELLS = 2;  PARTS = 6; RELOAD = 4.65; VENT = 0 }\n\nMissileTypeToggle { Type = UIToggle; ToggleID = \"bs_missile_type\"; Default = 0; AvailableChoices = [0, 1, 2, 3, 4, 5]; AlwaysAllowInBuildMode = true }\nModeToggle_he { Type = ModeToggle; Mode = MissileTypeToggle; OnMode = 0 }          // ... _cluster 1, _limpet 2, _napalm 3, _emp 4, _torpedo 5\n\n// (1) ONE MAGAZINE PER RESOURCE FAMILY (HE / cluster / limpet / torpedo share MagStorage_HE), outside every ToggledComponents\nUsesHE     { Type = MultiToggle; Toggles = [ModeToggle_he, ModeToggle_cluster, ModeToggle_limpet, ModeToggle_torpedo]; Mode = Any }\nConsumeHE  { Type = MultiToggle; Toggles = [CommandConsumptionToggle, UsesHE]; Mode = All }\nMagStorage_HE  { Type = ResourceStorage; ResourceType = missile_part_he; MaxResources = 64; DelayBeforeReadyToUse = .5\n                 DropResourcesWhenDestroyed = true; DropResourcesWhenRemoved = true; ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver; UITileRect = [...] }\nMagConsumer_HE { Type = ResourceConsumer; ResourceType = missile_part_he; Storage = MagStorage_HE; DefaultPriority = &/PRIORITIES/Weapon_Supply\n                 OperationalToggle = ConsumeHE; ConsumptionToggleButtonOffset = [0, -.4] }\n// ... MagStorage_Thermal (napalm), MagStorage_EMP (emp), MagStorage_Nuke (nuclear, Mula only)\n\n// (2) PER MODE: rack latch, crewed autoloader, threshold toggles (thruster_boost.rules:176-199 patterns)\nReadyRack_he   { Type = ResourceStorage; ResourceType = missile_part_he; MaxResources = &~/MODE_he/CELLS\n                 ToggleOnResources = &~/MODE_he/CELLS; ToggleOffResources = 0; AnticipateMoreResourcesFrom = [MagStorage_HE]; DropResourcesWhenDestroyed = false }\nRackAny_he     { Type = MultiResourceStorage; ResourceType = missile_part_he; ResourceStorages = [ReadyRack_he]; ToggleOnResources = 1; ToggleOffResources = 0 }\nMagCanLoad_he  { Type = MultiResourceStorage; ResourceType = missile_part_he; ResourceStorages = [MagStorage_HE]\n                 ToggleOnResources = &~/MODE_he/PARTS; ToggleOffResources = (&ToggleOnResources) - 1 }       // family holds >= 1 missile of THIS mode\nLoaderOn_he    { Type = MultiToggle; Toggles = [IsOperational, ModeToggle_he, { Toggle = ReadyRack_he; Invert = true }]; Mode = All }   // crewed only\nAutoloader_he  { Type = ResourceConverter; OperationalToggle = LoaderOn_he; CheckResourceLimits = true\n                 FromStorage = MagStorage_HE; FromQuantity = &~/MODE_he/PARTS; ToStorage = ReadyRack_he; ToQuantity = 1\n                 Interval { BaseValue = &~/MODE_he/RELOAD\n                            Modifiers [ { Type = BuffRemap; BuffType = Overclock; RemapFrom = [0, 1]; RemapTo = [1, &~/OVERCLOCK/RELOAD_FACTOR]; ModificationMode = Divide } ] } }\n                 // EMP modes: RemapTo = [1, 1.2]; nuclear mode: same block WITHOUT the Modifiers list\n\n// (3) CROSS-MODE EXPLOIT: per-mode switch delay = one full reload of the mode you switch INTO (holds mid-salvo too)\nModeOn_he         { Type = ToggleTrigger; Toggle = ModeToggle_he; TriggerWhenOn = true; TriggerWhenOff = false }\nModeSwitchDelay_he { Type = Timer; StartTrigger = ModeOn_he; StartExpired = true\n                     Duration { BaseValue = (&~/MODE_he/CELLS) * (&~/MODE_he/RELOAD); Modifiers [ same BuffRemap Divide (none for nuclear) ] } }\n\n// (3b) PRE-FILLED RACK (variant prefilled_switch, OC launchers, OC-affected modes): a rack already full at the switch waits the UN-overclocked reload\nPrefilledSwitch_he { Type = TriggerProxy; ComponentID = ModeOn_he; ProxyToggle = ReadyRack_he }        // base_part_overclock.rules WasOperationalOverclockDisabled pattern\nPrefilledDelay_he  { Type = Timer; StartTrigger = PrefilledSwitch_he; StartExpired = true; Duration = (&~/MODE_he/CELLS) * (&~/MODE_he/RELOAD) }   // no Modifiers\n\n// (4) PARTIAL SALVO when the family magazine stays dry for DRY_DELAY (DryFlush, debounced; MODE_k { DRY_DELAY = (&CELLS) * (&RELOAD) })\nDryPending_he { Type = MultiToggle; Toggles = [RackAny_he, { Toggle = MagCanLoad_he; Invert = true }]; Mode = All }\nDryWait_he    { Type = ValueTween; IsOnToggle = DryPending_he; OnTweenDuration = &~/MODE_he/DRY_DELAY; OffTweenDuration = 0.1 }   // chaingun ShellChangingValueTween\nDryFlush_he   { Type = ThresholdToggle; ValueFrom = DryWait_he; MinAmount = 100% }                                                  // chaingun IsShellFullyOpen\nCanFire_he   { Type = MultiToggle; Toggles = [ReadyRack_he, DryFlush_he]; Mode = Any }\nRackReady_he { Type = MultiToggle; Toggles = [ModeToggle_he, ModeSwitchDelay_he, PrefilledDelay_he, CanFire_he]; Mode = All }\nHasMissiles_he { Type = MultiToggle; Toggles = [ModeToggle_he, { Type = MultiToggle; Toggles = [MagCanLoad_he, RackAny_he]; Mode = Any }]; Mode = All }\n// ... repeat (2)-(4) per mode\nRackReady      { Type = MultiToggle; Toggles = [RackReady_he, RackReady_cluster, ...]; Mode = Any }\nHasMissiles    { Type = MultiToggle; Toggles = [HasMissiles_he, ...]; Mode = Any }          // PartCrew HighPriorityPrerequisites + NoMissiles indicator\nFirePermission { Type = MultiToggle; Toggles = [RackReady, FireModeToggle]; Mode = All }\n\n// (5) TURRET (complete: emitter proxy for targeting, IsHigh collider chained to the turret)\nTurret { Type = TurretWeapon; Location = [pivot]; OperationalToggle = IsOperational; AutoFireToggle = AutoFireToggle\n         FireInterval = &~/RIPPLE; FirePermissionToggle = FirePermission\n         FiringArc = 360d; RotateSpeed = 75d; FireThresholdAngle = 25d\n         AllowFireWithBlockedLOS = true; IgnoreFriendlyShipLowLOSChecks = true\n         Emitter = TargetEmitterProxy                           // cannon_deck.rules:617 \"only used for targeting\"\n         AIFirepowerRating = &~/Part/StatsByCategory/0/Stats/DamagePerSecond\n         AutoTargets [ { TargetType = ShipParts; Toggle = AutoTargetToggle; EnableInDirectControlMode = true } ] }\nTurretCollider { Type = CircleCollider; ChainedTo = Turret; Radius = 1.25; IsHigh = true }\nTargetEmitterProxy { Type = EmitterProxy; ComponentID = Emitter_0; ChainedTo = Turret }   // Emitter_0 of the ACTIVE Fire_k (cannon_deck.rules:895, T/bsgen/guns.py:438)\n\n// (6) PER MODE FIRE BLOCK (only one active): ShootCycle INSIDE the block, per-mode ModeRange (fixes Iara/torpedo ripple, D-B2)\nFire_he { Type = ToggledComponents; Toggle = ModeToggle_he; IncludeInBlueprints = true\n  Components {\n    ShootCycle     { Type = ModeCycle; ModeRange = [0, 15]; IncrementTrigger = Turret; StartingMode = 15 }\n    ShootTrigger_0 { Type = ModeTrigger; Mode = ShootCycle; TriggerInModes = [0] }           // ... _15\n    Emitter_0 { Type = BulletEmitter; ChainedTo = Turret; GetTargetFrom = Turret; FireTrigger = ShootTrigger_0; OperationalToggle = IsOperational\n                Location = [cell 15 in fill order]                                          // LIFO: last cell filled fires first\n                Bullet = &<../../shots/bs_msl_twin_he/bs_msl_twin_he.rules>; ResourceStorage = ReadyRack_he; ResourcesUsed = 1\n                TargetLeadPrediction = false; Spread = [-4d, 4d]; Recoil = 0 }\n    // Emitter_1..15 : Emitter_0 { Location = ...; FireTrigger = ShootTrigger_i }\n    // Tocandira cassette emitters add: Burst = 2; BurstDelay = 2/30 (UseResourcePerShotInBurst default false -> 1 rack unit per pair)\n    EmitterAny     { Type = MultiTrigger; Triggers = [Emitter_0, ..., Emitter_15] }\n    CellsPodL      { Type = ResourceSprites; ChainedTo = Turret; Rotation = 90d; Location = [...]; Layer = \"roof_turrets\"\n                     ResourceStorage = ReadyRack_he; RangeLow = 0; RangeHigh = 8; HasZeroResourceSprite = true; ResourceLevels [ 9 entries ] }\n    CellsPodR : CellsPodL { Location = [...]; RangeLow = 8; RangeHigh = 16 }\n    ReloadProgressBar { Type = ProgressBar; OperationalToggle = IsOperational; ShowProgressFor = ReadyRack_he }   // no ValueRange: the rack provides its 0..1 fill (shield_gen_small.rules)\n    LaunchEffect_i { Type = TriggeredEffects; ChainedTo = Emitter_i; Trigger = Emitter_i; MediaEffects [ flash (Upper1), backblast (Upper), launch sound ] }\n  } }\n\n// (7) OVERCLOCK COSTS (base_*_overclock gives IsOverclocked / HEAT_TARGET_STORAGE / OverclockReset)\nOverclock_LoadHeat_he { Type = ResourceChange; OperationalToggle = IsOverclocked; Trigger = Autoloader_he\n                        ResourceStorage = &~/Part/^/0/HEAT_TARGET_STORAGE; Amount = (&~/OVERCLOCK/HEAT_PER_PART) * (&~/MODE_he/PARTS) * (&~/HEAT_TO_RESOURCE) }\nRackFullTrigger_he    { Type = ToggleTrigger; Toggle = ReadyRack_he; TriggerWhenOn = true; TriggerWhenOff = false }\nOverclock_Vent_he     { Type = ResourceChange; OperationalToggle = IsOverclocked; Trigger = RackFullTrigger_he\n                        ResourceStorage = MagStorage_HE; Amount = -(&~/MODE_he/VENT) }      // thruster_boost.rules:224 negative ResourceChange\n// constant heat: Overclock_ConstantHeatProducer (T/bsgen/common.py:133); nuclear mode has no LoadHeat and no Vent\n\n// (8) COOK-OFF PER STORAGE, outside the toggled blocks, ScorchedTrigger copied VERBATIM (fixes D-C1)\n// one pair per storage that holds parts: the family magazine (1 part per resource) and every rack of the family (CELLS x PARTS parts);\n// BaseValue = family full-stock value x storage parts / cookoff.parts_full, so every stored part is worth value/parts_full (Caipora HE: 637.5 op + 212.5 st)\nScorchedTrigger  { Type = ToggleTrigger; Toggle = ScorchedToggle; TriggerWhenOn = false; TriggerWhenOff = true }   // missile_launcher_he.rules:271-276\nScorchedEffects_Mag_HE  { Type = TriggeredEffects; Trigger = ScorchedTrigger; FactorHitEffectsWith = MagStorage_HE; HitEffects = &../DestroyedEffects_Mag_HE/HitEffects }\nDestroyedEffects_Mag_HE { Type = DeathEffects; OperationalToggle = ScorchedToggle; FactorHitEffectsWith = MagStorage_HE     // plain storage as factor: missile_launcher_nuke.rules MissileStorage\n                          HitEffects [ { Type = ExplosiveDamage; TotalDamage = { BaseValue = 40800; EffectScaleExponent = 1 }; Radius = 5; StatusType = cosmoteer.fire     // 61200 x 64 / 96\n                                         StatusChancePerNDamage = 50%; StatusValue = 1; StatusValueType = Interpolated; NDamage = 1000; CrewKillChance = 30% }\n                                       { Type = ExplosiveDamage; TotalDamage = { BaseValue = 13600; EffectScaleExponent = 1 }; Radius = 4; Filter { OperationalHealth = false; StructuralHealth = true } } ] }\nScorchedEffects_Rack_he / DestroyedEffects_Rack_he { ... FactorHitEffectsWith = ReadyRack_he; TotalDamage 20400 / 6800 }      // 61200 x (16 x 2) / 96\n// ... the same pair for ReadyRack_cluster, ReadyRack_limpet, ReadyRack_torpedo (2 x 6 parts: 7650 / 2550); full magazine + full HE rack = 61200 + 20400\n// thermal family: GridStatusApplication cosmoteer.heat dump (Filter { Self = true }); EMP family: ExplosiveResourceDrain battery; nuke family: big blast\n\n// FALLBACK if the latch behaves as a pure threshold (test T02), all timings unchanged (NGEN §14.1):\n// IsSalvoActive { Type = Timer; StartTrigger = Turret; ResetTrigger = Turret; Duration = RIPPLE x 1.5; StartExpired = true }\n// RackFull_k { Type = MultiResourceStorage; ResourceStorages = [ReadyRack_k]; ToggleOnResources = CELLS; ToggleOffResources = CELLS - 1 }\n// CanFire_k = Any[RackFull_k, All[IsSalvoActive, RackAny_k], DryFlush_k]\n",
   "cut_from_v1": [
    "C's Stream toggle (bs_salvo_mode): DPS-neutral, contradicts the user's 'reload between salvos' rhythm, adds a second loader per mode (D-C4)",
    "C's Unloader_k unload-on-switch: leaks when the magazine is full (D-C3); replaced by ModeSwitchDelay_k",
@@ -317,7 +317,7 @@
    "per_ship_limit": 0,
    "per_ship_limit_note": "none",
    "cookoff_at_full_stock": {
-    "missile_part_he": "DeathEffects FactorHitEffectsWith = Stock_HE: ExplosiveDamage 11500 r3.5 (fire 50 %/1000, CrewKillChance 30 %) + 3800 structural; 18 parts at full = 850.0 per part",
+    "missile_part_he": "one ScorchedEffects/DeathEffects pair per storage (magazine + every rack, FactorHitEffectsWith = that storage, BaseValue = value x its parts / parts_full), total at full stock: ExplosiveDamage 11500 r3.5 (fire 50 %/1000, CrewKillChance 30 %) + 3800 structural; 18 parts at full = 850.0 per part",
     "missile_part_thermal": "GridStatusApplication cosmoteer.heat pool 4500 on own tiles (Filter { Self = true }, vanilla thermal-launcher dump)"
    },
    "modes": [
@@ -572,7 +572,7 @@
      "st_radius": 2.5,
      "fire_chance_per_1000": 0.5,
      "crew_kill_chance": 0.3,
-     "note": "vanilla missile_launcher_he.rules:288-330 shape (op r, structural r-1 like 5/4), Friendlies = true, Delay .05; FactorHitEffectsWith = Stock_<family> fill"
+     "note": "vanilla missile_launcher_he.rules:288-330 shape (op r, structural r-1 like 5/4), Friendlies = true, Delay .05; one ScorchedEffects/DeathEffects pair per storage (family magazine + every rack), FactorHitEffectsWith = that storage, BaseValue = value x storage parts / parts_full"
     },
     "missile_part_thermal": {
      "kind": "heat_dump",
@@ -867,7 +867,7 @@
    "per_ship_limit": 0,
    "per_ship_limit_note": "none",
    "cookoff_at_full_stock": {
-    "missile_part_he": "DeathEffects FactorHitEffectsWith = Stock_HE: ExplosiveDamage 61200 r5 (fire 50 %/1000, CrewKillChance 30 %) + 20400 structural; 96 parts at full = 850.0 per part",
+    "missile_part_he": "one ScorchedEffects/DeathEffects pair per storage (magazine + every rack, FactorHitEffectsWith = that storage, BaseValue = value x its parts / parts_full), total at full stock: ExplosiveDamage 61200 r5 (fire 50 %/1000, CrewKillChance 30 %) + 20400 structural; 96 parts at full = 850.0 per part",
     "missile_part_thermal": "GridStatusApplication cosmoteer.heat pool 24000 on own tiles (Filter { Self = true }, vanilla thermal-launcher dump)",
     "missile_part_emp": "ExplosiveResourceDrain battery 57600 r12 (vanilla EMP launcher death pattern)"
    },
@@ -1404,7 +1404,7 @@
      "st_radius": 4.0,
      "fire_chance_per_1000": 0.5,
      "crew_kill_chance": 0.3,
-     "note": "vanilla missile_launcher_he.rules:288-330 shape (op r, structural r-1 like 5/4), Friendlies = true, Delay .05; FactorHitEffectsWith = Stock_<family> fill"
+     "note": "vanilla missile_launcher_he.rules:288-330 shape (op r, structural r-1 like 5/4), Friendlies = true, Delay .05; one ScorchedEffects/DeathEffects pair per storage (family magazine + every rack), FactorHitEffectsWith = that storage, BaseValue = value x storage parts / parts_full"
     },
     "missile_part_thermal": {
      "kind": "heat_dump",
@@ -1731,10 +1731,10 @@
    "per_ship_limit": 2,
    "per_ship_limit_note": "pool bs_limit_nuke (Max 2) shared with Boiúna: the Mula is the mod's second nuclear-capable platform; single proven pool (BS/mod.rules:106-136). Optional variant after test T18: also bs_limit_flagship (dual pool).",
    "cookoff_at_full_stock": {
-    "missile_part_he": "DeathEffects FactorHitEffectsWith = Stock_HE: ExplosiveDamage 183600 r7 (fire 50 %/1000, CrewKillChance 30 %) + 61200 structural; 288 parts at full = 850.0 per part",
+    "missile_part_he": "one ScorchedEffects/DeathEffects pair per storage (magazine + every rack, FactorHitEffectsWith = that storage, BaseValue = value x its parts / parts_full), total at full stock: ExplosiveDamage 183600 r7 (fire 50 %/1000, CrewKillChance 30 %) + 61200 structural; 288 parts at full = 850.0 per part",
     "missile_part_thermal": "GridStatusApplication cosmoteer.heat pool 64000 on own tiles (Filter { Self = true }, vanilla thermal-launcher dump)",
     "missile_part_emp": "ExplosiveResourceDrain battery 86400 r12 (vanilla EMP launcher death pattern)",
-    "missile_part_nuke": "DeathEffects FactorHitEffectsWith = Stock_NUKE: ExplosiveDamage 72000 r8 (fire 50 %/1000, CrewKillChance 30 %) + 24000 structural; 48 parts at full = 2000 per part"
+    "missile_part_nuke": "one ScorchedEffects/DeathEffects pair per storage (magazine + every rack, FactorHitEffectsWith = that storage, BaseValue = value x its parts / parts_full), total at full stock: ExplosiveDamage 72000 r8 (fire 50 %/1000, CrewKillChance 30 %) + 24000 structural; 48 parts at full = 2000 per part"
    },
    "modes": [
     {
@@ -2348,7 +2348,7 @@
      "st_radius": 6.0,
      "fire_chance_per_1000": 0.5,
      "crew_kill_chance": 0.3,
-     "note": "vanilla missile_launcher_he.rules:288-330 shape (op r, structural r-1 like 5/4), Friendlies = true, Delay .05; FactorHitEffectsWith = Stock_<family> fill"
+     "note": "vanilla missile_launcher_he.rules:288-330 shape (op r, structural r-1 like 5/4), Friendlies = true, Delay .05; one ScorchedEffects/DeathEffects pair per storage (family magazine + every rack), FactorHitEffectsWith = that storage, BaseValue = value x storage parts / parts_full"
     },
     "missile_part_thermal": {
      "kind": "heat_dump",
@@ -2372,7 +2372,7 @@
      "st_radius": 7.0,
      "fire_chance_per_1000": 0.5,
      "crew_kill_chance": 0.3,
-     "note": "vanilla missile_launcher_he.rules:288-330 shape (op r, structural r-1 like 5/4), Friendlies = true, Delay .05; FactorHitEffectsWith = Stock_<family> fill"
+     "note": "vanilla missile_launcher_he.rules:288-330 shape (op r, structural r-1 like 5/4), Friendlies = true, Delay .05; one ScorchedEffects/DeathEffects pair per storage (family magazine + every rack), FactorHitEffectsWith = that storage, BaseValue = value x storage parts / parts_full"
     }
    }
   }
@@ -3729,7 +3729,7 @@
   "Vanilla anchors (RJ/modes/career/techs.rules): factory_he 7500 requires missile_launcher_he (5000, :112-119, :382-389); factory_thermal 9000 requires missile_launcher_thermal (+ heat_management); factory_emp 10000 requires missile_launcher_emp; factory_nuke 15000 requires missile_launcher_nuke + factory_uranium; control_room_large 10000; heat_management 5000.",
   "HE parts can be bought at stations before factory_he is researched, so the Tocandira is usable from tier 1.",
   "Limpet requires our APHE ammo tech (delayed-fuse shells) - thematic link; the nuclear torpedo requires our bs_nuclear (Boiúna) tech and the vanilla nuke factory.",
-  "Build & Battle: add the three launchers to BB_WHITELIST and buildbattle_techs (iterate GUNS + DEFENSES + LAUNCHERS)."
+  "Build & Battle: add the three launchers to BB_WHITELIST and buildbattle_techs (iterate GUNS + DEFENSES + LAUNCHERS): the early Tocandira goes to the whitelist plus an always-offered ammo tech bs_bb_bs_msl_box_ammo (Cost 5000, FundsThresholdBeforeOffered 0, ResourcesUnlocked = its missile_part_he / missile_part_thermal; PartsUnlocked repeats the whitelisted part, as vanilla cosmoteer.missile_launcher_he does with the whitelisted factory_he), because vanilla B&B unlocks those resources only with cosmoteer.missile_launcher_he / _thermal (techs_buildbattle.rules:54, :301); Caipora and Mula are 5000 techs whose ResourcesUnlocked carry their families."
  ],
  "balance_checks": {
   "conventions": "Final Bullet Strike deck-missile model: data + formulas + interception simulation + hard-limit asserts.\n\nImported by gen_missile_spec.py (which writes MISSILE_SPEC.json / .md). Run with `python3 -I`.\n\nConventions (identical to tools/spec/bullet_strike_spec.json balance_checks and VERDICT_balance.md):\n  effective hull DPS = direct + 50 % of ExplosiveDamage (all explosive blocks, operational + structural);\n  per tile = Size cells; bullet-eq = credits / 4 (HE part 8 cr = 2, thermal 12 = 3, EMP 20 = 5, nuke 36 = 9);\n  crew trips = parts per minute / 10 (MaxStackSize 10 for every vanilla missile part);\n  factories (unbuffed): HE / thermal 200 parts/min, EMP / nuke 120 parts/min;\n  RecCrew = crew + parts/s x 4 (vanilla missile_launcher.rules:613);\n  SW bubble: 1 battery drained = 2.5 shield HP;\n  salvo cycle = UNITS x RELOAD + salvo duration (loader gated off while the rack latch is on).",
@@ -4876,7 +4876,7 @@
     }
    }
   ],
-  "cookoff_reading": "~850 explosive per stored HE part (band 600-1000; vanilla 3333 over 12 parts): Tocandira 15300 at 18 parts, Caipora 81600 at 96, Mula 240000 at 288 + 96000 more with nuclear parts aboard. A loaded Mula is the ship's most dangerous part. Racks are counted in missile units inside Stock_<family> (a rack missile weighs as 1 part, S2) - this under-states rack weight slightly and never duplicates parts.",
+  "cookoff_reading": "~850 explosive per stored HE part (band 600-1000; vanilla 3333 over 12 parts): Tocandira 15300 at 18 parts, Caipora 81600 at 96, Mula 240000 at 288 + 96000 more with nuclear parts aboard. A loaded Mula is the ship's most dangerous part. Every storage (family magazine and each rack, a rack missile = PARTS parts) has its own cook-off pair weighted by its capacity in parts, so a part is worth the same in the magazine or in a rack and magazine + largest rack full gives exactly these numbers (stage 4; the stage 1-3 single Stock_<family> fill fraction over magazine + all racks under-stated them, e.g. Caipora HE 0.70, Mula Iara 2/34).",
   "napalm_dot_upper_bound": [
    {
     "launcher": "Tocandira",
@@ -5515,16 +5515,16 @@
   {
    "id": "T04",
    "question": "Cross-mode exploit",
-   "how": "Fill HE rack, switch to Piranha, fire, switch back at once; also switch mid-salvo; OC on/off.",
-   "fallback_no_number_change": "single part-level ModeSwitchDelay with the longest duration (A's version)",
-   "pass": "the HE rack waits ModeSwitchDelay_he (one HE reload, /1.5 under OC); never two salvos back to back"
+   "how": "Fill HE rack, switch to Piranha, fire, switch back at once; also switch mid-salvo; OC on/off. Pre-fill every rack with OC off, then switch OC on and cycle through the modes.",
+   "fallback_no_number_change": "single part-level ModeSwitchDelay with the longest duration (A's version); prefilled_switch=oc_delay (OC-divided delay for every switch)",
+   "pass": "the HE rack waits ModeSwitchDelay_he (one HE reload, /1.5 under OC); never two salvos back to back; a rack that was already full at the switch waits the UN-overclocked reload (PrefilledDelay_k), so pre-filling gives no free overclocked cadence"
   },
   {
    "id": "T05",
    "question": "DryFlush partial salvo",
-   "how": "Give the HE family 5 parts and an empty rack.",
-   "fallback_no_number_change": "drop DryFlush (stranded missiles wait for resupply)",
-   "pass": "loads 2 missiles, fires the 2, no lock-up; slow resupply fires in trickles (accepted behaviour)"
+   "how": "Give the HE family 5 parts and an empty rack. Then a supply-starved Mula HE: empty magazine and rack, one crewman delivering 10 parts every ~5 s (less than the 6.1 parts/s the loader eats).",
+   "fallback_no_number_change": "dry_flush=instant (no wait; slow resupply fires in trickles) or dry_flush=off (stranded missiles wait for resupply)",
+   "pass": "loads 2 missiles, waits DRY_DELAY (one full un-overclocked reload) with no delivery, then fires the 2, no lock-up; supply-starved Mula: every delivery resets the wait, the latch keeps the rack closed and it still fires FULL 48-missile salvos (no trickle of 1-5 missile mini-salvos); a partial salvo only after a whole reload without any delivery"
   },
   {
    "id": "T06",
@@ -5564,9 +5564,9 @@
   {
    "id": "T11",
    "question": "Piranha: inheritance, magnet, spread (gap Q1/Q2)",
-   "how": "1 carrier at an off-axis target; log distinct parts hit; variant RandomizeTarget = true; burst one with an enemy 20 m from our big hull.",
+   "how": "1 carrier at an off-axis target; log distinct parts hit; variant RandomizeTarget = true; burst one with an enemy 20 m from our big hull. Damage a carrier to about half HP with PD, then let it hit a hull, time out (11 s) and proximity-burst.",
    "fallback_no_number_change": "magnet-only children; StartDelay 1.0; RandomizeTarget stays off",
-   "pass": "children home after .25 s and hit >= 3 parts; no friendly fizzles"
+   "pass": "children home after .25 s and hit >= 3 parts; no friendly fizzles; children of a half-dead carrier spawn with about half HP on all three paths (HealthFactor factored by Targetable on ProximityFuse, TimedFuse and the impact Hit)"
   },
   {
    "id": "T12",
@@ -5641,9 +5641,9 @@
   {
    "id": "T21",
    "question": "Overlays",
-   "how": "Pod rotates; overlays on roof_turrets over the pod on roof_doodads; per-pod RangeLow/RangeHigh; heavy/torpedo looks; interior view.",
+   "how": "Pod rotates; overlays on roof_turrets over the pod on roof_doodads; per-pod RangeLow/RangeHigh; heavy/torpedo looks; interior view. Fire a partial DryFlush salvo and switch away / back mid-salvo.",
    "fallback_no_number_change": "one combined pod sprite per level",
-   "pass": "LIFO matches the count in every layout"
+   "pass": "LIFO matches the count in every layout on every full salvo; known cosmetic limit: a partial DryFlush salvo and the rest of an interrupted salvo after a switch back start at the last cell (one empty-looking tube fires while a loaded-looking cell vanishes; counts unaffected)"
   },
   {
    "id": "T22",
@@ -5691,7 +5691,7 @@
   {
    "topic": "Rack latch, progress, thresholds, triggers, negative change",
    "copy_from": "RJ/ships/terran/thruster_boost/thruster_boost.rules:176-177 (ToggleOnResources = (&MaxResources) - 999 / ToggleOffResources = 0), :186 (ShowProgressFor = storage), :198-199 (threshold MultiResourceStorage FullAmmoToggle), :213-214 and :237-238 (ToggleTrigger TriggerWhenOn = false / TriggerWhenOff = true), :224 (ResourceChange Amount = -999999 on a storage)",
-   "note": "latch, RackAny_k / MagCanLoad_k, ModeOn_k, vent"
+   "note": "latch, RackAny_k / MagCanLoad_k, ModeOn_k, vent; ReloadProgressBar without ValueRange (the rack has no ProvidedValueRange/PerResource, it provides its 0..1 fill)"
   },
   {
    "topic": "Timer with OC-modified Duration, StartExpired",
@@ -5711,12 +5711,12 @@
   {
    "topic": "Cell overlays",
    "copy_from": "RJ/ships/terran/cannon_med/cannon_med.rules:858-915 (ResourceSprites ChainedTo = Turret, RangeLow/RangeHigh 0-5 / 5-15); missile_launcher_he.rules:220-269 (HasZeroResourceSprite, one level per count, NVL §4)",
-   "note": "pod on roof_doodads (1100), overlays on roof_turrets (1200); per-pod RangeLow/RangeHigh; LIFO fire order = reverse fill order"
+   "note": "pod on roof_doodads (1100), overlays on roof_turrets (1200); per-pod RangeLow/RangeHigh; LIFO fire order = reverse fill order; level images cropped to the pod rectangle (launcher_layout.overlay_rect), ResourceSprites Location/Size from it (cannon_med.rules:873-907 AmmoSpritesTurret precedent)"
   },
   {
    "topic": "Cook-off",
    "copy_from": "RJ/ships/terran/missile_launcher/he/missile_launcher_he.rules:271-276 (ScorchedTrigger TriggerWhenOn = false; TriggerWhenOff = true), :278-283 (ScorchedEffects FactorHitEffectsWith), :288-330 (DeathEffects 30000 r5 + CrewKillChance 50 % at :308 + 10000 r4); thermal heat dump: missile_launcher_thermal.rules:536-619 (NVL §9)",
-   "note": "one DeathEffects per family OUTSIDE the toggled blocks; copy ScorchedTrigger verbatim (D-C1)"
+   "note": "one ScorchedEffects/DeathEffects pair per storage (magazine + every rack, weighted by its capacity in parts) OUTSIDE the toggled blocks; copy ScorchedTrigger verbatim (D-C1)"
   },
   {
    "topic": "Missile core (deck-safe)",
@@ -5845,6 +5845,16 @@
    "risk": "CategoryLimits on 0.30.5 RC",
    "level": "LOW",
    "fallback": "ship without limits (as Boiúna/Mapinguari)"
+  },
+  {
+   "risk": "Debounced DryFlush (ValueTween ramp reaching 100 %)",
+   "level": "LOW [vanilla chaingun pattern]",
+   "fallback": "dry_flush=instant, same numbers (T05)"
+  },
+  {
+   "risk": "Pre-filled rack switch delay (TriggerProxy with ProxyToggle on the rack latch)",
+   "level": "LOW",
+   "fallback": "prefilled_switch=oc_delay, same numbers (T04)"
   }
  ],
  "judges_defects_resolution": [
@@ -5858,7 +5868,7 @@
    "judge": "balance",
    "design": "A",
    "defect": "Hidden stock: per-mode magazines, cook-off inside Fire_k",
-   "resolution": "One magazine per resource family + one cook-off per family OUTSIDE the toggled blocks (Stock_<family> counts magazine + all racks)."
+   "resolution": "One magazine per resource family + cook-off OUTSIDE the toggled blocks (stage 4: one pair per storage - magazine and every rack - weighted by its capacity in parts; stages 1-3 used one Stock_<family> fill fraction)."
   },
   {
    "judge": "balance",
@@ -6291,12 +6301,22 @@
     "single_longest": "one part-level ModeSwitchDelay started on any switch, Duration = the longest CELLS x RELOAD of the launcher"
    }
   },
+  "prefilled_switch": {
+   "default": "full_delay",
+   "test": "T04",
+   "stage": 4,
+   "options": {
+    "full_delay": "OC launchers, OC-affected modes: switching into a mode whose rack is already full (latched) also starts PrefilledDelay_k (Timer, StartTrigger = TriggerProxy { ComponentID = ModeOn_k; ProxyToggle = ReadyRack_k }, Duration = CELLS x RELOAD WITHOUT the overclock divide); single_longest uses one PrefilledDelay with the longest duration. A rack loaded without paying the overclock heat never fires at the overclocked cadence",
+    "oc_delay": "stage 3 behaviour: only the OC-divided ModeSwitchDelay_k (racks pre-filled with overclock off then switched under overclock skip the load heat and vents)"
+   }
+  },
   "dry_flush": {
-   "default": "on",
+   "default": "debounced",
    "test": "T05",
    "stage": 1,
    "options": {
-    "on": "a partial rack fires when the family magazine cannot load one more missile of the mode",
+    "debounced": "stage 4 default: DryFlush_k = ThresholdToggle 100 % on a ValueTween (DryWait_k) that ramps while DryPending_k = All[RackAny_k, NOT MagCanLoad_k] holds, OnTweenDuration = DRY_DELAY = CELLS x RELOAD (un-overclocked), OffTweenDuration 0.1: the partial rack fires only after a whole reload without any crew delivery (chaingun.rules ShellChangingValueTween / IsShellFullyOpen)",
+    "instant": "stage 1-3 behaviour: a partial rack fires the moment the family magazine cannot load one more missile of the mode (slow resupply fires in trickles)",
     "off": "no DryFlush: stranded missiles wait for resupply"
    }
   },
@@ -6333,7 +6353,7 @@
    "test": "T21",
    "stage": 1,
    "options": {
-    "reset_each_reload": "per-mode ShootCycle lives in a ToggledComponents block that is rebuilt (StartingMode = CELLS-1) while the autoloader refills a non-empty rack, so every full salvo starts LIFO-aligned even after a DryFlush or a mid-salvo switch; emitters stay in Fire_k and reach the ModeTriggers through TriggerProxy (cannon_deck.rules:636-656/:714-736 pattern)",
+    "reset_each_reload": "per-mode ShootCycle lives in a ToggledComponents block that is rebuilt (StartingMode = CELLS-1) while the autoloader refills a non-empty rack, so every FULL salvo starts LIFO-aligned even after a DryFlush or a mid-salvo switch; emitters stay in Fire_k and reach the ModeTriggers through TriggerProxy (cannon_deck.rules:636-656/:714-736 pattern). Known cosmetic limit (T21): a partial DryFlush salvo and the rest of an interrupted salvo after switching back start at the last cell (StartingMode is static), so one loaded-looking cell vanishes while an empty-looking tube fires",
     "free_cycle": "ShootCycle + ModeTriggers inside Fire_k exactly as the component_sketch (alignment drifts after a partial salvo; cosmetic only)"
    }
   },
@@ -6342,8 +6362,8 @@
    "test": "T21",
    "stage": 1,
    "options": {
-    "per_pod": "one ResourceSprites per pod with RangeLow/RangeHigh over its rack units",
-    "combined": "one ResourceSprites over the whole rack (one combined image per level)"
+    "per_pod": "one ResourceSprites per pod with RangeLow/RangeHigh over its rack units; the level images are cropped to the pod's overlay rectangle (tools/launcher_layout.py overlay_rect) and placed with Location = its centre / Size = its size (vanilla cannon_med.rules AmmoSpritesTurret: turret-chained ResourceSprites with an offset and a small Size)",
+    "combined": "one ResourceSprites over the whole rack (one combined image per level), cropped to the rectangle of all rack units"
    }
   },
   "napalm_fire": {
@@ -6398,6 +6418,15 @@
    "options": {
     "inherit_target_and_magnet": "children TargetHoming after .25 s + buzz-droid magnet + spacing",
     "magnet_only": "children without TargetHoming, magnet only; StartDelay 1.0"
+   }
+  },
+  "cluster_hp_inherit": {
+   "default": "all_paths",
+   "test": "T11",
+   "stage": 4,
+   "options": {
+    "all_paths": "the carrier passes its remaining HP to the children on every BURST path: ProximityFuse and TimedFuse carry FactorEffectsWith = Targetable (vanilla missile_nuke_stage1.rules / mine.rules DeployDeath pairing with HealthFactor) and so does the impact Hit (SimpleHit field FactorEffectsWith, wiki BulletSimpleHitRules complete list; vanilla PenetratingHit laser_bolt_large.rules uses it with Targetable)",
+    "fuses_only": "only ProximityFuse and TimedFuse are factored; a direct hull/shield hit spawns full-HP children (fallback if the SimpleHit factor misbehaves)"
    }
   },
   "limpet_anchor": {

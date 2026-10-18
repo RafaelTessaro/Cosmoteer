@@ -77,7 +77,17 @@ def main():
             extra = [mm["shutters"]["file"]] if mm.get("shutters") else []
             if m["geo"].get("shutters") and not extra:
                 errs.append(f"modo {m['type']}: o layout {m['layout']} pede shutters_{m['type']}.png (shutter())")
-            for f in [f for ov in mm["overlays"] for f in ov["files"]] + extra:
+            # niveis do rack: quadro = retangulo do casulo ("rect" no meta, STYLE.md 8.1); persianas: quadro da torre
+            for ov in mm["overlays"]:
+                rect = ov.get("rect")
+                want = (rect[2] - rect[0], rect[3] - rect[1]) if rect else im.size
+                if not rect:
+                    print(f"aviso: modo {m['type']}: overlay sem 'rect' (quadro inteiro da torre; re-renderize)")
+                for f in ov["files"]:
+                    o = Image.open(A3.path(short, f))
+                    if o.size != want:
+                        errs.append(f"{f}: {o.size} difere do retangulo do casulo {want}")
+            for f in extra:
                 o = Image.open(A3.path(short, f))
                 if o.size != im.size:
                     errs.append(f"{f}: {o.size} difere do quadro do casulo {im.size}")

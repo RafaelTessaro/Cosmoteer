@@ -470,7 +470,9 @@ with open(MSPEC_PATH, encoding="utf-8") as fh:
 BUILD_LAUNCHERS = ["rafaeltessaro.bs_msl_box", "rafaeltessaro.bs_msl_twin", "rafaeltessaro.bs_msl_quad"]
 # estagio 2: todas as cargas, em todos os niveis de lancador do spec
 BUILD_PAYLOADS = {"he", "cluster", "limpet", "napalm", "emp", "torpedo", "nuclear"}
-GENERATOR_STAGE = 3
+# estagio 4: correcoes da revisao (salva parcial com espera, rack pre-carregado sem overclock, cook-off por
+# storage, sobreposicoes recortadas por casulo, arquivo base do spec, municao da Tocandira no Build & Battle)
+GENERATOR_STAGE = 4
 
 
 def _variants():
@@ -773,6 +775,14 @@ def _launcher_categories(L):
     return cats
 
 
+def _launcher_base(L):
+    """Arquivo base vanilla do spec (launchers[].base_part, ex. "base_med_part_terran_overclock" ou
+    "base_med_part_terran (no overclock; ...)"), sem o sufixo _overclock: o gerador poe o sufixo conforme o
+    overclock estiver ligado (early_overclock=enabled liga o da Tocandira)."""
+    base = L["base_part"].split()[0]
+    return base[:-len("_overclock")] if base.endswith("_overclock") else base
+
+
 def _convert_launchers():
     for L in MSPEC["launchers"]:
         if L["id"] not in BUILD_LAUNCHERS:
@@ -808,7 +818,8 @@ def _convert_launchers():
         lch = {
             "id": L["id"], "short": short, "key": "BS" + "".join(p.capitalize() for p in short.split("_")[1:]),
             "name_en": L["name_en"], "name_pt": L["name_ptbr"], "codename": L["codename"], "tier": L["tier"],
-            "size": L["size"], "crew": L["crew"], "cp": L["command_points"], "hp": L["max_health"],
+            "size": L["size"], "base_part": _launcher_base(L),
+            "crew": L["crew"], "cp": L["command_points"], "hp": L["max_health"],
             "cost": L["build_cost"], "ring": L.get("prohibit_ring_tiles", 1), "arc": L["firing_arc_deg"],
             "rotate": L["rotate_speed_deg_s"], "threshold": L["fire_threshold_deg"],
             "categories": _launcher_categories(L),
@@ -858,7 +869,8 @@ def _check_launcher(lch, L):
     if len(lch["modes"]) == len(L["modes"]):
         for f in lch["families"]:
             ck = lch["cookoff"].get(f["res"])
-            # estoque cheio do spec = carregador + o maior rack da familia, em pecas (cookoff[].parts_full)
+            # estoque cheio do spec = carregador + o maior rack da familia, em pecas (cookoff[].parts_full); o que o
+            # MOTOR calcula com os storages gerados e conferido em bsgen/launchers.py _check_cookoff
             stock = f["mag"] + max(m["cells"] * m["parts"] for m in lch["modes"] if m["family"] == f["key"])
             if ck and ck.get("parts_full") != stock:
                 errs.append(f"cook-off {f['key']}: estoque {stock}, spec parts_full {ck.get('parts_full')}")
@@ -1042,6 +1054,17 @@ def buildbattle_techs():
     # lancadores de misseis (os de inicio de jogo entram na lista branca, como as armas)
     for lch in LAUNCHERS:
         if lch["tier"] == "early":
+            # a peca vem liberada (lista branca), mas as pecas de missil vanilla so se liberam com as techs dos
+            # lancadores vanilla (techs_buildbattle.rules: missile_launcher_he / _thermal ResourcesUnlocked); esta
+            # tech sempre oferecida libera as familias do lancador de inicio. PartsUnlocked repete a peca da lista
+            # branca, como a tech vanilla missile_launcher_he faz com a factory_he (tambem na PartsWhitelist)
+            out.append({"ID": f"{AUTHOR}.bs_bb_{lch['short']}_ammo", "NameKey": Q(f"Parts/{lch['key']}Ammo"),
+                        "DescriptionKey": Q(f"Parts/{lch['key']}AmmoDesc"),
+                        "Icon": _part_ref(lch["short"], "EditorIcon"), "Category": ["weapons"],
+                        "PartsUnlocked": [_part_ref(lch["short"], "ID")],
+                        "ResourcesUnlocked": [f"&<./Data/resources/{f['res']}/{f['res']}.rules>/ID"
+                                              for f in lch["families"]],
+                        "Cost": 5000, "FundsThresholdBeforeOffered": 0})
             continue
         # as pecas de missil vanilla da familia vem junto (no B&B o lancador vanilla libera o recurso com a tech,
         # techs_buildbattle.rules: ResourcesUnlocked = [missile_part_*]); sem isso o lancador nao teria municao

@@ -506,9 +506,16 @@ def _payload_cluster(s):
         "ProximityFuse": {"Type": "DeathByEnemyProximity", "Interval": pf["Interval"], "Range": d["proximity_range"],
                           "StartDelay": start, "DetectsShips": pf["DetectsShips"], "DetectsBullets": pf["DetectsBullets"],
                           "FactorEffectsWith": pf["FactorEffectsWith"], "OnDeath": "&~/BURST"},
-        "TimedFuse": {"Type": "DeathByLifetime", "Lifetime": s["lifetime"], "OnDeath": "&~/BURST"},
+        # os tres caminhos do BURST passam o HP que restou ao portador para os filhotes (HealthFactor sempre com
+        # FactorEffectsWith = Targetable: missile_nuke_stage1.rules DeployDeath, mine.rules DeployDeath)
+        "TimedFuse": {"Type": "DeathByLifetime", "Lifetime": s["lifetime"], "FactorEffectsWith": pf["FactorEffectsWith"],
+                      "OnDeath": "&~/BURST"},
     }
     hit = _deck_flags(s)
+    if v.get("cluster_hp_inherit", "all_paths") == "all_paths":
+        # impacto direto: o SimpleHit tambem escala os efeitos pelo Targetable (campo FactorEffectsWith do hit, como
+        # o PenetratingHit de laser_bolt_large.rules); o BURST so tem o HealthFactor escalavel
+        hit["FactorEffectsWith"] = pf["FactorEffectsWith"]
     hit.update({"HitShield": "&~/BURST", "HitOperational": "&~/BURST", "HitStructural": "&~/BURST",
                 "HitFriendly": {"MediaEffects": _missile_media(s, shake=False, key="burst")}})
     stats = {"STAT_DAMAGE": d["child_total"], "STAT_RADIUS": d["child_radius"], "STAT_CHILDREN": d["children"],

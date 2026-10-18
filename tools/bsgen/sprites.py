@@ -638,8 +638,9 @@ def render_group_icon():
 
 # =====================================================================================  lancadores de misseis
 # Arte provisoria (procedural) dos lancadores de convés ate o modelo 3D existir (contrato: STYLE.md secao 8).
-# Casulo (turret.png) em roof_doodads; celulas carregadas (cells_<tipo>_p<casulo>_<n>.png) em roof_turrets, no
-# MESMO quadro da torre (lado = turret_box, pivo no centro, frente para cima), transparentes fora dos narizes.
+# Casulo (turret.png) em roof_doodads; celulas carregadas (cells_<tipo>_p<casulo>_<n>.png) em roof_turrets,
+# desenhadas no quadro da torre (lado = turret_box, pivo no centro, frente para cima) e recortadas por
+# tools/make_art.py no retangulo do casulo (launcher_layout.overlay_rect), transparentes fora dos narizes.
 def _tp(T, fwd, lat):
     """Coordenadas da torre (tiles, x frente / y direita) -> pixels do quadro da torre (frente para cima)."""
     return T / 2 + lat * PX, T / 2 - fwd * PX
