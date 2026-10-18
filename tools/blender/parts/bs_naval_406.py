@@ -2,12 +2,14 @@
 
 Casa de canhoes em fortaleza com 3 niveis de placas: cinturao baixo (ombreiras com degrau, maos de
 duas garras - lamina principal + garra externa - e saias traseiras com turbinas), glacis inclinado
-de verdade (topo em rampa) + ombros, e no topo a espinha com sensor e a ponte do telemetro que cruza
-a traseira inteira (casulos oticos saindo dos flancos: silhueta "cabeca de martelo", luzes de alerta
-vermelhas). Nucleo escuro com maquinaria nos vaos: elevadores de granadas, tambores com contador,
-calhas, turbinas. Bocarra do Mapinguari: presas interligadas entre os tres bercos dos canos.
+de verdade (topo em rampa, escotilhas alinhadas a emenda chevron) + ombros, e no topo a espinha
+grande com sensor (seta central dominante) e a ponte do telemetro enflechada que cruza a traseira
+(capuz alto + braco baixo, janelas oticas segmentadas, casulos nas pontas: silhueta "cabeca de
+martelo", luzes de alerta vermelhas). Nucleo escuro com maquinaria nos vaos: elevadores de granadas,
+tambores com contador, calhas ate os bercos, turbinas, juntas escuras sob as garras. Bocarra do
+Mapinguari: dentes desencontrados entre os tres bercos com brasa na garganta.
 Tres canos enormes: bolsa de culatra pregueada, luva de recuo grossa, tubo afunilado com extrator
-de gases e freio de boca claro em ponta de flecha com varias portas (brilha de calor).
+de gases e freio de boca claro em dois estagios (dianteiro mais largo, nariz em flecha, brilha de calor).
 """
 
 import math
@@ -184,7 +186,7 @@ def head(M, T="head", phase=0.0):
         _, pp = B.shard(f"paul_{side}", f(paul), 0.36, 0.94, A, slope=0.11, groove=0.045, panel_h=0.035,
                         tags=tags)
         _lines(pp, f"ppl{side}", [(sx * 2.20, 0.74, 0.20, 90), (sx * 2.05, 0.10, 0.24, 0)], 0.975, K)
-        ca, cp = B.shard(f"pcap_{side}", f(pcap), 0.96, 1.08, A, slope=0.05, groove=0.026, panel_h=0.022,
+        _, cp = B.shard(f"pcap_{side}", f(pcap), 0.96, 1.08, A, slope=0.05, groove=0.026, panel_h=0.022,
                          tags=tags)
         _lines(cp, f"pcl{side}", [(sx * 2.40, 0.16, 0.32, 0)], 1.10, K)
         # periscopio do chefe de peca (lente num rebaixo preto)
@@ -202,7 +204,7 @@ def head(M, T="head", phase=0.0):
         B.rbox(f"bglow{side}", sx * 1.74, 1.86, 0.34, 0.018, 0.70, 0.712, M["glow_dim"], rot=sx * -52,
                bevel=0.0, tags=tags)
         _lines(bp, f"bpl{side}", [(sx * 1.46, 2.20, 0.40, 0), (sx * 1.98, 1.30, 0.26, 90)], 0.86, K)
-        ta, tp = _sshard(f"talon_{side}", f(talon), 0.36, _ramp(1.08, 0.86, 2.28, 0.62), A, slope=0.08,
+        _, tp = _sshard(f"talon_{side}", f(talon), 0.36, _ramp(1.08, 0.86, 2.28, 0.62), A, slope=0.08,
                          groove=0.03, panel_h=0.025, tags=tags)
         _lines(tp, f"tpl{side}", [(sx * 2.66, 1.40, 0.22, 0)], 0.84, K)
         # pistao hidraulico cruzando a forquilha em diagonal: cilindro na garra, haste entra na lamina
@@ -285,6 +287,7 @@ def head(M, T="head", phase=0.0):
                          tags=tags)
         # linha transversal (segue a rampa) e par de linhas paralelas a borda interna (perto dos dentes)
         _lines(gp, f"gpl{side}", [(sx * 0.98, 0.40, 0.46, 90)], gz(0, 0.40) + 0.03, K)
+        _lines(gp, f"gpf{side}", [(sx * 0.99, 0.64, 0.20, 90)], gz(0, 0.64) + 0.03, K)
         _lines(gp, f"gpd{side}", [(sx * 0.66, 0.62, 0.22, sx * diag), (sx * 0.76, 0.66, 0.16, sx * diag)],
                gz(0, 0.74) + 0.03, K)
         # escotilha do municiador: retangulo alinhado a emenda chevron, recuado para fora do eixo do sensor;
@@ -352,7 +355,7 @@ def head(M, T="head", phase=0.0):
     # espinha maior (seta central dominante) com o nariz avancando ate a linha dos bercos
     spine = [(-0.40, -1.12), (0.40, -1.12), (0.47, -1.00), (0.47, 0.22), (0.19, 0.86), (-0.19, 0.86),
              (-0.47, 0.22), (-0.47, -1.00)]
-    sa, sp = B.shard("spine", spine, 0.90, 1.38, A, slope=0.08, groove=0.03, panel_h=0.025, tags=tags)
+    _, sp = B.shard("spine", spine, 0.90, 1.38, A, slope=0.08, groove=0.03, panel_h=0.025, tags=tags)
     sp2 = [(-0.25, -0.84), (0.25, -0.84), (0.30, -0.74), (0.30, 0.18), (0.11, 0.60), (-0.11, 0.60),
            (-0.30, 0.18), (-0.30, -0.74)]
     s2 = B.plate("spine2", sp2, 1.40, 1.50, A, slope=0.035, tags=tags)

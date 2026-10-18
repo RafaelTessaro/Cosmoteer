@@ -233,7 +233,10 @@ def make_all(d, paint=(46, 58, 74), scale=2):
         groups = [[0]] * 24
     else:  # alternate
         groups = [[k % nb] for k in range(max(4, nb * 2))]
-    gap = 10 if pattern in ("single", "volley") else (2 if pattern == "rotary" else 4)
+    # canhoes lentos: espera o calor esfriar entre os tiros; rotativos/metralhadoras: rajada rapida
+    gap = max(10, len(seq) + 2) if pattern in ("single", "volley") else (2 if pattern == "rotary" else 4)
+    # tamanho do clarao/fumaca pelo calibre (largura do sprite do cano; 0.46 = 76 mm)
+    fsc = 0.55 if spin else min(2.2, max(0.5, br["sprite_w"] / 0.46))
     state = [len(seq) - 1] * nb             # indice do quadro atual de cada cano (comeca em repouso)
     shot_fx = []                            # (barril, idade)
     smokes = []
@@ -250,13 +253,13 @@ def make_all(d, paint=(46, 58, 74), scale=2):
         for item in shot_fx:
             bi, age = item
             if age < 3:
-                fx.append((flash(0.55 if spin or nb > 2 else 1.0, age / 3, seed=step * 7 + age),
-                           br["muzzle"] - 0.14, br["ys"][bi], True))
+                fx.append((flash(fsc, age / 3, seed=step * 7 + age),
+                           br["muzzle"] - 0.14 * fsc, br["ys"][bi], True))
             item[1] += 1
         for item in smokes:
             bi, age, sd = item
             if 0 < age < 9:
-                fx.append((smoke(0.6 if nb > 2 else 1.0, age / 9, seed=sd), br["muzzle"] + 0.25 + age * 0.03,
+                fx.append((smoke(max(0.6, fsc * 0.9), age / 9, seed=sd), br["muzzle"] + 0.25 * fsc + age * 0.03,
                            br["ys"][bi], False))
             item[1] += 1
         shot_fx = [x for x in shot_fx if x[1] < 3]
