@@ -22,19 +22,23 @@ so em recessos escuros):
     cantos de fora, casco de chumbo (esquerda) e estante de ogivas (direita) no leito escuro;
   * berco de montagem blindado no tile central: calha escura com o estojo partido em 2 metades (as mesmas
     medidas do Projetil Nuclear, parts/bs_shell_nuke.py, em 0.72), 2 mordentes pesados de grampo (bloco
-    escuro + casca clara) que correm em trilhos de aco, e capuz de saida embaixo (o projetil pronto desce por
-    baixo dele para a saida).
+    escuro + casca clara) que correm em trilhos de aco, culatra de proa em cima (2 cunhas claras de bisel
+    duplo com fenda de 2 LEDs de pronto e batente de aco onde a espoleta encosta) e capuz de saida embaixo (o
+    projetil pronto desce por baixo dele para a saida).
 Animacao (12 quadros, 0.11 s): 0 estojo aberto com as faixas apagadas, garras nas portas (nucleo e ogiva
 presos); 1-3 o braco esquerdo leva o nucleo (o banho pulsa forte quando o nucleo sai) e as faixas acendem
 quando ele entra; 2-4 o braco direito leva a ogiva; 4-5 as metades fecham; 6 o grampo bate com lampejo verde
 pelas costuras; 7-8 o lampejo apaga e o grampo solta; 9-10 o projetil desce para a saida; 11 metades novas
-chegando pelos lados (LED de pronto na calha), novos nucleo e ogiva saindo das portas. O quadro 0 (base do
-lights.png) nao tem o estojo aceso.
+chegando pelos lados (LED de pronto na calha), novos nucleo e ogiva saindo das portas. O banho do cadinho
+desce a um vale escuro (crosta de escoria engrossando) nos quadros 4-8 e volta ao nivel do quadro 0. Os LEDs
+de pronto da culatra ficam acesos com o berco aberto esperando (0-2, 11). O quadro 0 (base do lights.png)
+nao tem o estojo aceso.
 Teto: placas verdes (pintura) em blindagem extra pesada: guardas claras em L nos cantos de cima, 4 laminas
 claras em cunha (cantos de cima e de baixo) emoldurando o trevo de 3 laminas de blindagem clara do tile
 central, tampa da celula quente sem pintura em degraus com visor, chevrons duplos verdes elevados nas
 entradas e na saida, cinta de cofre em segmentos claros com dobradicas e trava central sobre a saida. As
-luzes do teto sao lima (R alto, B zero) para nao cair no teste de troca de cor do shader do teto.
+luzes do teto sao verdes com R medio e B zero (r - b alto) para nao cair no teste de troca de cor do shader
+do teto (swapAllegianceColor).
 """
 
 import math
@@ -97,8 +101,9 @@ def _state(phase):
         "slide": {9: 0.10, 10: 0.36}.get(i, 0.0),
         "lit": i in (3, 4, 5, 6, 7, 8, 9, 10),     # faixas do estojo acendem quando o nucleo entra
         "ready": i == 11,                          # LED de pronto no fundo da calha (metades novas chegando)
-        # banho do cadinho (forca da emissao)
-        "melt": [1.0, 2.0, 1.5, 1.2, 0.95, 0.75, 0.7, 0.75, 0.8, 0.85, 0.95, 1.0][i],
+        # banho do cadinho (forca da emissao): pico quando o nucleo sai, vale fundo (crosta escura) durante o
+        # fechamento e volta ao nivel do quadro 0 (base do lights.png)
+        "melt": [1.0, 1.8, 1.5, 1.1, 0.7, 0.4, 0.3, 0.4, 0.6, 0.8, 0.9, 1.0][i],
     }
 
 
@@ -110,9 +115,10 @@ def _extra(st=None):
     X.update({
         "cap": X["ogive"],
         # banho do cadinho: verde saturado. Forca baixa porque o halo do render soma ~55% em areas grandes de
-        # emissao (com mais que ~0.4 o banho estoura em verde-branco); centro mais quente
-        "melt": B.mat_glow("nk_melt", (0.30, 1.0, 0.14), 0.16 + 0.13 * melt),
-        "melt_hot": B.mat_glow("nk_melt_hot", (0.36, 1.0, 0.18), 0.30 + 0.25 * melt),
+        # emissao (com mais que ~0.4 o banho estoura em verde-branco): o pulso desce fundo no vale (0.3 -> ~0.05)
+        # e sobe pouco no pico (1.8 -> ~0.37); centro mais quente
+        "melt": B.mat_glow("nk_melt", (0.30, 1.0, 0.14), 0.29 * min(melt, 1.0) ** 1.4 + 0.10 * max(0.0, melt - 1.0)),
+        "melt_hot": B.mat_glow("nk_melt_hot", (0.36, 1.0, 0.18), 0.05 + 0.50 * min(melt, 1.4)),
         "flash": B.mat_glow("nk_flash", (0.35, 1.0, 0.16), 1.2 + 1.8 * flash),
         "lead": B.mat_metal("nk_lead", (0.075, 0.08, 0.085), rough=0.55, metal=0.5),
         # cinza medio fosco das cascas secundarias (sem desgaste: nao clareia nas quinas)
@@ -126,12 +132,13 @@ def _extra(st=None):
 
 
 def _roof_led():
-    """LED do teto: verde-lima com R alto e B zero. O shader do teto (swapAllegianceColor) troca pela pintura
-    todo pixel com g - max(r, b) > .05 e |r - b| < .25; o verde puro das luzes cairia nesse teste. Com
-    r/g >= ~0.9 (sRGB) e b = 0 nem o nucleo, nem as bordas misturadas com a blindagem, nem o halo sobre o leito
-    escuro passam no teste (com r/g < 0.83 a mistura com cinza neutro ja cai no teste).
+    """LED do teto: verde (matiz ~90 graus, o mesmo verde do interior e do Boiuna) com B zero. O shader do teto
+    (swapAllegianceColor) troca pela pintura todo pixel com g - max(r, b) > .05 e |r - b| < .25; o verde puro
+    (R baixo e B baixo) cairia nesse teste. Com B = 0 e R ~ 0.5 o nucleo do LED fica com r - b bem acima de .25
+    (r ~ 130-170 em 8 bits) e nao e trocado. So as bordas fracas misturadas com o leito escuro podem cair no
+    teste: viram um tom escuro da pintura junto do leito, sem anel claro.
     Forca baixa: acima de ~1 o vermelho e o verde saturam juntos e a luz vira amarela."""
-    return B.mat_glow("nk_roof_led", (0.80, 1.0, 0.0), 0.7)
+    return B.mat_glow("nk_roof_led", (0.32, 1.0, 0.0), 0.75)
 
 
 def _holdout():
@@ -306,13 +313,15 @@ def _chamber(M, X, tags, st):
     B.loft("cru_liner", _octo(wx, wy, ri), _octo(wx, wy, ri), 0.355, 0.385, K, bevel=0.0, tags=tags)
     rm = ri - 0.013
     B.loft("cru_melt", _octo(wx, wy, rm), _octo(wx, wy, rm), 0.385, 0.395, X["melt"], bevel=0.0, tags=tags)
-    rh = 0.020 + 0.016 * max(0.0, st["melt"] - 0.7)      # centro quente cresce no pulso
+    rh = 0.005 + 0.020 * min(st["melt"], 1.6)           # centro quente cresce no pulso e encolhe no vale
     B.loft("cru_hot", _octo(wx, wy, rh, 0), _octo(wx, wy, rh, 0), 0.395, 0.40, X["melt_hot"], bevel=0.0,
            tags=tags)
+    # cascas de escoria girando devagar; engrossam no vale (crosta escura se formando quando o banho esfria)
+    rs = 0.013 + 0.020 * max(0.0, 0.9 - st["melt"])
     for k in range(3):
         a = math.radians(st["i"] * 22 + 120 * k + 15)
-        B.loft(f"cru_slag{k}", _octo(wx + math.cos(a) * 0.052, wy + math.sin(a) * 0.052, 0.013, k * 10),
-               _octo(wx + math.cos(a) * 0.052, wy + math.sin(a) * 0.052, 0.010, k * 10), 0.395, 0.403, KM,
+        B.loft(f"cru_slag{k}", _octo(wx + math.cos(a) * 0.052, wy + math.sin(a) * 0.052, rs, k * 10),
+               _octo(wx + math.cos(a) * 0.052, wy + math.sin(a) * 0.052, rs * 0.77, k * 10), 0.395, 0.403, KM,
                bevel=0.0, tags=tags)
     # pincas de aco dos dois lados: braco do lado da parede, pivo escuro e mordente que abraca o aro
     for k in (-1, 1):
@@ -556,6 +565,22 @@ def _cradle(M, X, tags, st):
     if st["ready"]:
         # LED de pronto no fundo da calha (entre as metades novas que chegam pelos lados)
         B.box("cr_ready", 0, 0.05, 0.03, 0.18, 0.064, 0.07, M["glow_dim"], bevel=0.0, tags=tags)
+    # culatra de proa: 2 cunhas de blindagem clara (bisel duplo) sobre saia escura nos cantos de cima do tile,
+    # emoldurando o nariz do projetil, com fenda de 2 LEDs de pronto (acesos com o berco aberto esperando o
+    # nucleo, fracos durante o fechamento) e batente de aco no meio onde a espoleta encosta
+    B.box("cr_ybridge", 0, 0.468, 0.44, 0.05, 0.0, 0.10, KM, bevel=0.006, tags=tags)
+    B.box("cr_nstop", 0, 0.47, 0.13, 0.044, 0.0, 0.135, S, bevel=0.008, tags=tags)
+    B.box("cr_nstopc", 0, 0.47, 0.05, 0.016, 0.135, 0.14, K, bevel=0.0, tags=tags)
+    yk = [(-0.455, 0.29), (-0.215, 0.29), (-0.195, 0.31), (-0.195, 0.42), (-0.235, 0.46), (-0.325, 0.46),
+          (-0.455, 0.33)]
+    wait = st["i"] in (0, 1, 2, 11)
+    for sx in (-1, 1):
+        f = _flip(sx)
+        B.plate(f"cr_yokek{sx}", B.offset_poly(f(yk), -0.025), 0.0, 0.14, K, slope=0.012, tags=tags)
+        ya, yp = B.shard(f"cr_yoke{sx}", f(yk), 0.10, 0.23, A, slope=0.035, groove=0.016, panel_h=0.018, tags=tags)
+        _ledslot(f"cr_ysl{sx}", sx * 0.30, 0.365, 0.12, 0.042, 0.14, 2, M, tags, [ya, yp], vertical=False,
+                 pip_mat=M["glow"] if wait else M["glow_dim"])
+        B.bolts(f"cr_yb{sx}", [(sx * 0.42, 0.312), (sx * 0.245, 0.405)], 0.235, 0.015, S, tags=tags)
 
     # estojo (2 metades) + nucleo + ogiva
     oy = -st["slide"]
@@ -674,7 +699,7 @@ def _vchev(name, cx, cy, ang, targets, z1, green, M, tags, s=1.0):
 def roof(M, T="roof"):
     """Teto verde (pintura da nave) em blindagem extra pesada, tampa da celula quente sem pintura, ombreiras e
     laminas claras dos manipuladores, o trevo de 3 laminas sobre o berco e a cinta de cofre sobre a saida.
-    Todas as luzes do teto usam o LED lima (_roof_led): o verde puro seria trocado pela pintura no jogo."""
+    Todas as luzes do teto usam o LED de _roof_led (B zero): o verde puro seria trocado pela pintura no jogo."""
     tags = (T,)
     green = B.mat_roof_green()
     LED = _roof_led()
@@ -726,7 +751,7 @@ def roof(M, T="roof"):
         if lp is not None:
             B.cut(lp, [B.rbox(f"lid_pl{sx}", sx * 0.27, 0.80, 0.022, 0.14, 0.15, 0.6, K, rot=sx * 33, bevel=0.0)])
     # visor: fenda horizontal escura (vidro de chumbo neutro, sem verde: o verde seria pintado) com a linha de
-    # luz lima do banho la embaixo e um reflexo claro na ponta
+    # luz verde do banho la embaixo e um reflexo claro na ponta
     vis = B.rpoly(0, 1.12, 0.36, 0.085, 0, chamfer=0.03)
     for k, t in enumerate((l2a, l2p)):
         B.cut(t, [B.loft(f"lid_vc{k}", vis, vis, 0.21, 0.7, K, bevel=0.0)])
@@ -772,7 +797,11 @@ def roof(M, T="roof"):
         ma, mp = B.shard(f"rf_mid{sx}", B.rpoly(sx * 1.0, 0.0, 0.92, 0.92, 0, chamfer=0.10), 0.0, 0.08, green,
                          slope=0.03, groove=0.05, panel_h=0.024, tags=tags)
         _vchev(f"rf_mv{sx}", sx * 0.98, 0.0, 0 if sx < 0 else 180, (ma, mp), 0.15, green, M, tags, s=0.95)
-        _ledslot(f"rf_mp{sx}", sx * 0.72, 0.0, 0.05, 0.14, 0.02, 2, M, tags, [ma, mp], pw=0.026, pip_mat=LED)
+        # 2 LEDs logo depois da ponta do chevron (fenda larga e pips finos centrados na coluna de pixels
+        # 57 / 134: o pip nao se mistura com o verde da placa, mistura que cairia no teste de troca de cor e
+        # viraria um ponto da cor da pintura)
+        _ledslot(f"rf_mp{sx}", sx * (1.5 - 57.5 / 64), 0.0, 0.07, 0.16, 0.02, 2, M, tags, [ma, mp], pw=0.02,
+                 pip_mat=LED)
         B.box(f"rf_strapk{sx}", sx * 1.36, 0.0, 0.10, 0.86, 0.02, 0.10, K, bevel=0.0, tags=tags)
         B.plate(f"rf_strap{sx}", B.rpoly(sx * 1.36, 0.0, 0.08, 0.84, 0, chamfer=0.03), 0.09, 0.14, S, slope=0.016,
                 bevel=0.005, tags=tags)
@@ -789,7 +818,7 @@ def roof(M, T="roof"):
     ba, bp = bots[1]
     _vchev("rf_bv", 0.0, -0.905, 270, (ba, bp), 0.15, green, M, tags, s=0.95)
     # (fenda alta e pips finos centrados numa fileira de pixels: o LED nao se mistura com o verde da placa)
-    _ledslot("rf_bpips", 0.0, -(1.5 - 138.5 / 64), 0.22, 0.06, 0.02, 3, M, tags, [ba, bp], vertical=False,
+    _ledslot("rf_bpips", 0.0, 1.5 - 138.5 / 64, 0.22, 0.06, 0.02, 3, M, tags, [ba, bp], vertical=False,
              pw=0.02, pip_mat=LED)
     for k in (0, 2):
         cx = -1.0 if k == 0 else 1.0
@@ -836,7 +865,7 @@ def roof(M, T="roof"):
     ct = B.plate("rf_ct", B.rpoly(0, STRAP_Y, 0.135, 0.135, 45), 0.12, 0.21, S, slope=0.02, bevel=0.005,
                  tags=tags)
     # fenda horizontal larga com o LED fino centrado numa fileira de pixels (sem misturar com o aco)
-    ly = -(1.5 - 179.5 / 64)
+    ly = 1.5 - 179.5 / 64             # centro da fileira de pixels 179 (y = -1.305)
     B.cut(ct, [B.box("rf_ctc", 0, ly, 0.08, 0.048, 0.17, 0.6, K, bevel=0.0)])
     B.box("rf_ctbed", 0, ly, 0.08, 0.048, 0.165, 0.175, M["black"], bevel=0.0, tags=tags)
     B.box("rf_ctl", 0, ly, 0.05, 0.014, 0.175, 0.181, LED, bevel=0.0, tags=tags)

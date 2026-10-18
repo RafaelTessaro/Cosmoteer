@@ -395,3 +395,6 @@ normals PNG per body size; never use a Lower/Middle bucket (hidden under our roo
 - **Material cache is per name:** `bs3d` caches materials by name, so two part files that define "silver" or "brass" with different
   values in the same scene share the first one. Reuse the existing values or pick a unique name.
 - **Copper bands** are the EMP family signature (EMP magazine and charger); other ammo lines should not use them.
+- **Green glows:** above ~1.5 of strength, larger green emissive bands turn lime/yellow in the Standard view (bands look right at
+  ~1.3, cores at ~1.6). Green roof LEDs must keep red well below green and |r - b| >= 64 (0.25), or the game's paint shader keys them
+  as paint: use a color like (0.32, 1, 0) at ~0.75.

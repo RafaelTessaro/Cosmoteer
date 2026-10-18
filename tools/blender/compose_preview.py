@@ -28,7 +28,9 @@ def paint_roof(img, paint):
     """Simula a pintura da nave: o jogo troca o verde puro do teto pela cor escolhida."""
     a = np.asarray(img, dtype=np.float32)
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
-    mask = np.clip((g - np.maximum(r, b) - 8) / 40.0, 0, 1)
+    # mesmo teste do shader do jogo: verde acima de vermelho e azul E vermelho ~ azul (|r - b| < 0.25); sem a segunda
+    # condicao os LEDs verdes do teto (ex.: fundicao nuclear) seriam pintados na previa, mas nao no jogo
+    mask = np.clip((g - np.maximum(r, b) - 8) / 40.0, 0, 1) * (np.abs(r - b) < 64)
     lum = g / 217.0
     out = a.copy()
     for i in range(3):

@@ -58,7 +58,10 @@ def mats():
         "ogive": B.mat_paint("nk_ogive", OGIVE, rough=0.36, metal=0.3, wear=0.0, grime=0.04, scale=5),
         # aco claro do anel de base e da espoleta (o aco padrao fica apagado nessa escala)
         "ring": B.mat_metal("nk_ring", (0.50, 0.52, 0.55), rough=0.3, metal=0.9),
-        "core_glow": B.mat_glow("nk_core", Mo.GREEN, 1.6),
+        # forca baixa: com mais que ~1.2 a janela do nucleo estoura em verde-branco
+        "core_glow": B.mat_glow("nk_core", Mo.GREEN, 1.1),
+        # LEDs do contador: fracos para o nucleo ficar verde (com a forca padrao eles estouram em branco)
+        "cnt": B.mat_glow("nk_cnt_led", Mo.GREEN, 0.7),
         "band": B.mat_glow("nk_band", Mo.GREEN, 1.3),
         # faixa apagada (estojo aberto no berco, ainda sem nucleo)
         "band_off": B.mat_metal("nk_band_off", (0.025, 0.075, 0.035), rough=0.4, metal=0.3),
@@ -159,7 +162,7 @@ def item(M, T="item"):
     col = B.rpoly(0, (Y_COL0 + Y_COL1) / 2, 2 * (R + 0.02), Y_COL1 - Y_COL0, 0, chamfer=0.04)
     ca, cp = B.shard("nk_col", col, ZC - 0.06, top + 0.03, A, slope=0.035, groove=0.016, panel_h=0.02, tags=tags)
     Mo.slot_with_pips("nk_cnt", (Y_COL0 + Y_COL1) / 2, -0.085, 0.085, 0.05, top + 0.05, 2, M, tags, target=[ca, cp],
-                      depth=0.075, vertical=False)
+                      depth=0.075, vertical=False, pip_mat=X["cnt"])
 
     # ---- colar claro do pescoco (bisel duplo) com linha de painel
     nk = B.rpoly(0, (Y_NECK0 + Y_NECK1) / 2, 2 * (R + 0.01), Y_NECK1 - Y_NECK0, 0, chamfer=0.022)
