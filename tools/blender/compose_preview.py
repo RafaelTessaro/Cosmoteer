@@ -492,11 +492,9 @@ def make_all_launcher(d, meta, paint=(46, 58, 74), scale=2):
             if age < 3:
                 fx.append((tube_flash(fsc, age / 3, seed=f0 * 5 + j), fwd + 0.08, lat, True))
             if age < 9 and j == 0:
-                # uma baforada no ponto de sopro do casulo que disparou
-                for b in [bb[upods[u]] if upods[u] < len(bb) else bb[0]]:
-                    fx.append((backblast_puff(fsc, age / 9, seed=f0 + 3), b[0] - 0.08 - age * 0.03, b[1], False))
-                    if age < 2:
-                        fx.append((tube_flash(fsc * 0.8, 0.3 + age / 3, seed=f0 + 11), b[0], b[1], True))
+                # uma baforada no ponto de sopro do casulo que disparou (so fumaca: as regras nao poem chama ali)
+                b = bb[upods[u]] if upods[u] < len(bb) else bb[0]
+                fx.append((backblast_puff(fsc, age / 9, seed=f0 + 3), b[0] - 0.08 - age * 0.03, b[1], False))
         push(_launcher_frame(d, meta, roof, look, level, tfr(), aim, fx=fx, scale=scale))
     for lv in range(units + 1):       # recarga: uma unidade por vez
         for _ in range(4):
