@@ -10,6 +10,7 @@ lamina na frente), carapaca no topo com entalhes de sopro e crista dorsal com o 
 8 quadros); a crista continua em quilhas sobre os tergitos.
 A caixa e modelada no proprio referencial (face no plano local) e girada; as posicoes projetadas das bocas
 batem com launcher_layout (centro da face (0, 0.32), passo 0.26 x 0.22 na vista de cima).
+Simetria de luz: casca da caixa, crista, tergitos e quilhas tem visible_shadow = False (_sem_sombra).
 """
 
 import math
@@ -46,12 +47,12 @@ ROW_V = 0.22 / SIN                  # passo das fileiras no plano da face (0.22 
 ROWS = (-ROW_V, 0.0, ROW_V)         # v > 0 = parte de baixo da face = frente na vista de cima
 
 # cor da faixa do nariz (tinta, linear): #FFB000 Jararaca / #FF6A1A Taturana, compensada pela luz da cena
-BAND = {"he": (0.80, 0.30, 0.0), "napalm": (0.80, 0.085, 0.006)}
-BAND_GLOW = {"he": (1.0, 0.434, 0.0), "napalm": (1.0, 0.144, 0.010)}
+BAND = {"he": (0.80, 0.327, 0.0), "napalm": (0.80, 0.11, 0.0093)}
+BAND_GLOW = {"he": (1.0, 0.473, 0.0), "napalm": (1.0, 0.186, 0.0155)}
 
 # divisas do abdomen e da borda de tras da carapaca (vista de cima): centro reto +-FLAT, laterais subindo CHEV
 FLAT = 0.10
-CHEV = 0.24
+CHEV = 0.38                         # ~21 graus: tergitos em V agudo (como as divisas da Cigarra)
 
 
 # ============================================================================ utilidades
@@ -80,13 +81,24 @@ def _pecas(*ts):
     return [t for t in ts if t is not None]
 
 
+def _sem_sombra(*objs):
+    """Objetos que nao projetam sombra. O sol da frente-esquerda joga sombra so para tras-direita: a caixa, a crista
+    e os degraus dos tergitos manchavam so o lado direito. A placa e os cassetes da face continuam com sombra."""
+    for o in objs:
+        if isinstance(o, (tuple, list)):
+            _sem_sombra(*o)
+        elif o is not None:
+            o.visible_shadow = False
+
+
 # ============================================================================ caixa: face (referencial da face)
 def _face(M, tags):
     """Face da caixa no plano XY (x direita, y = descendo a face = frente na projecao, z = para fora)."""
     K, KM, A, AM, S = M["core"], M["core_mid"], M["armor"], M["armor_mid"], M["steel"]
     blk = M["black"]
     # fundo preto (aparece nos vaos dos cantos da moldura) e placa das bocas
-    B.box("f_back", 0, 0.06, 1.34, 1.36, -0.26, -0.12, blk, bevel=0.0, tags=tags)
+    _sem_sombra(B.box("f_back", 0, 0.06, 1.34, 1.36, -0.26, -0.12, blk, bevel=0.0, tags=tags))
+    # a placa projeta sombra (fundo escuro das bocas); por isso as bochechas sao altas (zc em _claws)
     fp = B.box("f_plate", 0, 0, 1.10, 1.20, -0.12, -0.03, blk, bevel=0.008, tags=tags)
     # moldura em 4 laminas com bisel duplo e vao escuro nos cantos (abertura 1.08 x 1.18 como antes)
     rb = [(-0.66, -0.59), (-0.66, -0.64), (-0.62, -0.68), (-0.57, -0.68), (-0.53, -0.74), (0.53, -0.74),
@@ -95,27 +107,29 @@ def _face(M, tags):
           (-0.57, 0.675), (-0.62, 0.675), (-0.66, 0.635)]
     ra, rp = B.shard("f_rear", rb, -0.04, 0.05, A, slope=0.03, groove=0.02, panel_h=0.025, tags=tags)
     B.shard("f_front", fb, -0.04, 0.05, A, slope=0.025, groove=0.018, panel_h=0.025, tags=tags)
+    _sem_sombra(ra, rp)
     for side, sx in (("L", -1), ("R", 1)):
-        B.shard(f"f_side{side}", B.rpoly(sx * 0.60, 0.0, 0.13, 1.12, 0, chamfer=0.035), -0.04, 0.05, A,
-                slope=0.025, groove=0.018, panel_h=0.025, tags=tags)
+        _sem_sombra(B.shard(f"f_side{side}", B.rpoly(sx * 0.60, 0.0, 0.13, 1.12, 0, chamfer=0.035), -0.04, 0.05, A,
+                            slope=0.025, groove=0.018, panel_h=0.025, tags=tags))
     # aba de tras: entalhe trapezoidal no meio (encaixe da crista) + 2 linhas nos vaos dos cassetes,
     # atravessando a parede e o topo; fundo preto embaixo
     notch = [(-0.065, -0.82), (0.065, -0.82), (0.028, -0.655), (-0.028, -0.655)]
     for t in _pecas(ra, rp):
         B.cut(t, [B.loft(f"rnotch_{t.name}", notch, notch, -0.4, 0.4, K, bevel=0.0)] +
-              [B.box(f"rslot_{t.name}{i}", sx * 0.26, -0.73, 0.03, 0.17, -0.4, 0.4, K, bevel=0.0)
+              [B.rbox(f"rslot_{t.name}{i}", sx * 0.26, -0.73, 0.03, 0.17, -0.4, 0.4, K, rot=sx * 12, bevel=0.0)
                for i, sx in enumerate((-1, 1))])
-    B.plate("f_rear_bed", B.offset_poly(rb, 0.02), -0.06, -0.03, blk, slope=0.0, bevel=0.0, tags=tags)
+    _sem_sombra(B.plate("f_rear_bed", B.offset_poly(rb, 0.02), -0.06, -0.03, blk, slope=0.0, bevel=0.0, tags=tags))
     B.bolts("f_bolt", [(sx * 0.42, -0.665) for sx in (-1, 1)], 0.083, 0.016, S, tags=tags)
+    _sem_sombra([bpy.data.objects[f"f_bolt{i}"] for i in range(2)])
     # dois dentes curtos para a frente na aba de baixo, ladeando o queixo
     tooth = [(-0.06, 0.66), (0.06, 0.66), (0.06, 0.75), (0.022, 0.85), (-0.022, 0.85), (-0.06, 0.75)]
     for side, sx in (("L", -1), ("R", 1)):
         B.shard(f"f_tooth{side}", [(x + sx * 0.33, y) for x, y in tooth], -0.03, 0.10, A, slope=0.02, groove=0.012,
                 panel_h=0.02, tags=tags)
     # queixo em lamina para a frente (entre os dentes da aba), com fenda escura do nucleo
-    chin = [(-0.15, 0.635), (0.15, 0.635), (0.15, 0.72), (0.05, 0.93), (-0.05, 0.93), (-0.15, 0.72)]
+    chin = [(-0.15, 0.635), (0.15, 0.635), (0.15, 0.72), (0.05, 0.885), (-0.05, 0.885), (-0.15, 0.72)]
     ca, cp = B.shard("f_chin", chin, -0.06, 0.12, A, slope=0.03, groove=0.02, panel_h=0.025, tags=tags)
-    slot = [(-0.024, 0.68), (0.024, 0.68), (0.024, 0.80), (0.0, 0.85), (-0.024, 0.80)]
+    slot = [(-0.024, 0.68), (0.024, 0.68), (0.024, 0.775), (0.0, 0.825), (-0.024, 0.775)]
     for t in _pecas(ca, cp):
         B.cut(t, [B.loft(f"cslot_{t.name}", slot, slot, 0.02, 0.4, K, bevel=0.0)])
     B.loft("f_chin_bed", slot, slot, 0.012, 0.024, blk, bevel=0.0, tags=tags)
@@ -123,8 +137,8 @@ def _face(M, tags):
     plate_cuts = []
     for r, v in enumerate(ROWS):
         for c, xc in enumerate((-0.26, 0.26)):
-            cas = B.plate(f"cas{r}{c}", B.rpoly(xc, v, 0.49, 0.27, 0, chamfer=0.07), -0.05, 0.03, AM, slope=0.018,
-                          tags=tags)
+            cas = B.plate(f"cas{r}{c}", B.rpoly(xc, v, 0.49, 0.27, 0, chamfer=0.04), -0.05, 0.03, AM, slope=0.018,
+                          bevel=0.004, tags=tags)
             B.cut(cas, [B.cyl(f"bore{r}{c}{k}", xc + dx, v, 0.0, TUBE_R, 0.6, K, axis="Z", verts=24, bevel=0.0)
                         for k, dx in enumerate((-0.13, 0.13))])
             for k, dx in enumerate((-0.13, 0.13)):
@@ -142,7 +156,7 @@ def _top(M, tags, phase):
     B.box("p_body", 0, -0.19, 1.14, 0.22, -0.58, 0.58, KM, bevel=0.012, tags=tags)
     # carapaca: borda de tras em divisa com a mesma inclinacao do abdomen (vao escuro constante ate o tergito)
     k = CHEV / COS
-    yr = -0.31
+    yr = -0.37
     ys = yr + k * 0.40
     shell = [(-0.60, ys + 0.04), (-0.56, ys), (-0.50, ys), (-FLAT, yr), (FLAT, yr), (0.50, ys), (0.56, ys),
              (0.60, ys + 0.04), (0.60, -0.08), (0.56, -0.04), (-0.56, -0.04), (-0.60, -0.08)]
@@ -165,7 +179,7 @@ def _top(M, tags, phase):
         if sp is not None:
             B.cut(sp, [B.rbox(f"tpl{sname}", sx * 0.30, yr + k * 0.20 + 0.095, 0.30, 0.016, 0.64, 0.9, K,
                               rot=gr, bevel=0.0)])
-    B.bolts("tbolt", [(sx * 0.54, -0.15) for sx in (-1, 1)], 0.665, 0.016, S, tags=tags)
+    B.bolts("tbolt", [(sx * 0.53, -0.112) for sx in (-1, 1)], 0.665, 0.016, S, tags=tags)
     # crista dorsal em seta (mais longa e um degrau mais alta) com a cabeca do sensor IR (fenda ambar que pulsa)
     zs = 0.80
     # a ponta da frente entra no entalhe da aba de tras da moldura (a espinha atravessa a caixa)
@@ -193,24 +207,30 @@ def _claws(M, tags):
              (-0.71, 0.24)]
     # mandibula: bordo externo em 3 facetas retas + cotovelo duro, ponta a 45 graus para a frente e para dentro,
     # dente interno grande; painel interno desenhado a mao (sem ponta degenerada)
-    mand = [(-0.71, 0.27), (-0.87, 0.27), (-0.925, 0.40), (-0.925, 0.60), (-0.835, 0.755), (-0.665, 0.925),
-            (-0.575, 0.855), (-0.655, 0.775), (-0.595, 0.705), (-0.67, 0.645), (-0.71, 0.52)]
+    mand = [(-0.71, 0.27), (-0.87, 0.27), (-0.915, 0.40), (-0.915, 0.60), (-0.83, 0.75), (-0.655, 0.915),
+            (-0.61, 0.89), (-0.685, 0.78), (-0.585, 0.71), (-0.67, 0.64), (-0.71, 0.52)]
     mand_pnl = [(-0.75, 0.33), (-0.845, 0.33), (-0.88, 0.41), (-0.88, 0.59), (-0.80, 0.73), (-0.735, 0.70),
                 (-0.725, 0.62), (-0.75, 0.52)]
+    zc = 1.02       # bochecha alta: degrau curto ate a lateral da caixa (a placa da face nao a sombreia)
     for side, sx, f in (("L", -1, lambda p: p), ("R", 1, Mo.mirror)):
-        ca, cp = B.shard(f"cheek_{side}", f(cheek), 0.30, 0.80, A, slope=0.045, groove=0.025, panel_h=0.03,
+        ca, cp = B.shard(f"cheek_{side}", f(cheek), 0.30, zc, A, slope=0.045, groove=0.025, panel_h=0.03,
                          tags=tags)
         # fenda de pips na bochecha + linhas de painel em diagonal
-        Mo.slot_with_pips(f"cslot{side}", sx * 0.805, -0.22, 0.02, 0.058, 0.83, 3, M, tags,
+        Mo.slot_with_pips(f"cslot{side}", sx * 0.805, -0.22, 0.02, 0.058, zc + 0.03, 3, M, tags,
                           target=_pecas(ca, cp), depth=0.075)
         if cp is not None:
-            B.cut(cp, [B.rbox(f"cpl{side}", sx * 0.80, 0.12, 0.016, 0.16, 0.82, 1.1, K, rot=sx * 55, bevel=0.0),
-                       B.rbox(f"cpl2{side}", sx * 0.80, -0.42, 0.016, 0.16, 0.82, 1.1, K, rot=sx * -40, bevel=0.0)])
+            B.cut(cp, [B.rbox(f"cpl{side}", sx * 0.80, 0.12, 0.016, 0.16, zc + 0.02, zc + 0.3, K, rot=sx * 55,
+                              bevel=0.0),
+                       B.rbox(f"cpl2{side}", sx * 0.80, -0.42, 0.016, 0.16, zc + 0.02, zc + 0.3, K, rot=sx * -40,
+                              bevel=0.0)])
         # munhao no vao entre bochecha e moldura
-        B.box(f"bear{side}", sx * 0.685, 0.06, 0.05, 0.22, 0.50, 0.78, KM, bevel=0.01, tags=tags)
-        B.cyl(f"trun{side}", sx * 0.685, 0.06, 0.79, 0.055, 0.07, S, axis="X", verts=12, bevel=0.005, tags=tags)
+        B.box(f"bear{side}", sx * 0.685, 0.06, 0.05, 0.22, 0.50, zc - 0.02, KM, bevel=0.01, tags=tags)
+        B.cyl(f"trun{side}", sx * 0.685, 0.06, zc - 0.01, 0.055, 0.07, S, axis="X", verts=12, bevel=0.005, tags=tags)
         # mandibula: base chanfrada + painel elevado a mao + fenda de 2 pips na lamina
         ma = B.plate(f"mand_{side}", f(mand), 0.40, 0.64, A, slope=0.035, tags=tags)
+        # nucleo escuro sob o vao entre ponta e dente (cobre o canto claro da moldura): o dente le a 1x
+        _sem_sombra(B.plate(f"mgap{side}", f([(-0.60, 0.905), (-0.70, 0.775), (-0.57, 0.695)]), 0.36, 0.445,
+                            M["core"], slope=0.0, bevel=0.0, tags=tags))
         mp = B.plate(f"mand_{side}_pnl", f(mand_pnl), 0.636, 0.665, A, slope=0.012, bevel=0.0, tags=tags)
         sl = [(sx * 0.80, 0.40), (sx * 0.80, 0.56)]
         for t in _pecas(ma, mp):
@@ -238,29 +258,37 @@ def _abdomen(M, tags):
     centrais continuando a crista, espiraculos no 1o e a cauda com a baia de exaustao de 3 pips."""
     K, KM, A, AM, S = M["core"], M["core_mid"], M["armor"], M["armor_mid"], M["steel"]
     za, zb, zc = 1.16, 1.00, 0.84
-    a = B.shard("segA", _chev(0.50, -0.312, 0.175), 0.30, za, A, slope=0.022, groove=0.014, panel_h=0.022,
-                tags=tags)
-    B.shard("segB", _chev(0.42, -0.527, 0.155), 0.30, zb, A, slope=0.022, groove=0.014, panel_h=0.022, tags=tags)
-    sf = -0.722 + CHEV * (0.30 - FLAT)
-    tail = [(-0.07, -0.92), (0.07, -0.92), (0.30, -0.76), (0.30, sf), (FLAT, -0.722), (-FLAT, -0.722),
+    ya, da = -0.351, 0.155           # frente do 1o tergito (vao de 0.03 ate a carapaca) e espessura
+    yb, db = -0.546, 0.14            # o ponto de sopro [0, -0.55] fica no bisel claro da frente do 2o
+    yc = -0.726
+    a = B.shard("segA", _chev(0.50, ya, da), 0.30, za, A, slope=0.022, groove=0.014, panel_h=0.022, tags=tags)
+    b = B.shard("segB", _chev(0.42, yb, db), 0.30, zb, A, slope=0.022, groove=0.014, panel_h=0.022, tags=tags)
+    # o degrau entre tergitos jogava sombra so no braco direito da divisa (sol da frente-esquerda)
+    _sem_sombra(a, b)
+    sf = yc + CHEV * (0.30 - FLAT)
+    tail = [(-0.07, -0.92), (0.07, -0.92), (0.30, -0.76), (0.30, sf), (FLAT, yc), (-FLAT, yc),
             (-0.30, sf), (-0.30, -0.76)]
     sc = B.shard("segC", tail, 0.30, zc, A, slope=0.022, groove=0.014, panel_h=0.022, tags=tags)
     # quilhas centrais (a crista da caixa continua sobre os tergitos)
-    B.plate("keelA", [(-0.05, -0.32), (0.05, -0.32), (0.05, -0.465), (0.0, -0.495), (-0.05, -0.465)], za - 0.05,
-            za + 0.075, A, slope=0.02, tags=tags)
-    B.plate("keelB", [(-0.045, -0.535), (0.045, -0.535), (0.045, -0.65), (0.0, -0.675), (-0.045, -0.65)], zb - 0.05,
-            zb + 0.07, A, slope=0.02, tags=tags)
+    ka = [(-0.05, ya - 0.009), (0.05, ya - 0.009), (0.05, ya - da + 0.016), (0.0, ya - da - 0.014),
+          (-0.05, ya - da + 0.016)]
+    kb = [(-0.045, yb - 0.009), (0.045, yb - 0.009), (0.045, yb - db + 0.026), (0.0, yb - db - 0.004),
+          (-0.045, yb - db + 0.026)]
+    _sem_sombra(B.plate("keelA", ka, za - 0.05, za + 0.075, A, slope=0.02, tags=tags),
+                B.plate("keelB", kb, zb - 0.05, zb + 0.07, A, slope=0.02, tags=tags))
     # espiraculos: fenda escura curta em cada lado do 1o tergito, ao longo da divisa
     ra = math.degrees(math.atan(CHEV))
     for sx in (-1, 1):
         x = sx * 0.30
-        y = -0.312 + CHEV * (0.30 - FLAT) - 0.088
+        y = ya + CHEV * (0.30 - FLAT) - da / 2
         for t in _pecas(*a):
-            B.cut(t, [B.rbox(f"spc_{t.name}{sx}", x, y, 0.13, 0.034, za - 0.075, za + 0.3, K, rot=sx * ra,
+            B.cut(t, [B.rbox(f"spc_{t.name}{sx}", x, y, 0.11, 0.024, za - 0.075, za + 0.3, K, rot=sx * ra,
                              bevel=0.0)])
-        B.rbox(f"spbed{sx}", x, y, 0.13, 0.034, za - 0.085, za - 0.07, M["black"], rot=sx * ra, bevel=0.0, tags=tags)
+        B.rbox(f"spbed{sx}", x, y, 0.11, 0.024, za - 0.085, za - 0.07, M["black"], rot=sx * ra, bevel=0.0, tags=tags)
+    if a[1] is not None:
+        a[1].modifiers["bevel"].width = 0.003     # aro fino em volta da fenda: bisel largo fechava o furo
     # baia de exaustao na cauda: 3 pips ambar em V, cada um num rebaixo escuro
-    for i, (x, y) in enumerate(((-0.12, -0.79), (0.0, -0.825), (0.12, -0.79))):
+    for i, (x, y) in enumerate(((-0.115, -0.795), (0.0, -0.835), (0.115, -0.795))):
         r = ra * (1 if x > 0 else -1 if x < 0 else 0)
         for t in _pecas(*sc):
             B.cut(t, [B.rbox(f"vcut_{t.name}{i}", x, y, 0.075, 0.042, zc - 0.07, zc + 0.3, K, rot=r, bevel=0.0)])
@@ -283,6 +311,9 @@ def head(M, T="head", phase=0.0):
     # caixa inclinada: topo/corpo (eixo) e face, no mesmo centro
     antes = _cena()
     _top(M, tags, phase)
+    # topo inteiro sem sombra (crista, carapaca, corpo e o que esta embutido neles: sensor, venezianas, parafusos):
+    # o sol da frente-esquerda jogava a caixa so nos tergitos e na bochecha do lado direito
+    _sem_sombra(_novos(antes))
     _agrupar(antes, "pod_top", PITCH, (0.0, FACE_Y, Z0))
     antes = _cena()
     _face(M, tags)
@@ -296,8 +327,8 @@ def _band_mat(look):
     b = m.node_tree.nodes["Principled BSDF"]
     b.inputs["Specular IOR Level"].default_value = 0.0     # tinta fosca: sem reflexo branco na faixa
     b.inputs["Emission Color"].default_value = (*BAND_GLOW.get(look, BAND_GLOW["he"]), 1)
-    b.inputs["Emission Strength"].default_value = 0.25
-    m["bs_glow"] = 0.25
+    b.inputs["Emission Strength"].default_value = 0.12
+    m["bs_glow"] = 0.12
     return m
 
 
@@ -339,7 +370,7 @@ def cell(M, look, T="cell", form="tube", box=None):
     if form != "tube":
         raise NotImplementedError(f"bs_msl_box: forma {form} nao existe neste lancador")
     tags = (T,)
-    nose = B.mat_paint("nose", (0.74, 0.75, 0.76), rough=0.3, metal=0.15, wear=0.08, grime=0.02, scale=6)
+    nose = B.mat_paint("nose", (0.64, 0.65, 0.66), rough=0.3, metal=0.15, wear=0.08, grime=0.02, scale=6)
     band = _band_mat(look)
     antes = _cena()
     # anel colorido fino na boca do tubo
@@ -352,13 +383,13 @@ def cell(M, look, T="cell", form="tube", box=None):
     for k in range(13):
         xt = L * (1 - k / 12)                       # distancia ate a ponta
         r = math.sqrt(max(0.0, rho * rho - (L - xt) ** 2)) + R - rho
-        if r < 0.008:
+        if r < 0.017:          # ponta de aco escuro de ~2 px
             break
         prof.append((r, zb + L - xt))
     rt, zt = prof[-1]
     _lathe("n_ogive", prof + [(0.0, zt + 0.002)], nose, tags)
-    B.cyl("n_tip", 0, 0, (zt + zb + L) / 2, rt, zb + L - zt, M["steel"], axis="Z", verts=12, bevel=0.0, tags=tags,
-          r2=0.001)
+    B.cyl("n_tip", 0, 0, (zt + zb + L) / 2, rt, zb + L - zt, M["core"], axis="Z", verts=12, bevel=0.0, tags=tags,
+          r2=0.002)
     _agrupar(antes, "nose", PITCH - 90.0, (0.0, 0.0, 0.0))
 
 
