@@ -137,7 +137,8 @@ def _face(M, tags):
     plate_cuts = []
     for r, v in enumerate(ROWS):
         for c, xc in enumerate((-0.26, 0.26)):
-            cas = B.plate(f"cas{r}{c}", B.rpoly(xc, v, 0.49, 0.27, 0, chamfer=0.04), -0.05, 0.03, AM, slope=0.018,
+            # cassete escuro (nucleo): a face le como nucleo escuro e os narizes claros saltam
+            cas = B.plate(f"cas{r}{c}", B.rpoly(xc, v, 0.49, 0.27, 0, chamfer=0.04), -0.05, 0.03, KM, slope=0.018,
                           bevel=0.004, tags=tags)
             B.cut(cas, [B.cyl(f"bore{r}{c}{k}", xc + dx, v, 0.0, TUBE_R, 0.6, K, axis="Z", verts=24, bevel=0.0)
                         for k, dx in enumerate((-0.13, 0.13))])
@@ -187,13 +188,22 @@ def _top(M, tags, phase):
              (0.055, -0.02), (0.035, 0.05), (-0.035, 0.05), (-0.055, -0.02), (-0.13, -0.15), (-0.13, -0.245),
              (-0.10, -0.28), (-0.10, -0.38)]
     ra, rp = B.shard("ridge", ridge, 0.60, zs, A, slope=0.035, groove=0.02, panel_h=0.022, tags=tags)
-    win = [(-0.065, -0.215), (0.065, -0.215), (0.065, -0.19), (0.028, -0.158), (-0.028, -0.158), (-0.065, -0.19)]
+    # janela do sensor: corte com paredes VERTICAIS no mundo (o corte perpendicular a crista inclinada mostrava a
+    # parede de tras clara na vista de cima); bisel fino para o aro nao fechar o furo
+    tn = math.tan(math.radians(PITCH))
+
+    def _sh(p, dz):
+        return [(x, y + dz * tn) for x, y in p]
+    win = [(-0.07, -0.24), (0.07, -0.24), (0.07, -0.18), (0.03, -0.15), (-0.03, -0.15), (-0.07, -0.18)]
+    zc0, zc1 = zs - 0.06, zs + 0.5
     for t in _pecas(ra, rp):
-        B.cut(t, [B.loft(f"wcut_{t.name}", win, win, zs - 0.06, zs + 0.5, K, bevel=0.0)])
-    B.loft("ir_bed", win, win, zs - 0.066, zs - 0.056, M["black"], bevel=0.0, tags=tags)
+        B.cut(t, [B.loft(f"wcut_{t.name}", _sh(win, zc0 - zs), _sh(win, zc1 - zs), zc0, zc1, K, bevel=0.0)])
+        t.modifiers["bevel"].width = 0.004
+    bed = [(-0.085, -0.255), (0.085, -0.255), (0.085, -0.175), (0.035, -0.135), (-0.035, -0.135), (-0.085, -0.175)]
+    B.loft("ir_bed", _sh(bed, -0.061), _sh(bed, -0.061), zs - 0.066, zs - 0.056, M["black"], bevel=0.0, tags=tags)
     pulse = 0.5 + 0.5 * math.cos(phase * math.tau)
-    ir = B.mat_glow("ir_slit", Mo.AMBER, 1.5 + 5.0 * pulse)
-    B.box("ir_slit", 0, -0.198, 0.10, 0.016, zs - 0.058, zs - 0.048, ir, bevel=0.0, tags=tags)
+    ir = B.mat_glow("ir_slit", Mo.AMBER, 0.8 + 2.2 * pulse)
+    B.box("ir_slit", 0, -0.195 - 0.053 * tn, 0.09, 0.014, zs - 0.058, zs - 0.048, ir, bevel=0.0, tags=tags)
     # aletas finas na traseira da crista
     if rp is not None:
         B.cut(rp, [B.box(f"rfin{i}", 0, -0.36 + i * 0.035, 0.16, 0.014, zs, zs + 0.3, K, bevel=0.0) for i in range(2)])
@@ -207,8 +217,9 @@ def _claws(M, tags):
              (-0.71, 0.24)]
     # mandibula: bordo externo em 3 facetas retas + cotovelo duro, ponta a 45 graus para a frente e para dentro,
     # dente interno grande; painel interno desenhado a mao (sem ponta degenerada)
-    mand = [(-0.71, 0.27), (-0.87, 0.27), (-0.915, 0.40), (-0.915, 0.60), (-0.83, 0.75), (-0.655, 0.915),
-            (-0.61, 0.89), (-0.685, 0.78), (-0.585, 0.71), (-0.67, 0.64), (-0.71, 0.52)]
+    # ponta mais a frente e mais para dentro (pinca quebra a linha da frente) e entalhe do dente mais fundo
+    mand = [(-0.71, 0.27), (-0.87, 0.27), (-0.915, 0.40), (-0.915, 0.60), (-0.83, 0.75), (-0.60, 0.925),
+            (-0.548, 0.895), (-0.68, 0.765), (-0.56, 0.70), (-0.67, 0.64), (-0.71, 0.52)]
     mand_pnl = [(-0.75, 0.33), (-0.845, 0.33), (-0.88, 0.41), (-0.88, 0.59), (-0.80, 0.73), (-0.735, 0.70),
                 (-0.725, 0.62), (-0.75, 0.52)]
     zc = 1.02       # bochecha alta: degrau curto ate a lateral da caixa (a placa da face nao a sombreia)
@@ -229,7 +240,7 @@ def _claws(M, tags):
         # mandibula: base chanfrada + painel elevado a mao + fenda de 2 pips na lamina
         ma = B.plate(f"mand_{side}", f(mand), 0.40, 0.64, A, slope=0.035, tags=tags)
         # nucleo escuro sob o vao entre ponta e dente (cobre o canto claro da moldura): o dente le a 1x
-        _sem_sombra(B.plate(f"mgap{side}", f([(-0.60, 0.905), (-0.70, 0.775), (-0.57, 0.695)]), 0.36, 0.445,
+        _sem_sombra(B.plate(f"mgap{side}", f([(-0.54, 0.905), (-0.69, 0.755), (-0.545, 0.69)]), 0.36, 0.445,
                             M["core"], slope=0.0, bevel=0.0, tags=tags))
         mp = B.plate(f"mand_{side}_pnl", f(mand_pnl), 0.636, 0.665, A, slope=0.012, bevel=0.0, tags=tags)
         sl = [(sx * 0.80, 0.40), (sx * 0.80, 0.56)]
@@ -287,13 +298,26 @@ def _abdomen(M, tags):
         B.rbox(f"spbed{sx}", x, y, 0.11, 0.024, za - 0.085, za - 0.07, M["black"], rot=sx * ra, bevel=0.0, tags=tags)
     if a[1] is not None:
         a[1].modifiers["bevel"].width = 0.003     # aro fino em volta da fenda: bisel largo fechava o furo
-    # baia de exaustao na cauda: 3 pips ambar em V, cada um num rebaixo escuro
-    for i, (x, y) in enumerate(((-0.115, -0.795), (0.0, -0.835), (0.115, -0.795))):
+    # baia de exaustao na cauda: UMA baia escura em V (frente paralela a divisa, fundo paralelo ao bordo da cauda),
+    # 3 pips ambar na frente e 2 venezianas finas atras
+    def yfb(x):
+        return -0.78 + CHEV * max(0.0, abs(x) - FLAT)
+
+    def yrb(x):
+        return max(-0.85, -0.863 + 0.70 * max(0.0, abs(x) - 0.07))
+    xe, xk = 0.17, 0.0886
+    bay = [(-xe, yrb(xe)), (-xk, -0.85), (xk, -0.85), (xe, yrb(xe)), (xe, yfb(xe)), (FLAT, yfb(FLAT)),
+           (-FLAT, yfb(FLAT)), (-xe, yfb(xe))]
+    for t in _pecas(*sc):
+        B.cut(t, [B.loft(f"vcut_{t.name}", bay, bay, zc - 0.07, zc + 0.3, K, bevel=0.0)])
+        t.modifiers["bevel"].width = 0.004     # aro fino: o bisel largo fechava a baia
+    B.loft("vbed", bay, bay, zc - 0.08, zc - 0.066, M["black"], bevel=0.0, tags=tags)
+    for i, y in enumerate((-0.826, -0.842)):
+        B.box(f"vlouv{i}", 0, y, 0.17, 0.010, zc - 0.07, zc - 0.045, KM, bevel=0.0, tags=tags)
+    for i, x in enumerate((-0.13, 0.0, 0.13)):
         r = ra * (1 if x > 0 else -1 if x < 0 else 0)
-        for t in _pecas(*sc):
-            B.cut(t, [B.rbox(f"vcut_{t.name}{i}", x, y, 0.075, 0.042, zc - 0.07, zc + 0.3, K, rot=r, bevel=0.0)])
-        B.rbox(f"vbed{i}", x, y, 0.075, 0.042, zc - 0.08, zc - 0.066, M["black"], rot=r, bevel=0.0, tags=tags)
-        B.rbox(f"vpip{i}", x, y, 0.046, 0.022, zc - 0.07, zc - 0.058, M["glow"], rot=r, bevel=0.0, tags=tags)
+        B.rbox(f"vpip{i}", x, yfb(x) - 0.022, 0.05, 0.022, zc - 0.07, zc - 0.058, M["glow"], rot=r, bevel=0.0,
+               tags=tags)
 
 
 def head(M, T="head", phase=0.0):

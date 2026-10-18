@@ -203,7 +203,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 		Turret
 		{
 			Type = TurretWeapon
-			Location = [1, 1.15]
+			Location = [1, 1]
 			Rotation = -90d
 			OperationalToggle = IsOperational
 			AutoFireToggle = AutoFireToggle
@@ -253,7 +253,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 		{
 			Type = CircleCollider
 			Location = &../Turret/Location
-			Radius = 0.92
+			Radius = 0.98
 			IsHigh = true
 		}
 		ReloadProgressBar
@@ -277,7 +277,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					ChainedTo = Turret
 					FireTrigger
 					GetTargetFrom = Turret
-					Location = [2.146, 0]
+					Location = [1.93, 0]
 					OperationalToggle = IsOperational
 					Bullet = &<../../shots/bs_shot_plasma_gatling_plasma/bs_shot_plasma_gatling_plasma.rules>
 					Spread = [-2.0d, 2.0d]
@@ -289,7 +289,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 				}
 				Emitter1 : TargetEmitter
 				{
-					Location = [2.146, 0]
+					Location = [1.93, 0]
 					FireTrigger = Turret
 				}
 			}
@@ -307,7 +307,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					ChainedTo = Turret
 					FireTrigger
 					GetTargetFrom = Turret
-					Location = [2.146, 0]
+					Location = [1.93, 0]
 					OperationalToggle = IsOperational
 					Bullet = &<../../shots/bs_shot_plasma_gatling_plasma_oc/bs_shot_plasma_gatling_plasma_oc.rules>
 					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
@@ -319,7 +319,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 				}
 				Emitter1 : TargetEmitter
 				{
-					Location = [2.146, 0]
+					Location = [1.93, 0]
 					FireTrigger = Turret
 				}
 			}
@@ -335,7 +335,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 			Type = EmitterProxy
 			ComponentID = Emitter1
 			ChainedTo = Turret
-			Location = [2.146, 0]
+			Location = [1.93, 0]
 		}
 		Emitter1Proxy_OC : Emitter1Proxy
 		{
@@ -593,6 +593,17 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					}
 				]
 			}
+			OperationalLighting
+			{
+				Layer = "lights_add"
+				DamageLevels
+				[
+					{
+						File = "lights.png"
+						Size = [2, 3]
+					}
+				]
+			}
 		}
 		TurretGraphics
 		{
@@ -608,7 +619,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 				[
 					{
 						File = "turret_shadow.png"
-						Size = [1.84, 1.84]
+						Size = [2.49, 2.49]
 					}
 				]
 			}
@@ -620,7 +631,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					{
 						File = "turret.png"
 						NormalsFile = "turret_normals.png"
-						Size = [1.84, 1.84]
+						Size = [2.24, 2.24]
 					}
 				]
 			}
@@ -632,7 +643,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					{
 						File = "turret_off.png"
 						NormalsFile = "turret_normals.png"
-						Size = [1.84, 1.84]
+						Size = [2.24, 2.24]
 					}
 				]
 			}
@@ -641,7 +652,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 		{
 			Type = Graphics
 			ChainedTo = Turret
-			Location = [1.444, 0]
+			Location = [1.22, 0]
 			Rotation = 90d
 			OperationalToggle = IsOperational
 			ResetAnimationTrigger = Emitter1Proxy
@@ -651,10 +662,17 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 				DamageLevels
 				[
 					{
-						Size = [0.56, 1.564]
-						AnimationFiles = ["barrel_spin1.png", "barrel_spin2.png", "barrel_spin3.png", "barrel1.png"]
-						NormalsAnimationFiles = ["barrel_normals1.png", "barrel_normals1.png", "barrel_normals1.png", "barrel_normals1.png"]
-						AnimationInterval = 0.3333
+						Size = [0.52, 1.64]
+						AnimationFiles = ["barrel_spin1.png", "barrel_spin2.png", "barrel_spin3.png", "barrel_spin4.png", "barrel1.png"]
+						NormalsAnimationFiles
+						[
+							"barrel_spin_normals1.png"
+							"barrel_spin_normals2.png"
+							"barrel_spin_normals3.png"
+							"barrel_spin_normals4.png"
+							"barrel_normals1.png"
+						]
+						AnimationInterval = 0.25
 						AnimationStartTime = MinValue
 						ClampAnimation = true
 					}
@@ -668,11 +686,31 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					{
 						File = "barrel1.png"
 						NormalsFile = "barrel_normals1.png"
-						Size = [0.56, 1.564]
+						Size = [0.52, 1.64]
 					}
 				]
 			}
 			AnimationSpeedFactor = InverseShotInterval
+		}
+		Light1Graphics
+		{
+			Type = Graphics
+			ChainedTo = Turret
+			Location = [-0.84, 0]
+			OperationalToggle = IsOperational
+			OperationalRoofLighting
+			{
+				Layer = "roof_lights_fancy"
+				DamageLevels
+				[
+					{
+						File = "./Data/ships/common/light_blob.png"
+						Size = [1, 1]
+						Z = 0.8
+						VertexColor = [70, 215, 255]
+					}
+				]
+			}
 		}
 		OperationEffects
 		{
