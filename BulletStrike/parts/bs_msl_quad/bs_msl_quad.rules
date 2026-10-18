@@ -12911,6 +12911,17 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					}
 				]
 			}
+			OperationalLighting
+			{
+				Layer = "lights_add"
+				DamageLevels
+				[
+					{
+						File = "lights.png"
+						Size = [5, 6]
+					}
+				]
+			}
 		}
 		TurretGraphics
 		{
@@ -12926,7 +12937,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				[
 					{
 						File = "turret_shadow.png"
-						Size = [4.8, 4.8]
+						Size = [5.05, 5.05]
 					}
 				]
 			}
@@ -12936,9 +12947,30 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				DamageLevels
 				[
 					{
-						File = "turret.png"
-						NormalsFile = "turret_normals.png"
+						AnimationFiles
+						[
+							"turret1.png"
+							"turret2.png"
+							"turret3.png"
+							"turret4.png"
+							"turret5.png"
+							"turret6.png"
+							"turret7.png"
+							"turret8.png"
+						]
+						NormalsAnimationFiles
+						[
+							"turret1_normals.png"
+							"turret2_normals.png"
+							"turret3_normals.png"
+							"turret4_normals.png"
+							"turret5_normals.png"
+							"turret6_normals.png"
+							"turret7_normals.png"
+							"turret8_normals.png"
+						]
 						Size = [4.8, 4.8]
+						AnimationInterval = 0.15
 					}
 				]
 			}
@@ -12949,8 +12981,28 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				[
 					{
 						File = "turret_off.png"
-						NormalsFile = "turret_normals.png"
+						NormalsFile = "turret1_normals.png"
 						Size = [4.8, 4.8]
+					}
+				]
+			}
+		}
+		Light1Graphics
+		{
+			Type = Graphics
+			ChainedTo = Turret
+			Location = [-2.02, 0]
+			OperationalToggle = IsOperational
+			OperationalRoofLighting
+			{
+				Layer = "roof_lights_fancy"
+				DamageLevels
+				[
+					{
+						File = "./Data/ships/common/light_blob.png"
+						Size = [1.8, 1.8]
+						Z = 0.8
+						VertexColor = [255, 120, 30]
 					}
 				]
 			}

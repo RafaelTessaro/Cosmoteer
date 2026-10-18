@@ -178,25 +178,37 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			OperationalDoodad
 			{
 				Layer = "doodads_low"
-				Offset = [0, -0.5]
+				Offset = [0, 0]
 				DamageLevels
 				[
 					{
-						AnimationFiles = ["machine_on1.png", "machine_on2.png", "machine_on3.png", "machine_on4.png"]
-						Size = [2, 1]
-						AnimationInterval = 0.12
+						AnimationFiles
+						[
+							"machine_on1.png"
+							"machine_on2.png"
+							"machine_on3.png"
+							"machine_on4.png"
+							"machine_on5.png"
+							"machine_on6.png"
+							"machine_on7.png"
+							"machine_on8.png"
+							"machine_on9.png"
+							"machine_on10.png"
+						]
+						Size = [2, 2]
+						AnimationInterval = 0.125
 					}
 				]
 			}
 			NonOperationalDoodad
 			{
 				Layer = "doodads_low"
-				Offset = [0, -0.5]
+				Offset = [0, 0]
 				DamageLevels
 				[
 					{
 						File = "machine_off.png"
-						Size = [2, 1]
+						Size = [2, 2]
 					}
 				]
 			}
@@ -219,6 +231,17 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					{
 						File = "roof.png"
 						NormalsFile = "roof_normals.png"
+						Size = [2, 2]
+					}
+				]
+			}
+			OperationalLighting
+			{
+				Layer = "lights_add"
+				DamageLevels
+				[
+					{
+						File = "lights.png"
 						Size = [2, 2]
 					}
 				]
