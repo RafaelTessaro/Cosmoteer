@@ -1,0 +1,91 @@
+{
+ "version": 1,
+ "kind": "shells",
+ "id": "rafaeltessaro.bs_shells",
+ "px_per_tile": 128,
+ "items": {
+  "he": {
+   "size": [
+    2.0,
+    0.7
+   ],
+   "px": [
+    256,
+    90
+   ],
+   "file": "bs_shell_he.png",
+   "normals": "bs_shell_he_normals.png",
+   "lights": null,
+   "mask": "bs_shell_band_he.png",
+   "nozzle": [
+    -0.97,
+    0
+   ],
+   "anchors": {}
+  },
+  "ap": {
+   "size": [
+    2.0,
+    0.7
+   ],
+   "px": [
+    256,
+    90
+   ],
+   "file": "bs_shell_ap.png",
+   "normals": "bs_shell_ap_normals.png",
+   "lights": null,
+   "mask": "bs_shell_band_ap.png",
+   "nozzle": [
+    -0.97,
+    0
+   ],
+   "anchors": {}
+  },
+  "nuke": {
+   "size": [
+    2.0,
+    0.75
+   ],
+   "px": [
+    256,
+    96
+   ],
+   "file": "bs_shell_nuke.png",
+   "normals": "bs_shell_nuke_normals.png",
+   "lights": {
+    "file": "bs_shell_nuke_lights.png",
+    "frames": 4,
+    "frame_px": [
+     256,
+     96
+    ],
+    "per_row": 4,
+    "fps": 6,
+    "wrap": null
+   },
+   "mask": null,
+   "nozzle": [
+    -0.97,
+    0
+   ],
+   "anchors": {
+    "radiation": [
+     -0.1,
+     0.0
+    ]
+   }
+  }
+ },
+ "files": [
+  "bs_shell_ap.png",
+  "bs_shell_ap_normals.png",
+  "bs_shell_band_ap.png",
+  "bs_shell_band_he.png",
+  "bs_shell_he.png",
+  "bs_shell_he_normals.png",
+  "bs_shell_nuke.png",
+  "bs_shell_nuke_lights.png",
+  "bs_shell_nuke_normals.png"
+ ]
+}

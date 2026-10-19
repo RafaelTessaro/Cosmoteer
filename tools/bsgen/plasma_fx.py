@@ -18,12 +18,12 @@ abaixo, com SO os valores trocados (mesmos campos e tipos; nenhum campo exclusiv
   rabo do resto do arquivo      bsgen/trails.TAIL_TEXT (carrega no 0.30.4c), so Bucket/IsFancy/zoom/Delay mudam
 
 Orcamento (Boitata a 10-11 tiros/s por arma): boca <= 8 particulas por tiro no normal e <= 12 no overclock, quase
-todas de <= 0,16 s (~10 vivas por arma; a luz no casco e o brilho residual sao mais fracos e o brilho sai em ~1 de
-cada 2 tiros, para nao piscar 10 vezes por segundo em cima da arte da torre); raio 0 particulas no normal (so
-sprites; a cauda de serpente e um AnimatedSprite) e ~2-3 vivas por raio no overclock (crepitar 18/s); impacto <= 9
-particulas no normal e <= 11 no overclock, a maioria de <= 0,3 s (~20 vivas por arma). Curupira (~1,5 tiro/s, ~4
-raios no ar): rastro ionizado de ~20-27 particulas vivas por raio, ~80-110 por arma (no lugar do rastro deck de
-300/s, ~250 por arma). Detalhes (faiscas, arcos, luzes, rastro) com IsFancy = true; o essencial (descarga,
+todas de <= 0,14 s (~10 vivas por arma; o anel e um pulso de 0,065 s, menor que o intervalo entre tiros; a luz
+no casco fica a frente do cano e o brilho residual e fraco, para nao lavar a arte da torre a 10 tiros/s); raio 0
+particulas no normal (so sprites; a cauda de serpente e um AnimatedSprite) e ~2-3 vivas por raio no overclock
+(crepitar 18/s); impacto <= 9 particulas no normal e <= 11 no overclock, a maioria de <= 0,3 s (~20 vivas por
+arma). Curupira (~1,5 tiro/s, ~4 raios no ar): rastro ionizado de ~10-14 particulas vivas por raio, ~40-60 por
+arma (no lugar do rastro deck de 300/s, ~250 por arma). Detalhes (faiscas, arcos, luzes, rastro) com IsFancy = true; o essencial (descarga,
 respingo, clarao) com IsFancy = false. Luz IsLight so para iluminar o casco: o que aparece sobre o espaco vazio vem
 de sprites/particulas aditivos comuns.
 """
@@ -65,14 +65,17 @@ CFG = {
             "burst": {"size": 2.0, "life": 0.085, "gain": 1.15},
             "streaks": {"n": (3, 4), "speed": (6, 13), "life": (0.08, 0.14), "scale": (0.6, 0.95), "spread": 0.28,
                         "white": 0.6},
-            "ring": {"scale": 0.7, "life": 0.16, "x": 0.15},
-            # luz e brilho residual mais fracos: a 10 tiros/s nao podem apagar a arte da torre; o brilho sai em
-            # ~1 de cada 2 tiros (n = (0, 1)), ~1-2 vivos por vez
-            "light": {"scale": 2.4, "life": 0.1, "color": (0.25, 0.85, 1, 0.3)},
-            "glow": {"scale": 0.85, "wh": (1, 1), "x": -0.1, "life": 0.28, "color": (0.2, 0.85, 1, 0.35),
-                     "n": (0, 1)},
+            # anel = pulso curto (0,065 s, bem abaixo do intervalo de 0,1 s entre tiros): pico em ~16 ms e alfa
+            # ~0 em ~40 ms, entao 40 ms depois de cada tiro a boca ja esta limpa (nada de "colar" parado)
+            "ring": {"scale": 0.8, "life": 0.065, "x": 0.15, "pulse": True},
+            # luz mais fraca e A FRENTE do cano (x): a 10 tiros/s nao pode lavar a arte da torre; vida 0,08 s
+            # (menor que o intervalo) para piscar em vez de virar um serrote continuo. Brilho residual fraco em
+            # todo tiro (n = (1, 1); o vanilla nunca usa {Min = 0  Max = 1}): ~2 vivos por vez = cano quente
+            "light": {"scale": 2.0, "life": 0.08, "x": 0.7, "color": (0.25, 0.85, 1, 0.2)},
+            "glow": {"scale": 0.85, "wh": (1, 1), "x": -0.1, "life": 0.2, "color": (0.2, 0.85, 1, 0.2),
+                     "n": (1, 1)},
             "arcs": None,
-            "bolt": {"core": (1.5, 0.42), "corona": (2.4, 0.85), "corona_color": [0, 180, 255],
+            "bolt": {"core": (1.5, 0.42), "corona": (2.0, 0.8), "corona_color": [0, 180, 255],
                      "tail": (3.8, 0.66), "tail_tex": "bs_plasma_tail.png", "tail_start": 0.015, "glow": (6, 3),
                      "glow_color": [0, 235, 255]},
             "crackle": None,
@@ -81,15 +84,16 @@ CFG = {
                     "scorch": 2.6, "scorch_life": 0.6, "shield": 2.6, "shield_life": 0.22},
         },
         "OC": {
-            "burst": {"size": 2.6, "life": 0.095, "gain": 1.45},
+            # vida 0,08 s < intervalo de 0,09 s do overclock: a descarga pulsa em vez de ficar acesa direto
+            "burst": {"size": 2.6, "life": 0.08, "gain": 1.4},
             "streaks": {"n": (5, 6), "speed": (7, 15), "life": (0.09, 0.16), "scale": (0.7, 1.1), "spread": 0.32,
                         "white": 0.85},
-            "ring": {"scale": 0.85, "life": 0.18, "x": 0.18},
-            "light": {"scale": 3.0, "life": 0.12, "color": (0.45, 0.95, 1, 0.4)},
-            "glow": {"scale": 1.0, "wh": (1, 1), "x": -0.1, "life": 0.3, "color": (0.45, 0.95, 1, 0.45),
-                     "n": (0, 1)},
+            "ring": {"scale": 0.95, "life": 0.065, "x": 0.18, "pulse": True},
+            "light": {"scale": 2.8, "life": 0.09, "x": 0.6, "color": (0.45, 0.95, 1, 0.36)},
+            "glow": {"scale": 1.0, "wh": (1, 1), "x": -0.1, "life": 0.22, "color": (0.45, 0.95, 1, 0.28),
+                     "n": (1, 1)},
             "arcs": {"n": (1, 2), "scale": (0.22, 0.32), "life": (0.16, 0.22)},
-            "bolt": {"core": (1.8, 0.5), "corona": (2.9, 1.05), "corona_color": [60, 215, 255],
+            "bolt": {"core": (1.8, 0.5), "corona": (2.45, 0.98), "corona_color": [60, 215, 255],
                      "tail": (4.6, 0.78), "tail_tex": "bs_plasma_tail_oc.png", "tail_start": 0.015, "glow": (7, 3.5),
                      "glow_color": [120, 255, 255]},
             "crackle": {"eps": 18, "scale": (0.3, 0.45), "life": (0.1, 0.16)},
@@ -104,7 +108,7 @@ CFG = {
             "streaks": {"n": (7, 9), "speed": (6, 14), "life": (0.12, 0.2), "scale": (0.8, 1.3), "spread": 0.45,
                         "white": 0.6},
             "ring": {"scale": 1.0, "life": 0.25, "x": 0.25},
-            "light": {"scale": 4.2, "life": 0.16, "color": (0.25, 0.85, 1, 0.45)},
+            "light": {"scale": 4.2, "life": 0.16, "x": 0.5, "color": (0.25, 0.85, 1, 0.45)},
             # brilho residual entre as pontas (alongado no cano): nasce com o disparo, sobe ate ~25% da vida e
             # apaga. E um pos-brilho, nao uma carga antes do tiro (isso pediria FireDelay, que muda o jogo)
             "glow": {"scale": 1.0, "wh": (1.7, 0.65), "x": -0.25, "life": 0.35, "color": (0.35, 0.95, 1, 0.8),
@@ -115,11 +119,14 @@ CFG = {
                      "tail": (6.2, 1.2), "tail_tex": "bs_plasma_wake.png", "tail_start": 0.032, "glow": (12, 6),
                      "glow_color": [0, 235, 255]},
             "crackle": {"eps": 30, "scale": (0.45, 0.6), "life": (0.1, 0.2)},
-            # rastro ionizado que fica no espaco atras do raio: riscos finos e curtos (0,14 s) a cada ~1,4 tile
-            # (200 m/s / 140 por s; a parte visivel do blob esticado tem ~metade do comprimento, entao menos que
-            # isso abre buracos), ~20 vivos por raio. Comeca 0,035 s depois do disparo (200 m/s x 0,035 = 7 tiles:
-            # nunca por cima da torre)
-            "trail": {"eps": 140, "life": 0.14, "len": 4.5, "wid": 0.3, "delay": 0.035, "color": (0.1, 0.8, 1, 0.4)},
+            # rastro ionizado que fica no espaco atras do raio: riscos finos e curtos a cada ~1,4 tile (200 m/s /
+            # 140 por s; a parte visivel do blob esticado tem ~metade do comprimento, entao menos que isso abre
+            # buracos). Vida 0,07 s = cauda de cometa de ~14 tiles que se solta da boca (com 0,14 s virava uma
+            # linha continua da boca ao alvo, cara de tracante de laser/railgun), ~10 vivos por raio. Comeca 0,05 s
+            # depois do disparo (200 m/s x 0,05 = 10 tiles; cada risco vai ate ~4,8 tiles atras do ponto onde
+            # nasce, entao a ponta de tras fica a ~5 tiles da boca: nunca por cima da torre nem colada no cano)
+            "trail": {"eps": 140, "life": 0.07, "len": 4.5, "wid": 0.3, "delay": 0.05,
+                      "color": (0.1, 0.8, 1, 0.45)},
             "hit": {"splash": 4.2, "splash_life": 0.42, "sparks": (10, 14), "spark_speed": (3, 12),
                     "spark_life": (0.2, 0.5), "spark_scale": (0.7, 1.2), "flash": 3.0, "flash_life": 0.14,
                     "scorch": 5.0, "scorch_life": 1.0, "shield": 5.0, "shield_life": 0.35},
@@ -129,7 +136,7 @@ CFG = {
             "streaks": {"n": (9, 11), "speed": (7, 16), "life": (0.13, 0.22), "scale": (0.9, 1.5), "spread": 0.5,
                         "white": 0.9},
             "ring": {"scale": 1.25, "life": 0.28, "x": 0.3},
-            "light": {"scale": 5.0, "life": 0.18, "color": (0.45, 0.95, 1, 0.5)},
+            "light": {"scale": 5.0, "life": 0.18, "x": 0.5, "color": (0.45, 0.95, 1, 0.5)},
             "glow": {"scale": 1.2, "wh": (1.7, 0.65), "x": -0.25, "life": 0.38, "color": (0.55, 1, 1, 0.9),
                      "charge": True},
             "arcs": {"n": (5, 6), "scale": (0.5, 0.65), "life": (0.28, 0.38)},
@@ -137,7 +144,8 @@ CFG = {
                      "tail": (7.4, 1.45), "tail_tex": "bs_plasma_wake_oc.png", "tail_start": 0.032, "glow": (14, 7),
                      "glow_color": [120, 255, 255]},
             "crackle": {"eps": 45, "scale": (0.55, 0.7), "life": (0.1, 0.2)},
-            "trail": {"eps": 180, "life": 0.15, "len": 5.0, "wid": 0.36, "delay": 0.03, "color": (0.3, 0.9, 1, 0.5)},
+            "trail": {"eps": 180, "life": 0.075, "len": 5.0, "wid": 0.36, "delay": 0.04,
+                      "color": (0.3, 0.9, 1, 0.55)},
             # "Erupcao Solar" (explosao r3 no impacto): respingo grande + anel fino de pressao do tamanho da
             # explosao, rapido (0,24 s) e com o brilho concentrado no comeco, para nao cobrir o respingo
             "hit": {"splash": 6.0, "splash_life": 0.5, "sparks": (16, 20), "spark_speed": (4, 16),
@@ -329,7 +337,7 @@ def blob(note, size, life, loc_x, color, ramp, scale=(1, 1), wh=None, light=Fals
          fancy=False, zoom=MAXZ, tex=BLOB, unlit=0.1, n=(1, 1)):
     """Clarao/brilho de 1 particula (laser_bolt_small_flash.rules). light=True: LightQuadRenderer com
     particle_light.shader (ilumina o casco, quase nada sobre o espaco); senao aditivo comum (visivel no espaco).
-    n = (0, 1): sai em ~metade das vezes (EmitPerOneShot {Min = 0  Max = 1})."""
+    n = numero de particulas por disparo (EmitPerOneShot {Min  Max}); so faixas vistas no vanilla."""
     pre = [_el("SetValue", DataOut="location", ValueType="Vector2", Value=V(_r(loc_x), 0)),
            _el("SetValue", DataOut="base_color", ValueType="Color", Value=C(*color)),
            _el("SetValue", DataOut="base_scale", ValueType="Float", Value=_r(size))]
@@ -356,9 +364,26 @@ def blob(note, size, life, loc_x, color, ramp, scale=(1, 1), wh=None, light=Fals
     return _particles(note, _local_init(), upd, rend, mat, _emitter(pre, n), bucket, fancy, zoom, inflate=3)
 
 
-def ring(note, local_scale, life, loc_x, gain=1.0, bucket="Upper1", fancy=False, zoom=MAXZ):
-    """Aneis de choque ciano para frente (railgun_shoot.rules: 16 quadros de 256 px), menores e mais curtos."""
-    g = gain
+RING_RAMP = [(1, 1, 1, 0), (0.6, 1, 1, 0.9), (0.8, 1, 1, 0.3), (0.4, 1, 1, 0)]
+# pulso da Boitata (9 chaves igualmente espacadas: 0; 0,125; 0,25 ...): pico em 25% da vida, ~0 em 62,5%, 0 em 75%
+RING_PULSE = [(1, 1, 1, 0), (0.7, 1, 1, 0.6), (0.6, 1, 1, 0.95), (0.7, 1, 1, 0.55), (0.8, 1, 1, 0.22),
+              (0.6, 1, 1, 0.04), (0.4, 1, 1, 0), (0.4, 1, 1, 0), (0.4, 1, 1, 0)]
+
+
+def ring_ramp(gain=1.0, pulse=False):
+    """Rampa de cor do anel: RGB (menos a ultima chave) multiplicado por gain (HDR no overclock)."""
+    keys = RING_PULSE if pulse else RING_RAMP
+    out = []
+    for i, (r, g, b, a) in enumerate(keys):
+        k = gain if (a > 0 and i < len(keys) - 1) else 1.0
+        out.append((_r(r * k, 3), _r(g * k, 3), _r(b * k, 3), a))
+    return out
+
+
+def ring(note, local_scale, life, loc_x, gain=1.0, bucket="Upper1", fancy=False, zoom=MAXZ, pulse=False):
+    """Aneis de choque ciano para frente (railgun_shoot.rules: 16 quadros de 256 px), menores e mais curtos.
+    pulse=True (Boitata): rampa que acende e apaga dentro de ~3/4 da vida, para o anel nunca durar ate o tiro
+    seguinte."""
     pre = [_el("SetValue", DataOut="location", ValueType="Vector2", Value=V(_r(loc_x), 0))]
     init = [_el("LocationToWorldSpace", LocationIn="location", LocationOut="location"),
             _el("RotationToWorldSpace", RotationIn="rot", RotationOut="rot"),
@@ -368,8 +393,7 @@ def ring(note, local_scale, life, loc_x, gain=1.0, bucket="Upper1", fancy=False,
            _addt(),
            _el("UvAnimation", True, TimeIn="life", UvRectOut="uv_rect", Framerate=16, TextureSize=V(1024, 1024),
                FrameSize=V(256, 256), FrameCount=16, FramesPerRow=4, PixelOffset=V(0, 0), Looping=False),
-           _ramp("color", [(1, 1, 1, 0), (_r(0.6 * g, 3), _r(1 * g, 3), _r(1 * g, 3), 0.9),
-                           (_r(0.8 * g, 3), _r(1 * g, 3), _r(1 * g, 3), 0.3), (0.4, 1, 1, 0)]),
+           _ramp("color", ring_ramp(gain, pulse)),
            _el("Lerp", True, LerpIn="life", DataOut="scale2", Invert=False, ValueType="Vector2",
                FromValue=V(2, 1), ToValue=V(1, 1))]
     mat = {"Texture": _tex(RING), "TargetBlendMode": dict(ADD)}
@@ -481,10 +505,11 @@ def _muzzle_files(w, mode, c):
         [(0.55, 1, 1, 0.9), (0.15, 0.85, 1, 1)], "CannonFlare")
     r = c["ring"]
     out["muzzle_ring"] = ring(f"Anel de choque ciano na boca ({tag})", r["scale"], r["life"], r["x"],
-                              gain=1.25 if mode == "OC" else 1.0, fancy=(w == "gatling"))
+                              gain=1.25 if mode == "OC" else 1.0, fancy=(w == "gatling"), pulse=r.get("pulse", False))
     li = c["light"]
-    out["muzzle_light"] = blob(f"Luz ciano no casco ao disparar ({tag}; particle_light)", li["scale"], li["life"], 0,
-                               li["color"], [(1, 1, 1, 1), (1, 1, 1, 0)], light=True, bucket="Upper1", fancy=True)
+    out["muzzle_light"] = blob(f"Luz ciano no casco ao disparar ({tag}; particle_light, centro a frente da boca)",
+                               li["scale"], li["life"], li.get("x", 0), li["color"], [(1, 1, 1, 1), (1, 1, 1, 0)],
+                               light=True, bucket="Upper1", fancy=True)
     gl = c["glow"]
     if gl.get("charge"):
         ramp = [(1, 1, 1, 0), (1, 1, 1, 1), (1, 1, 1, 0.55), (1, 1, 1, 0.2), (1, 1, 1, 0)]
@@ -634,10 +659,20 @@ def hit_media(w, oc, kind, volume=0.6, max_conc=30, shake=0.0, shake_time=0.5):
     return media
 
 
-def _blob_sprite(bucket, wh, color, offset):
-    return {"Type": "Sprite", "RenderBucket": bucket, "Offset": [round(offset, 3), 0],
-            "Sprite": {"Texture": {"File": Q(BLOB), "MipLevels": "max", "SampleMode": "Linear"},
-                       "Size": [round(v, 3) for v in wh], "VertexColor": list(color), "TargetBlendMode": "Add"}}
+# a corona cresce nos primeiros 0,04 s (LerpScaleFrom / LerpTime, campos de Sprite do pd_shot.rules e do
+# mine.rules): no quadro em que o raio nasce (cauda ainda escondida pelo StartTime) ela nao vira uma "pilula" gorda
+CORONA_LERP_FROM = [0.45, 0.7]
+CORONA_LERP_TIME = 0.04
+
+
+def _blob_sprite(bucket, wh, color, offset, lerp_from=None, lerp_time=None):
+    c = {"Type": "Sprite", "RenderBucket": bucket, "Offset": [round(offset, 3), 0]}
+    if lerp_from:
+        c["LerpScaleFrom"] = list(lerp_from)
+        c["LerpTime"] = lerp_time
+    c["Sprite"] = {"Texture": {"File": Q(BLOB), "MipLevels": "max", "SampleMode": "Linear"},
+                   "Size": [round(v, 3) for v in wh], "VertexColor": list(color), "TargetBlendMode": "Add"}
+    return c
 
 
 def bolt_components(w, oc):
@@ -663,15 +698,19 @@ def bolt_components(w, oc):
                                       "Size": [tl, tw], "TargetBlendMode": "Add"},
                       "FrameCount": 8, "FrameSize": [512, 64], "FramesPerRow": 2, "FramesPerSecond": 30}}
     co_l, co_w = b["corona"]
-    comps["Sprite"] = _blob_sprite("BulletUpper3", (co_l, co_w), b["corona_color"], -0.22 * co_l)
+    comps["Sprite"] = _blob_sprite("BulletUpper3", (co_l, co_w), b["corona_color"], -0.22 * co_l,
+                                   CORONA_LERP_FROM, CORONA_LERP_TIME)
     # nucleo: a cabeca da gota (80% da textura) fica na posicao do projetil + head
     comps["CoreSprite"] = {"Type": "Sprite", "RenderBucket": "BulletUpper4", "Offset": [round(head + 0.02 - 0.3 * cl, 3), 0],
                            "Sprite": {"Texture": {"File": Q(f"{SHOT_PREFIX}bs_plasma_bolt.png"), "MipLevels": "max",
                                                   "SampleMode": "Linear"},
                                       "Size": [cl, cw], "VertexColor": [255, 255, 255], "TargetBlendMode": "Add"}}
     gl = b["glow"]
+    # a luz IsLight tambem so liga depois que o raio saiu da boca (StartTime em Sprite, como o ArmedSprite do
+    # mine_deployed.rules): no quadro do disparo o brilho de 6x3 (12x6 no Curupira) parado na boca lavava a arte
+    # da torre de ciano a cada tiro; a luz do disparo fica so com o muzzle_light (fraco e a frente do cano)
     comps["GlowSprite"] = {"Type": "Sprite", "RenderBucket": "BulletUpper4", "Z": 0, "IsLight": True,
-                           "Offset": [round(-0.12 * gl[0], 3), 0],
+                           "StartTime": b["tail_start"], "Offset": [round(-0.12 * gl[0], 3), 0],
                            "Sprite": {"Texture": {"File": Q(BLOB), "MipLevels": "max", "SampleMode": "Linear"},
                                       "Size": list(gl), "VertexColor": b["glow_color"], "TargetBlendMode": "Add",
                                       "Shader": Q(f"{D}/common_effects/fancy_light.shader"),

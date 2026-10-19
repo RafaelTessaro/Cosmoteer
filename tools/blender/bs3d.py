@@ -26,7 +26,9 @@ B_HALO = 0.9  # raio do halo de brilho em px por tile de largura
 # ============================================================================ cena
 
 
-def reset():
+def reset(light_rig="default"):
+    """Cena vazia com Cycles. light_rig: "default" (sol de cima-esquerda das torres) ou "axial" (projeteis,
+    ver lights_axial)."""
     bpy.ops.wm.read_factory_settings(use_empty=True)
     _MATS.clear()  # os materiais antigos morrem com a cena
     sc = bpy.context.scene
@@ -52,7 +54,12 @@ def reset():
     bg = world.node_tree.nodes["Background"]
     bg.inputs[0].default_value = (0.62, 0.66, 0.74, 1)
     bg.inputs[1].default_value = 0.55
-    _lights()
+    if light_rig == "axial":
+        lights_axial()
+    elif light_rig == "default":
+        _lights()
+    else:
+        raise ValueError(f"light_rig desconhecido: {light_rig}")
     return sc
 
 
@@ -75,7 +82,37 @@ def _lights():
     sun("fill", 0.6, (20, 0, 90), (1, 1, 1), 30)
 
 
-def camera(w_tiles, h_tiles, center=(0, 0)):
+def lights_axial(key=2.6, fill=0.7, fill_deg=70.0, key_glossy=False):
+    """Luz axissimetrica dos projeteis (misseis e granadas giram em voo): sol principal reto de cima e dois
+    preenchimentos iguais a +-fill_deg graus em torno do eixo X (o eixo do projetil, nariz em +X). Nada fica
+    iluminado de um lado so: a sombra do jogo vem do mapa de normais (IsLit). Troca as luzes da cena atual.
+
+    key_glossy=False: o sol de cima so ilumina o difuso. Com a camera ortografica olhando reto para baixo, o
+    reflexo especular desse sol volta direto para a camera em TODA face plana virada para cima (pico do GGX na
+    incidencia normal) e a blindagem clara estourava em branco puro; o brilho especular (simetrico) fica com os
+    dois preenchimentos e o ambiente."""
+    sc = bpy.context.scene
+    for o in [o for o in sc.objects if o.type == "LIGHT"]:
+        bpy.data.objects.remove(o, do_unlink=True)
+
+    def sun(name, energy, rot, angle):
+        l = bpy.data.lights.new(name, "SUN")
+        l.energy = energy
+        l.color = (1, 1, 1)
+        l.angle = math.radians(angle)
+        o = bpy.data.objects.new(name, l)
+        o.rotation_euler = [math.radians(a) for a in rot]
+        sc.collection.objects.link(o)
+        return o
+
+    k = sun("ax_key", key, (0, 0, 0), 8)        # reto para baixo (-Z)
+    k.visible_glossy = key_glossy
+    sun("ax_fill_l", fill, (fill_deg, 0, 0), 30)   # vem do lado -Y, inclinado em torno de X
+    sun("ax_fill_r", fill, (-fill_deg, 0, 0), 30)  # espelho exato: vem do lado +Y
+
+
+def camera(w_tiles, h_tiles, center=(0, 0), px=None):
+    """Camera ortografica de cima. px = pixels por tile do sprite final (padrao PX = 64; granadas usam 128)."""
     sc = bpy.context.scene
     cam = bpy.data.objects.new("cam", bpy.data.cameras.new("cam"))
     cam.data.type = "ORTHO"
@@ -85,8 +122,9 @@ def camera(w_tiles, h_tiles, center=(0, 0)):
     cam.location = (center[0], center[1], 50)
     sc.collection.objects.link(cam)
     sc.camera = cam
-    sc.render.resolution_x = int(round(w_tiles * PX * SS))
-    sc.render.resolution_y = int(round(h_tiles * PX * SS))
+    ppt = PX if px is None else px
+    sc.render.resolution_x = int(round(w_tiles * ppt * SS))
+    sc.render.resolution_y = int(round(h_tiles * ppt * SS))
     sc.render.pixel_aspect_x = sc.render.pixel_aspect_y = 1
     return cam
 
@@ -557,10 +595,13 @@ def render_to(path_png, final_size_px):
     return im
 
 
-def render_set(base, final_size_px, glow_halo=True, normals=True, off=True):
-    """Renderiza <base>.png (aceso), <base>_off.png (apagado), <base>_normals.png e devolve as imagens."""
+def render_set(base, final_size_px, glow_halo=True, normals=True, off=True, glow=True):
+    """Renderiza <base>.png (aceso), <base>_off.png (apagado), <base>_normals.png e devolve as imagens.
+
+    glow=False: o <base>.png sai com os emissivos apagados (LEDs viram lentes escuras; projeteis, cujas luzes vao
+    num atlas aditivo separado) e os emissivos continuam apagados no fim."""
     sc = bpy.context.scene
-    set_glow(True)
+    set_glow(glow)
     beauty = render_to(base + ".png", final_size_px)
     out = {"on": beauty}
     if glow_halo:
@@ -587,7 +628,7 @@ def render_set(base, final_size_px, glow_halo=True, normals=True, off=True):
     if off:
         set_glow(False)
         out["off"] = render_to(base + "_off.png", final_size_px)
-        set_glow(True)
+        set_glow(glow)
     if normals:
         vl = bpy.context.view_layer
         prev_vt = sc.view_settings.view_transform

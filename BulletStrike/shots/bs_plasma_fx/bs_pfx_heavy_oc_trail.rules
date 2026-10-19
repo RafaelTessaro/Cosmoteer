@@ -55,7 +55,7 @@ Def
 		{
 			Type = Lifetime
 			LifeInOut = life
-			Lifetime = 0.15
+			Lifetime = 0.075
 			Name = ""
 			Enabled = true
 			UpdateAfterInit = false
@@ -231,7 +231,7 @@ EmitterDef
 				Rf = 0.3
 				Gf = 0.9
 				Bf = 1
-				Af = 0.5
+				Af = 0.55
 			}
 			Name = ""
 			Enabled = true
@@ -289,5 +289,5 @@ Filter
 	Junk = true
 	TargetedJunk
 }
-Delay = 0.03
+Delay = 0.04
 IgnoreIntensity = false

@@ -5,10 +5,10 @@ na tela e rgb * a. Cada funcao monta a "luz" L (float, 0..1+) e _encode() separa
 Orientacao igual a das texturas vanilla de projetil (pd_shot.png, laser_bolt_large.png): a FRENTE e +X (direita).
 
   bs_plasma_bolt.png          256x64          nucleo branco-quente em gota com borda ciano (cabeca a direita)
-  bs_plasma_tail[_oc].png     8 x 512x64      Boitata: cauda de serpente, um fio dominante e outro mais fraco que
-                                              ondulam (incham logo atras da cabeca e afinam na ponta; 2 por linha)
+  bs_plasma_tail[_oc].png     8 x 512x64      Boitata: cauda de serpente, um fio dominante e outro mais fraco e
+                                              fino que ondulam com amplitude crescendo para a ponta (2 por linha)
   bs_plasma_wake[_oc].png     8 x 512x64      Curupira: esteira ionizada reta e grossa com 3 aneis de pulso
-                                              (como os trilhos dos canos) correndo para tras (2 por linha)
+                                              discretos correndo para tras (2 por linha)
   bs_plasma_burst.png         8 x 128x128     descarga de boca: ponta de lanca para frente + faiscas na base
   bs_plasma_splash.png        8 x 128x128     respingo de impacto: clarao + gotas e borrifos jogados para tras
   bs_plasma_shock.png         256x256         anel fino de choque (branco, tingivel), centro transparente
@@ -137,13 +137,30 @@ def _atlas_put(atlas, f, per_row, fw, fh, L):
     atlas[r * fh:(r + 1) * fh, c * fw:(c + 1) * fw] = L
 
 
-def tail(frames=8, fw=512, fh=64, waves=3.0, amp=0.30, body=0.20, body_waves=1.15, core_px=1.7, glow_px=4.5,
-         chan_px=6.0, gain=1.0, whiten=0.0, second=0.6):
+def _tail_curves(d, f, s, frames, half, body, body_waves, amp, waves, jit_b, jit_s, amp_j, orbit=(0.6, 1.0)):
+    """Centro do corpo e do fio s (0/1) da cauda da Boitata na posicao d (0 = cabeca, 1 = fim), quadro f.
+    O corpo ondula devagar (1 volta / frames por quadro) e os fios em helice (2 voltas / frames), com um tremor
+    de fase/amplitude por quadro (jit_b, jit_s, amp_j). A amplitude dos fios CRESCE para a ponta (a cabeca segue
+    firme e o rabo chicoteia, como uma cobra nadando) e a onda fica mais longa para o fim (fase ~ d^0,85).
+    orbit: quanto cada fio se afasta do corpo (o dominante fica colado na espinha, o fraco gira mais longe)."""
+    d = np.clip(d, 0, 1)
+    conv = 1 - np.exp(-d / 0.07)                     # tudo converge na cabeca
+    pb = 2 * math.pi * f / frames + jit_b
+    ps = 4 * math.pi * f / frames + jit_s
+    yb = body * half * conv * (0.35 + 0.65 * d) * np.sin(2 * math.pi * body_waves * d ** 0.9 - pb)
+    grow = 0.22 + 0.78 * d ** 0.8                    # amplitude cresce da cabeca para a ponta
+    env = amp * amp_j * half * conv * grow * orbit[s]
+    return yb, yb + env * np.sin(2 * math.pi * waves * d ** 0.85 - ps + s * math.pi)
+
+
+def tail(frames=8, fw=512, fh=64, waves=3.0, amp=0.40, body=0.26, body_waves=1.15, core_px=1.7, glow_px=4.5,
+         chan_px=6.0, gain=1.0, whiten=0.0, second=0.3, seed=5):
     """Atlas da cauda da Boitata (a serpente de fogo): um corpo de plasma que ondula devagar e dois fios em helice
-    (fase oposta) em volta dele. Para parecer cobra e nao DNA: a amplitude dos fios incha logo atras da cabeca e
-    afina ate a ponta (sin(pi d^0,7)^0,6), a onda fica mais longa para o fim (fase ~ d^0,85) e um fio domina (o
-    outro tem `second` da intensidade). Por quadro o corpo anda 1 volta / frames e os fios 2 voltas / frames:
-    a animacao fecha o ciclo e a onda corre para tras, como uma cobra nadando."""
+    (fase oposta) em volta dele. Para parecer cobra e nao DNA/mola: a amplitude dos fios cresce da cabeca para a
+    ponta, a onda fica mais longa para o fim, cada quadro tem um tremor pequeno de fase e de amplitude (seed fixa:
+    a textura e sempre a mesma) e um fio domina: ele fica perto da espinha do corpo, e o outro, com `second` da
+    intensidade e mais fino, gira mais longe como uma chama solta. Por quadro o
+    corpo anda 1 volta / frames e os fios 2 voltas / frames: a animacao fecha o ciclo e a onda corre para tras."""
     per_row = 2
     rows = int(math.ceil(frames / per_row))
     atlas = np.zeros((rows * fh, per_row * fw, 3))
@@ -151,17 +168,8 @@ def tail(frames=8, fw=512, fh=64, waves=3.0, amp=0.30, body=0.20, body_waves=1.1
     half = fh / 2
     yc = y - half
     stops = _stops(whiten)
-
-    def curves(d, f, s):
-        """Centro do corpo e do fio s (0/1) na posicao d (0 = cabeca, 1 = fim), quadro f."""
-        d = np.clip(d, 0, 1)
-        conv = 1 - np.exp(-d / 0.07)                 # tudo converge na cabeca
-        pb = 2 * math.pi * f / frames
-        ps = 4 * math.pi * f / frames
-        yb = body * half * conv * (0.35 + 0.65 * d) * np.sin(2 * math.pi * body_waves * d ** 0.9 - pb)
-        swell = np.sin(math.pi * d ** 0.7) ** 0.6    # incha logo atras da cabeca, afina na ponta
-        env = 1.1 * amp * half * conv * swell
-        return yb, yb + env * np.sin(2 * math.pi * waves * d ** 0.85 - ps + s * math.pi)
+    rng = np.random.default_rng(seed)
+    jit = [(rng.uniform(-0.18, 0.18), rng.uniform(-0.4, 0.4), rng.uniform(0.88, 1.1)) for _ in range(frames)]
 
     d = 1.0 - x / fw
     dd = 1.0 / fw
@@ -169,31 +177,37 @@ def tail(frames=8, fw=512, fh=64, waves=3.0, amp=0.30, body=0.20, body_waves=1.1
     col = _lerp_col(stops, d ** 0.8)
     hot = col * 0.4 + WHITE * 0.6
     for f in range(frames):
-        yb, _ = curves(d, f, 0)
-        yb2, _ = curves(d + dd, f, 0)
+        jb, js, ja = jit[f]
+
+        def cv(dv, s_):
+            return _tail_curves(dv, f, s_, frames, half, body, body_waves, amp, waves, jb, js, ja)
+
+        yb, _ = cv(d, 0)
+        yb2, _ = cv(d + dd, 0)
         dist_b = np.abs(yc - yb) / np.sqrt(1 + (yb2 - yb) ** 2)
         wch = chan_px * (1 - 0.5 * d)
-        L = np.exp(-0.5 * (dist_b / wch) ** 2)[..., None] * col * 0.5
-        L += np.exp(-0.5 * (dist_b / (wch * 0.35)) ** 2)[..., None] * hot * 0.35 * ((1 - d) ** 2)[..., None]
-        for s, k in ((0, 1.0), (1, second)):
-            _, c = curves(d, f, s)
-            _, c2 = curves(d + dd, f, s)
+        L = np.exp(-0.5 * (dist_b / wch) ** 2)[..., None] * col * 0.45
+        L += np.exp(-0.5 * (dist_b / (wch * 0.35)) ** 2)[..., None] * hot * 0.3 * ((1 - d) ** 2)[..., None]
+        for s_, k in ((0, 1.0), (1, second)):
+            _, c = cv(d, s_)
+            _, c2 = cv(d + dd, s_)
             dist = np.abs(yc - c) / np.sqrt(1 + (c2 - c) ** 2)
-            th = core_px * (1 - 0.35 * d) * (1.0 if s == 0 else 0.85)
-            L += np.exp(-0.5 * (dist / th) ** 2)[..., None] * hot * 1.3 * k
-            L += np.exp(-0.5 * (dist / glow_px) ** 2)[..., None] * col * 0.45 * k
+            th = core_px * (1 - 0.35 * d) * (1.0 if s_ == 0 else 0.7)
+            L += np.exp(-0.5 * (dist / th) ** 2)[..., None] * hot * 1.4 * k
+            L += np.exp(-0.5 * (dist / (glow_px * (1.0 if s_ == 0 else 0.8))) ** 2)[..., None] * col * 0.5 * k
         L = _soft(L * fade[..., None] * gain, 1.25)
         vfade = np.clip((half - np.abs(yc)) / 3.0, 0, 1)
         _atlas_put(atlas, f, per_row, fw, fh, L * vfade[..., None])
     return _encode(atlas)
 
 
-def wake(frames=8, fw=512, fh=64, rings=3, core_px=3.6, chan_px=8.5, gain=1.0, whiten=0.0):
+def wake(frames=8, fw=512, fh=64, rings=3, core_px=3.6, chan_px=8.5, gain=1.0, whiten=0.0, ring_gain=0.5):
     """Atlas da cauda do Curupira: esteira ionizada RETA e grossa (os canos dele sao trilhos, nao a serpente da
     Boitata). Nucleo branco que afina para tras, canal ciano que se espalha um pouco no fim e `rings` aneis de
     pulso (elipses finas vistas de lado, frente mais clara) que nascem atras da cabeca e correm para o fim da
     cauda apagando. Por quadro cada anel anda 1 / (rings * frames) do comprimento: a animacao fecha o ciclo.
-    Um tremor lento no brilho do canal da a cara de plasma ionizado."""
+    Um tremor lento no brilho do canal da a cara de plasma ionizado. ring_gain: forca dos aneis (0,5: discretos,
+    para nao lerem como as "penas" de flecha / assinatura do railgun vanilla)."""
     per_row = 2
     rows = int(math.ceil(frames / per_row))
     atlas = np.zeros((rows * fh, per_row * fw, 3))
@@ -224,8 +238,8 @@ def wake(frames=8, fw=512, fh=64, rings=3, core_px=3.6, chan_px=8.5, gain=1.0, w
             front = 0.55 + 0.45 * np.tanh((x - xr) / rx)
             band = np.exp(-0.5 * ((x - xr) / (rx * 1.4)) ** 2) * glow
             amp = (1 - p) ** 1.1 * min(1.0, p / 0.08)
-            L += (ring * front)[..., None] * (hot * 0.6 + col * 0.4) * 1.6 * amp
-            L += band[..., None] * hot * 1.3 * amp
+            L += (ring * front)[..., None] * (hot * 0.6 + col * 0.4) * 1.6 * amp * ring_gain
+            L += band[..., None] * hot * 1.3 * amp * (0.4 + 0.6 * ring_gain)
         L = _soft(L * fade[..., None] * gain, 1.25)
         vfade = np.clip((half - np.abs(yc)) / 3.0, 0, 1)
         _atlas_put(atlas, f, per_row, fw, fh, L * vfade[..., None])

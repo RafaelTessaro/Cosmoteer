@@ -241,7 +241,9 @@ Components
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper3
-		Offset = [-0.638, 0]
+		Offset = [-0.539, 0]
+		LerpScaleFrom = [0.45, 0.7]
+		LerpTime = 0.04
 		Sprite
 		{
 			Texture
@@ -250,7 +252,7 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [2.9, 1.05]
+			Size = [2.45, 0.98]
 			VertexColor = [60, 215, 255]
 			TargetBlendMode = Add
 		}
@@ -279,6 +281,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
+		StartTime = 0.015
 		Offset = [-0.84, 0]
 		Sprite
 		{

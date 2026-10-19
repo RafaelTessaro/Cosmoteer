@@ -46,7 +46,7 @@ Def
 		{
 			Type = Lifetime
 			LifeInOut = life
-			Lifetime = 0.3
+			Lifetime = 0.22
 			Name = ""
 			Enabled = true
 			UpdateAfterInit = false
@@ -175,7 +175,7 @@ EmitterDef
 	EmitPerSecond = 0
 	EmitPerOneShot
 	{
-		Min = 0
+		Min = 1
 		Max = 1
 	}
 	PreInitializers
@@ -202,7 +202,7 @@ EmitterDef
 				Rf = 0.45
 				Gf = 0.95
 				Bf = 1
-				Af = 0.45
+				Af = 0.28
 			}
 			Name = ""
 			Enabled = true

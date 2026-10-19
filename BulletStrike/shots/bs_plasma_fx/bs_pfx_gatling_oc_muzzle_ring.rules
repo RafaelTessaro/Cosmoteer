@@ -35,7 +35,7 @@ Def
 		{
 			Type = SetWorldSpaceScale
 			ScaleOut = scale
-			LocalScale = 0.85
+			LocalScale = 0.95
 			Name = ""
 			Enabled = true
 			UpdateAfterInit = false
@@ -46,7 +46,7 @@ Def
 		{
 			Type = Lifetime
 			LifeInOut = life
-			Lifetime = 0.18
+			Lifetime = 0.065
 			Name = ""
 			Enabled = true
 			UpdateAfterInit = false
@@ -103,16 +103,46 @@ Def
 					Af = 0
 				}
 				{
+					Rf = 0.875
+					Gf = 1.25
+					Bf = 1.25
+					Af = 0.6
+				}
+				{
 					Rf = 0.75
 					Gf = 1.25
 					Bf = 1.25
-					Af = 0.9
+					Af = 0.95
+				}
+				{
+					Rf = 0.875
+					Gf = 1.25
+					Bf = 1.25
+					Af = 0.55
 				}
 				{
 					Rf = 1
 					Gf = 1.25
 					Bf = 1.25
-					Af = 0.3
+					Af = 0.22
+				}
+				{
+					Rf = 0.75
+					Gf = 1.25
+					Bf = 1.25
+					Af = 0.04
+				}
+				{
+					Rf = 0.4
+					Gf = 1
+					Bf = 1
+					Af = 0
+				}
+				{
+					Rf = 0.4
+					Gf = 1
+					Bf = 1
+					Af = 0
 				}
 				{
 					Rf = 0.4

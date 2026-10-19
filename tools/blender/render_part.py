@@ -2,7 +2,9 @@
 
     <venv-com-bpy>/bin/python tools/blender/render_part.py <id_curto> [--out DIR] [--quick] [--preview]
                                                           [--only turret,barrel,hull,cells]
-    (fabricas: --only hull | machine | f1,f8 = so esses quadros da maquina)
+    (fabricas: --only hull | machine | f1,f8 = so esses quadros da maquina;
+     projeteis: --only he_m,nuclear_l = so esses itens)
+    <id_curto> tambem pode ser o caminho de um arquivo .py de modelo fora de parts/ (testes); use --out.
 
 Carrega o modelo de tools/blender/parts/<id_curto>.py (dicionario PART + funcoes de modelagem) e grava
 em art3d/<id_curto>/ (ou --out) os PNGs no formato do jogo e um meta.json que o gerador do mod
@@ -15,15 +17,20 @@ Tipos de peca (PART["kind"]):
   "launcher" lancador de misseis de convés: head(M, T, phase) = casulo com as bocas VAZIAS +
              cell(M, look, T[, form, box]) = UM nariz carregado na origem; os niveis do rack sao compostos aqui;
              shutter(M, T, box) = persiana fechada (layouts *_inner); oc_glow(M, T) = brilho do overclock (opcional)
+  "missiles" / "shells"  projeteis em voo (misseis 64 px/tile, granadas 128 px/tile): model(M, key, T, phase) =
+             UM projetil, nariz +X, centrado, eixo X; emissivos (T, "lights"), mascara da faixa (T, "mask", so
+             granadas); luz axissimetrica; meta.json no esquema de CONTRATOS secao 3 (render_projectiles)
 
 Contrato completo e convencoes: tools/blender/STYLE.md.
 """
 
 import importlib
+import importlib.util
 import json
 import math
 import os
 import sys
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
@@ -64,8 +71,8 @@ def launcher_entry(pid):
     return {}
 
 
-def fresh(accent):
-    B.reset()
+def fresh(accent, light_rig="default"):
+    B.reset(light_rig)
     return Mo.mats(accent)
 
 
@@ -679,32 +686,190 @@ def render_resource(mod, out, only):
     return meta
 
 
+# ============================================================================ projeteis (misseis e granadas)
+PROJ_KINDS = ("missiles", "shells")
+PROJ_PPT = {"missiles": 64, "shells": 128}          # px por tile do sprite (CONTRATOS secao 3)
+PROJ_FILES = {                                       # nomes dos PNGs por tipo (CONTRATOS secao 3)
+    "missiles": {"file": "msl_{k}.png", "normals": "msl_{k}_normals.png", "lights": "msl_{k}_lights.png",
+                 "mask": None},
+    "shells": {"file": "bs_shell_{k}.png", "normals": "bs_shell_{k}_normals.png", "lights": "bs_shell_{k}_lights.png",
+               "mask": "bs_shell_band_{k}.png"},
+}
+
+
+def _mask_mat():
+    """Emissao branca pura (forca 1 = 255 na vista Standard) para a mascara da faixa."""
+    m = bpy.data.materials.get("__mask_white")
+    if m is None:
+        m = bpy.data.materials.new("__mask_white")
+        m.use_nodes = True
+        nt = m.node_tree
+        for n in list(nt.nodes):
+            nt.nodes.remove(n)
+        em = nt.nodes.new("ShaderNodeEmission")
+        em.inputs["Color"].default_value = (1, 1, 1, 1)
+        em.inputs["Strength"].default_value = 1.0
+        nt.links.new(em.outputs[0], nt.nodes.new("ShaderNodeOutputMaterial").inputs[0])
+    return m
+
+
+def _mask_pass(path, size):
+    """Mascara da faixa: os objetos (T, "mask") saem brancos, o resto do projetil vira Holdout (tampa a faixa onde
+    ela fica atras de outra peca e sai transparente). RGB = branco em todo o quadro (sem franja escura no filtro
+    do jogo); alfa = cobertura. None quando nao ha objeto de mascara visivel."""
+    sc = bpy.context.scene
+    masks = [o for o in sc.objects if o.type == "MESH" and not o.hide_render and o.get("mask")]
+    if not masks:
+        return None
+    keep = {o.name: list(o.data.materials) for o in masks}
+    white = _mask_mat()
+    for o in masks:
+        o.data.materials.clear()
+        o.data.materials.append(white)
+    em = emission_pass(path, size, keep_tag="mask", holdout=True)
+    for o in masks:
+        o.data.materials.clear()
+        for m in keep[o.name]:
+            o.data.materials.append(m)
+    arr = np.asarray(em, dtype=np.uint8).copy()
+    arr[..., :3] = 255
+    return Image.fromarray(arr, "RGBA")
+
+
+def _warn_lights(tag="lights"):
+    """Objetos marcados 'lights' que nao sao emissivos saem pretos no atlas (e nao somam nada no jogo)."""
+    for o in B.objects_with(tag):
+        if o.type == "MESH" and not o.hide_render and \
+                not any(m is not None and "bs_glow" in m.keys() for m in o.data.materials):
+            print(f"AVISO: '{o.name}' (tag {tag}) nao e emissivo: sai preto no atlas de luzes (STYLE.md 11)")
+
+
+def render_projectiles(mod, out, only):
+    """Folhas de sprite de projeteis (STYLE.md 8.4, 10 e 11; esquema em CONTRATOS secao 3).
+
+    Por item de PART["items"] (filtro --only k1,k2):
+      difuso com os emissivos APAGADOS (LEDs = lentes escuras), 48 amostras (--quick: 12), luz axissimetrica;
+      normais com o alfa do difuso;
+      atlas de luzes (so quando frames > 1): um quadro por fase k/n (a cena e refeita com phase = k/n), so a
+      emissao dos objetos (T, "lights") com o resto em Holdout + halo suave (_oc_glow_sprite), quadros lado a lado
+      (n*w x h, per_row = n);
+      granadas com "mask": mascara da faixa (objetos (T, "mask")) em branco sobre transparente."""
+    P = mod.PART
+    kind = P["kind"]
+    ppt = P.get("px_per_tile", PROJ_PPT[kind])
+    if ppt != PROJ_PPT[kind]:
+        raise SystemExit(f"{P['id']}: px_per_tile {ppt} difere do contrato ({PROJ_PPT[kind]} para '{kind}')")
+    accent = P.get("accent", "amber")
+    names = PROJ_FILES[kind]
+    keys = list(P["items"])
+    if only:
+        bad = sorted(set(only) - set(keys))
+        if bad:
+            raise SystemExit(f"{P['id']}: --only com itens que nao existem: {bad} (itens: {', '.join(keys)})")
+        keys = [k for k in keys if k in only]
+    halo = P.get("halo_px", 2.5 * ppt / 64)
+    items, files = {}, []
+    for key in keys:
+        it = P["items"][key]
+        t0 = time.time()
+        L, W = it["canvas_tiles"]
+        px = (int(round(L * ppt)), int(round(W * ppt)))
+        n = int(it.get("frames", 1))
+        if it.get("mask") and not names["mask"]:
+            raise SystemExit(f"{P['id']}/{key}: mascara de faixa so existe em granadas (kind 'shells')")
+        f_diff, f_norm = names["file"].format(k=key), names["normals"].format(k=key)
+        # ---- difuso (emissivos apagados) + normais + mascara: a mesma cena
+        M = fresh(accent, "axial")
+        B.camera(L, W, (0, 0), px=ppt)
+        samples(48)
+        mod.model(M, key, "body", 0.0)
+        B.show_only(["body"])
+        warn_empty("body")
+        _warn_lights()
+        B.render_set(os.path.join(out, f_diff[:-4]), px, glow_halo=False, normals=True, off=False, glow=False)
+        files += [f_diff, f_norm]
+        f_mask = None
+        if it.get("mask"):
+            f_mask = names["mask"].format(k=key)
+            mk = _mask_pass(os.path.join(out, f_mask[:-4] + "_raw.png"), px)
+            if mk is None:
+                raise SystemExit(f"{P['id']}/{key}: 'mask' ligado mas nenhum objeto (T, 'mask') no modelo")
+            mk.save(os.path.join(out, f_mask))
+            files.append(f_mask)
+        # ---- atlas de luzes: um quadro por fase
+        lights = None
+        if n > 1:
+            atlas = Image.new("RGBA", (n * px[0], px[1]), (0, 0, 0, 0))
+            f_lt = names["lights"].format(k=key)
+            for k in range(n):
+                if k:
+                    M = fresh(accent, "axial")
+                    B.camera(L, W, (0, 0), px=ppt)
+                    mod.model(M, key, "body", k / n)
+                    B.show_only(["body"])
+                samples(32)
+                B.set_glow(True)
+                em = emission_pass(os.path.join(out, f_lt[:-4] + f"_raw{k}.png"), px, keep_tag="lights", holdout=True)
+                atlas.alpha_composite(_oc_glow_sprite(em, blur_px=halo, gain=1.1), (k * px[0], 0))
+            atlas.save(os.path.join(out, f_lt))
+            files.append(f_lt)
+            lights = {"file": f_lt, "frames": n, "frame_px": [px[0], px[1]], "per_row": n,
+                      "fps": it.get("fps", 0), "wrap": it.get("wrap")}
+        items[key] = {"size": [L, W], "px": [px[0], px[1]], "file": f_diff, "normals": f_norm, "lights": lights,
+                      "mask": f_mask, "nozzle": [it.get("nozzle_x", round(-L / 2, 4)), 0],
+                      "anchors": {a: list(v) for a, v in it.get("anchors", {}).items()}}
+        print(f"item {key}: {px[0]}x{px[1]} px, {n} quadro(s) de luz, {time.time() - t0:.1f} s")
+    return {"version": 1, "kind": kind, "id": P["id"], "px_per_tile": ppt, "items": items,
+            "files": sorted(set(files))}
+
+
 # ============================================================================ principal
 def main():
     global QUICK
     args = sys.argv[1:]
     short = args[0]
     QUICK = "--quick" in args
+    src = None
+    if short.endswith(".py") and os.path.isfile(short):
+        # modelo fora de parts/ (testes do kit): carrega pelo caminho
+        src = os.path.abspath(short)
+        short = os.path.splitext(os.path.basename(src))[0]
     out = os.path.join(ROOT, "art3d", short)
     if "--out" in args:
         out = args[args.index("--out") + 1]
     only = set(args[args.index("--only") + 1].split(",")) if "--only" in args else set()
     os.makedirs(out, exist_ok=True)
-    mod = importlib.import_module(f"parts.{short}")
+    if src:
+        spec = importlib.util.spec_from_file_location(f"bs_ext_part_{short}", src)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+    else:
+        mod = importlib.import_module(f"parts.{short}")
     kind = mod.PART["kind"]
     fn = {"gun": render_gun, "factory": render_factory, "resource": render_resource,
-          "launcher": render_launcher}[kind]
+          "launcher": render_launcher, "missiles": render_projectiles, "shells": render_projectiles}[kind]
     meta = fn(mod, out, only)
     mp = os.path.join(out, "meta.json")
     if only and os.path.exists(mp):
         old = json.load(open(mp))
-        old.update({k: v for k, v in meta.items() if k != "files"})
+        if kind in PROJ_KINDS and old.get("kind") == kind:
+            # projeteis: --only troca so os itens renderizados; a ordem segue PART["items"]
+            items = dict(old.get("items", {}))
+            items.update(meta["items"])
+            order = [k for k in mod.PART["items"] if k in items] + [k for k in items if k not in mod.PART["items"]]
+            old.update({k: v for k, v in meta.items() if k not in ("files", "items")})
+            old["items"] = {k: items[k] for k in order}
+        else:
+            old.update({k: v for k, v in meta.items() if k != "files"})
         old["files"] = sorted(set(old.get("files", [])) | set(meta["files"]))
         meta = old
     json.dump(meta, open(mp, "w"), indent=1)
     if "--preview" in args and kind in ("gun", "launcher"):
         import compose_preview
         compose_preview.make_all(out)
+    elif "--preview" in args and kind in PROJ_KINDS:
+        import compose_preview
+        compose_preview.make_projectiles(out)
     print("OK", short, out)
 
 

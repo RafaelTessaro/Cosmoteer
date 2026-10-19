@@ -1,6 +1,6 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
 // Efeito de plasma (ver bsgen/plasma_fx.py e bsgen/plasma_tex.py)
-// Luz ciano no casco ao disparar (Curupira normal; particle_light)
+// Luz ciano no casco ao disparar (Curupira normal; particle_light, centro a frente da boca)
 
 Type = Particles
 Def
@@ -188,7 +188,7 @@ EmitterDef
 			ValueType = Vector2
 			Value
 			{
-				X = 0
+				X = 0.5
 				Y = 0
 			}
 			Name = ""

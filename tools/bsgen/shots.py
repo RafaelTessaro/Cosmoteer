@@ -204,6 +204,8 @@ def build_kinetic(s):
              "RemapTo": ["&../../../BaseValue", "&~/OVERCLOCK/RANGE"]}]}
         top["IdealRange"] = [round(s["range"] * 0.3), s["range"]]
         top["ReceivableBuffs"] = ["Overclock"]
+    # nos tiros de plasma (s["plasma_fx"]) o preset s["fx"] e o VIS de bs_data so alimentam stats/docs: o visual e
+    # os efeitos de impacto vem de bsgen/plasma_fx.py (bolt_components / hit_media) e sobrescrevem os de baixo
     preset = s.get("fx", "med")
     hit_op = {"ReduceEffectsByPenetration": True, "Offset": [-0.15, 0],
               "HitEffects": [{"Type": "Damage", "Damage": _val(s["damage"])},

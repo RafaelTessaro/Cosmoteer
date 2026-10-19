@@ -229,6 +229,8 @@ Components
 		Type = Sprite
 		RenderBucket = BulletUpper3
 		Offset = [-0.704, 0]
+		LerpScaleFrom = [0.45, 0.7]
+		LerpTime = 0.04
 		Sprite
 		{
 			Texture
@@ -266,6 +268,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
+		StartTime = 0.032
 		Offset = [-1.44, 0]
 		Sprite
 		{

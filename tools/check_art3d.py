@@ -2,7 +2,13 @@
 
     python3 tools/check_art3d.py <id_curto>
     python3 tools/check_art3d.py todos        # todas as pastas de art3d/
+    python3 tools/check_art3d.py <pasta>      # folha de projeteis fora de art3d/ (rascunhos, testes do kit)
+
+Projeteis (meta kind "missiles" / "shells", esquema de CONTRATOS secao 3 / STYLE.md 8.4, 10 e 11): arquivos,
+tamanhos (px = size x px_per_tile, atlas = n x w), um so componente de alfa por sprite, orcamento de emissivo do
+quadro 0 e mascaras brancas sobre transparente.
 """
+import json
 import os
 import sys
 
@@ -86,7 +92,272 @@ def check_factory(short, meta, D, errs):
     print(f"fabrica: {len(mc['frames'])} quadros de maquina, casco {W}x{H}")
 
 
+# ============================================================================ projeteis
+PROJ_KINDS = ("missiles", "shells")
+PROJ_PPT = {"missiles": 64, "shells": 128}
+PROJ_NAMES = {"missiles": ("msl_{k}.png", "msl_{k}_normals.png", "msl_{k}_lights.png", None),
+              "shells": ("bs_shell_{k}.png", "bs_shell_{k}_normals.png", "bs_shell_{k}_lights.png",
+                         "bs_shell_band_{k}.png")}
+PROJ_IDS = {"missiles": "rafaeltessaro.bs_missiles", "shells": "rafaeltessaro.bs_shells"}
+SHELL_KEYS = ("he", "ap", "nuke")
+ALPHA_SOLID = 100           # alfa que conta como "corpo" (STYLE.md 9, ilhas flutuantes)
+EMISSIVE_MAX = 0.03         # area acesa do quadro 0 / area do corpo
+EMISSIVE_MAX_NUCLEAR = 0.04  # Iara / granada nuclear: faixas largas que respiram
+ANCHORS = ("seeker", "warhead", "radiation")
+
+
+def _components(mask):
+    """Tamanhos dos componentes conectados (vizinhanca de 8) de uma mascara booleana (sem scipy)."""
+    m = mask.tolist()
+    h, w = len(m), len(m[0]) if m else 0
+    seen = [[False] * w for _ in range(h)]
+    sizes = []
+    for y in range(h):
+        for x in range(w):
+            if m[y][x] and not seen[y][x]:
+                seen[y][x] = True
+                stack, n = [(y, x)], 0
+                while stack:
+                    cy, cx = stack.pop()
+                    n += 1
+                    for ny in (cy - 1, cy, cy + 1):
+                        if 0 <= ny < h:
+                            row, srow = m[ny], seen[ny]
+                            for nx in (cx - 1, cx, cx + 1):
+                                if 0 <= nx < w and row[nx] and not srow[nx]:
+                                    srow[nx] = True
+                                    stack.append((ny, nx))
+                sizes.append(n)
+    return sorted(sizes, reverse=True)
+
+
+def _nuclear(key, it):
+    return bool(it.get("nuclear")) or key.startswith("nuclear") or key == "nuke"
+
+
+def _proj_table(kind):
+    """Tabela de arte dos misseis copiada para o spec (tools/spec/bullet_strike_missile_fx.json), se existir."""
+    if kind != "missiles":
+        return None
+    p = os.path.join(A3.ROOT, "tools", "spec", "bullet_strike_missile_fx.json")
+    if not os.path.exists(p):
+        return None
+    with open(p, encoding="utf-8") as fh:
+        t = json.load(fh)
+    return t.get("items") or t.get("art", {}).get("items")
+
+
+def check_projectiles(d, meta, errs):
+    """Folha de projeteis (misseis 64 px/tile, granadas 128 px/tile) na pasta d."""
+    import numpy as np
+    kind = meta["kind"]
+    ppt = meta.get("px_per_tile")
+    if ppt != PROJ_PPT[kind]:
+        errs.append(f"px_per_tile {ppt}, o contrato pede {PROJ_PPT[kind]} para '{kind}'")
+        ppt = ppt or PROJ_PPT[kind]
+    for k in ("version", "id", "items", "files"):
+        if k not in meta:
+            errs.append(f"meta.json sem '{k}'")
+    files = set(meta.get("files", []))
+    for f in sorted(files):
+        if not os.path.exists(os.path.join(d, f)):
+            errs.append(f"meta.files cita {f}, que nao existe")
+    nf, nn, nl, nm = PROJ_NAMES[kind]
+    items = meta.get("items", {})
+    canon = meta.get("id") == PROJ_IDS[kind]
+    table = _proj_table(kind) if canon else None
+    if canon and kind == "shells":
+        miss = [k for k in SHELL_KEYS if k not in items]
+        if miss:
+            errs.append(f"faltam as granadas {miss} (contrato: he, ap, nuke)")
+    if canon and kind == "missiles":
+        if table is None:
+            print("aviso: sem tools/spec/bullet_strike_missile_fx.json; chaves/quadros dos misseis nao conferidos")
+        else:
+            miss = sorted(set(table) - set(items))
+            if miss:
+                errs.append(f"faltam os misseis {miss} (tabela de arte)")
+    used = set()
+
+    def img(name, what):
+        if not name:
+            return None
+        used.add(name)
+        if name not in files:
+            errs.append(f"{what}: {name} nao esta em meta.files")
+        p = os.path.join(d, name)
+        if not os.path.exists(p):
+            errs.append(f"{what}: {name} nao existe")
+            return None
+        return Image.open(p).convert("RGBA")
+    report = []
+    for key, it in items.items():
+        tag = f"{key}"
+        L, W = it["size"]
+        pw, ph = it["px"]
+        if abs(pw - L * ppt) > 1 or abs(ph - W * ppt) > 1:
+            errs.append(f"{tag}: px {it['px']} difere de size {it['size']} x {ppt}")
+        for fld, pat in (("file", nf), ("normals", nn)):
+            if it.get(fld) != pat.format(k=key):
+                errs.append(f"{tag}: {fld} = {it.get(fld)}, o contrato pede {pat.format(k=key)}")
+        dif = img(it.get("file"), tag)
+        nor = img(it.get("normals"), tag + " normais")
+        if dif is None:
+            continue
+        if dif.size != (pw, ph):
+            errs.append(f"{tag}: {it['file']} tem {dif.size}, esperado {(pw, ph)}")
+        a = np.asarray(dif, dtype=np.uint8)[..., 3]
+        solid = a > ALPHA_SOLID
+        if not solid.any():
+            errs.append(f"{tag}: sprite vazio")
+            continue
+        comps = _components(solid)
+        big = [c for c in comps if c >= 3]
+        if len(big) != 1:
+            errs.append(f"{tag}: {len(big)} componentes de alfa (tamanhos {big[:6]}); o sprite precisa ser UMA peca")
+        elif len(comps) > 1:
+            print(f"aviso: {tag}: {len(comps) - 1} pixel(s) solto(s) de alfa > {ALPHA_SOLID} (antisserrilhado)")
+        ys, xs = np.where(a > 40)
+        if xs.min() == 0 or xs.max() == pw - 1:
+            print(f"aviso: {tag}: o sprite encosta na lateral da tela (bbox x {xs.min()}..{xs.max()} de {pw}); "
+                  f"nariz/bocal cortado?")
+        if ys.min() == 0 or ys.max() == ph - 1:
+            print(f"aviso: {tag}: o sprite encosta em cima/embaixo da tela (bbox y {ys.min()}..{ys.max()} de {ph})")
+        if nor is not None:
+            if nor.size != dif.size:
+                errs.append(f"{tag}: normais {nor.size} difere do difuso {dif.size}")
+            else:
+                na = np.asarray(nor, dtype=np.int16)[..., 3]
+                if (np.abs(na - a.astype(np.int16)) > 8).mean() > 0.01:
+                    errs.append(f"{tag}: o alfa das normais nao e o do difuso")
+        lit = int((a >= 128).sum())
+        lt = it.get("lights")
+        frac = 0.0
+        if lt:
+            if lt.get("file") != nl.format(k=key):
+                errs.append(f"{tag}: lights.file = {lt.get('file')}, o contrato pede {nl.format(k=key)}")
+            n = int(lt.get("frames", 0))
+            fw, fh = lt.get("frame_px", [0, 0])
+            per = lt.get("per_row")
+            if n < 2:
+                errs.append(f"{tag}: lights com {n} quadro(s); com 1 quadro o atlas e omitido (lights = null)")
+            if [fw, fh] != [pw, ph]:
+                errs.append(f"{tag}: lights.frame_px {lt.get('frame_px')} difere de px {it['px']}")
+            if per != n:
+                errs.append(f"{tag}: lights.per_row {per} (o atlas e UMA fileira: per_row = frames = {n})")
+            if not lt.get("fps") or lt["fps"] <= 0:
+                errs.append(f"{tag}: lights.fps invalido ({lt.get('fps')})")
+            if lt.get("wrap") not in (None, "Clamp"):
+                errs.append(f"{tag}: lights.wrap = {lt.get('wrap')} (null ou \"Clamp\")")
+            at = img(lt.get("file"), tag + " luzes")
+            if at is not None:
+                want = (n * pw, ph)
+                if at.size != want:
+                    errs.append(f"{tag}: atlas {at.size}, esperado {want} (n x w)")
+                else:
+                    f0 = np.asarray(at.crop((0, 0, pw, ph)), dtype=np.uint8)
+                    on = (f0[..., 3] >= 128) & (f0[..., :3].max(axis=2) > 16)
+                    frac = on.sum() / max(1, lit)
+                    lim = EMISSIVE_MAX_NUCLEAR if _nuclear(key, it) else EMISSIVE_MAX
+                    if frac > lim:
+                        errs.append(f"{tag}: quadro 0 com {frac:.1%} de area acesa (limite {lim:.0%}; STYLE.md 11)")
+                    for k in range(n):
+                        if not at.crop((k * pw, 0, (k + 1) * pw, ph)).getchannel("A").getbbox():
+                            print(f"aviso: {tag}: quadro {k + 1} do atlas de luzes esta vazio (tudo apagado)")
+        if it.get("mask"):
+            if not nm:
+                errs.append(f"{tag}: mascara de faixa so existe em granadas")
+            elif it["mask"] != nm.format(k=key):
+                errs.append(f"{tag}: mask = {it['mask']}, o contrato pede {nm.format(k=key)}")
+            mk = img(it["mask"], tag + " mascara")
+            if mk is not None:
+                if mk.size != dif.size:
+                    errs.append(f"{tag}: mascara {mk.size} difere do difuso {dif.size}")
+                else:
+                    m = np.asarray(mk, dtype=np.int16)
+                    vis = m[..., 3] > 8
+                    if not vis.any():
+                        errs.append(f"{tag}: mascara vazia")
+                    elif not (m[..., 3] == 0).any():
+                        errs.append(f"{tag}: mascara sem fundo transparente")
+                    else:
+                        rgb = m[..., :3][vis]
+                        if (rgb.max(axis=1) - rgb.min(axis=1)).max() > 6:
+                            errs.append(f"{tag}: mascara colorida (precisa ser cinza/branca; o jogo tinge com "
+                                        f"VertexColor)")
+                        elif rgb.mean() < 200:
+                            errs.append(f"{tag}: mascara escura (media {rgb.mean():.0f}; precisa ser branca)")
+                        out = (m[..., 3] > ALPHA_SOLID) & (a <= 8)
+                        if out.sum() > 0.02 * max(1, (m[..., 3] > ALPHA_SOLID).sum()):
+                            errs.append(f"{tag}: mascara fora do corpo do projetil")
+        noz = it.get("nozzle")
+        if not (isinstance(noz, list) and len(noz) == 2 and all(isinstance(v, (int, float)) for v in noz)):
+            errs.append(f"{tag}: nozzle {noz} (precisa ser [x, 0])")
+        elif abs(noz[0]) > L / 2 + 0.05:
+            print(f"aviso: {tag}: nozzle x {noz[0]} fora da tela (meio comprimento {L / 2})")
+        for an, v in (it.get("anchors") or {}).items():
+            if an not in ANCHORS:
+                print(f"aviso: {tag}: ancora '{an}' fora do contrato ({', '.join(ANCHORS)})")
+            if abs(v[0]) > L / 2 + 0.05 or abs(v[1]) > W / 2 + 0.05:
+                print(f"aviso: {tag}: ancora '{an}' {v} fora da tela")
+        if table and key in table:
+            tr = table[key]
+            if list(tr.get("canvas_px", it["px"])) != list(it["px"]):
+                errs.append(f"{tag}: px {it['px']} difere da tabela {tr.get('canvas_px')}")
+            tl = tr.get("lights")
+            if bool(tl) != bool(lt):
+                errs.append(f"{tag}: atlas de luzes {'ausente' if tl else 'sobrando'} (tabela: {tl and tl.get('frames')})")
+            elif tl and (tl.get("frames") != lt.get("frames") or tl.get("fps") != lt.get("fps") or
+                         (tl.get("WrapMode") or tl.get("wrap")) != lt.get("wrap")):
+                errs.append(f"{tag}: luzes {lt.get('frames')} quadros / {lt.get('fps')} fps / {lt.get('wrap')} diferem "
+                            f"da tabela {tl.get('frames')} / {tl.get('fps')} / {tl.get('WrapMode') or tl.get('wrap')}")
+        if canon and kind == "shells" and key == "nuke" and lt and (lt.get("frames") != 4 or lt.get("fps") != 6):
+            errs.append(f"{tag}: o contrato pede 4 quadros a 6 fps no atlas da granada nuclear")
+        if canon and kind == "shells" and key in ("he", "ap") and not it.get("mask"):
+            errs.append(f"{tag}: falta a mascara da faixa ({nm.format(k=key)})")
+        report.append(f"{key} {pw}x{ph}" + (f" luzes {lt['frames']}q {frac:.1%}" if lt else "") +
+                      (" mascara" if it.get("mask") else ""))
+    extra = sorted(files - used)
+    if extra:
+        print(f"aviso: arquivos em meta.files que nenhum item usa: {extra[:6]}")
+    print(f"{kind}: {len(items)} itens ({'; '.join(report)})")
+
+
+def check_dir(d):
+    """Confere uma folha de projeteis numa pasta qualquer (rascunho); devolve True quando ha problemas."""
+    p = os.path.join(d, "meta.json")
+    if not os.path.exists(p):
+        sys.exit(f"ERRO: {p} nao existe")
+    with open(p, encoding="utf-8") as fh:
+        meta = json.load(fh)
+    if meta.get("kind") not in PROJ_KINDS:
+        sys.exit(f"ERRO: por caminho so se conferem projeteis (kind {meta.get('kind')}); use o id curto")
+    errs = []
+    check_projectiles(d, meta, errs)
+    return _report(errs, d)
+
+
+def _report(errs, name):
+    if errs:
+        print("PROBLEMAS:")
+        for e in errs:
+            print(" -", e)
+        return True
+    print("OK", name)
+    return False
+
+
 def main():
+    arg = sys.argv[1]
+    if arg not in ("todos", "--all") and os.path.isdir(arg) and os.path.exists(os.path.join(arg, "meta.json")):
+        ab = os.path.abspath(arg)
+        if os.path.dirname(ab) == A3.ART3D:
+            arg = os.path.basename(ab)          # art3d/<id_curto> passado como caminho
+        else:
+            if check_dir(arg):
+                sys.exit(1)
+            return
+        sys.argv[1] = arg
     if sys.argv[1] in ("todos", "--all"):
         bad = []
         for short in sorted(os.listdir(A3.ART3D)):
@@ -108,6 +379,11 @@ def check_one(short):
     meta = A3.load_meta(short)
     if not meta:
         sys.exit(f"ERRO: art3d/{short}/meta.json nao existe")
+    if meta.get("kind") in PROJ_KINDS:
+        # projeteis: so arte (as regras usam o meta pelos modulos opcionais, CONTRATOS secao 2)
+        errs = []
+        check_projectiles(os.path.join(A3.ART3D, short), meta, errs)
+        return _report(errs, short)
     import bs_data as D  # carrega o meta e confere o numero de canos
     from bsgen import guns, ciws
     from rules_dsl import render

@@ -39,7 +39,8 @@ importa deles está resumido nas seções 1 e 2 abaixo.
    arma rotativa tem um feixe de canos com um anel de fixação na frente.
 6. **Emissivos pequenos e raros.** A área acesa deve ficar abaixo de 1 a 2% do sprite. Os LEDs ficam em
    **recessos escuros**, nunca direto sobre a blindagem branca. Use `M["glow"]` (forte), `M["glow_dim"]` (suave) e
-   `M["ember"]` (calor, bem fraco). Nada de logotipos, textos grandes ou faixas de perigo na torre.
+   `M["ember"]` (calor, bem fraco). Nada de logotipos, textos grandes ou faixas de perigo na torre (só os projéteis
+   nucleares têm uma exceção, seção 11.6).
 7. **Acabamento limpo de fábrica.** Sem ferrugem e sem sujeira visível. Desgaste e sujeira vêm só dos materiais de
    `Mo.mats()`.
 8. **Densidade de detalhes.** A 64 px/quadro deve haver uma quebra estrutural (fresta, degrau, ranhura ou fenda) a
@@ -341,17 +342,102 @@ Os substitutos procedurais (`tools/bsgen/sprites.py`: `launcher_pod_canvas` (cai
 `launcher_quad_canvas`, `_nose_big`, `render_launcher_shutters`, `render_launcher_oc_glow`) seguem esta tabela e o
 mesmo contrato de arquivos; um modelo pronto os substitui quando se acrescenta `art3d/<id_curto>/meta.json`.
 
-### 8.4 Mísseis em voo (nenhuma imagem para modelar)
+### 8.4 Mísseis em voo (`kind: "missiles"`)
 
-Os projéteis reaproveitam texturas do jogo base, então a equipe de 3D não tem nada para renderizar para eles
-(`tools/bsgen/shots.py`): todo míssil, filho de submunição, ogiva de torpedo e isca usa
-`shots/missile_he/missile_he.png` (+ normais) na escala da sua `BoxPhysics` (proporção do jogo base: caixa
-[1.5, .5] -> sprite [2, 1]) em `BulletUpper3`, mais um brilho difuso na cor do tipo e o `*_thruster_plume_light` do
-jogo base (os dois em `BulletUpper4`). A carga do Carrapato grudada no casco inimigo é o anel de luzes da mina do
-jogo base, `shots/mine/mine_small_lights.png` (piscada de 6 quadros, aditiva), com um brilho vermelho. Se um dia
-forem feitos sprites próprios de mísseis: vista de cima, nariz apontando para +x (direita), tela 2:1, fundo
-transparente, um PNG difuso + um de normais por tamanho de corpo; nunca use um bucket Lower/Middle (fica escondido
-sob o nosso teto).
+Cada míssil tem o seu próprio sprite 3D visto de cima, na mesma linguagem das torres (placas claras chanfradas sobre
+um núcleo escuro, divisas apontando para a frente, LEDs em recessos), e **cada tipo precisa ser reconhecível a 1x**.
+São 22 sprites: os 15 mísseis (tipo x nível), os filhos (submunição da Piranha, ogivas e iscas do Boto e da Iara) e a
+carga grudada do Carrapato. As chaves, telas, quadros e fps são os da tabela de arte dos mísseis
+(`tools/spec/bullet_strike_missile_fx.json`, cópia de `missile_art_table.json`); o `check_art3d` confere contra ela.
+
+O modelo fica em `tools/blender/parts/bs_missiles.py` e a saída em `art3d/bs_missiles/`. O build copia os PNGs para
+`shots/bs_missile_art/` e as regras (`tools/bsgen/missile_fx.py`) os referenciam como `../bs_missile_art/<arquivo>`.
+Sem `art3d/bs_missiles/meta.json` as regras voltam ao corpo do jogo base (`missile_he.png`), então o build nunca
+quebra por falta de arte.
+
+```python
+PART = {
+    "id": "rafaeltessaro.bs_missiles", "kind": "missiles", "px_per_tile": 64, "accent": "amber",
+    "items": {   # uma entrada por chave da tabela de arte
+        "he_m": {"canvas_tiles": [1.75, 0.625],   # tela [comprimento, largura] em quadros (nariz em +x)
+                 "frames": 2, "fps": 4,           # quadros do atlas de luzes (1 = sem atlas)
+                 "wrap": None,                    # None = laço; "Clamp" = toca uma vez e para (carga do Carrapato)
+                 "nozzle_x": -0.86,               # bocal (x em quadros): onde as regras põem a chama
+                 "mask": False,                   # mísseis não têm máscara
+                 "anchors": {"seeker": [0.84, 0.0]}},   # opcional: seeker | warhead | radiation, [x, y] em quadros
+        ...
+    },
+}
+
+def model(M, key, T="body", phase=0.0): ...
+    # UM projétil, nariz em +X, centrado na origem, eixo = X (z = altura; o topo do corpo fica em z ~ raio).
+    # Tudo com a etiqueta T; os emissivos com (T, "lights"). phase = k/frames escolhe o quadro do atlas de luzes.
+```
+
+O renderizador (`render_part.py`, função `render_projectiles`) faz, para cada item:
+
+| arquivo | conteúdo |
+|---|---|
+| `msl_<chave>.png` | difuso com a luz axial (seção 11.1) e **os emissivos apagados** (os LEDs saem como lentes escuras), 48 amostras (`--quick`: 12) |
+| `msl_<chave>_normals.png` | normais (R = +x, G = +y para cima, B = para fora), alfa igual ao do difuso |
+| `msl_<chave>_lights.png` | atlas de luzes ADITIVO, só quando `frames > 1`: um quadro por fase k/n (a cena é refeita com `phase = k/n`), só a emissão dos objetos `(T, "lights")`, com o resto do míssil em Holdout (tapa o brilho que fica atrás) e um halo suave; n quadros numa fileira (`n*w x h`) |
+
+O `meta.json` segue o esquema combinado com as regras:
+
+```json
+{"version": 1, "kind": "missiles", "id": "rafaeltessaro.bs_missiles", "px_per_tile": 64,
+ "items": {"he_m": {"size": [1.75, 0.625], "px": [112, 40], "file": "msl_he_m.png", "normals": "msl_he_m_normals.png",
+                    "lights": {"file": "msl_he_m_lights.png", "frames": 2, "frame_px": [112, 40], "per_row": 2,
+                               "fps": 4, "wrap": null},
+                    "mask": null, "nozzle": [-0.86, 0], "anchors": {"seeker": [0.84, 0.0]}}},
+ "files": ["msl_he_m.png", "msl_he_m_lights.png", "msl_he_m_normals.png"]}
+```
+
+No jogo: corpo `Sprite` em `BulletUpper3` com `IsLit` e `NormalsTexture`; luzes num `AnimatedSprite` aditivo em
+`BulletUpper4` (`FrameCount`, `FrameSize`, `FramesPerRow`, `FramesPerSecond` e `WrapMode = Clamp` na carga); chama
+(`Beam`) em `BulletUpper2`, embaixo do corpo, a partir de `nozzle`. **Nunca** use um bucket Lower/Middle: fica
+escondido sob o nosso teto. O tamanho no jogo é o `size` vezes o `Size` da regra (filhos compartilhados: Piranha
+x1,0 / x1,15, isca do Boto x1,0 / x1,1, carga 0,9 / 1,25).
+
+Escada de tamanhos (64 px/quadro; a caixa de física não muda, só o visual):
+
+| nível | chaves | tela (quadros) |
+|---|---|---|
+| início (Tocandira) | `he_s`, `napalm_s` | 1,0 x 0,375 / 1,0 x 0,4375 |
+| meio (Caipora) | `he_m`; `cluster_m`, `limpet_m`, `napalm_m`, `emp_m` | 1,75 x 0,625; 1,75 x 0,75 |
+| fim (Mula) | `he_l`; `cluster_l`, `limpet_l`, `napalm_l`, `emp_l` | 2,5 x 0,875; 2,5 x 1,0 |
+| torpedos (Boto) | `torpedo_m` / `torpedo_wh_m`, `torpedo_l` / `torpedo_wh_l` | 2,75 x 1,0 / 2,25 x 1,0; 3,25 x 1,25 / 2,75 x 1,25 |
+| nuclear (Iara) | `nuclear_l` / `nuclear_wh_l` | 3,75 x 1,5 (o maior projétil do mod) / 3,1 x 1,5 |
+| filhos | `cluster_child`, `torpedo_decoy`, `nuclear_decoy`, `limpet_charge` | 0,75 x 0,375; 1,75 x 0,625; 2,0 x 0,75; 1,0 x 1,0 |
+
+Um míssil do fim é mais comprido **e** mais gordo **e** ganha estrutura (estágio de reforço, mais aletas, mais
+segmentos, bobinas, garras); nunca é só o do meio ampliado.
+
+Identidade de cada tipo (a faixa usa `Mo.band_mat(tipo)`, o mesmo material dos narizes carregados nos lançadores,
+então o míssil em voo bate com o do casulo):
+
+| tipo | apelido | silhueta / assinatura | luzes |
+|---|---|---|---|
+| Jararaca / Muriçoca (HE, âmbar) | víbora | flecha fina, luvas em divisa encaixadas ("escamas"), ogiva tangente com buscador escuro; `he_l` em 2 estágios | pisca (2 quadros) / corre (3 quadros, `he_l`) |
+| Piranha (fragmentação, amarela) | cardume | cilindro gordo em 3 ou 4 baias, nariz em pétalas com anel de dentes (triângulos brancos sobre preto); filho = gota com rabo bifurcado, sem animação | LEDs das baias em sequência |
+| Carrapato (lapa, vermelha) | carrapato | patas dobradas ao longo do corpo, 2 pares de pinças, cabeça-ímã hexagonal escura; carga = disco hexagonal com 6 patas e anel de 8 LEDs (10 quadros, `Clamp`, os 2 últimos com o anel inteiro) | estrobo + anel do ímã |
+| Taturana (napalm, laranja) | lagarta de fogo | segmentos de tanque com visores de "fogo líquido" alternados, nariz em cúpula com bico de 3 furos; fim com tanques laterais | visores balançam (2 quadros) |
+| Poraquê (P.E.M., azul) | poraquê | barbatanas-fita longas e baixas, pilha de bobinas de COBRE (`Mo.copper_mat()`) com frestas azuis, buscador com olho azul; fim com 2 pontas de arco | a fresta quente corre para o nariz (4 quadros) |
+| Boto (torpedo isca, branco) | boto | cilindro branco grande, nariz arredondado com fenda escura, anel de carenagem na cauda; estágio 1 com luva de reforço e 2 propulsores laterais; iscas cinza sem faixa, estrobo rápido | estrobos brancos |
+| Iara (torpedo nuclear, verde) | "tem que SABER que é nuclear" | o ÚNICO míssil de blindagem escura; ogiva gorda em 3 camadas com o trevo (cunhas pretas sobre disco verde), divisas verde/preto nos ombros, faixas verdes largas, janela do núcleo com grade de aço, bocal triplo; isca cinza sem divisas nem trevo | faixas, janela e anéis do bocal respiram (4 quadros, 0,55 / 0,8 / 1,0 / 0,8) |
+
+Comandos (da raiz do repositório):
+
+```bash
+$PY tools/blender/render_part.py bs_missiles --quick --out <rascunho>/draft_missiles [--only he_m,nuclear_l] [--preview]
+$PY tools/blender/render_part.py bs_missiles             # final, art3d/bs_missiles/ (as 22 telas são pequenas: renderize uma vez)
+python3 tools/check_art3d.py bs_missiles                 # ou: python3 tools/check_art3d.py <rascunho>/draft_missiles
+python3 tools/blender/compose_preview.py art3d/bs_missiles --sheet docs/preview/3d/misseis_em_voo.png \
+    --gif docs/preview/3d/misseis_luzes.gif
+```
+
+As regras comuns a todos os projéteis (luz axial, telas pequenas, rotação, orçamento de emissivo, a exceção
+nuclear e as armadilhas) estão na seção 11.
 
 ## 9. Armadilhas conhecidas (dos agentes que já modelaram armas)
 
@@ -431,3 +517,157 @@ sob o nosso teto).
   Standard (faixas ficam certas a ~1,3, núcleos a ~1,6). LEDs verdes no teto precisam manter o vermelho bem abaixo do
   verde e |r - b| >= 64 (0,25), senão o shader de pintura do jogo os trata como pintura: use uma cor como
   (0.32, 1, 0) a ~0,75.
+
+## 10. Granadas de canhão (`kind: "shells"`)
+
+Os canhões (Tambor 76 mm, Trovão 155 mm, Mapinguari 406 mm) e o obuseiro nuclear (Boiúna) disparam granadas 3D em
+vez do dardo do jogo base. São 3 texturas reaproveitadas em todos os calibres; as regras (`tools/bsgen/caliber_fx.py`)
+escalam a mesma imagem: 76 mm 0,72 x 0,26, 155 mm 1,15 x 0,40, 406 mm 2,05 x 0,72 e Boiúna 2,2 x 0,86 quadros. Por
+isso elas são renderizadas a **128 px/quadro** e precisam ler bem tanto pequenas quanto grandes.
+
+O modelo fica em `tools/blender/parts/bs_shells.py` e a saída em `art3d/bs_shells/`. O build copia os PNGs para
+`shots/bs_shell_art/` e as regras os referenciam como `../bs_shell_art/<arquivo>`. Sem `art3d/bs_shells/meta.json` as
+regras voltam ao dardo do jogo base no tamanho novo.
+
+```python
+PART = {
+    "id": "rafaeltessaro.bs_shells", "kind": "shells", "px_per_tile": 128, "accent": "green",
+    "items": {
+        "he":   {"canvas_tiles": [2.0, 0.5], "frames": 1, "fps": 0, "wrap": None, "nozzle_x": -0.98,
+                 "mask": True, "anchors": {}},
+        "ap":   {"canvas_tiles": [2.0, 0.5], "frames": 1, "fps": 0, "wrap": None, "nozzle_x": -0.98,
+                 "mask": True, "anchors": {}},
+        "nuke": {"canvas_tiles": [2.0, 0.75], "frames": 4, "fps": 6, "wrap": None, "nozzle_x": -0.98,
+                 "mask": False, "anchors": {"radiation": [0.4, 0.0]}},
+    },
+}
+
+def model(M, key, T="body", phase=0.0): ...
+    # igual aos mísseis (nariz +X, centrado, eixo X); a faixa da munição leva (T, "mask")
+```
+
+| arquivo | conteúdo |
+|---|---|
+| `bs_shell_he.png` + `_normals.png` | granada de espoleta (Padrão, P.E.M.): espoleta curta no nariz, corpo de aço escuro, cinta de forçamento de cobre, cauda afinada (boat tail) |
+| `bs_shell_ap.png` + `_normals.png` | perfurante (Perfurante, Perfurante-Explosiva): ogiva longa e pontuda com capuz balístico escuro |
+| `bs_shell_band_he.png`, `bs_shell_band_ap.png` | máscara da faixa da munição: os objetos `(T, "mask")` em **branco puro sobre transparente** (alfa = cobertura; o resto da granada tapa a faixa onde ela fica atrás). O jogo tinge com `VertexColor` = cor da munição: padrão [255, 190, 60], perfurante [215, 230, 255], perfurante-explosiva [255, 80, 40], P.E.M. [80, 150, 255]. No difuso, pinte a faixa de cinza claro neutro (`Mo.NOSE_LIGHT`) para o tom não sujar a cor |
+| `bs_shell_nuke.png` + `_normals.png` | granada nuclear (seção 10.1) |
+| `bs_shell_nuke_lights.png` | atlas de 4 quadros a 6 fps (uma fileira): as faixas verdes acesas, respirando |
+
+O `meta.json` é o mesmo esquema dos mísseis (seção 8.4) com `"kind": "shells"`, `"px_per_tile": 128` e `"mask":
+"bs_shell_band_<chave>.png"` nos itens com máscara. O tracante atrás da base é desenhado pelas regras (cor da
+munição), não pinte tracante nem chama no sprite.
+
+Formas: `Mo.shell_profile(L, R, "he" | "ap")` devolve os perfis de torno (cauda, corpo, ogiva, espoleta ou capuz, e a
+cinta de forçamento) e `Mo.shell_parts(...)` torneia cada segmento com o seu material (a cinta pode receber
+`mask_tags`). A cinta de forçamento de **cobre** (`Mo.copper_mat()`, o mesmo material das bobinas do P.E.M.) é a
+única exceção à regra "cobre = família P.E.M." da seção 9: é um anel fino e real de artilharia, não uma bobina.
+
+### 10.1 Granada nuclear (Boiúna)
+
+Mesma família do recurso aprovado `bs_shell_nuke` (`tools/blender/parts/bs_shell_nuke.py`) e da Iara: corpo escuro
+ou cinza-claro como pede o desenho, **faixas verdes que respiram** (atlas de 4 quadros, intensidades 0,55 / 0,8 / 1,0
+/ 0,8), divisas verde/preto (`Mo.chevron_mat`) e o trevo embutido com cunhas pretas ou escuras (`Mo.trefoil_inlay`;
+disco verde opcional). **Nunca** listras amarelo/preto nem disco amarelo (regra do mod desde a Boiúna). Por cima dela
+as regras põem o `radiation_small.png` girando e a luz grande `radiation.png` verde (âncora `radiation`).
+
+Comandos:
+
+```bash
+$PY tools/blender/render_part.py bs_shells --quick --out <rascunho>/draft_shells [--only nuke] [--preview]
+$PY tools/blender/render_part.py bs_shells               # final, art3d/bs_shells/
+python3 tools/check_art3d.py bs_shells
+```
+
+## 11. Regras comuns dos projéteis (mísseis e granadas)
+
+### 11.1 Luz axial
+
+Projéteis giram em voo: um míssil que vai para a esquerda mostraria a luz "de cima-esquerda" das torres do lado
+errado. Por isso `render_projectiles` usa `B.reset("axial")` (ou `B.lights_axial()` depois de um `reset()`):
+
+- sol principal reto de cima (2,6), **sem reflexo especular** (`key_glossy=False`): com a câmera ortográfica olhando
+  reto para baixo, o reflexo desse sol volta direto para a câmera em toda face plana virada para cima e a blindagem
+  clara estoura em branco puro (testado: mediana 254 contra 208 sem o reflexo, que é a faixa das torres aprovadas);
+- dois preenchimentos iguais (0,7) a +-70 graus em torno do eixo X, um de cada lado do míssil;
+- nada iluminado de um lado só. A sombra no jogo vem do mapa de normais (`IsLit`).
+
+Metal polido mostra 2 brilhos simétricos (os preenchimentos), um de cada lado do eixo; isso é esperado. A luz padrão
+das torres (`B.reset()`) não muda.
+
+### 11.2 Telas pequenas: formas grandes
+
+Um micromíssil tem 64 x 24 px; um filho da Piranha, 48 x 24. Vale a regra 1.9 com mais força:
+
+- 3 a 4 elementos legíveis por míssil pequeno (corpo, nariz, faixa, aletas); detalhe nenhum menor que 2 px
+  (0,03 quadro a 64 px/quadro, 0,016 a 128 px/quadro); faixa com 2 a 3 px no mínimo;
+- o tipo se reconhece pela **silhueta** (pétalas, pinças, segmentos, bobinas, anel de carenagem, ogiva gorda), não por
+  pintura miúda;
+- confira sempre a 1x na prévia (`compose_preview`), não só ampliado.
+
+### 11.3 Rotação e simetria
+
+O sprite gira com o projétil: nada de sombra projetada, luz lateral ou texto pintado. Modele simétrico no eixo X
+(espelho em Y); só detalhes pequenos podem ser assimétricos (os visores alternados da Taturana, por exemplo).
+
+### 11.4 Orçamento de emissivo
+
+A área acesa do quadro 0 do atlas fica em **até 3% da área do corpo** (Iara e granada nuclear: até 4%, pelas faixas
+largas que respiram). O `check_art3d` mede: pixels do quadro 0 com alfa >= 128 (o halo forte conta) sobre os pixels
+do difuso com alfa >= 128. A respiração/piscada vem dos quadros, não de áreas grandes acesas.
+
+### 11.5 LEDs só em recessos
+
+O atlas é somado por cima do corpo iluminado; um LED sobre blindagem branca some. Ponha cada luz no fundo de um
+recesso escuro (leito preto, como `Mo.slot_with_pips` ou uma caixa rebaixada). O difuso sai com os emissivos
+apagados (lentes escuras). Todo objeto emissivo que deve acender leva `(T, "lights")`; um emissivo sem essa etiqueta
+não entra no atlas, e um objeto com a etiqueta que não é emissivo sai preto (o renderizador avisa).
+
+### 11.6 Exceção nuclear (só projéteis)
+
+A Iara e a granada nuclear podem usar **divisas verde/preto** (`Mo.chevron_mat`, verde `Mo.BAND["nuclear"]`) e o
+**trevo** (`Mo.trefoil_inlay`, cunhas pretas ou escuras, disco verde opcional), que a regra 1.6 proíbe nas torres:
+"quando você vê o míssil nuclear, você SABE que é nuclear". A exceção vale só para projéteis; torres, fábricas e
+recursos continuam sem faixas de perigo. Nunca amarelo/preto em lugar nenhum. As iscas da Iara não levam divisas,
+trevo nem a luz de radiação (a Iara de verdade é a que tem a luz verde girando).
+
+### 11.7 Funções do kit (`tools/blender/models.py`)
+
+| função | uso |
+|---|---|
+| `BAND`, `BAND_GLOW`, `NOSE_LIGHT`, `band_mat(tipo)`, `nose_paint(nome, cor)` | cópias exatas de `parts/bs_msl_quad.py` (o cache de materiais é por nome: `band_<tipo>` sai igual no lançador e no míssil) |
+| `COPPER`, `copper_mat()` | o cobre de `parts/bs_mag_emp.py` (nome "copper", mesmos valores) |
+| `lathe(nome, perfil, mat, tags, verts, axis="X", zc, a0, smooth)` | sólido de revolução; `axis="X"` = eixo do projétil (perfil `[(raio, x)]` da cauda para o nariz, tampa no fim); `verts=8, a0=pi/8, smooth=False` = tubo octogonal de topo plano como os canos |
+| `ogive(R, L, x0, tip_r)` | perfil de ogiva tangente (cópia de `bs_msl_quad._ogive`) |
+| `shell_profile(L, R, "he" \| "ap", **ajustes)`, `shell_parts(...)` | perfis e peças torneadas das granadas (seção 10) |
+| `trefoil_polys(...)`, `trefoil_inlay(nome, alvos, cx, cy, ztop, ro, ri, M, tags, disc_mat, surface_r, a0)` | trevo nuclear embutido: recesso de paredes verticais até um fundo plano abaixo da curva (`surface_r`), cunhas e disco planos dentro; a 1a cunha aponta para o nariz (`a0 = 0`) |
+| `chevron_sleeve(nome, x0, x1, r, mat, tags, dv, ...)` | luva de blindagem com a frente em divisa e o entalhe atrás ("escamas"), feita na malha (sem booleana) |
+| `chevron_mat(nome, c1, c2, escala)` | tinta em divisas apontando para o nariz (padrão verde/preto) |
+
+### 11.8 Armadilhas dos projéteis
+
+- **Um componente só:** aletas, pinças e faixas precisam encostar no corpo (alfa > 100); o `check_art3d` reprova
+  ilhas soltas (a mesma armadilha das torres, seção 9).
+- **Divisas por booleana:** cortar uma divisa num tubo chanfrado cai em todas as armadilhas da seção 9 (corte raso,
+  fundo coplanar, ponta fina depois do chanfro, malha vazia). Use `Mo.chevron_sleeve`, que desloca os vértices de
+  cada anel em X conforme |y|: as faces continuam planas e as tampas viram paredes verticais em V, invisíveis de
+  cima. Se for cortar fendas/LEDs numa luva, use profundidade >= 0,04 (o `B.cut` reaplica o bisel).
+- **Recorte em superfície curva:** um recesso no topo de um corpo torneado precisa de fundo abaixo da superfície em
+  toda a área do desenho (a curva desce para os lados e, na ogiva, para a frente). Passe ao `trefoil_inlay` o raio no
+  ponto mais baixo do desenho (`surface_r`) e o `ztop` desse ponto.
+- **Tela justa:** o nariz e o bocal não podem encostar na borda da tela (o `check_art3d` avisa); deixe ~0,02 quadro.
+- **Brilhos verdes e azuis:** valem as intensidades da seção 9 (faixas verdes ~1,3; azul próprio de 0,5 a 1,5).
+- **Quadros do atlas:** a cena inteira é refeita a cada fase; não use aleatoriedade sem semente no modelo, senão o
+  corpo "treme" entre os quadros.
+
+### 11.9 Conferência e prévias
+
+- `python3 tools/check_art3d.py bs_missiles | bs_shells | todos | <pasta de rascunho>`: arquivos e nomes do contrato,
+  `px = size x px_per_tile` (+-1 px), atlas `n x w` numa fileira, um componente de alfa por sprite, orçamento de
+  emissivo do quadro 0, máscaras brancas sobre transparente (e dentro do corpo), normais com o alfa do difuso;
+  nas pastas oficiais, também as chaves do contrato (granadas `he`, `ap`, `nuke`; mísseis = tabela de arte).
+- `python3 tools/blender/compose_preview.py <pasta> [--sheet PNG] [--gif GIF]` (ou `--preview` no render): folha com
+  cada item a 1x e 3x sobre placas de casco, com uma chama/tracante simples na cor do tipo atrás do bocal, as luzes do
+  quadro 0 somadas e a faixa tingida; GIF com os atlas de luzes animados (fps de cada item; `Clamp` segura o último
+  quadro). Em Python, `compose_preview.make_projectiles(pasta, sheet_path, gif_path, lengths={chave: [comprimentos
+  no jogo]}, mock_colors=..., mask_colors=...)` monta, por exemplo, a escada de calibres das granadas.

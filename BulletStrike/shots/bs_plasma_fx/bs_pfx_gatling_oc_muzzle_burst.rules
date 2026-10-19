@@ -46,7 +46,7 @@ Def
 		{
 			Type = Lifetime
 			LifeInOut = life
-			Lifetime = 0.095
+			Lifetime = 0.08
 			Name = ""
 			Enabled = true
 			UpdateAfterInit = false
@@ -120,15 +120,15 @@ Def
 			Colors
 			[
 				{
-					Rf = 1.45
-					Gf = 1.45
-					Bf = 1.45
+					Rf = 1.4
+					Gf = 1.4
+					Bf = 1.4
 					Af = 1
 				}
 				{
-					Rf = 1.225
-					Gf = 1.225
-					Bf = 1.225
+					Rf = 1.2
+					Gf = 1.2
+					Bf = 1.2
 					Af = 1
 				}
 				{

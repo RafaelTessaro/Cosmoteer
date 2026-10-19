@@ -7,6 +7,14 @@ Gera na mesma pasta:
     preview_fire.gif    -> torre girando, 3 disparos ("tum, tum, tum") com recuo, clarao e calor
 Lancadores (meta kind "launcher"): o casulo com o rack cheio (1x e 3x) e um GIF com a salva em LIFO tubo a tubo
 (o nivel do rack cai uma unidade por lancamento, clarao no tubo e baforada de sopro) e a recarga unidade a unidade.
+Projeteis (meta kind "missiles" / "shells", make_projectiles):
+
+    python3 tools/blender/compose_preview.py <pasta_sprites> [--sheet PNG] [--gif GIF]
+
+    folha com cada item a 1x e 3x (64 px/tile no jogo) sobre placas de casco, com uma chama/tracante simples na cor
+    do tipo atras do bocal, as luzes (quadro 0) somadas e a faixa da granada tingida; GIF com os atlas de luzes
+    animados (fps de cada item, WrapMode Clamp segura o ultimo quadro). Padrao: preview_projectiles.png e
+    preview_lights.gif na pasta.
 """
 
 import json
@@ -15,7 +23,7 @@ import os
 import sys
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 PX = 64
 
@@ -209,6 +217,8 @@ def make_all(d, paint=(46, 58, 74), scale=2):
     meta = json.load(open(os.path.join(d, "meta.json")))
     if meta.get("kind") == "launcher":
         return make_all_launcher(d, meta, paint, scale)
+    if meta.get("kind") in PROJ_KINDS:
+        return make_projectiles(d, paint=paint)
     roof = paint_roof(load(d, "roof.png"), paint)
     br = meta["barrel"]
     nb = len(br["ys"])
@@ -575,11 +585,232 @@ def _save_gif_shared(frames, durs, path, colors=255):
     q[0].save(path, save_all=True, append_images=q[1:], duration=durs, loop=0, optimize=False, disposal=1)
 
 
+# ============================================================================ projeteis (misseis e granadas)
+PROJ_KINDS = ("missiles", "shells")
+# cor da chama (misseis, pelo tipo = 1o pedaco da chave) / do tracante (granadas, pela municao), so para a previa
+MOCK_COLORS = {"he": (255, 170, 60), "cluster": (255, 214, 90), "limpet": (255, 70, 50), "napalm": (255, 120, 30),
+               "emp": (110, 170, 255), "torpedo": (215, 232, 255), "nuclear": (120, 255, 80), "nuke": (120, 255, 60),
+               "ap": (190, 215, 255), "aphe": (255, 95, 45)}
+# cor da faixa das granadas (VertexColor da mascara no jogo; ammo_colors.band da tabela de calibre)
+MASK_COLORS = {"he": (255, 190, 60), "ap": (215, 230, 255), "aphe": (255, 80, 40), "emp": (80, 150, 255)}
+
+
+def _font():
+    try:
+        return ImageFont.load_default(12)
+    except TypeError:
+        return ImageFont.load_default()
+
+
+def hull_tiles(w, h, paint=(46, 58, 74), tile=PX):
+    """Fundo de placas de casco pintadas (tile px por placa): fresta escura, chanfro claro em cima/esquerda."""
+    base = tuple(int(c * 0.85) for c in paint)
+    im = Image.new("RGBA", (w, h), base + (255,))
+    dr = ImageDraw.Draw(im)
+    g = max(1, tile // 32)
+    hi = tuple(min(255, int(c * 1.18) + 6) for c in paint)
+    lo = tuple(int(c * 0.55) for c in paint)
+    for y0 in range(0, h, tile):
+        for x0 in range(0, w, tile):
+            dr.rectangle([x0, y0, x0 + tile - 1, y0 + tile - 1], fill=(14, 15, 17, 255))
+            dr.rectangle([x0 + g, y0 + g, x0 + tile - 1 - g, y0 + tile - 1 - g], fill=paint + (255,))
+            dr.line([x0 + g, y0 + g, x0 + tile - 1 - g, y0 + g], fill=hi + (255,), width=g)
+            dr.line([x0 + g, y0 + g, x0 + g, y0 + tile - 1 - g], fill=hi + (255,), width=g)
+            dr.line([x0 + g, y0 + tile - 1 - g, x0 + tile - 1 - g, y0 + tile - 1 - g], fill=lo + (255,), width=g)
+            m = tile // 4
+            dr.rectangle([x0 + m, y0 + m, x0 + tile - 1 - m, y0 + tile - 1 - m], outline=base + (255,), width=g)
+    return im
+
+
+def _mix(c, k):
+    return tuple(int(c[i] + (255 - c[i]) * k) for i in range(3))
+
+
+def exhaust_mock(length_px, width_px, rgb):
+    """Chama/tracante simples apontando para tras (-X). Devolve (imagem, x da base na imagem); a base fica na
+    altura do meio da imagem."""
+    S = 4
+    L, W = max(4, length_px) * S, max(2, width_px) * S
+    im = Image.new("RGBA", (int(L + W), int(2 * W + 4)), (0, 0, 0, 0))
+    dr = ImageDraw.Draw(im)
+    cols = [rgb + (140,), _mix(rgb, 0.35) + (200,), _mix(rgb, 0.65) + (240,), _mix(rgb, 0.92) + (255,)]
+    bx = L + W * 0.2
+    for i, col in enumerate(cols):
+        f = 1 - i * 0.2
+        _flame(dr, bx, im.height / 2, L * f, W * 0.5 * f, -90, col)
+    im = im.resize((max(1, im.width // S), max(1, im.height // S)), Image.LANCZOS)
+    return Image.alpha_composite(im.filter(ImageFilter.GaussianBlur(1.5)), im), bx / S
+
+
+def _proj_layers(d, it, frame=0, mask_rgb=None):
+    """(corpo RGBA com a faixa tingida, luzes do quadro 'frame' ou None) na resolucao nativa do sprite."""
+    body = load(d, it["file"])
+    if it.get("mask") and mask_rgb:
+        mk = np.asarray(load(d, it["mask"]), dtype=np.float32)
+        b = np.asarray(body, dtype=np.float32)
+        lum = b[..., :3].mean(axis=2, keepdims=True) / 255.0
+        tint = np.clip(np.array(mask_rgb, np.float32) * (0.35 + lum * 1.3), 0, 255)
+        a = mk[..., 3:4] / 255.0 * (b[..., 3:4] / 255.0)
+        rgb = b[..., :3] * (1 - a) + tint * a
+        body = Image.fromarray(np.dstack([rgb, b[..., 3]]).astype(np.uint8), "RGBA")
+    lt = None
+    if it.get("lights"):
+        L_ = it["lights"]
+        fw, fh = L_["frame_px"]
+        per = max(1, L_.get("per_row") or L_["frames"])
+        k = frame % L_["frames"]
+        x0, y0 = (k % per) * fw, (k // per) * fh
+        lt = load(d, L_["file"]).crop((x0, y0, x0 + fw, y0 + fh))
+    return body, lt
+
+
+def _proj_cell(d, key, it, length, s, paint, mock_rgb, mask_rgb, frame=0, label=None, font=None):
+    """Um item desenhado no comprimento 'length' (tiles do jogo) a s x 64 px/tile sobre o casco."""
+    L0, W0 = it["size"]
+    k = length / L0
+    pw, ph = max(2, int(round(L0 * k * PX * s))), max(2, int(round(W0 * k * PX * s)))
+    exh = int(round(pw * (0.9 if mock_rgb else 0.0)))
+    pad = 10 + 4 * s
+    lab = 16 if label else 0
+    cw, ch = pw + exh + 2 * pad, max(ph, int(ph * 1.6)) + 2 * pad + lab
+    if label:
+        tw = int(ImageDraw.Draw(Image.new("RGBA", (1, 1))).textlength(label, font=font or _font()))
+        cw = max(cw, tw + 2 * pad)
+    cell = hull_tiles(cw, ch, paint, tile=PX * s)
+    cx, cy = cw - pad - pw / 2, pad + (ch - 2 * pad - lab) / 2
+    body, lt = _proj_layers(d, it, frame, mask_rgb)
+    body = body.resize((pw, ph), Image.LANCZOS)
+    if mock_rgb:
+        # chama/tracante embaixo do corpo (Beam em BulletUpper2, corpo em BulletUpper3), base no bocal
+        nx = cx + it["nozzle"][0] * k * PX * s
+        ex, bx = exhaust_mock(exh, ph * 0.55, mock_rgb)
+        add_center(cell, ex, nx - bx + ex.width / 2, cy, gain=1.0)
+    paste_center(cell, body, cx, cy)
+    if lt is not None:
+        add_center(cell, lt.resize((pw, ph), Image.LANCZOS), cx, cy, gain=1.0)
+    if label:
+        ImageDraw.Draw(cell).text((pad, ch - lab - 2), label, fill=(225, 228, 235, 255), font=font or _font())
+    return cell
+
+
+def _grid(cells, max_w, bg=(7, 9, 14), gap=6, title=None, font=None):
+    rows, row, w = [], [], 0
+    for c in cells:
+        if row and w + c.width > max_w:
+            rows.append(row)
+            row, w = [], 0
+        row.append(c)
+        w += c.width + gap
+    if row:
+        rows.append(row)
+    th = 20 if title else 0
+    W = max(sum(c.width for c in r) + gap * (len(r) - 1) for r in rows) + 2 * gap
+    if title:
+        tw = ImageDraw.Draw(Image.new("RGBA", (1, 1))).textlength(title, font=font or _font())
+        W = max(W, int(tw) + 2 * gap)
+    H = sum(max(c.height for c in r) for r in rows) + gap * (len(rows) + 1) + th
+    out = Image.new("RGBA", (W, H), bg + (255,))
+    if title:
+        ImageDraw.Draw(out).text((gap, 4), title, fill=(235, 238, 245, 255), font=font or _font())
+    y = gap + th
+    for r in rows:
+        x = gap
+        for c in r:
+            out.alpha_composite(c, (x, y))
+            x += c.width + gap
+        y += max(c.height for c in r) + gap
+    return out
+
+
+def _mock_for(key, kind, mock_colors):
+    if key in mock_colors:
+        return mock_colors[key]
+    if "charge" in key:
+        return None                     # carga grudada no casco: sem chama
+    head = key.split("_")[0]
+    return MOCK_COLORS.get(head, MOCK_COLORS["he"])
+
+
+def make_projectiles(d, sheet_path=None, gif_path=None, paint=(46, 58, 74), keys=None, lengths=None,
+                     mock_colors=None, mask_colors=None, max_w=1800, gif_scale=2):
+    """Previas de uma folha de projeteis (meta kind "missiles"/"shells", CONTRATOS secao 3).
+
+    sheet_path / gif_path: saidas (padrao <d>/preview_projectiles.png e <d>/preview_lights.gif; WP de arte grava
+    as previas finais em docs/preview/3d/ passando o caminho). keys: itens e ordem (padrao: todos).
+    lengths: {chave: [comprimentos no jogo em tiles]} (padrao: o "size" do item; as granadas reaproveitam a mesma
+    textura em varios calibres). mock_colors: {chave: (r, g, b) | None} cor da chama/tracante (None = sem).
+    mask_colors: {chave: (r, g, b)} tinta da faixa (mascara). Devolve (folha, gif ou None)."""
+    meta = json.load(open(os.path.join(d, "meta.json")))
+    kind = meta["kind"]
+    items = meta["items"]
+    keys = [k for k in (keys or list(items)) if k in items]
+    lengths = lengths or {}
+    mock_colors = mock_colors or {}
+    mask_colors = mask_colors or {}
+    font = _font()
+    sheet_path = sheet_path or os.path.join(d, "preview_projectiles.png")
+    gif_path = gif_path or os.path.join(d, "preview_lights.gif")
+
+    def mask_for(k):
+        return mask_colors.get(k, MASK_COLORS.get(k, MASK_COLORS["he"]))
+    parts = []
+    for s in (1, 3):
+        cells = []
+        for k in keys:
+            it = items[k]
+            for ln in lengths.get(k, [it["size"][0]]):
+                lab = f"{k} {ln:g}t" if k in lengths else f"{k} {it['px'][0]}x{it['px'][1]}"
+                cells.append(_proj_cell(d, k, it, ln, s, paint, _mock_for(k, kind, mock_colors), mask_for(k),
+                                        label=lab, font=font))
+        parts.append(_grid(cells, max_w, title=f"{meta.get('id', '')} ({kind}, {meta['px_per_tile']} px/tile) - "
+                                               f"{s}x (64 px/tile no jogo = 1x)", font=font))
+    W = max(p.width for p in parts)
+    sheet = Image.new("RGBA", (W, sum(p.height for p in parts)), (7, 9, 14, 255))
+    y = 0
+    for p in parts:
+        sheet.alpha_composite(p, (0, y))
+        y += p.height
+    os.makedirs(os.path.dirname(os.path.abspath(sheet_path)), exist_ok=True)
+    sheet.convert("RGB").save(sheet_path)
+
+    # GIF dos atlas de luzes (40 ms por quadro)
+    lit = [k for k in keys if items[k].get("lights")]
+    if not lit:
+        return sheet_path, None
+    T = 2.0
+    for k in lit:
+        L_ = items[k]["lights"]
+        cyc = L_["frames"] / max(0.1, L_.get("fps") or 1)
+        T = max(T, cyc + 0.6 if L_.get("wrap") == "Clamp" else cyc * math.ceil(2.0 / cyc))
+    T = min(T, 6.0)
+    nf = int(round(T / 0.04))
+    frames = []
+    for f in range(nf):
+        t = f * 0.04
+        cells = []
+        for k in lit:
+            it = items[k]
+            L_ = it["lights"]
+            idx = int(t * (L_.get("fps") or 1))
+            idx = min(idx, L_["frames"] - 1) if L_.get("wrap") == "Clamp" else idx % L_["frames"]
+            cells.append(_proj_cell(d, k, it, it["size"][0], gif_scale, paint, _mock_for(k, kind, mock_colors),
+                                    mask_for(k), frame=idx, label=f"{k} {idx + 1}/{L_['frames']}", font=font))
+        frames.append(_grid(cells, 1200, font=font))
+    os.makedirs(os.path.dirname(os.path.abspath(gif_path)), exist_ok=True)
+    _save_gif_shared(frames, [40] * len(frames), gif_path)
+    return sheet_path, gif_path
+
+
 def main():
     d = sys.argv[1]
     paint = (46, 58, 74)
     if "--paint" in sys.argv:
         paint = tuple(int(v) for v in sys.argv[sys.argv.index("--paint") + 1].split(","))
+    meta = json.load(open(os.path.join(d, "meta.json")))
+    if meta.get("kind") in PROJ_KINDS:
+        opt = {a: sys.argv[sys.argv.index(f"--{a}") + 1] for a in ("sheet", "gif") if f"--{a}" in sys.argv}
+        print("OK", make_projectiles(d, sheet_path=opt.get("sheet"), gif_path=opt.get("gif"), paint=paint))
+        return
     print("OK", make_all(d, paint), "quadros")
 
 
