@@ -262,6 +262,23 @@ Components
 			TargetBlendMode = Add
 		}
 	}
+	ShadeSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper2
+		StartTime = 0.032
+		Offset = [-2.788, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "../bs_plasma_fx/bs_plasma_shade.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [6.4, 1.4]
+		}
+	}
 	GlowSprite
 	{
 		Type = Sprite

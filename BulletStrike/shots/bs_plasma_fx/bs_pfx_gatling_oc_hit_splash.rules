@@ -184,7 +184,7 @@ Def
 	}
 	DeleteMode = Fast
 	EnableMultithreading = false
-	InitCapacity = 64
+	InitCapacity = 256
 }
 EmitterDef
 {
@@ -202,7 +202,7 @@ EmitterDef
 			ValueType = Vector2
 			Value
 			{
-				X = -0.2531
+				X = -0.3
 				Y = 0
 			}
 			Name = ""
@@ -223,7 +223,7 @@ EmitterDef
 			Type = SetValue
 			DataOut = base_scale
 			ValueType = Float
-			Value = 2.7
+			Value = 3.2
 			Name = ""
 			Enabled = true
 			UpdateAfterInit = false

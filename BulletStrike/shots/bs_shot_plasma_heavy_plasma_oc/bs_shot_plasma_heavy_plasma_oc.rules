@@ -287,6 +287,23 @@ Components
 			TargetBlendMode = Add
 		}
 	}
+	ShadeSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper2
+		StartTime = 0.032
+		Offset = [-3.352, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "../bs_plasma_fx/bs_plasma_shade.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [7.6, 1.6]
+		}
+	}
 	GlowSprite
 	{
 		Type = Sprite
@@ -294,7 +311,7 @@ Components
 		Z = 0
 		IsLight = true
 		StartTime = 0.032
-		Offset = [-1.68, 0]
+		Offset = [-1.44, 0]
 		Sprite
 		{
 			Texture
@@ -303,8 +320,8 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [14, 7]
-			VertexColor = [120, 255, 255]
+			Size = [12, 6]
+			VertexColor = [40, 220, 255]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"
 			_z = 1

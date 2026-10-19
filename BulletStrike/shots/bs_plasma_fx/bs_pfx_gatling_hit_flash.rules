@@ -168,7 +168,7 @@ Def
 	}
 	DeleteMode = Fast
 	EnableMultithreading = false
-	InitCapacity = 64
+	InitCapacity = 256
 }
 EmitterDef
 {
@@ -212,7 +212,7 @@ EmitterDef
 			Type = SetValue
 			DataOut = base_scale
 			ValueType = Float
-			Value = 1.3
+			Value = 1.4
 			Name = ""
 			Enabled = true
 			UpdateAfterInit = false

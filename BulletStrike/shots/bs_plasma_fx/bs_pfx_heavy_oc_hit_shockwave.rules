@@ -174,7 +174,7 @@ Def
 	}
 	DeleteMode = Fast
 	EnableMultithreading = false
-	InitCapacity = 64
+	InitCapacity = 256
 }
 EmitterDef
 {

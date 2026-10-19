@@ -91,8 +91,11 @@ FX = {
              "shake_time": 0.9, "offset": -0.5},
     # plasma: descarga ciano propria (bsgen/plasma_fx.py), sem o clarao laranja de polvora do chaingun/cannon_deck;
     # particles_oc = descarga do overclock (mais quente e maior). Caminhos relativos a parts/<id>/.
+    # Boitata: estalo leve do blaster pequeno no normal e o do blaster em overclock no overclock (como o Curupira:
+    # o jogador ouve a diferenca quando liga o overclock)
     "plasma": {"particles": PFX.muzzle_paths("gatling", False), "particles_oc": PFX.muzzle_paths("gatling", True),
-               "sound": [f"{T}/laser_blaster_small/sounds/laser_overclocked_shot_0{i}.wav" for i in (1, 2, 3)],
+               "sound": [f"{T}/laser_blaster_small/sounds/laser_blaster_shot_0{i}.wav" for i in (1, 2, 3, 4)],
+               "sound_oc": [f"{T}/laser_blaster_small/sounds/laser_overclocked_shot_0{i}.wav" for i in (1, 2, 3)],
                "volume": 0.7, "max_concurrent": 30, "shake": 0.01, "offset": 0},
     # Curupira: tiro de laser pesado no lugar do estrondo de canhao de polvora
     "plasma_big": {"particles": PFX.muzzle_paths("heavy", False), "particles_oc": PFX.muzzle_paths("heavy", True),
@@ -137,8 +140,8 @@ VIS = {
     "bs_naval_155": {"look": "large", "size": 1.1, "glow": [18, 9], "glow_off": -1.5, "z": 0.5, "trail": "deck"},
     "bs_naval_406": {"look": "large", "size": 1.35, "glow": [22, 11], "glow_off": -1.8, "z": 0.5, "trail": "deck"},
     "bs_nuke_howitzer": {"look": "large", "size": 1.35, "glow": [22, 11], "glow_off": -1.8, "z": 0.5, "trail": "deck"},
-    # rastro ionizado proprio (bsgen/plasma_fx.py: ~20 particulas vivas por raio) no lugar das faiscas do railgun
-    # (2000/s, ~11.000 vivas por arma) e do rastro deck ciano (300/s, ~250 por arma)
+    # rastro ionizado proprio (bsgen/plasma_fx.py: ~10-14 particulas vivas por raio, paradas no espaco) no lugar
+    # das faiscas do railgun (2000/s, ~11.000 vivas por arma) e do rastro deck ciano (300/s, ~250 por arma)
     "bs_plasma_heavy": {"look": "energy", "wh": [2.8, 1.12], "core": [1.4, 0.5], "glow": [12, 6], "glow_off": -1,
                         "plasma": "heavy"},
 }

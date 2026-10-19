@@ -23,11 +23,18 @@ municao e espoleta sao largas, o resto e silhueta e sombreamento.
 
 Respiracao (STYLE.md 10.1, 0,55 / 0,8 / 1,0 / 0,8): a curva vale para o brilho que SAI no PNG (sRGB). A forca de
 emissao no Blender e linear, entao cada quadro usa forca = pico * br ** 2.2 e o pico fica logo abaixo do estouro
-(G ~245 no centro da faixa): com forca constante * br o quadro 0 ja estourava e os quadros 1-3 saiam iguais.
+(G ~235-240 no centro da faixa, ~250 nas pontas): com forca constante * br o quadro 0 ja estourava e os quadros 1-3
+saiam iguais.
 
 Todas as pecas sao octogonais de topo plano (lathe com verts=8, a0=pi/8, faces planas), como os canos da
 familia e o recurso bs_shell_nuke: vistas de cima dao 3 faixas de tom (topo e duas facetas) que leem como volume
 mesmo a 46 px; no jogo o sombreamento vem do mapa de normais (IsLit).
+
+Para quem liga a arte nas regras (WP3 / fxkit):
+  * 'size', 'nozzle' e 'anchors' do meta.json estao em quadros da TELA (2.0 de comprimento), nao do tiro no jogo:
+    escale por body / size. Ex.: Boiuna (corpo 2.2) -> ancora 'radiation' em -0.10 * 2.2 / 2.0 = -0.11 quadro;
+  * as texturas de 256 px sao desenhadas com 46-141 px (76 mm = 5.6x menor): Texture, NormalsTexture, mascara e
+    atlas de luzes com MipLevels = "max" (precedente: tools/bsgen/shots.py), senao a granada de 76 mm cintila.
 
     $PY tools/blender/render_part.py bs_shells --quick --out <rascunho> [--only nuke] [--preview]
     $PY tools/blender/render_part.py bs_shells          # final em art3d/bs_shells/
@@ -43,6 +50,10 @@ PART = {
     "kind": "shells",
     "px_per_tile": 128,
     "accent": "green",
+    # halo do atlas de luzes (so a nuke tem atlas). O padrao 2.5 * 128 / 64 = 5 px chegava na borda de cima e de
+    # baixo da tela de 0.75 com G premultiplicado ~18-21 no pico; com 3.5 px cai para ~12-16 (~5%). Zerar pediria
+    # halo < 2.5 px (brilho bem mais curto que o da Iara) ou faixas rebaixadas no nucleo (muda a silhueta)
+    "halo_px": 3.5,
     "items": {
         # 256 x 90 px: proporcao 2.86 = media de 76/155/406 mm (2.77 / 2.88 / 2.85)
         "he": {"canvas_tiles": [2.0, 0.70], "frames": 1, "fps": 0, "wrap": None, "nozzle_x": -0.97,
@@ -58,12 +69,14 @@ PART = {
 A0 = math.pi / 8                    # octogono de topo plano
 COS8 = math.cos(math.pi / 8)        # meia largura vista de cima / raio do octogono
 X0, X1 = -0.97, 0.97                # base e ponta (0.03 de folga na tela de 2.0)
+PPT = PART["px_per_tile"]
 BREATH = (0.55, 0.8, 1.0, 0.8)      # respiracao das faixas verdes (STYLE.md 10.1), no brilho de SAIDA (sRGB)
 GAMMA = 2.2                         # forca linear = pico * br ** GAMMA (o sRGB comprime: linear 0.55 sai ~0.76)
-# verde aceso: o verde das faixas nucleares da familia dos misseis (Mo.BAND_GLOW["nuclear"]); com o Mo.GREEN
-# (R/G 0.40) o pico sai lima-claro (G/R ~1.5 no sRGB); com este (R/G 0.20) fica G/R ~2 no pico, verde de radiacao
-NK_GLOW = Mo.BAND_GLOW["nuclear"]
-PK_BAND, PK_HUB, PK_LED = 0.80, 0.66, 0.45   # forcas de pico (quadro 2): faixa, cubo do trevo, LEDs do contador
+# verde aceso = o MESMO verde da Iara: copia de parts/bs_missiles.py LED_RGB["iara"] (copiado, nao importado: um
+# modulo de peca nao importa outro). O Mo.BAND_GLOW["nuclear"] (0.20, 1.0, 0.147) saia verde-menta (matiz 113,
+# saturacao 0.59) ao lado da Iara (matiz 99, saturacao 0.91) e do recurso bs_shell_nuke (matiz 98)
+NK_GLOW = (0.15, 1.0, 0.01)
+PK_BAND, PK_HUB, PK_LED = 0.82, 0.66, 0.45   # forcas de pico (quadro 2): faixa, cubo do trevo, LEDs do contador
 
 # ---- cores (nomes proprios "shl_*": o cache de materiais do bs3d e por nome)
 DARK_STEEL = (0.085, 0.09, 0.10)    # aco canhoneado da he
@@ -73,6 +86,14 @@ AP_CAP = (0.12, 0.125, 0.14)        # chumbo do capuz da ap: sai L~90 (casco 46,
 HE_OGIVE = (0.115, 0.12, 0.13)      # ogiva da he um pouco mais clara que o corpo (separa o nariz no 155 / 406)
 NK_BODY = (0.040, 0.043, 0.048)     # nucleo quase preto (recurso bs_shell_nuke BODY)
 NK_GREY = (0.30, 0.31, 0.325)       # cinza claro da ogiva do recurso (OGIVE)
+# cobre da cinta: com metal baixo o difuso manda e o Mo.COPPER (0.90, 0.45, 0.22) saia pessego claro (245,183,135);
+# este tom sai no cobre de antes (~200,130,85), agora com o topo tao claro quanto os lados
+SHL_COPPER = (0.58, 0.22, 0.09)
+
+
+def _px(c):
+    """x (quadros) da coluna c do PNG (c inteiro = divisa entre pixels; a tela tem 2.0 de comprimento)."""
+    return c / PPT - 1.0
 
 
 def _spec(m, v):
@@ -107,8 +128,12 @@ def _mats(M):
         "groove": M["core_mid"],
         "black": M["black"],
         "band": Mo.nose_paint("shl_band_paint", Mo.NOSE_LIGHT),
-        "copper": Mo.copper_mat(),
-        "nk_body": B.mat_metal("shl_nk_body", NK_BODY, rough=0.48, metal=0.55),
+        # cinta de cobre: copia local com metal baixo (o Mo.copper_mat puro deixava o topo do anel mais escuro que
+        # os lados e a cinta lia concava, faixa marrom entre duas laranja). O "copper" do kit fica intacto (P.E.M.)
+        "copper": _spec(B.mat_metal("shl_copper", SHL_COPPER, rough=0.3, metal=0.2), 0.2),
+        # nucleo quase preto: com albedo 0.04 o difuso quase nao conta e o reflexo dos preenchimentos nas facetas
+        # dominava (topo L~35 contra facetas L~70, canal concavo): dieletrico fosco, reflexo quase zero
+        "nk_body": _spec(B.mat_metal("shl_nk_body", NK_BODY, rough=0.62, metal=0.0), 0.05),
         "nk_grey": B.mat_paint("shl_nk_grey", NK_GREY, rough=0.36, metal=0.3, wear=0.0, grime=0.04, scale=5),
         "nk_armor": B.mat_paint("shl_nk_armor", Mo.ARMOR, rough=0.32, metal=0.25, wear=0.0, grime=0.04, scale=4),
     }
@@ -224,9 +249,9 @@ def _nuke(M, X, T, phase):
     top = R * COS8                      # face de cima do nucleo
     # forca linear = pico * br ** GAMMA: o brilho de saida segue 0.55 / 0.8 / 1.0 / 0.8 sem estourar no pico
     band_g = _lens(B.mat_glow(f"shl_nk_band_q{k}", NK_GLOW, PK_BAND * br ** GAMMA))
-    # a faixa fina (2.6 px) sai ~8% mais quente que a larga no mesmo material (o denoiser realca linhas finas e a
-    # coluna do meio estourava em 255 no pico): forca propria um pouco menor
-    thin_g = _lens(B.mat_glow(f"shl_nk_bandf_q{k}", NK_GLOW, 0.92 * PK_BAND * br ** GAMMA))
+    # a faixa fina sai mais quente que a larga no mesmo material (o denoiser realca linhas finas; com 2.6 px a
+    # coluna do meio estourava em 255 no pico, com 3 px ainda sai ~3% acima): forca propria um pouco menor
+    thin_g = _lens(B.mat_glow(f"shl_nk_bandf_q{k}", NK_GLOW, 0.95 * PK_BAND * br ** GAMMA))
     hub_g = _lens(B.mat_glow(f"shl_nk_hub_q{k}", NK_GLOW, PK_HUB * br ** GAMMA))
     led_g = _lens(B.mat_glow("shl_nk_led_q", NK_GLOW, PK_LED))  # contador fixo (nao respira)
 
@@ -256,12 +281,14 @@ def _nuke(M, X, T, phase):
         B.box(f"nk_cnt{j}", sx0 + (j + 0.5) * pw, 0, pw * 0.58, sw * 0.52, zt - 0.06, zt - 0.045, led_g, bevel=0.0,
               tags=lt)
 
-    # ---- faixas verdes em sulcos pretos: larga atras da luva de divisas, fina na frente do nucleo (>= 0.02 =
-    # 2.6 px a 128 px/quadro, STYLE 11.2). Raio 1.025 R: o halo de 5 px ainda cabe na tela de 0.75 (a 1.045 R ele
-    # batia na borda de cima/baixo e saia cortado reto)
-    for j, (bx, hw) in enumerate(((-0.60, 0.014), (0.135, 0.010))):
-        ring(f"nk_bandk{j}", bx - hw - 0.02, bx + hw + 0.02, R * 1.012, X["black"], tags)
-        ring(f"nk_band{j}", bx - hw, bx + hw, R * 1.025, thin_g if j else band_g, lt)
+    # ---- faixas verdes em sulcos pretos: larga atras da luva de divisas (4 px), fina na frente do nucleo
+    # (3 px; ~1.7 px na Boiuna no jogo, STYLE 11.2). As bordas caem EXATAMENTE nas divisas de pixel (_px): a faixa
+    # fica mais larga sem acender uma coluna a mais de meia cobertura (orcamento de 4% do quadro 0, check_art3d).
+    # Raio baixo (1.016 R sobre sulco de 1.006 R) e halo de PART["halo_px"]: o halo perde forca antes da borda
+    for j, (c_px, w_px) in enumerate(((51.0, 4), (145.5, 3))):
+        bx, hw = _px(c_px), w_px / 2 / PPT
+        ring(f"nk_bandk{j}", bx - hw - 0.02, bx + hw + 0.02, R * 1.006, X["black"], tags)
+        ring(f"nk_band{j}", bx - hw, bx + hw, R * 1.016, thin_g if j else band_g, lt)
 
     # ---- luva de divisas verde/preto (excecao nuclear dos projeteis: NUNCA amarelo/preto)
     chev = Mo.chevron_mat("shl_nk_chev", scale=9.0)

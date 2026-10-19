@@ -46,7 +46,7 @@ Def
 		{
 			Type = Lifetime
 			LifeInOut = life
-			Lifetime = 0.26
+			Lifetime = 0.28
 			Name = ""
 			Enabled = true
 			UpdateAfterInit = false
@@ -184,7 +184,7 @@ Def
 	}
 	DeleteMode = Fast
 	EnableMultithreading = false
-	InitCapacity = 64
+	InitCapacity = 256
 }
 EmitterDef
 {
@@ -202,7 +202,7 @@ EmitterDef
 			ValueType = Vector2
 			Value
 			{
-				X = -0.2063
+				X = -0.2625
 				Y = 0
 			}
 			Name = ""
@@ -223,7 +223,7 @@ EmitterDef
 			Type = SetValue
 			DataOut = base_scale
 			ValueType = Float
-			Value = 2.2
+			Value = 2.8
 			Name = ""
 			Enabled = true
 			UpdateAfterInit = false

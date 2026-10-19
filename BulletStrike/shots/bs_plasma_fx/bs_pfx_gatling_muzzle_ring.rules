@@ -106,31 +106,31 @@ Def
 					Rf = 0.7
 					Gf = 1
 					Bf = 1
-					Af = 0.6
+					Af = 0.444
 				}
 				{
 					Rf = 0.6
 					Gf = 1
 					Bf = 1
-					Af = 0.95
+					Af = 0.703
 				}
 				{
 					Rf = 0.7
 					Gf = 1
 					Bf = 1
-					Af = 0.55
+					Af = 0.407
 				}
 				{
 					Rf = 0.8
 					Gf = 1
 					Bf = 1
-					Af = 0.22
+					Af = 0.163
 				}
 				{
 					Rf = 0.6
 					Gf = 1
 					Bf = 1
-					Af = 0.04
+					Af = 0.03
 				}
 				{
 					Rf = 0.4
@@ -217,7 +217,7 @@ Def
 	}
 	DeleteMode = Fast
 	EnableMultithreading = false
-	InitCapacity = 64
+	InitCapacity = 256
 }
 EmitterDef
 {

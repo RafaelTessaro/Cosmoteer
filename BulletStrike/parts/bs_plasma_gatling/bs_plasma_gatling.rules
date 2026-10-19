@@ -363,9 +363,10 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 				{
 					RandomSounds
 					[
-						"./Data/ships/terran/laser_blaster_small/sounds/laser_overclocked_shot_01.wav"
-						"./Data/ships/terran/laser_blaster_small/sounds/laser_overclocked_shot_02.wav"
-						"./Data/ships/terran/laser_blaster_small/sounds/laser_overclocked_shot_03.wav"
+						"./Data/ships/terran/laser_blaster_small/sounds/laser_blaster_shot_01.wav"
+						"./Data/ships/terran/laser_blaster_small/sounds/laser_blaster_shot_02.wav"
+						"./Data/ships/terran/laser_blaster_small/sounds/laser_blaster_shot_03.wav"
+						"./Data/ships/terran/laser_blaster_small/sounds/laser_blaster_shot_04.wav"
 					]
 					Volume = 0.7
 					SpeedVariation = 0.15

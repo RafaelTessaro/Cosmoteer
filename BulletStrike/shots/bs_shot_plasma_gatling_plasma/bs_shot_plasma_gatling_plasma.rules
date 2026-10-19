@@ -216,8 +216,8 @@ Components
 	{
 		Type = AnimatedSprite
 		RenderBucket = BulletUpper3
-		StartTime = 0.015
-		Offset = [-1.82, 0]
+		StartTime = 0.018
+		Offset = [-2.22, 0]
 		Animation
 		{
 			AtlasSprite
@@ -228,7 +228,7 @@ Components
 					MipLevels = max
 					SampleMode = Linear
 				}
-				Size = [3.8, 0.66]
+				Size = [4.6, 0.8]
 				TargetBlendMode = Add
 			}
 			FrameCount = 8
@@ -241,19 +241,19 @@ Components
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper3
-		Offset = [-0.44, 0]
+		Offset = [-1.175, 0]
 		LerpScaleFrom = [0.45, 0.7]
 		LerpTime = 0.04
 		Sprite
 		{
 			Texture
 			{
-				File = "./Data/common_effects/particles/blob.png"
+				File = "../bs_plasma_fx/bs_plasma_corona.png"
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [2, 0.8]
-			VertexColor = [0, 180, 255]
+			Size = [2.9, 0.64]
+			VertexColor = [0, 185, 255]
 			TargetBlendMode = Add
 		}
 	}
@@ -261,18 +261,35 @@ Components
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper4
-		Offset = [-0.35, 0]
+		Offset = [-0.78, 0]
 		Sprite
 		{
 			Texture
 			{
-				File = "../bs_plasma_fx/bs_plasma_bolt.png"
+				File = "../bs_plasma_fx/bs_plasma_lance.png"
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [1.5, 0.42]
+			Size = [2.2, 0.36]
 			VertexColor = [255, 255, 255]
 			TargetBlendMode = Add
+		}
+	}
+	ShadeSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper2
+		StartTime = 0.018
+		Offset = [-1.888, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "../bs_plasma_fx/bs_plasma_shade.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [4.4, 0.7]
 		}
 	}
 	GlowSprite
@@ -281,8 +298,8 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		StartTime = 0.015
-		Offset = [-0.72, 0]
+		StartTime = 0.018
+		Offset = [-1.1, 0]
 		Sprite
 		{
 			Texture
@@ -291,7 +308,7 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [6, 3]
+			Size = [5.5, 2]
 			VertexColor = [0, 235, 255]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"

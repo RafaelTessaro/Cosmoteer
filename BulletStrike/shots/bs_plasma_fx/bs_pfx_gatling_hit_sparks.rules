@@ -207,7 +207,7 @@ Def
 			Operator = Multiply
 			Name = ""
 			Enabled = true
-			UpdateAfterInit = true
+			UpdateAfterInit = false
 		}
 	]
 	Renderer
@@ -251,7 +251,7 @@ Def
 	}
 	DeleteMode = Fast
 	EnableMultithreading = false
-	InitCapacity = 64
+	InitCapacity = 256
 }
 EmitterDef
 {
@@ -259,7 +259,7 @@ EmitterDef
 	EmitPerOneShot
 	{
 		Min = 4
-		Max = 5
+		Max = 6
 	}
 	PreInitializers
 	[
@@ -287,8 +287,8 @@ EmitterDef
 			VelocityOut = base_velocity
 			Speed
 			{
-				Min = 2
-				Max = 8
+				Min = 2.5
+				Max = 9
 			}
 			AwayFromPoint
 			{
@@ -325,8 +325,8 @@ EmitterDef
 			Type = SetRandom
 			DataOut = base_scale
 			ValueType = Float
-			FromValue = 0.45
-			ToValue = 0.75
+			FromValue = 0.6
+			ToValue = 0.95
 			Name = ""
 			Enabled = true
 			UpdateAfterInit = false
@@ -335,8 +335,8 @@ EmitterDef
 			Type = SetRandom
 			DataOut = lifetime
 			ValueType = Float
-			FromValue = 0.14
-			ToValue = 0.3
+			FromValue = 0.16
+			ToValue = 0.32
 			Name = ""
 			Enabled = true
 			UpdateAfterInit = false

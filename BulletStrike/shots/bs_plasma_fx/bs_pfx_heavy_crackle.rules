@@ -73,8 +73,8 @@ Def
 			Type = SetRandom
 			DataOut = lifetime
 			ValueType = Float
-			FromValue = 0.1
-			ToValue = 0.2
+			FromValue = 0.06
+			ToValue = 0.1
 			Name = ""
 			Enabled = true
 			UpdateAfterInit = false
@@ -246,11 +246,11 @@ Def
 	}
 	DeleteMode = Fast
 	EnableMultithreading = false
-	InitCapacity = 64
+	InitCapacity = 256
 }
 EmitterDef
 {
-	EmitPerSecond = 30
+	EmitPerSecond = 55
 	EmitPerOneShot
 	{
 		Min = 0

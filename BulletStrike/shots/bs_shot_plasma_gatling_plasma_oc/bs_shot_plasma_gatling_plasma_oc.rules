@@ -216,8 +216,8 @@ Components
 	{
 		Type = AnimatedSprite
 		RenderBucket = BulletUpper3
-		StartTime = 0.015
-		Offset = [-2.22, 0]
+		StartTime = 0.018
+		Offset = [-2.62, 0]
 		Animation
 		{
 			AtlasSprite
@@ -228,7 +228,7 @@ Components
 					MipLevels = max
 					SampleMode = Linear
 				}
-				Size = [4.6, 0.78]
+				Size = [5.4, 0.92]
 				TargetBlendMode = Add
 			}
 			FrameCount = 8
@@ -241,18 +241,18 @@ Components
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper3
-		Offset = [-0.539, 0]
+		Offset = [-1.355, 0]
 		LerpScaleFrom = [0.45, 0.7]
 		LerpTime = 0.04
 		Sprite
 		{
 			Texture
 			{
-				File = "./Data/common_effects/particles/blob.png"
+				File = "../bs_plasma_fx/bs_plasma_corona.png"
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [2.45, 0.98]
+			Size = [3.3, 0.74]
 			VertexColor = [60, 215, 255]
 			TargetBlendMode = Add
 		}
@@ -261,18 +261,35 @@ Components
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper4
-		Offset = [-0.44, 0]
+		Offset = [-0.94, 0]
 		Sprite
 		{
 			Texture
 			{
-				File = "../bs_plasma_fx/bs_plasma_bolt.png"
+				File = "../bs_plasma_fx/bs_plasma_lance.png"
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [1.8, 0.5]
+			Size = [2.6, 0.42]
 			VertexColor = [255, 255, 255]
 			TargetBlendMode = Add
+		}
+	}
+	ShadeSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper2
+		StartTime = 0.018
+		Offset = [-2.264, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "../bs_plasma_fx/bs_plasma_shade.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [5.2, 0.8]
 		}
 	}
 	GlowSprite
@@ -281,8 +298,8 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		StartTime = 0.015
-		Offset = [-0.84, 0]
+		StartTime = 0.018
+		Offset = [-1.2, 0]
 		Sprite
 		{
 			Texture
@@ -291,8 +308,8 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [7, 3.5]
-			VertexColor = [120, 255, 255]
+			Size = [6, 2.2]
+			VertexColor = [40, 220, 255]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"
 			_z = 1
@@ -305,7 +322,7 @@ Components
 	Crackle
 	{
 		Type = MediaEffects
-		Offset = [-0.46, 0]
+		Offset = [-0.54, 0]
 		MediaEffects = [&<../bs_plasma_fx/bs_pfx_gatling_oc_crackle.rules>]
 	}
 }
