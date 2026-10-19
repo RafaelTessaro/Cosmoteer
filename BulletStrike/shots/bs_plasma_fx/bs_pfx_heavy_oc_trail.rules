@@ -40,7 +40,7 @@ Def
 		{
 			Type = Lifetime
 			LifeInOut = life
-			Lifetime = 0.075
+			Lifetime = 0.05
 			Name = ""
 			Enabled = true
 			UpdateAfterInit = false
@@ -59,7 +59,7 @@ Def
 			ToValue
 			{
 				X = 0.85
-				Y = 0.35
+				Y = 0.3
 			}
 			Name = ""
 			Enabled = true
@@ -133,7 +133,7 @@ Def
 		BaseSize
 		{
 			X = 5
-			Y = 0.36
+			Y = 0.5
 		}
 		Offset
 		{

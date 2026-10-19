@@ -241,6 +241,7 @@ Components
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper3
+		StartTime = 0.01
 		Offset = [-1.355, 0]
 		LerpScaleFrom = [0.45, 0.7]
 		LerpTime = 0.04
@@ -261,6 +262,7 @@ Components
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper4
+		StartTime = 0.01
 		Offset = [-0.94, 0]
 		Sprite
 		{
@@ -280,7 +282,7 @@ Components
 		Type = Sprite
 		RenderBucket = BulletUpper2
 		StartTime = 0.018
-		Offset = [-2.264, 0]
+		Offset = [-1.794, 0]
 		Sprite
 		{
 			Texture
@@ -289,7 +291,7 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [5.2, 0.8]
+			Size = [4.2, 0.62]
 		}
 	}
 	GlowSprite
@@ -299,7 +301,7 @@ Components
 		Z = 0
 		IsLight = true
 		StartTime = 0.018
-		Offset = [-1.2, 0]
+		Offset = [-1.4, 0]
 		Sprite
 		{
 			Texture
@@ -308,7 +310,7 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [6, 2.2]
+			Size = [5.4, 1.8]
 			VertexColor = [40, 220, 255]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"

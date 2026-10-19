@@ -40,7 +40,7 @@ Def
 		{
 			Type = Lifetime
 			LifeInOut = life
-			Lifetime = 0.07
+			Lifetime = 0.055
 			Name = ""
 			Enabled = true
 			UpdateAfterInit = false
@@ -59,7 +59,7 @@ Def
 			ToValue
 			{
 				X = 0.85
-				Y = 0.35
+				Y = 0.3
 			}
 			Name = ""
 			Enabled = true
@@ -133,7 +133,7 @@ Def
 		BaseSize
 		{
 			X = 4.5
-			Y = 0.3
+			Y = 0.42
 		}
 		Offset
 		{
@@ -205,7 +205,7 @@ EmitterDef
 				Rf = 0.1
 				Gf = 0.8
 				Bf = 1
-				Af = 0.45
+				Af = 0.5
 			}
 			Name = ""
 			Enabled = true

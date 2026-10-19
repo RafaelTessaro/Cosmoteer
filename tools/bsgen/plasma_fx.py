@@ -22,10 +22,10 @@ Orcamento (Boitata a 10 tiros/s por arma, 9 no overclock): boca <= 8 particulas 
 overclock, quase todas de <= 0,14 s (~10 vivas por arma; o anel e um pulso de 0,065 s, menor que o intervalo entre
 tiros; a luz no casco fica a frente do cano e o brilho residual e fraco, para nao lavar a arte da torre a 10
 tiros/s); raio 0 particulas no normal (so 5 sprites: sombra, corona, nucleo, cauda AnimatedSprite e luz) e ~2-3
-vivas por raio no overclock (crepitar 28/s de 0,06-0,1 s); impacto <= 9 particulas no normal e <= 10 no overclock,
-a maioria de <= 0,3 s (~20 vivas por arma). Curupira (~1,5 tiro/s, ~4 raios no ar): rastro ionizado de ~10-14
-particulas vivas por raio (~40-60 por arma, no lugar do rastro deck de 300/s, ~250 por arma) e crepitar de ~4-7
-vivas por raio. Todos os sistemas com InitCapacity 256, como no vanilla. Detalhes (faiscas, arcos, luzes, rastro)
+vivas por raio no overclock (crepitar 40/s de 0,04-0,07 s); impacto <= 9 particulas no normal e <= 10 no
+overclock, a maioria de <= 0,3 s (~20 vivas por arma). Curupira (~1,5 tiro/s, ~4 raios no ar): rastro ionizado de
+~8-9 particulas vivas por raio (~30-40 por arma, no lugar do rastro deck de 300/s, ~250 por arma) e crepitar de
+~4-6 vivas por raio. Todos os sistemas com InitCapacity 256, como no vanilla. Detalhes (faiscas, arcos, luzes, rastro)
 com IsFancy = true; o essencial (descarga, respingo, clarao) com IsFancy = false. Luz IsLight so para iluminar o
 casco: o que aparece sobre o espaco vazio vem de sprites/particulas aditivos comuns.
 """
@@ -82,12 +82,14 @@ CFG = {
             "arcs": None,
             # serpente de fogo, nao girino: nucleo em lanca longa (bs_plasma_lance), corona afunilada que emenda
             # na cauda (bs_plasma_corona) e cauda = corpo grosso que afina por ~4,5 tiles (bs_plasma_tail). Sombra
-            # escura por baixo (bs_plasma_shade) para ler sobre casco branco. Luz IsLight achatada (5,5 x 2): a
-            # poca de luz acompanha a lanca em vez de virar um oval claro em volta dela sobre casco claro
+            # azul-petroleo por baixo (bs_plasma_shade) para ler sobre casco branco: curta (3,6) e estreita, fica
+            # dentro da lanca e do comeco da cauda, onde o corpo ainda e reto (o S da cauda so abre depois). Luz
+            # IsLight pequena e achatada (4,5 x 1,4, centro 1,4 tile atras): sobre casco claro a poca de luz
+            # acompanha a lanca em vez de virar um "olho" claro em volta dela
             "bolt": {"core": (2.2, 0.36), "core_tex": "bs_plasma_lance.png", "corona": (2.9, 0.64),
                      "corona_tex": "bs_plasma_corona.png", "corona_color": [0, 185, 255],
-                     "tail": (4.6, 0.8), "tail_tex": "bs_plasma_tail.png", "tail_start": 0.018, "glow": (5.5, 2),
-                     "glow_x": -1.1, "glow_color": [0, 235, 255], "shade": (4.4, 0.7)},
+                     "tail": (4.6, 0.8), "tail_tex": "bs_plasma_tail.png", "tail_start": 0.018, "glow": (4.5, 1.4),
+                     "glow_x": -1.4, "glow_color": [0, 235, 255], "shade": (3.6, 0.55)},
             "crackle": None,
             # respingo um pouco maior (2,8) e faiscas mais longas e claras: "plasma derretido espirrando" na escala
             # de batalha, ainda <= 9 particulas por impacto
@@ -109,11 +111,12 @@ CFG = {
             # a luz IsLight continua ciano e quase do tamanho do normal, senao ela vira uma nevoa clara sobre o casco
             "bolt": {"core": (2.6, 0.42), "core_tex": "bs_plasma_lance.png", "corona": (3.3, 0.74),
                      "corona_tex": "bs_plasma_corona.png", "corona_color": [60, 215, 255],
-                     "tail": (5.4, 0.92), "tail_tex": "bs_plasma_tail_oc.png", "tail_start": 0.018, "glow": (6, 2.2),
-                     "glow_x": -1.2, "glow_color": [40, 220, 255], "shade": (5.2, 0.8)},
-            # crepitar curto (0,06-0,1 s, mais vezes por segundo para manter a densidade): ele anda junto com o
-            # raio (InheritVelocity) e continua voando depois do impacto ate morrer, entao vida curta = sobra pouco
-            "crackle": {"eps": 28, "scale": (0.3, 0.45), "life": (0.06, 0.1)},
+                     "tail": (5.4, 0.92), "tail_tex": "bs_plasma_tail_oc.png", "tail_start": 0.018, "glow": (5.4, 1.8),
+                     "glow_x": -1.4, "glow_color": [40, 220, 255], "shade": (4.2, 0.62)},
+            # crepitar curto (0,04-0,07 s, mais vezes por segundo para manter a densidade): ele anda junto com o
+            # raio (InheritVelocity) e continua voando depois do impacto ate morrer (a barreira so para no escudo),
+            # entao vida curta = sobra pouco: no pior caso ~22 tiles a 312 m/s, em media ~8
+            "crackle": {"eps": 40, "scale": (0.3, 0.45), "life": (0.04, 0.07)},
             "hit": {"splash": 3.2, "splash_life": 0.3, "sparks": (5, 7), "spark_speed": (2, 9),
                     "spark_life": (0.15, 0.32), "spark_scale": (0.5, 0.85), "flash": 1.6, "flash_life": 0.09,
                     "scorch": 3.2, "scorch_life": 0.65, "shield": 3.0, "shield_life": 0.24},
@@ -131,20 +134,28 @@ CFG = {
             "glow": {"scale": 1.0, "wh": (1.7, 0.65), "x": -0.25, "life": 0.35, "color": (0.35, 0.95, 1, 0.8),
                      "charge": True},
             "arcs": {"n": (3, 4), "scale": (0.4, 0.55), "life": (0.25, 0.35)},
-            # cauda reta com aneis de pulso (esteira ionizada dos trilhos), nao a serpente da Boitata
-            "bolt": {"core": (2.4, 0.75), "corona": (3.2, 1.3), "corona_color": [0, 160, 245],
-                     "tail": (6.2, 1.2), "tail_tex": "bs_plasma_wake.png", "tail_start": 0.032, "glow": (12, 6),
-                     "glow_color": [0, 235, 255], "shade": (6.4, 1.4)},
-            "crackle": {"eps": 55, "scale": (0.45, 0.6), "life": (0.06, 0.1)},
+            # cometa / torpedo de plasma pesado, da mesma familia da lanca da Boitata (nada de "cabeca + fio"):
+            # nucleo = a mesma lanca, grossa (lanca pesada), corona afunilada cheia (bs_plasma_corona_heavy, mais
+            # larga ~1,2 tile atras do nariz e com a traseira a ~55% da largura) que entra na esteira reta, que
+            # afina ate a ponta (bs_plasma_wake). A largura visivel so diminui do ponto mais largo para tras. Luz
+            # IsLight 10 x 4,5 (com 12 x 6 virava uma nevoa clara de ~8 x 3 tiles sobre casco branco)
+            "bolt": {"core": (2.8, 0.6), "core_tex": "bs_plasma_lance.png", "corona": (4.4, 1.15),
+                     "corona_tex": "bs_plasma_corona_heavy.png", "corona_color": [0, 175, 250],
+                     "tail": (6.2, 1.2), "tail_tex": "bs_plasma_wake.png", "tail_start": 0.032, "glow": (10, 4.5),
+                     "glow_x": -1.6, "glow_color": [0, 210, 250], "shade": (5.4, 1.3),
+                     "shade_tex": "bs_plasma_shade_heavy.png"},
+            # crepitar curto (0,04-0,07 s): a 200 m/s sobra no maximo ~14 tiles depois do impacto, em media ~5
+            "crackle": {"eps": 80, "scale": (0.45, 0.6), "life": (0.04, 0.07)},
             # rastro ionizado que FICA NO ESPACO atras do raio (sem InheritVelocity, padrao do rastro do railgun
-            # vanilla; ver ion_trail): riscos finos e curtos a cada ~1,4 tile (200 m/s /
-            # 140 por s; a parte visivel do blob esticado tem ~metade do comprimento, entao menos que isso abre
-            # buracos). Vida 0,07 s = cauda de cometa de ~14 tiles que se solta da boca (com 0,14 s virava uma
-            # linha continua da boca ao alvo, cara de tracante de laser/railgun), ~10 vivos por raio. Comeca 0,05 s
-            # depois do disparo (200 m/s x 0,05 = 10 tiles; cada risco vai ate ~4,8 tiles atras do ponto onde
-            # nasce, entao a ponta de tras fica a ~5 tiles da boca: nunca por cima da torre nem colada no cano)
-            "trail": {"eps": 140, "life": 0.07, "len": 4.5, "wid": 0.3, "delay": 0.05,
-                      "color": (0.1, 0.8, 1, 0.45)},
+            # vanilla; ver ion_trail): riscos curtos a cada ~1,4 tile (200 m/s / 140 por s; a parte visivel do
+            # blob esticado tem ~metade do comprimento, entao menos que isso abre buracos). E a continuacao da
+            # esteira do cometa, nao um fio solto: largo (0,42) e claro onde nasce, afinando ate 30% da largura e
+            # apagando em 0,055 s, entao a cauda fica curta (~10 tiles visiveis) e afina para longe do raio. ~8
+            # vivos por raio. Comeca 0,05 s depois do disparo (200 m/s x 0,05 = 10 tiles; cada risco vai ate ~4,8
+            # tiles atras do ponto onde nasce, entao a ponta de tras fica a ~5 tiles da boca: nunca por cima da
+            # torre nem colada no cano)
+            "trail": {"eps": 140, "life": 0.055, "len": 4.5, "wid": 0.42, "delay": 0.05,
+                      "color": (0.1, 0.8, 1, 0.5)},
             "hit": {"splash": 4.2, "splash_life": 0.42, "sparks": (10, 14), "spark_speed": (3, 12),
                     "spark_life": (0.2, 0.5), "spark_scale": (0.7, 1.2), "flash": 3.0, "flash_life": 0.14,
                     "scorch": 5.0, "scorch_life": 1.0, "shield": 5.0, "shield_life": 0.35},
@@ -158,11 +169,13 @@ CFG = {
             "glow": {"scale": 1.2, "wh": (1.7, 0.65), "x": -0.25, "life": 0.38, "color": (0.55, 1, 1, 0.9),
                      "charge": True},
             "arcs": {"n": (5, 6), "scale": (0.5, 0.65), "life": (0.28, 0.38)},
-            "bolt": {"core": (2.9, 0.9), "corona": (3.8, 1.5), "corona_color": [40, 190, 255],
+            "bolt": {"core": (3.2, 0.7), "core_tex": "bs_plasma_lance.png", "corona": (5.0, 1.3),
+                     "corona_tex": "bs_plasma_corona_heavy.png", "corona_color": [40, 200, 255],
                      "tail": (7.4, 1.45), "tail_tex": "bs_plasma_wake_oc.png", "tail_start": 0.032, "glow": (12, 6),
-                     "glow_color": [40, 220, 255], "shade": (7.6, 1.6)},
-            "crackle": {"eps": 80, "scale": (0.55, 0.7), "life": (0.06, 0.1)},
-            "trail": {"eps": 180, "life": 0.075, "len": 5.0, "wid": 0.36, "delay": 0.04,
+                     "glow_x": -1.8, "glow_color": [40, 220, 255], "shade": (6.0, 1.45),
+                     "shade_tex": "bs_plasma_shade_heavy.png"},
+            "crackle": {"eps": 115, "scale": (0.55, 0.7), "life": (0.04, 0.07)},
+            "trail": {"eps": 180, "life": 0.05, "len": 5.0, "wid": 0.5, "delay": 0.04,
                       "color": (0.3, 0.9, 1, 0.55)},
             # "Erupcao Solar" (explosao r3 no impacto): respingo grande + anel fino de pressao do tamanho da
             # explosao, rapido (0,24 s) e com o brilho concentrado no comeco, para nao cobrir o respingo
@@ -484,8 +497,9 @@ def ion_trail(note, eps, life, length, width, delay, color, bucket="BulletTrailU
     particulas no caminho que o raio fez no quadro) e NENHUM InheritVelocity, entao nada move a particula depois
     que ela nasce. (Com InheritVelocity, como no crepitar e no disruptor_bolt_lightning.rules, as particulas
     andariam junto com o raio.) Barreira do escudo como no mine_shrapnel_trail.rules. Cada particula e um risco
-    fino de blob alinhado ao raio (length x width tiles, centro meio risco atras da cabeca) que afina e some em
-    `life` s; riscos de 4,5-5 tiles a 140-180/s (um a cada ~1,4 tile) emendam num canal continuo a 200-260 m/s.
+    de blob alinhado ao raio (length x width tiles, centro meio risco atras da cabeca) que afina para 30% da
+    largura e some em `life` s: o rastro e mais largo e claro perto do raio e afina para longe dele (continua a
+    esteira do cometa); riscos de 4,5-5 tiles a 140-180/s (um a cada ~1,4 tile) emendam num canal a 200-260 m/s.
     Delay: so comeca depois que o raio saiu da boca (o efeito preso ao missil EMP vanilla tambem usa Delay)."""
     pre = [_el("SetValue", DataOut="location", ValueType="Vector2", Value=V(-_r(length / 2 + 0.3), 0)),
            _el("SetValue", DataOut="rot", ValueType="Angle", Value="0d"),
@@ -496,7 +510,7 @@ def ion_trail(note, eps, life, length, width, delay, color, bucket="BulletTrailU
             _el("RotationToWorldSpace", RotationIn="rot", RotationOut="rot")]
     upd = [_el("Lifetime", LifeInOut="life", Lifetime=_r(life)),
            _el("Lerp", True, LerpIn="life", DataOut="scale2", Invert=False, ValueType="Vector2",
-               FromValue=V(1, 1), ToValue=V(0.85, 0.35)),
+               FromValue=V(1, 1), ToValue=V(0.85, 0.3)),
            _ramp("color", [(1, 1, 1, 1), (1, 1, 1, 0.45), (1, 1, 1, 0.15), (1, 1, 1, 0)]),
            _mul("Color", "color", "base_color", "color"),
            _el("Barrier", BarrierIDIn="barrier", LocationIn="location")]
@@ -686,12 +700,16 @@ def hit_media(w, oc, kind, volume=0.6, max_conc=30, shake=0.0, shake_time=0.5):
 # mine.rules): no quadro em que o raio nasce (cauda ainda escondida pelo StartTime) ela nao vira uma "pilula" gorda
 CORONA_LERP_FROM = [0.45, 0.7]
 CORONA_LERP_TIME = 0.04
+# nucleo e corona so aparecem depois de 0,01 s (StartTime em Sprite, como no mine_deployed.rules; menos que 1
+# quadro a 60 fps): no quadro em que o raio nasce na boca a lanca (que vai ate ~1,9 tile atras do raio na Boitata
+# e ~2,4 no Curupira) nao fica deitada por cima dos canos e da torre. No quadro seguinte o raio ja andou 3-5 tiles
+# e a descarga de boca cobre o instante do disparo
+SPAWN_HIDE = 0.01
 
 # posicao do nariz (fracao da largura, a partir da esquerda) nas texturas do raio (plasma_tex usa as mesmas)
-BOLT_NOSE = 0.8          # bs_plasma_bolt.png (gota do Curupira)
-LANCE_NOSE = 0.9         # bs_plasma_lance.png (lanca da Boitata)
-CORONA_NOSE = 0.95       # bs_plasma_corona.png
-SHADE_NOSE = 0.97        # bs_plasma_shade.png
+LANCE_NOSE = 0.9         # bs_plasma_lance.png (nucleo das duas armas)
+CORONA_NOSE = 0.95       # bs_plasma_corona.png / bs_plasma_corona_heavy.png
+SHADE_NOSE = 0.97        # bs_plasma_shade.png / bs_plasma_shade_heavy.png
 
 
 def _tex_sprite(bucket, wh, color, offset, tex=BLOB, lerp_from=None, lerp_time=None, start=None):
@@ -711,10 +729,11 @@ def _tex_sprite(bucket, wh, color, offset, tex=BLOB, lerp_from=None, lerp_time=N
 
 
 def bolt_components(w, oc):
-    """Componentes visuais do raio: sombra escura por baixo (mistura alfa comum), corona ciano (afunilada na
-    Boitata, blob no Curupira), nucleo branco-quente (lanca na Boitata, gota no Curupira), cauda animada
-    (AnimatedSprite, 8 quadros a 30/s: corpo de serpente na Boitata, esteira reta com aneis no Curupira), luz
-    IsLight para o casco e, no overclock e no Curupira, o crepitar eletrico; no Curupira ainda o rastro ionizado.
+    """Componentes visuais do raio, a mesma familia nas duas armas: sombra azul-petroleo por baixo (mistura alfa
+    comum), corona ciano afunilada, nucleo branco-quente em lanca, cauda animada (AnimatedSprite, 8 quadros a 30/s:
+    corpo de serpente na Boitata, esteira reta que afina, com aneis, no Curupira), luz IsLight para o casco e, no
+    overclock e no Curupira, o crepitar eletrico; no Curupira ainda o rastro ionizado. Boitata = lanca fina com
+    corpo de serpente; Curupira = a mesma lanca, grossa, numa corona cheia: cometa / torpedo de plasma pesado.
     Zero particulas no raio normal da Boitata."""
     mode = "OC" if oc else "N"
     b = CFG[w][mode]["bolt"]
@@ -733,29 +752,31 @@ def bolt_components(w, oc):
                                                   "SampleMode": "Linear"},
                                       "Size": [tl, tw], "TargetBlendMode": "Add"},
                       "FrameCount": 8, "FrameSize": [512, 64], "FramesPerRow": 2, "FramesPerSecond": 30}}
+    # corona afunilada: o nariz (CORONA_NOSE da textura) fica logo a frente da ponta do nucleo
     co_l, co_w = b["corona"]
-    if b.get("corona_tex"):
-        # corona afunilada: o nariz (CORONA_NOSE da textura) fica logo a frente da ponta do nucleo
-        co_off, co_tex = head + 0.05 - (CORONA_NOSE - 0.5) * co_l, f"{SHOT_PREFIX}{b['corona_tex']}"
-    else:
-        co_off, co_tex = -0.22 * co_l, BLOB
-    comps["Sprite"] = _tex_sprite("BulletUpper3", (co_l, co_w), b["corona_color"], co_off, co_tex,
-                                  CORONA_LERP_FROM, CORONA_LERP_TIME)
-    # nucleo: o nariz da textura (BOLT_NOSE / LANCE_NOSE) fica na posicao do projetil + head
-    nose = LANCE_NOSE if b.get("core_tex") else BOLT_NOSE
-    comps["CoreSprite"] = _tex_sprite("BulletUpper4", (cl, cw), [255, 255, 255], head + 0.02 - (nose - 0.5) * cl,
-                                      f"{SHOT_PREFIX}{b.get('core_tex', 'bs_plasma_bolt.png')}")
+    comps["Sprite"] = _tex_sprite("BulletUpper3", (co_l, co_w), b["corona_color"],
+                                  head + 0.05 - (CORONA_NOSE - 0.5) * co_l, f"{SHOT_PREFIX}{b['corona_tex']}",
+                                  CORONA_LERP_FROM, CORONA_LERP_TIME, start=SPAWN_HIDE)
+    # nucleo: o nariz da lanca (LANCE_NOSE) fica na posicao do projetil + head
+    comps["CoreSprite"] = _tex_sprite("BulletUpper4", (cl, cw), [255, 255, 255],
+                                      head + 0.02 - (LANCE_NOSE - 0.5) * cl, f"{SHOT_PREFIX}{b['core_tex']}",
+                                      start=SPAWN_HIDE)
     if b.get("shade"):
         # sombra por baixo (BulletUpper2, antes das sprites aditivas de BulletUpper3/4) SEM TargetBlendMode: mistura
-        # alfa comum, como a Sprite do missile_he.rules / mine.rules. So escurece um pouco o casco claro em volta
-        # do raio (o ciano aditivo sumia sobre casco branco). StartTime da cauda: nao escurece a torre no disparo
+        # alfa comum, como a Sprite do missile_he.rules e a fumaca do chaingun_shoot_smoke.rules (balde
+        # ChaingunSmoke, tambem de cima). Escurece o casco claro DEBAIXO do raio (o ciano aditivo sumia sobre casco
+        # branco). Fica num balde Upper de proposito: os baldes Middle (BulletMiddle1 da mina) sao desenhados por
+        # baixo dos tetos das pecas, e ai a sombra sumiria justamente sobre o casco que ela existe para escurecer.
+        # StartTime da cauda: nao escurece a torre no disparo
         sl, sw = b["shade"]
         comps["ShadeSprite"] = _tex_sprite("BulletUpper2", (sl, sw), None, head + 0.1 - (SHADE_NOSE - 0.5) * sl,
-                                           f"{SHOT_PREFIX}bs_plasma_shade.png", start=b["tail_start"])
+                                           f"{SHOT_PREFIX}{b.get('shade_tex', 'bs_plasma_shade.png')}",
+                                           start=b["tail_start"])
     gl = b["glow"]
     # a luz IsLight tambem so liga depois que o raio saiu da boca (StartTime em Sprite, como o ArmedSprite do
-    # mine_deployed.rules): no quadro do disparo o brilho de 5,5x2 (12x6 no Curupira) parado na boca lavava a arte
-    # da torre de ciano a cada tiro; a luz do disparo fica so com o muzzle_light (fraco e a frente do cano)
+    # mine_deployed.rules): no quadro do disparo o brilho (4,5 x 1,4 na Boitata, 10 x 4,5 no Curupira) parado na
+    # boca lavava a arte da torre de ciano a cada tiro; a luz do disparo fica so com o muzzle_light (fraco e a
+    # frente do cano)
     comps["GlowSprite"] = {"Type": "Sprite", "RenderBucket": "BulletUpper4", "Z": 0, "IsLight": True,
                            "StartTime": b["tail_start"], "Offset": [round(b.get("glow_x", -0.12 * gl[0]), 3), 0],
                            "Sprite": {"Texture": {"File": Q(BLOB), "MipLevels": "max", "SampleMode": "Linear"},

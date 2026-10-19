@@ -73,8 +73,8 @@ Def
 			Type = SetRandom
 			DataOut = lifetime
 			ValueType = Float
-			FromValue = 0.06
-			ToValue = 0.1
+			FromValue = 0.04
+			ToValue = 0.07
 			Name = ""
 			Enabled = true
 			UpdateAfterInit = false
@@ -250,7 +250,7 @@ Def
 }
 EmitterDef
 {
-	EmitPerSecond = 55
+	EmitPerSecond = 80
 	EmitPerOneShot
 	{
 		Min = 0

@@ -1,19 +1,23 @@
 """Texturas proprias dos efeitos de plasma (Boitata e Curupira), geradas com numpy + PIL a cada build.
 
-Todas sao aditivas (TargetBlendMode SourceAlpha/One): o RGB e a cor e o alfa e a intensidade, entao a luz somada
-na tela e rgb * a. Cada funcao monta a "luz" L (float, 0..1+) e _encode() separa cor e intensidade.
-Orientacao igual a das texturas vanilla de projetil (pd_shot.png, laser_bolt_large.png): a FRENTE e +X (direita).
+Quase todas sao aditivas (TargetBlendMode SourceAlpha/One): o RGB e a cor e o alfa e a intensidade, entao a luz
+somada na tela e rgb * a. Cada funcao monta a "luz" L (float, 0..1+) e _encode() separa cor e intensidade. A
+excecao e bs_plasma_shade[_heavy].png, de mistura alfa comum (ver shade()). Orientacao igual a das texturas vanilla de
+projetil (pd_shot.png, laser_bolt_large.png): a FRENTE e +X (direita).
 
-  bs_plasma_bolt.png          256x64          Curupira: nucleo branco-quente em gota com borda ciano (cabeca a direita)
-  bs_plasma_lance.png         256x64          Boitata: nucleo em ponta de lanca, agulha branca longa que afina para tras
+  bs_plasma_lance.png         256x64          nucleo das duas armas: ponta de lanca, agulha branca longa que afina
+                                              para tras (no Curupira a Sprite e mais grossa: lanca pesada)
   bs_plasma_corona.png        256x64          Boitata: corona afunilada (branca, tingida pelo VertexColor): ponta de
                                               lanca na frente e um corpo que afina para tras, sem cabeca redonda
-  bs_plasma_shade.png         256x64          sombra escura (mistura alfa comum, nao aditiva) por baixo do raio: o
-                                              raio continua legivel sobre casco branco
+  bs_plasma_corona_heavy.png  256x64          Curupira: a mesma corona, mais cheia e com a traseira larga (~55% da
+                                              largura maxima): emenda na esteira sem fechar num oval
+  bs_plasma_shade[_heavy].png 256x64          sombra azul-petroleo (mistura alfa comum, NAO aditiva) por baixo do
+                                              raio: o raio continua legivel sobre casco branco (_heavy: com a
+                                              forma da corona do Curupira, mais larga ~1,2 tile atras do nariz)
   bs_plasma_tail[_oc].png     8 x 512x64      Boitata: corpo de serpente de fogo grosso que afina da cabeca a ponta,
                                               ondulacao suave que NAO cresce na ponta, labaredas e escamas de luz
-  bs_plasma_wake[_oc].png     8 x 512x64      Curupira: esteira ionizada reta e grossa com 3 aneis de pulso
-                                              discretos correndo para tras (2 por linha)
+  bs_plasma_wake[_oc].png     8 x 512x64      Curupira: esteira ionizada reta e grossa que AFINA da cabeca a ponta,
+                                              com 3 aneis de pulso discretos so da metade de tras (2 por linha)
   bs_plasma_burst.png         8 x 128x128     descarga de boca: ponta de lanca para frente + faiscas na base
   bs_plasma_splash.png        8 x 128x128     respingo de impacto: clarao + gotas e borrifos jogados para tras
   bs_plasma_shock.png         256x256         anel fino de choque (branco, tingivel), centro transparente
@@ -101,37 +105,13 @@ def _segment(px, py, x0, y0, x1, y1):
 
 
 # ----------------------------------------------------------------------------- nucleo do raio
-def bolt(w=256, h=64, hot=1.0):
-    """Gota branco-quente: nariz curto e cheio a direita (x = 0,8 w), cauda afinando para tras, borda ciano."""
-    x, y = _grid(w, h)
-    u = x / w
-    v = (y - h / 2) / (h / 2)
-    dx = u - 0.80
-    back = dx < 0
-    # nucleo branco: nariz arredondado, afina para tras
-    sx = np.where(back, 0.26, 0.055)
-    sy = 0.30 * np.where(back, np.exp(dx / 0.34), 1.0)
-    core = np.exp(-(dx / sx) ** 2 - (v / sy) ** 2)
-    # borda ciano mais larga e mais longa
-    sx2 = np.where(back, 0.34, 0.075)
-    sy2 = 0.55 * np.where(back, np.exp(dx / 0.42), 1.0)
-    rim = np.exp(-(dx / sx2) ** 2 - (v / sy2) ** 2)
-    # halo largo e fraco (some antes das bordas da textura)
-    halo = np.exp(-((u - 0.72) / 0.30) ** 2 - (v / 0.75) ** 2)
-    L = (core[..., None] * WHITE * 3.2 * hot + rim[..., None] * CYAN * 1.2
-         + halo[..., None] * TEAL * 0.35)
-    L = _soft(L, 1.4)
-    edge = np.clip(np.minimum(np.minimum(u, 1 - u) / 0.06, np.minimum(1 - abs(v), 1) / 0.12), 0, 1)
-    return _encode(L * edge[..., None])
-
-
 def _smooth(e0, e1, x):
     t = np.clip((np.asarray(x, dtype=float) - e0) / (e1 - e0), 0, 1)
     return t * t * (3 - 2 * t)
 
 
 def lance(w=256, h=64, nose=0.9, hot=1.0):
-    """Nucleo da Boitata: agulha branco-quente em ponta de lanca. Nariz curto e afiado em u = nose, corpo branco
+    """Nucleo das duas armas: agulha branco-quente em ponta de lanca. Nariz curto e afiado em u = nose, corpo branco
     longo que afina para tras (nada de gota redonda: a cabeca do raio e uma lanca, nao um ovo) e borda ciano fina.
     Sem halo: a corona afunilada (corona()) faz o brilho em volta."""
     x, y = _grid(w, h)
@@ -169,19 +149,26 @@ def _taper(w, h, nose, peak, wmax, rear_w, rear_fade):
 
 
 def corona(w=256, h=64, nose=0.95, peak=0.74, wmax=0.66, rear_w=0.34, rear_fade=0.45):
-    """Corona da Boitata (branca: a cor vem do VertexColor da Sprite, como no blob.png vanilla). Ponta de lanca
-    na frente e um corpo que afina para tras e emenda na cauda: a silhueta e um corpo so, sem cabeca redonda."""
+    """Corona afunilada (branca: a cor vem do VertexColor da Sprite, como no blob.png vanilla). Ponta de lanca na
+    frente e um corpo que afina para tras e emenda na cauda: a silhueta e um corpo so, sem cabeca redonda. Boitata:
+    os valores padrao; Curupira (bs_plasma_corona_heavy.png): mais cheia e com a traseira larga (rear_w maior), que
+    entra na esteira com ~55% da largura em vez de fechar num oval."""
     a = _taper(w, h, nose, peak, wmax, rear_w, rear_fade)
     return _encode(a[..., None] * WHITE)
 
 
-def shade(w=256, h=64, nose=0.97, peak=0.78, wmax=0.8, rear_w=0.3, rear_fade=0.5, alpha=0.5,
-          col=(0.0, 0.13, 0.19)):
+def shade(w=256, h=64, nose=0.97, peak=0.86, wmax=0.62, rear_w=0.35, rear_fade=0.55, alpha=0.5,
+          col=(0.0, 0.2, 0.28)):
     """Sombra por baixo do raio (Sprite SEM TargetBlendMode = mistura alfa comum, como a Sprite do missil
-    missile_he.rules e da mina mine.rules). Sobre casco branco o ciano aditivo quase some (branco + ciano =
-    branco); esta sombra azul-petroleo escura e fina escurece um pouco o casco em volta do raio e o contorno volta a
-    aparecer. Sobre o espaco preto ela nao aparece (escuro sobre escuro). RGB pre-multiplicado pelo alfa (vale
-    tanto para mistura alfa simples quanto pre-multiplicada: nunca soma luz onde o alfa e 0)."""
+    missile_he.rules e a fumaca chaingun_shoot_smoke.rules, que fica num balde de cima). Sobre casco branco o ciano
+    aditivo quase some (branco + ciano = branco); esta sombra azul-petroleo escurece o casco DEBAIXO do raio e o
+    ciano volta a aparecer. Ela e mais estreita que a corona e a cauda (fica dentro do contorno do raio, nada de
+    mancha de fuligem para fora quando a cauda da Boitata ondula) e mais larga perto do nariz (peak), onde o corpo
+    aditivo e mais forte, para escurecer por igual. A cor e um azul-petroleo medio, nao preto: se um pedaco
+    aparecer fora do corpo ele le como borda fria do plasma, nao como sujeira. Sobre o espaco ela quase nao aparece.
+    RGB = cor x forma (a / alpha), entao RGB = 0 onde o alfa e 0: nunca soma cor fora da sombra, seja a mistura alfa
+    simples ou pre-multiplicada (na simples, o padrao das Sprites sem TargetBlendMode, a cor sai um pouco mais
+    escura: col x forma x alfa)."""
     a = _taper(w, h, nose, peak, wmax, rear_w, rear_fade) * alpha
     rgb = np.asarray(col)[None, None, :] * (a / alpha)[..., None]
     out = np.dstack([rgb, a])
@@ -207,25 +194,27 @@ def _atlas_put(atlas, f, per_row, fw, fh, L):
 
 def _serpent_y(d, f, frames, half, amp, waves, jit):
     """Linha central do corpo da Boitata na posicao d (0 = cabeca, 1 = ponta) no quadro f: cobra nadando. A
-    amplitude sobe da cabeca (0, colada na lanca) ate um pico em d ~ 0,45 e depois CAI ~35% ate a ponta: corpo de
-    serpente em S suave, nunca um flagelo que chicoteia mais na ponta. A onda corre para tras (1 volta por ciclo
-    de animacao) e e um pouco mais longa no fim (fase ~ d^0,9)."""
+    amplitude e 0 ate d ~ 0,12 (o corpo sai reto da lanca, num traco so, sem forquilha onde a corona acaba), sobe
+    suave ate um pico em d ~ 0,5 e depois CAI ~35% ate a ponta: corpo de serpente em S suave, nunca um flagelo que
+    chicoteia mais na ponta. A onda corre para tras (1 volta por ciclo de animacao) e e um pouco mais longa no fim
+    (fase ~ d^0,9)."""
     d = np.clip(d, 0, 1)
-    env = np.sin(0.5 * math.pi * np.clip(d / 0.45, 0, 1)) * (1 - 0.35 * _smooth(0.45, 1.0, d))
+    env = _smooth(0.12, 0.5, d) * (1 - 0.35 * _smooth(0.5, 1.0, d))
     ph = 2 * math.pi * f / frames + jit
     return amp * half * env * np.sin(2 * math.pi * waves * d ** 0.9 - ph)
 
 
 def tail(frames=8, fw=512, fh=64, body0=11.0, body1=2.6, amp=0.28, waves=1.1, licks=3.2, lick_px=1.5,
-         segs=10, seg_gain=0.18, spine=0.9, gain=1.0, whiten=0.0, seed=5):
+         segs=10, seg_gain=0.18, seg_mid=0.1, spine=0.9, gain=1.0, whiten=0.0, seed=5):
     """Atlas da cauda da Boitata (a serpente de fogo): um CORPO de plasma grosso que sai da lanca e afina ate a
     ponta (sigma body0 px na cabeca -> body1 px na ponta; a 30% do comprimento ainda tem ~3/4 da largura da
     cabeca), brilho que cai devagar (~40% em d = 0,7) e uma espinha branca que continua o nucleo da lanca. O corpo
     ondula em S suave (_serpent_y: amplitude <= amp * meia altura, maior no meio do corpo e menor na ponta). Por
     DENTRO do corpo correm duas labaredas finas e claras (fase oposta, amplitude <= meia largura do corpo: nada de
-    fio solto fora da silhueta) e faixas de luz em V que lembram escamas e escorrem para tras. Por quadro o corpo
-    anda 1 volta / frames e as labaredas e escamas 2 e 1 voltas / frames: a animacao fecha o ciclo. Um tremor
-    pequeno de fase por quadro (seed fixa) tira a cara de mola."""
+    fio solto fora da silhueta) e faixas de luz em V que lembram escamas e escorrem para tras (contraste seg_gain,
+    mais seg_mid so no meio do corpo, d ~ 0,2-0,6: as escamas aparecem na escala de batalha sem mexer na ponta
+    nem na amplitude). Por quadro o corpo anda 1 volta / frames e as labaredas e escamas 2 e 1 voltas / frames: a
+    animacao fecha o ciclo. Um tremor pequeno de fase por quadro (seed fixa) tira a cara de mola."""
     per_row = 2
     rows = int(math.ceil(frames / per_row))
     atlas = np.zeros((rows * fh, per_row * fw, 3))
@@ -240,16 +229,20 @@ def tail(frames=8, fw=512, fh=64, body0=11.0, body1=2.6, amp=0.28, waves=1.1, li
     dd = 1.0 / fw
     col = _lerp_col(stops, d ** 0.85)
     hot = col * 0.35 + WHITE * 0.65
-    wch = body1 + (body0 - body1) * (1 - d) ** 1.15
+    # a frente do corpo fica DENTRO da corona: largura e brilho do corpo entram devagar (d ~ 0-0,12) em vez de
+    # comecar num "paredao" vertical logo atras do nariz (aparecia como um degrau claro no zoom de perto)
+    lead = _smooth(0.0, 0.12, d)
+    wch = (body1 + (body0 - body1) * (1 - d) ** 1.15) * (0.6 + 0.4 * lead)
     bright = (1 - d) ** 0.8 * _head_fade(d, fw)
     lick_env = _smooth(0.02, 0.2, d) * (1 - d) ** 0.6
+    seg_k = seg_gain + seg_mid * _smooth(0.12, 0.22, d) * (1 - _smooth(0.55, 0.68, d))
     for f in range(frames):
         jb, jl = jit[f]
         yb = _serpent_y(d, f, frames, half, amp, waves, jb)
         yb2 = _serpent_y(d + dd, f, frames, half, amp, waves, jb)
         dist = (yc - yb) / np.sqrt(1 + (yb2 - yb) ** 2)
         ad = np.abs(dist)
-        L = np.exp(-0.5 * (ad / wch) ** 2)[..., None] * col * 0.95
+        L = np.exp(-0.5 * (ad / wch) ** 2)[..., None] * col * (0.95 * (0.3 + 0.7 * lead))[..., None]
         L += np.exp(-0.5 * (ad / (wch * 0.32)) ** 2)[..., None] * hot * (spine * (1 - d) ** 2.2)[..., None]
         pl = 4 * math.pi * f / frames + jl
         for s_, k in ((0, 1.0), (1, 0.55)):
@@ -257,19 +250,23 @@ def tail(frames=8, fw=512, fh=64, body0=11.0, body1=2.6, amp=0.28, waves=1.1, li
             th = lick_px * (1 - 0.4 * d)
             L += np.exp(-0.5 * ((dist - off) / th) ** 2)[..., None] * hot * (0.55 * k * lick_env)[..., None]
         ps = 2 * math.pi * f / frames
-        seg = 1 + seg_gain * np.cos(2 * math.pi * segs * (d + 1.2 * ad / fw) - ps)
+        seg = 1 + seg_k * np.cos(2 * math.pi * segs * (d + 1.2 * ad / fw) - ps)
         L = _soft(L * (bright * seg)[..., None] * gain, 1.3)
         vfade = np.clip((half - np.abs(yc)) / 3.0, 0, 1)
         _atlas_put(atlas, f, per_row, fw, fh, L * vfade[..., None])
     return _encode(atlas)
 
 
-def wake(frames=8, fw=512, fh=64, rings=3, core_px=3.6, chan_px=8.5, gain=1.0, whiten=0.0, ring_gain=0.5):
+def wake(frames=8, fw=512, fh=64, rings=3, core_px=4.0, chan_px=10.5, gain=1.0, whiten=0.0, ring_gain=0.35,
+         ring_from=0.45, fade_k=0.7):
     """Atlas da cauda do Curupira: esteira ionizada RETA e grossa (os canos dele sao trilhos, nao a serpente da
-    Boitata). Nucleo branco que afina para tras, canal ciano que se espalha um pouco no fim e `rings` aneis de
-    pulso (elipses finas vistas de lado, frente mais clara) que nascem atras da cabeca e correm para o fim da
-    cauda apagando. Por quadro cada anel anda 1 / (rings * frames) do comprimento: a animacao fecha o ciclo.
-    Um tremor lento no brilho do canal da a cara de plasma ionizado. ring_gain: forca dos aneis (0,5: discretos,
+    Boitata) que continua a corona pesada como o corpo de um cometa: nucleo branco e canal ciano que AFINAM da
+    cabeca para a ponta (sigma do canal chan_px * 1,25 na cabeca -> * 0,65 na ponta) com o brilho caindo devagar
+    perto da cabeca ((1 - d)^fade_k), entao a largura visivel so diminui, sem pescoco logo atras da cabeca.
+    `rings` aneis de pulso (elipses finas vistas de lado, frente mais clara, altura presa a largura do canal) so
+    na parte de tras (d >= ring_from, longe da cabeca: nenhum "no" marca um pescoco) correm para o fim da cauda
+    apagando. Por quadro cada anel anda (1 - ring_from) / (rings * frames) do comprimento: a animacao fecha o
+    ciclo. Um tremor lento no brilho do canal da a cara de plasma ionizado. ring_gain: forca dos aneis (discretos,
     para nao lerem como as "penas" de flecha / assinatura do railgun vanilla)."""
     per_row = 2
     rows = int(math.ceil(frames / per_row))
@@ -281,26 +278,32 @@ def wake(frames=8, fw=512, fh=64, rings=3, core_px=3.6, chan_px=8.5, gain=1.0, w
     stops = _stops(whiten)
     col = _lerp_col(stops, d ** 0.8)
     hot = col * 0.35 + WHITE * 0.65
-    fade = (1 - d) ** 1.1 * _head_fade(d, fw)
-    th = core_px * (1 - 0.5 * d)
-    wg = chan_px * (0.85 + 0.5 * d)
+    fade = (1 - d) ** fade_k * _head_fade(d, fw)
+
+    def chan(dd):
+        return chan_px * (1.25 - 0.6 * dd)
+    # a frente da esteira fica DENTRO da corona: o canal largo entra devagar (largura e brilho sobem em d ~ 0-0,2)
+    # em vez de comecar num "paredao" vertical logo atras do nariz; so o nucleo branco (que continua a lanca) entra
+    # no ritmo normal do _head_fade
+    lead = _smooth(0.0, 0.2, d)
+    th = core_px * (1 - 0.55 * d)
     core = np.exp(-0.5 * (yc / th) ** 2)
-    glow = np.exp(-0.5 * (yc / wg) ** 2)
+    glow = np.exp(-0.5 * (yc / (chan(d) * (0.6 + 0.4 * lead))) ** 2) * (0.25 + 0.75 * lead)
     for f in range(frames):
         ph = f / frames
         shimmer = 1 + 0.12 * np.sin(2 * math.pi * (3 * d - ph)) + 0.08 * np.sin(2 * math.pi * (7 * d + 2 * ph))
         L = core[..., None] * hot * 1.6 * ((1 - d) ** 1.2)[..., None]
         L += glow[..., None] * col * 0.75 * shimmer[..., None]
         for k in range(rings):
-            p = (k + ph) / rings                      # posicao do anel ao longo da cauda (0 = cabeca)
+            p = ring_from + (1 - ring_from) * (k + ph) / rings     # posicao do anel ao longo da cauda (0 = cabeca)
             xr = fw * (1 - p)
-            rx = 3.0 + 4.0 * p
-            ry = min(half - 5, chan_px * 2.3 * (0.9 + 0.35 * p))
+            rx = 2.5 + 3.5 * p
+            ry = min(half - 5, chan(p) * 1.45)
             e = np.sqrt(((x - xr) / rx) ** 2 + (yc / ry) ** 2)
             ring = np.exp(-0.5 * ((e - 1) * ry / 2.0) ** 2)
             front = 0.55 + 0.45 * np.tanh((x - xr) / rx)
             band = np.exp(-0.5 * ((x - xr) / (rx * 1.4)) ** 2) * glow
-            amp = (1 - p) ** 1.1 * min(1.0, p / 0.08)
+            amp = (1 - p) ** 1.1 * min(1.0, (p - ring_from) / 0.1)
             L += (ring * front)[..., None] * (hot * 0.6 + col * 0.4) * 1.6 * amp * ring_gain
             L += band[..., None] * hot * 1.3 * amp * (0.4 + 0.6 * ring_gain)
         L = _soft(L * fade[..., None] * gain, 1.25)
@@ -441,14 +444,16 @@ def shock_ring(s=256, radius=0.86, rim_px=2.4, inner=0.12, inner_w=0.10):
 def all_textures():
     from bsgen import plasma_fx as PFX          # posicoes do nariz que bolt_components() tambem usa
     return {
-        "bs_plasma_bolt.png": bolt(),
         "bs_plasma_lance.png": lance(nose=PFX.LANCE_NOSE),
         "bs_plasma_corona.png": corona(nose=PFX.CORONA_NOSE),
+        "bs_plasma_corona_heavy.png": corona(nose=PFX.CORONA_NOSE, peak=0.68, wmax=0.8, rear_w=0.55, rear_fade=0.35),
         "bs_plasma_shade.png": shade(nose=PFX.SHADE_NOSE),
+        "bs_plasma_shade_heavy.png": shade(nose=PFX.SHADE_NOSE, peak=0.72, wmax=0.66, rear_w=0.5, rear_fade=0.45,
+                                           alpha=0.6),
         "bs_plasma_tail.png": tail(),
         "bs_plasma_tail_oc.png": tail(body0=11.5, gain=1.15, whiten=0.3, spine=1.1),
         "bs_plasma_wake.png": wake(),
-        "bs_plasma_wake_oc.png": wake(core_px=4.2, chan_px=9.5, gain=1.15, whiten=0.3),
+        "bs_plasma_wake_oc.png": wake(core_px=4.6, chan_px=11.5, gain=1.15, whiten=0.3),
         "bs_plasma_burst.png": burst(),
         "bs_plasma_splash.png": splash(),
         "bs_plasma_shock.png": shock_ring(),

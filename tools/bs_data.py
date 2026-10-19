@@ -140,7 +140,7 @@ VIS = {
     "bs_naval_155": {"look": "large", "size": 1.1, "glow": [18, 9], "glow_off": -1.5, "z": 0.5, "trail": "deck"},
     "bs_naval_406": {"look": "large", "size": 1.35, "glow": [22, 11], "glow_off": -1.8, "z": 0.5, "trail": "deck"},
     "bs_nuke_howitzer": {"look": "large", "size": 1.35, "glow": [22, 11], "glow_off": -1.8, "z": 0.5, "trail": "deck"},
-    # rastro ionizado proprio (bsgen/plasma_fx.py: ~10-14 particulas vivas por raio, paradas no espaco) no lugar
+    # rastro ionizado proprio (bsgen/plasma_fx.py: ~8-9 particulas vivas por raio, paradas no espaco) no lugar
     # das faiscas do railgun (2000/s, ~11.000 vivas por arma) e do rastro deck ciano (300/s, ~250 por arma)
     "bs_plasma_heavy": {"look": "energy", "wh": [2.8, 1.12], "core": [1.4, 0.5], "glow": [12, 6], "glow_off": -1,
                         "plasma": "heavy"},

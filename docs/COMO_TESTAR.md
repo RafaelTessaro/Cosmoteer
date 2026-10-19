@@ -95,28 +95,32 @@ sai clarão e som, e o tiro chega no alvo dentro do alcance.
 - [ ] **B20** **Efeitos de plasma (Boitatá e Curupira):** nenhum clarão laranja de pólvora na boca. A cada tiro sai
   uma descarga ciano com centro branco (ponta de lança para frente, faíscas curtas e um anel pequeno que pisca e
   some antes do tiro seguinte: com a Boitatá atirando sem parar, a ponta dos canos **não** pode ficar com um anel
-  parado em volta). A luz no casco é fraca e fica mais à frente do cano, e a boca da Boitatá tem só um brilho
-  fraco de cano quente: a arte da torre não pode sumir no clarão. No Curupira, logo depois de cada tiro, aparece
-  um brilho entre as pontas dos canos (é um brilho que fica depois do disparo, não uma carga antes dele) e arcos
-  elétricos. O projétil é um raio branco-quente com borda ciano que "cresce" no primeiro instante (não pode
-  parecer uma pílula gorda). Na Boitatá o raio é uma **serpente de fogo / lança de plasma**: ponta branca comprida
-  (sem cabeça redonda) e um corpo ciano grosso que sai dela e afina devagar até a ponta, uns 4,5 tiles, com uma
-  ondulação suave em S que **não** aumenta na ponta. Na escala normal de batalha ele **não** pode lembrar um
-  girino/espermatozoide (cabeça oval clara + fio fino chicoteando atrás); se lembrar, anote o zoom. Sobre casco
-  branco o raio tem que continuar visível (há uma sombra escura fina por baixo dele). No Curupira a cauda é
-  **reta e grossa, com anéis de pulso discretos** correndo para trás, mais um rastro fino e curto (uma cauda de
-  cometa que se solta da boca, não uma linha contínua da boca até o alvo). A cauda só aparece depois que o raio
-  sai da boca (não pode ficar por cima da torre), e o rastro do Curupira também começa longe da torre. Confira
-  também que o rastro do Curupira **fica parado no espaço** atrás do raio (não anda junto com ele; depois do
-  impacto o que sobrou dele some ali mesmo em menos de 0,1 s) e que as faíscas elétricas em volta do raio
-  **acompanham** o raio, coladas nele (depois do impacto umas poucas ainda passam um pouco do alvo e somem num
-  instante: é normal). O raio do Curupira solta essas faíscas em voo no normal e no overclock; o da Boitatá, só
-  no overclock. No casco: borrifo ciano, faíscas e uma brasa ciano que some. Em peça já destruída: um respingo menor, com som. No escudo: respingo achatado na face do
-  escudo, sem brasa. Raio abatido no ar: estouro pequeno com um chiado baixo. Em overclock tudo fica maior e mais
-  branco, e o impacto do Curupira ganha um anel fino de pressão (Erupção Solar) que abre rápido e some sem
-  cobrir o respingo. O som do tiro da Boitatá muda ao ligar o overclock (estalo leve no normal, mais forte no
-  overclock). Com várias Boitatás atirando o jogo não pode ficar lento; se ficar, anote quantas. Se o jogo
-  acusar arquivo não encontrado ao carregar (sons `heavy_laser_*`, `laser_blaster_shot_*`, `laser_blaster_impact_*`,
+  parado em volta). A luz no casco é fraca e fica mais à frente do cano, e a boca da Boitatá tem só um brilho fraco
+  de cano quente: a arte da torre não pode sumir no clarão. No Curupira, logo depois de cada tiro, aparece um brilho
+  entre as pontas dos canos (é um brilho que fica depois do disparo, não uma carga antes dele) e arcos elétricos. As
+  duas armas atiram a mesma "lança" de plasma: ponta branca comprida, **sem cabeça redonda**, dentro de um corpo
+  ciano que afina para trás; no instante do disparo a lança não pode aparecer deitada por cima dos canos ou da
+  torre. Na Boitatá o raio é uma **serpente de fogo / lança de plasma** fina: o corpo sai reto da lança, num traço
+  só, e afina devagar até a ponta, uns 4,5 tiles, com uma ondulação suave em S que **não** aumenta na ponta. No
+  Curupira o raio é um **cometa / torpedo de plasma pesado**: a mesma lança, mais grossa, num corpo ciano largo que
+  é mais largo cerca de 1 tile atrás da ponta e dali para trás só afina, sem "pescoço", seguido de uma esteira
+  **reta** (anéis de pulso discretos só na metade de trás) e de um rastro curto que continua a esteira e some a uns
+  10 tiles do raio. Na escala normal de batalha **nenhum** dos dois pode lembrar um girino/espermatozoide (cabeça
+  oval clara + pescoço fino + fio atrás); se lembrar, anote a arma e o zoom. Sobre casco branco o raio tem que
+  continuar visível (há uma sombra azul-petróleo por baixo dele, mais estreita que o raio; ela não pode aparecer
+  como mancha escura fora do raio). A cauda só aparece depois que o raio sai da boca (não pode ficar por cima da
+  torre), e o rastro do Curupira também começa longe da torre. Confira também que o rastro do Curupira **fica parado
+  no espaço** atrás do raio (não anda junto com ele; depois do impacto o que sobrou dele some ali mesmo em menos de
+  0,06 s) e que as faíscas elétricas em volta do raio **acompanham** o raio, coladas nele. Depois de um impacto no
+  casco as poucas faíscas que ainda estavam vivas seguem em linha reta por alguns tiles além do ponto de impacto (no
+  pior caso uns 20) e somem em menos de 0,07 s; no escudo elas param na face dele. É normal. O raio do Curupira
+  solta essas faíscas em voo no normal e no overclock; o da Boitatá, só no overclock. No casco: borrifo ciano,
+  faíscas e uma brasa ciano que some. Em peça já destruída: um respingo menor, com som. No escudo: respingo achatado
+  na face do escudo, sem brasa. Raio abatido no ar: estouro pequeno com um chiado baixo. Em overclock tudo fica
+  maior e mais branco, e o impacto do Curupira ganha um anel fino de pressão (Erupção Solar) que abre rápido e some
+  sem cobrir o respingo. O som do tiro da Boitatá muda ao ligar o overclock (estalo leve no normal, mais forte no
+  overclock). Com várias Boitatás atirando o jogo não pode ficar lento; se ficar, anote quantas. Se o jogo acusar
+  arquivo não encontrado ao carregar (sons `heavy_laser_*`, `laser_blaster_shot_*`, `laser_blaster_impact_*`,
   `laser_bolt_large_hit` ou a textura `railgun_shoot.png`), anote o nome do arquivo.
 
 ### C. Munição e logística

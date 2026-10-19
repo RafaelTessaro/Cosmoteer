@@ -228,19 +228,20 @@ Components
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper3
-		Offset = [-0.704, 0]
+		StartTime = 0.01
+		Offset = [-1.81, 0]
 		LerpScaleFrom = [0.45, 0.7]
 		LerpTime = 0.04
 		Sprite
 		{
 			Texture
 			{
-				File = "./Data/common_effects/particles/blob.png"
+				File = "../bs_plasma_fx/bs_plasma_corona_heavy.png"
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [3.2, 1.3]
-			VertexColor = [0, 160, 245]
+			Size = [4.4, 1.15]
+			VertexColor = [0, 175, 250]
 			TargetBlendMode = Add
 		}
 	}
@@ -248,16 +249,17 @@ Components
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper4
-		Offset = [-0.58, 0]
+		StartTime = 0.01
+		Offset = [-0.98, 0]
 		Sprite
 		{
 			Texture
 			{
-				File = "../bs_plasma_fx/bs_plasma_bolt.png"
+				File = "../bs_plasma_fx/bs_plasma_lance.png"
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [2.4, 0.75]
+			Size = [2.8, 0.6]
 			VertexColor = [255, 255, 255]
 			TargetBlendMode = Add
 		}
@@ -267,16 +269,16 @@ Components
 		Type = Sprite
 		RenderBucket = BulletUpper2
 		StartTime = 0.032
-		Offset = [-2.788, 0]
+		Offset = [-2.318, 0]
 		Sprite
 		{
 			Texture
 			{
-				File = "../bs_plasma_fx/bs_plasma_shade.png"
+				File = "../bs_plasma_fx/bs_plasma_shade_heavy.png"
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [6.4, 1.4]
+			Size = [5.4, 1.3]
 		}
 	}
 	GlowSprite
@@ -286,7 +288,7 @@ Components
 		Z = 0
 		IsLight = true
 		StartTime = 0.032
-		Offset = [-1.44, 0]
+		Offset = [-1.6, 0]
 		Sprite
 		{
 			Texture
@@ -295,8 +297,8 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [12, 6]
-			VertexColor = [0, 235, 255]
+			Size = [10, 4.5]
+			VertexColor = [0, 210, 250]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"
 			_z = 1
