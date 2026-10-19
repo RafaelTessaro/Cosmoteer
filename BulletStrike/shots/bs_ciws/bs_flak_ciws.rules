@@ -2,13 +2,13 @@
 // Projetil: bs_flak_ciws
 
 STAT_DAMAGE = 2000
-STAT_SHIP_DAMAGE = 400
 STAT_RADIUS = 4.5
 Range = 250
 IdealRange = 225
 ClipRangeToTarget = true
 RandomOffsetRadius = [0.5, 3.5]
 FriendlyShipLowCollisions = false
+FriendlyShipHighCollisions = false
 HitNothing
 {
 	HitEffects
@@ -31,27 +31,12 @@ HitNothing
 				Crew = true
 			}
 		}
-		{
-			Type = ExplosiveDamage
-			TotalDamage
-			{
-				BaseValue = 400
-				EffectScaleExponent = 1
-			}
-			Radius = 3
-			Filter
-			{
-				Ships = true
-				Shields = true
-				Bullets = false
-				Crew = false
-			}
-		}
 	]
 	MediaEffects
 	[
 		&<./Data/shots/flak_large/particles/flak_large_shrapnel.rules>
 		&<./Data/shots/flak_large/particles/flak_large_flash.rules>
+		&<./Data/shots/flak_large/particles/flak_large_smoke.rules>
 		: /BASE_SOUNDS/AudioExterior
 		{
 			RandomSounds
@@ -61,7 +46,7 @@ HitNothing
 				"./Data/shots/flak_large/sounds/flak_cannon_impact_03.wav"
 				"./Data/shots/flak_large/sounds/flak_cannon_impact_04.wav"
 			]
-			Volume = 0.3
+			Volume = 0.4
 			SpeedVariation = 0.25
 			MaxConcurrent = 12
 		}

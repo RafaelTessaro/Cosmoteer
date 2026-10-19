@@ -141,12 +141,6 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Mode = AmmoTypeToggle
 			OnMode = 0
 		}
-		ConsumeToggle_0
-		{
-			Type = MultiToggle
-			Toggles = [CommandConsumptionToggle, ModeToggle_0]
-			Mode = All
-		}
 		MagStorage_0
 		{
 			Type = ResourceStorage
@@ -164,32 +158,47 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			FromQuantity = 1
 			ToQuantity = 10
 		}
-		MagConsumer_0
+		AmmoConsumersOn_0
 		{
-			Type = ResourceConsumer
-			ResourceType = rafaeltessaro.bs_mag_std
-			Storage = MagStorage_0
-			DefaultPriority = &/PRIORITIES/Weapon_Supply
-			OperationalToggle = ConsumeToggle_0
-			ConsumptionToggleButtonOffset = [0, -0.4]
+			Type = ToggledComponents
+			Toggle = ModeToggle_0
+			Components
+			{
+				MagConsumer_0
+				{
+					Type = ResourceConsumer
+					ResourceType = rafaeltessaro.bs_mag_std
+					Storage = MagStorage_0
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = CommandConsumptionToggle
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
 		}
-		HasAmmo_0
+		AmmoConsumersOff_0
 		{
-			Type = MultiToggle
-			Toggles = [ModeToggle_0, Splitter_0]
-			Mode = All
+			Type = ToggledComponents
+			Toggle = ModeToggle_0
+			Invert = true
+			Components
+			{
+				MagConsumer_0
+				{
+					Type = ResourceConsumer
+					ResourceType = rafaeltessaro.bs_mag_std
+					Storage = MagStorage_0
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = ModeToggle_0
+					AllowNonOperationalMinPriorityDelivery = false
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
 		}
 		ModeToggle_1
 		{
 			Type = ModeToggle
 			Mode = AmmoTypeToggle
 			OnMode = 1
-		}
-		ConsumeToggle_1
-		{
-			Type = MultiToggle
-			Toggles = [CommandConsumptionToggle, ModeToggle_1]
-			Mode = All
 		}
 		MagStorage_1
 		{
@@ -208,32 +217,47 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			FromQuantity = 1
 			ToQuantity = 10
 		}
-		MagConsumer_1
+		AmmoConsumersOn_1
 		{
-			Type = ResourceConsumer
-			ResourceType = rafaeltessaro.bs_mag_ap
-			Storage = MagStorage_1
-			DefaultPriority = &/PRIORITIES/Weapon_Supply
-			OperationalToggle = ConsumeToggle_1
-			ConsumptionToggleButtonOffset = [0, -0.15]
+			Type = ToggledComponents
+			Toggle = ModeToggle_1
+			Components
+			{
+				MagConsumer_1
+				{
+					Type = ResourceConsumer
+					ResourceType = rafaeltessaro.bs_mag_ap
+					Storage = MagStorage_1
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = CommandConsumptionToggle
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
 		}
-		HasAmmo_1
+		AmmoConsumersOff_1
 		{
-			Type = MultiToggle
-			Toggles = [ModeToggle_1, Splitter_1]
-			Mode = All
+			Type = ToggledComponents
+			Toggle = ModeToggle_1
+			Invert = true
+			Components
+			{
+				MagConsumer_1
+				{
+					Type = ResourceConsumer
+					ResourceType = rafaeltessaro.bs_mag_ap
+					Storage = MagStorage_1
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = ModeToggle_1
+					AllowNonOperationalMinPriorityDelivery = false
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
 		}
 		ModeToggle_2
 		{
 			Type = ModeToggle
 			Mode = AmmoTypeToggle
 			OnMode = 2
-		}
-		ConsumeToggle_2
-		{
-			Type = MultiToggle
-			Toggles = [CommandConsumptionToggle, ModeToggle_2]
-			Mode = All
 		}
 		MagStorage_2
 		{
@@ -252,32 +276,47 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			FromQuantity = 1
 			ToQuantity = 10
 		}
-		MagConsumer_2
+		AmmoConsumersOn_2
 		{
-			Type = ResourceConsumer
-			ResourceType = rafaeltessaro.bs_mag_ap
-			Storage = MagStorage_2
-			DefaultPriority = &/PRIORITIES/Weapon_Supply
-			OperationalToggle = ConsumeToggle_2
-			ConsumptionToggleButtonOffset = [0, 0.1]
+			Type = ToggledComponents
+			Toggle = ModeToggle_2
+			Components
+			{
+				MagConsumer_2
+				{
+					Type = ResourceConsumer
+					ResourceType = rafaeltessaro.bs_mag_ap
+					Storage = MagStorage_2
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = CommandConsumptionToggle
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
 		}
-		HasAmmo_2
+		AmmoConsumersOff_2
 		{
-			Type = MultiToggle
-			Toggles = [ModeToggle_2, Splitter_2]
-			Mode = All
+			Type = ToggledComponents
+			Toggle = ModeToggle_2
+			Invert = true
+			Components
+			{
+				MagConsumer_2
+				{
+					Type = ResourceConsumer
+					ResourceType = rafaeltessaro.bs_mag_ap
+					Storage = MagStorage_2
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = ModeToggle_2
+					AllowNonOperationalMinPriorityDelivery = false
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
 		}
 		ModeToggle_3
 		{
 			Type = ModeToggle
 			Mode = AmmoTypeToggle
 			OnMode = 3
-		}
-		ConsumeToggle_3
-		{
-			Type = MultiToggle
-			Toggles = [CommandConsumptionToggle, ModeToggle_3]
-			Mode = All
 		}
 		MagStorage_3
 		{
@@ -296,14 +335,59 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			FromQuantity = 1
 			ToQuantity = 10
 		}
-		MagConsumer_3
+		AmmoConsumersOn_3
 		{
-			Type = ResourceConsumer
-			ResourceType = rafaeltessaro.bs_mag_emp
-			Storage = MagStorage_3
-			DefaultPriority = &/PRIORITIES/Weapon_Supply
-			OperationalToggle = ConsumeToggle_3
-			ConsumptionToggleButtonOffset = [0, 0.35]
+			Type = ToggledComponents
+			Toggle = ModeToggle_3
+			Components
+			{
+				MagConsumer_3
+				{
+					Type = ResourceConsumer
+					ResourceType = rafaeltessaro.bs_mag_emp
+					Storage = MagStorage_3
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = CommandConsumptionToggle
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
+		}
+		AmmoConsumersOff_3
+		{
+			Type = ToggledComponents
+			Toggle = ModeToggle_3
+			Invert = true
+			Components
+			{
+				MagConsumer_3
+				{
+					Type = ResourceConsumer
+					ResourceType = rafaeltessaro.bs_mag_emp
+					Storage = MagStorage_3
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = ModeToggle_3
+					AllowNonOperationalMinPriorityDelivery = false
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
+		}
+		HasAmmo_0
+		{
+			Type = MultiToggle
+			Toggles = [ModeToggle_0, Splitter_0]
+			Mode = All
+		}
+		HasAmmo_1
+		{
+			Type = MultiToggle
+			Toggles = [ModeToggle_1, Splitter_1]
+			Mode = All
+		}
+		HasAmmo_2
+		{
+			Type = MultiToggle
+			Toggles = [ModeToggle_2, Splitter_2]
+			Mode = All
 		}
 		HasAmmo_3
 		{
@@ -458,6 +542,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			AIFirepowerRating = &~/Part/StatsByCategory/0/Stats/DamagePerSecond
 			Emitter = TargetEmitterProxy
 			IgnoreFriendlyShipLowLOSChecks = true
+			IgnoreFriendlyShipHighLOSChecks = true
 			AutoTargets
 			[
 				{
@@ -508,7 +593,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					ResourceStorage = Splitter_0
 					ResourcesUsed = 1
 					Recoil = 15
-					AntiPhasingRaycastDistance = 2
+					AntiPhasingRaycastDistance = 1.32
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
 				Emitter1 : TargetEmitter
@@ -538,7 +623,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					ResourceStorage = Splitter_0
 					ResourcesUsed = 1
 					Recoil = 15 * (&~/OVERCLOCK/RECOIL_FACTOR)
-					AntiPhasingRaycastDistance = 2
+					AntiPhasingRaycastDistance = 1.32
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
 				Emitter1 : TargetEmitter
@@ -568,7 +653,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					ResourceStorage = Splitter_1
 					ResourcesUsed = 1
 					Recoil = 15
-					AntiPhasingRaycastDistance = 2
+					AntiPhasingRaycastDistance = 1.32
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
 				Emitter1 : TargetEmitter
@@ -598,7 +683,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					ResourceStorage = Splitter_1
 					ResourcesUsed = 1
 					Recoil = 15 * (&~/OVERCLOCK/RECOIL_FACTOR)
-					AntiPhasingRaycastDistance = 2
+					AntiPhasingRaycastDistance = 1.32
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
 				Emitter1 : TargetEmitter
@@ -628,7 +713,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					ResourceStorage = Splitter_2
 					ResourcesUsed = 1
 					Recoil = 15
-					AntiPhasingRaycastDistance = 2
+					AntiPhasingRaycastDistance = 1.32
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
 				Emitter1 : TargetEmitter
@@ -658,7 +743,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					ResourceStorage = Splitter_2
 					ResourcesUsed = 1
 					Recoil = 15 * (&~/OVERCLOCK/RECOIL_FACTOR)
-					AntiPhasingRaycastDistance = 2
+					AntiPhasingRaycastDistance = 1.32
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
 				Emitter1 : TargetEmitter
@@ -688,7 +773,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					ResourceStorage = Splitter_3
 					ResourcesUsed = 1
 					Recoil = 15
-					AntiPhasingRaycastDistance = 2
+					AntiPhasingRaycastDistance = 1.32
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
 				Emitter1 : TargetEmitter
@@ -718,7 +803,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					ResourceStorage = Splitter_3
 					ResourcesUsed = 1
 					Recoil = 15 * (&~/OVERCLOCK/RECOIL_FACTOR)
-					AntiPhasingRaycastDistance = 2
+					AntiPhasingRaycastDistance = 1.32
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
 				Emitter1 : TargetEmitter

@@ -129,6 +129,7 @@ Part : <./Data/ships/terran/base_part_terran.rules>/Part
 			AIFirepowerRating = &~/Part/StatsByCategory/0/Stats/DamagePerSecond
 			Emitter = TargetEmitterProxy
 			IgnoreFriendlyShipLowLOSChecks = true
+			IgnoreFriendlyShipHighLOSChecks = true
 			AutoTargets
 			[
 				{
@@ -191,7 +192,7 @@ Part : <./Data/ships/terran/base_part_terran.rules>/Part
 			ResourceStorage = Splitter_0
 			ResourcesUsed = 1
 			Recoil = 2
-			AntiPhasingRaycastDistance = 2
+			AntiPhasingRaycastDistance = 0.87
 			AntiPhasingRaycastIgnoreLowCollisions = true
 		}
 		Emitter1 : TargetEmitter

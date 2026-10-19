@@ -137,12 +137,6 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			Toggles = [ModeToggle_he]
 			Mode = Any
 		}
-		ConsumeHE
-		{
-			Type = MultiToggle
-			Toggles = [CommandConsumptionToggle, UsesHE]
-			Mode = All
-		}
 		MagStorage_HE
 		{
 			Type = ResourceStorage
@@ -154,26 +148,47 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			DropResourcesWhenDestroyed = true
 			DropResourcesWhenRemoved = true
 		}
-		MagConsumer_HE
+		AmmoConsumersOnHE
 		{
-			Type = ResourceConsumer
-			ResourceType = missile_part_he
-			Storage = MagStorage_HE
-			DefaultPriority = &/PRIORITIES/Weapon_Supply
-			OperationalToggle = ConsumeHE
-			ConsumptionToggleButtonOffset = [0, -0.4]
+			Type = ToggledComponents
+			Toggle = UsesHE
+			Components
+			{
+				MagConsumer_HE
+				{
+					Type = ResourceConsumer
+					ResourceType = missile_part_he
+					Storage = MagStorage_HE
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = CommandConsumptionToggle
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
+		}
+		AmmoConsumersOffHE
+		{
+			Type = ToggledComponents
+			Toggle = UsesHE
+			Invert = true
+			Components
+			{
+				MagConsumer_HE
+				{
+					Type = ResourceConsumer
+					ResourceType = missile_part_he
+					Storage = MagStorage_HE
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = UsesHE
+					AllowNonOperationalMinPriorityDelivery = false
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
 		}
 		UsesThermal
 		{
 			Type = MultiToggle
 			Toggles = [ModeToggle_napalm]
 			Mode = Any
-		}
-		ConsumeThermal
-		{
-			Type = MultiToggle
-			Toggles = [CommandConsumptionToggle, UsesThermal]
-			Mode = All
 		}
 		MagStorage_Thermal
 		{
@@ -186,14 +201,41 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			DropResourcesWhenDestroyed = true
 			DropResourcesWhenRemoved = true
 		}
-		MagConsumer_Thermal
+		AmmoConsumersOnThermal
 		{
-			Type = ResourceConsumer
-			ResourceType = missile_part_thermal
-			Storage = MagStorage_Thermal
-			DefaultPriority = &/PRIORITIES/Weapon_Supply
-			OperationalToggle = ConsumeThermal
-			ConsumptionToggleButtonOffset = [0, -0.15]
+			Type = ToggledComponents
+			Toggle = UsesThermal
+			Components
+			{
+				MagConsumer_Thermal
+				{
+					Type = ResourceConsumer
+					ResourceType = missile_part_thermal
+					Storage = MagStorage_Thermal
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = CommandConsumptionToggle
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
+		}
+		AmmoConsumersOffThermal
+		{
+			Type = ToggledComponents
+			Toggle = UsesThermal
+			Invert = true
+			Components
+			{
+				MagConsumer_Thermal
+				{
+					Type = ResourceConsumer
+					ResourceType = missile_part_thermal
+					Storage = MagStorage_Thermal
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = UsesThermal
+					AllowNonOperationalMinPriorityDelivery = false
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
 		}
 		// ---- modo he (Muriçoca): rack, autoloader, troca de modo, salva parcial ----
 		ReadyRack_he
@@ -747,6 +789,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			FireThresholdAngle = 30d
 			AllowFireWithBlockedLOS = true
 			IgnoreFriendlyShipLowLOSChecks = true
+			IgnoreFriendlyShipHighLOSChecks = true
 			AIFirepowerRating = &~/Part/StatsByCategory/0/Stats/DamagePerSecond
 			Emitter = TargetEmitterProxy
 			AutoTargets
@@ -1040,6 +1083,20 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 						}
 					]
 				}
+				PodFired_0
+				{
+					Type = MultiTrigger
+					Triggers = [Emitter_0, Emitter_1, Emitter_2, Emitter_3, Emitter_4, Emitter_5]
+				}
+				Backblast_0
+				{
+					Type = TriggeredEffects
+					ChainedTo = Turret
+					Trigger = PodFired_0
+					Location = [-0.55, 0]
+					Rotation = 180d
+					MediaEffects = [&<./Data/ships/terran/chaingun/particles/chaingun_shoot_smoke.rules>]
+				}
 				ReloadProgressBar
 				{
 					Type = ProgressBar
@@ -1284,6 +1341,20 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 						}
 					]
 				}
+				PodFired_0
+				{
+					Type = MultiTrigger
+					Triggers = [Emitter_0, Emitter_1, Emitter_2, Emitter_3, Emitter_4, Emitter_5]
+				}
+				Backblast_0
+				{
+					Type = TriggeredEffects
+					ChainedTo = Turret
+					Trigger = PodFired_0
+					Location = [-0.55, 0]
+					Rotation = 180d
+					MediaEffects = [&<./Data/ships/terran/chaingun/particles/chaingun_shoot_smoke.rules>]
+				}
 				ReloadProgressBar
 				{
 					Type = ProgressBar
@@ -1297,15 +1368,6 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			Type = EmitterProxy
 			ComponentID = TargetEmitter
 			ChainedTo = Turret
-		}
-		Backblast_0
-		{
-			Type = TriggeredEffects
-			ChainedTo = Turret
-			Trigger = Turret
-			Location = [-0.55, 0]
-			Rotation = 180d
-			MediaEffects = [&<./Data/ships/terran/chaingun/particles/chaingun_shoot_smoke.rules>]
 		}
 		// ---- cook-off: um par por storage (carregador + racks), linear nas pecas guardadas ----
 		OperationEffects

@@ -36,6 +36,7 @@ Components
 		Penetration = 2
 		PenetrationSpeed = 25
 		FriendlyShipLowCollisions = false
+		FriendlyShipHighCollisions = false
 		CrewCollisions = {Enemies=true; Junk=true}
 		PenetratesCrew = true
 		HitCrew = &HitOperational
@@ -177,26 +178,7 @@ Components
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper3
-		ReduceScaleWith = Hit
-		ReduceScaleExponent = 0.5
-		Sprite
-		{
-			Texture
-			{
-				File = "./Data/shots/bullet_med/bullet_med.png"
-				SampleMode = Linear
-				MipLevels = max
-			}
-			Size = [0.18, 0.18]
-		}
-	}
-	GlowSprite
-	{
-		Type = Sprite
-		RenderBucket = BulletUpper4
-		Z = 0
-		IsLight = true
-		Offset = [-0.375, 0]
+		Offset = [-1.531, 0]
 		Sprite
 		{
 			Texture
@@ -205,7 +187,47 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [3, 1.5]
+			Size = [3.5, 0.32]
+			VertexColor = [255, 170, 60]
+			TargetBlendMode = Add
+		}
+		LerpScaleFrom = [0.25, 1]
+		LerpTime = 0.05
+	}
+	CoreSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Offset = [-0.42, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [1.2, 0.15]
+			VertexColor = [255, 235, 190]
+			TargetBlendMode = Add
+		}
+	}
+	GlowSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Z = 0
+		IsLight = true
+		Offset = [-1.4, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [7, 2.5]
 			VertexColor = [255, 120, 30]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"
@@ -213,7 +235,7 @@ Components
 			_nrmlStrengthLimit = 1
 			_litReflectiveStrength = 24
 			_litAdditiveStrength = 0.05
-			_unlitAdditiveStrength = 0.125
+			_unlitAdditiveStrength = 0.2
 		}
 	}
 }

@@ -36,6 +36,7 @@ Components
 		Penetration = 17
 		PenetrationSpeed = 25
 		FriendlyShipLowCollisions = false
+		FriendlyShipHighCollisions = false
 		CrewCollisions = {Enemies=true; Junk=true}
 		PenetratesCrew = true
 		HitCrew = &HitOperational
@@ -245,7 +246,7 @@ Components
 					SampleMode = Linear
 					MipLevels = max
 				}
-				Size = [1.05, 1.05]
+				Size = [1.35, 1.35]
 			}
 			FrameCount = 16
 			FrameSize = [256, 256]
@@ -260,9 +261,9 @@ Components
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper4
-		Z = 0
+		Z = 0.5
 		IsLight = true
-		Offset = [-2, 0]
+		Offset = [-1.8, 0]
 		Sprite
 		{
 			Texture
@@ -271,7 +272,7 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [16, 8]
+			Size = [22, 11]
 			VertexColor = [255, 80, 40]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"

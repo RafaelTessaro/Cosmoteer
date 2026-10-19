@@ -79,6 +79,18 @@ sai clarão e som, e o tiro chega no alvo dentro do alcance.
 
 - [ ] **B16** O tranco (Tambor, Trovão, Boiúna, Mapinguari) atordoa só por um instante quem está perto da torre.
 - [ ] **B17** Sem tripulante no posto, a arma para de atirar.
+- [ ] **B18** **Todo disparo aparece em voo**, de perto e de longe: metralhadoras, Carcará, Cigarra, Saci e Furacão
+  soltam traçantes (risco brilhante com ponta branca) na cor da munição: âmbar no Padrão, vermelho-alaranjado na
+  Perfurante-Explosiva, branco-azulado na Perfurante, azul no P.E.M.; o plasma é ciano. Tambor, Trovão, Mapinguari
+  e Boiúna disparam granadas com rastro de fogo na cor da munição (verde na Boiúna). O jogo não fica lento com
+  várias Cigarras atirando (as armas rápidas não têm rastro de partículas).
+- [ ] **B19** **Fogo amigo:** duas Marimbondo/Mangangá/Curupira e uma Tamanduá lado a lado, alvo ao longo da
+  fileira: nenhum acerto nem clarão de flak nas torres vizinhas, e as torres atiram mesmo com outra torre nossa na
+  frente. Se uma torre logo embaixo do cano de outra ainda levar dano, anote qual arma atirou. A Tamanduá só
+  defende e não aceita alvo, então ela só atira aqui se vierem projéteis inimigos ao longo da fileira (ponha uma
+  nave inimiga com lança-mísseis disparando nessa direção) ou se você passar ela para **Disparar
+  automaticamente** ("disparar continuamente, mesmo se não houver nada em que disparar"), com o arco de tiro
+  virado para o lado da fileira.
 
 ### C. Munição e logística
 
@@ -97,11 +109,27 @@ sai clarão e som, e o tiro chega no alvo dentro do alcance.
 ### D. Seletor de munição (Cigarra, Tambor, Furacão, Trovão, Mapinguari)
 
 - [ ] **D1** O botão de munição aparece e troca entre **Padrão / Perfurante / Perfurante-Explosiva / P.E.M.**
-- [ ] **D2** Cada modo pede o carregador certo (Perfurante e Perfurante-Explosiva usam o mesmo Carregador Perfurante).
+- [ ] **D2** Cada modo pede o carregador certo (Perfurante e Perfurante-Explosiva usam o mesmo Carregador
+  Perfurante, mas cada modo tem o próprio quadrinho na arma: 4 quadrinhos nas armas com seletor).
 - [ ] **D3** **Perfurante** atravessa blindagem e danifica as peças de trás.
 - [ ] **D4** **Perfurante-Explosiva** atravessa uma ou duas placas e explode dentro do casco.
 - [ ] **D5** **P.E.M.** drena escudos e bateria (as armas do Bullet Strike não são afetadas).
 - [ ] **D6** Trocar de modo não gera tiros grátis nem trava a arma.
+- [ ] **D7** **Estoque por tipo:** Cigarra em Padrão, com um depósito de Carregadores Padrão e um Energizador
+  P.E.M. na nave. Monte a nave **sem** "Reabastecer todos os recursos" e sem recursos cheios, porque os dois
+  enchem os depósitos de todos os tipos na arma. Assim, o quadrinho do P.E.M. na arma fica **vazio** enquanto o Padrão está
+  escolhido. Gaste até sobrar 3 Carregadores Padrão, troque para P.E.M.: a arma espera a tripulação trazer
+  Carregadores P.E.M. e os 3 Padrão continuam no quadrinho deles; volte para Padrão e ela atira com eles na hora.
+  Se o depósito P.E.M. já estiver cheio (nave reabastecida), o certo é a arma atirar P.E.M. desse depósito e os
+  3 Padrão continuarem no depósito deles.
+- [ ] **D7b** Desligue a Cigarra (botão liga/desliga) com o depósito do tipo escolhido pela metade e espere um
+  pouco (com tripulação sobrando): a tripulação continua completando o tipo escolhido, com a prioridade mínima,
+  como nas armas do jogo, e o quadrinho dos outros tipos não recebe nada. Ligue de novo: ela atira na hora.
+- [ ] **D7c** O mesmo entre os dois perfurantes: em Perfurante, gaste até sobrar 3 Carregadores Perfurantes e troque
+  para Perfurante-Explosiva. A arma espera a tripulação trazer Carregadores Perfurantes para o quadrinho da
+  Perfurante-Explosiva, e os 3 (e o carregador já aberto) continuam com a Perfurante para quando você voltar.
+- [ ] **D8** Trovão e Mapinguari atiram normalmente (gastam 2 e 3 carregadores por disparo direto do depósito) e
+  o aviso de "sem munição" aparece quando sobra menos que um disparo.
 
 ### E. Overclock das armas (meio e fim de jogo)
 
@@ -126,11 +154,16 @@ sai clarão e som, e o tiro chega no alvo dentro do alcance.
 
 ### G. Defesas (Tatu, Tamanduá, Pororoca e o Saci)
 
-- [ ] **G1** No modo **Defender**, derrubam mísseis, minas, granadas e disparos laser inimigos (vários de uma vez
-  na mesma explosão).
-- [ ] **G2** No modo **Atacar**, a explosão causa dano em naves e escudos (Tatu 300, Tamanduá 400, Pororoca 1.200
-  por explosão).
-- [ ] **G3** O padrão já vem certo: Tatu e Pororoca em Atacar + Defender, Tamanduá em Defender.
+- [ ] **G1** Tatu, Tamanduá e Pororoca derrubam mísseis, minas, granadas e disparos laser inimigos (vários de uma
+  vez na mesma explosão), mesmo com outra torre nossa na frente, e a explosão sai no ar, perto do projétil, não em
+  cima das nossas torres.
+- [ ] **G2** **Só defendem:** não aparece o botão Atacar/Defender, não dá para dar alvo nem controle direto, e a
+  explosão nunca causa dano em naves ou escudos.
+- [ ] **G3** O modo de tiro só tem Suspender fogo / Disparar à vontade / Disparar automaticamente (como o ponto de
+  defesa do jogo) e já vem em Disparar à vontade; o Saci continua com Atacar / Defender / Atacar + Defender.
+  **Naves salvas antes desta versão:** confira o botão de modo de tiro de cada Tatu, Tamanduá e Pororoca. Se
+  aparecer "Disparar no alvo" ou nenhum modo marcado, escolha **Disparar à vontade**: "Disparar no alvo" não
+  existe mais nelas e, se tiver ficado gravado assim, a defesa nunca atira.
 - [ ] **G4** Feixes contínuos (como o prisma iônico) **não** são abatidos (igual ao jogo).
 - [ ] **G5** O consumo de munição das defesas é alto, mas a tripulação consegue manter o abastecimento.
 
@@ -149,7 +182,9 @@ Estes são os testes mais importantes: são mecânicas que só dá para confirma
   com abastecimento só lento, continua saindo a salva cheia.
 - [ ] **H7** Os mísseis passam **por cima do próprio convés**: não explodem nas nossas torres nem freiam ou desviam
   logo depois de sair.
-- [ ] **H8** A nossa CIWS e flak **não** derrubam os nossos próprios mísseis.
+- [ ] **H8** A nossa CIWS e flak **não** devem derrubar os nossos próprios mísseis: dispare salvas nossas através
+  das explosões do Tamanduá e da nuvem de estilhaços da Pororoca em overclock (a nuvem é igual à do jogo e é a que
+  mais pode pegar algum). Anote qualquer míssil nosso perdido e onde (é o teste T09).
 - [ ] **H9** **Piranha (submunições):** abre perto do inimigo, os minimísseis seguem o alvo, se espalham por várias
   peças e não estouram em cima do nosso casco; o jogo aguenta muitas submunições ao mesmo tempo sem travar.
 - [ ] **H10** **Carrapato (grudento):** gruda numa nave que está girando e acelerando e explode 2,5 s depois;

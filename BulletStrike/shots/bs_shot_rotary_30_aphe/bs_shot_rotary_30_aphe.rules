@@ -36,6 +36,7 @@ Components
 		Penetration = 8
 		PenetrationSpeed = 25
 		FriendlyShipLowCollisions = false
+		FriendlyShipHighCollisions = false
 		CrewCollisions = {Enemies=true; Junk=true}
 		PenetratesCrew = true
 		HitCrew = &HitOperational
@@ -93,18 +94,17 @@ Components
 			]
 			MediaEffects
 			[
-				&<./Data/shots/bullet_med/particles/bullet_hit_med.rules>
-				&<./Data/shots/bullet_med/particles/bullet_hit_med_sparks.rules>
-				&<./Data/shots/bullet_med/particles/bullet_smoke_med.rules>
+				&<./Data/shots/chaingun_shot/particles/chaingun_sparks.rules>
 				&<./Data/shots/bullet_med/particles/bullet_flash_med.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds
 					[
-						"./Data/shots/bullet_med/sounds/cannon_impact_01.wav"
-						"./Data/shots/bullet_med/sounds/cannon_impact_02.wav"
-						"./Data/shots/bullet_med/sounds/cannon_impact_03.wav"
-						"./Data/shots/bullet_med/sounds/cannon_impact_04.wav"
+						"./Data/shots/chaingun_shot/sounds/chain_gun_impact_01.wav"
+						"./Data/shots/chaingun_shot/sounds/chain_gun_impact_02.wav"
+						"./Data/shots/chaingun_shot/sounds/chain_gun_impact_03.wav"
+						"./Data/shots/chaingun_shot/sounds/chain_gun_impact_04.wav"
+						"./Data/shots/chaingun_shot/sounds/chain_gun_impact_05.wav"
 					]
 					Volume = 0.6
 					SpeedVariation = 0.2
@@ -135,11 +135,7 @@ Components
 					}
 				}
 			]
-			MediaEffects
-			[
-				&<./Data/shots/bullet_med/particles/bullet_hit_med_struct.rules>
-				&<./Data/shots/bullet_med/particles/bullet_flash_med_struct.rules>
-			]
+			MediaEffects = [&<./Data/shots/chaingun_shot/particles/chaingun_sparks.rules>]
 		}
 		PenetratingOperational
 		{
@@ -201,9 +197,8 @@ Components
 			]
 			MediaEffects
 			[
-				&<./Data/shots/missile_he/particles/missile_he_hit.rules>
-				&<./Data/shots/missile_he/particles/missile_he_flash.rules>
-				&<./Data/shots/missile_he/particles/missile_he_smoke.rules>
+				&<./Data/shots/chaingun_shot/overclock/particles/chaingun_shot_overclock_hit.rules>
+				&<./Data/shots/bullet_med/particles/bullet_flash_med.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds
@@ -212,7 +207,7 @@ Components
 						"./Data/shots/missile_he/sounds/launcher_rocket_impact_02.wav"
 						"./Data/shots/missile_he/sounds/launcher_rocket_impact_03.wav"
 					]
-					Volume = 0.5
+					Volume = 0.4
 					SpeedVariation = 0.2
 					MaxConcurrent = 20
 				}
@@ -224,26 +219,7 @@ Components
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper3
-		ReduceScaleWith = Hit
-		ReduceScaleExponent = 0.5
-		Sprite
-		{
-			Texture
-			{
-				File = "./Data/shots/bullet_med/bullet_med.png"
-				SampleMode = Linear
-				MipLevels = max
-			}
-			Size = [0.32, 0.32]
-		}
-	}
-	GlowSprite
-	{
-		Type = Sprite
-		RenderBucket = BulletUpper4
-		Z = 0
-		IsLight = true
-		Offset = [-0.625, 0]
+		Offset = [-2.188, 0]
 		Sprite
 		{
 			Texture
@@ -252,7 +228,47 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [5, 2.5]
+			Size = [5, 0.48]
+			VertexColor = [255, 95, 45]
+			TargetBlendMode = Add
+		}
+		LerpScaleFrom = [0.25, 1]
+		LerpTime = 0.05
+	}
+	CoreSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Offset = [-0.63, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [1.8, 0.22]
+			VertexColor = [255, 205, 170]
+			TargetBlendMode = Add
+		}
+	}
+	GlowSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Z = 0
+		IsLight = true
+		Offset = [-2, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [9, 3.5]
 			VertexColor = [255, 80, 40]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"
@@ -260,7 +276,7 @@ Components
 			_nrmlStrengthLimit = 1
 			_litReflectiveStrength = 24
 			_litAdditiveStrength = 0.05
-			_unlitAdditiveStrength = 0.125
+			_unlitAdditiveStrength = 0.2
 		}
 	}
 }

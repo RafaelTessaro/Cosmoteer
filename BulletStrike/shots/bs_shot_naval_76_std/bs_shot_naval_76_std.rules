@@ -36,6 +36,7 @@ Components
 		Penetration = 3
 		PenetrationSpeed = 25
 		FriendlyShipLowCollisions = false
+		FriendlyShipHighCollisions = false
 		CrewCollisions = {Enemies=true; Junk=true}
 		PenetratesCrew = true
 		HitCrew = &HitOperational
@@ -253,7 +254,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		Offset = [-1.25, 0]
+		Offset = [-1, 0]
 		Sprite
 		{
 			Texture
@@ -262,7 +263,7 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [10, 5]
+			Size = [12, 6]
 			VertexColor = [255, 120, 30]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"
@@ -276,6 +277,6 @@ Components
 	Trail
 	{
 		Type = MediaEffects
-		MediaEffects = [&<./Data/shots/bullet_large/particles/bullet_trail_large.rules>]
+		MediaEffects = [&<../bs_trails/bs_trail_large_amber.rules>]
 	}
 }

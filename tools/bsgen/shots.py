@@ -6,6 +6,7 @@ desconhecidos e as estatisticas das pecas leem esses valores (evita caminhos fra
 """
 
 from rules_dsl import Q, Inh
+from bsgen import trails as TR
 
 D = "./Data/shots"
 
@@ -15,9 +16,12 @@ SOUNDS = {
     "large": [f"{D}/bullet_large/sounds/large_cannon_impact_0{i}.wav" for i in range(1, 4)],
     "deck": [f"{D}/bullet_deck/sounds/deck_cannon_impact_0{i}.wav" for i in range(1, 4)],
     "he": [f"{D}/missile_he/sounds/launcher_rocket_impact_0{i}.wav" for i in range(1, 4)],
+    "he_fast": [f"{D}/missile_he/sounds/launcher_rocket_impact_0{i}.wav" for i in range(1, 4)],
     "nuke": [f"{D}/missile_nuke/missile_nuke_hit.wav"],
     "emp": [f"{D}/disruptor_bolt/sounds/disruptor_impact_0{i}.wav" for i in range(1, 5)],
     "plasma": [f"{D}/bullet_railgun/sounds/railgun_impact_0{i}.wav" for i in range(1, 4)],
+    "emp_fast": [f"{D}/disruptor_bolt/sounds/disruptor_impact_0{i}.wav" for i in range(1, 5)],
+    "plasma_fast": [f"{D}/bullet_railgun/sounds/railgun_impact_0{i}.wav" for i in range(1, 4)],
     "flak": [f"{D}/flak_large/sounds/flak_cannon_impact_0{i}.wav" for i in range(1, 5)],
 }
 
@@ -42,25 +46,42 @@ PARTICLES = {
              f"{D}/missile_nuke/particles/missile_nuke_shockwave.rules", f"{D}/missile_nuke/particles/missile_nuke_hit.rules"],
     "emp": [f"{D}/disruptor_bolt/particles/disruptor_bolt_hit_orb.rules", f"{D}/disruptor_bolt/particles/disruptor_bolt_hit_bolts.rules",
             f"{D}/disruptor_bolt/particles/disruptor_bolt_flash.rules"],
+    # canhoes rapidos (bs_data.FAST_RATE): sem os 30-40 raios do disruptor_bolt_hit_bolts por acerto
+    "emp_fast": [f"{D}/disruptor_bolt/particles/disruptor_bolt_hit_orb.rules",
+                 f"{D}/disruptor_bolt/particles/disruptor_bolt_flash.rules"],
     "emp_drain": [f"{D}/disruptor_bolt/particles/ship_drain.rules", f"{D}/disruptor_bolt/particles/disruptor_bolt_hit_sizzle.rules"],
     "plasma": [f"{D}/bullet_railgun/particles/bullet_hit_railgun.rules", f"{D}/bullet_railgun/particles/bullet_railgun_sparks.rules",
                f"{D}/bullet_railgun/particles/bullet_flash_railgun.rules"],
     "plasma_struct": [f"{D}/bullet_railgun/particles/bullet_hit_struct_railgun.rules",
                       f"{D}/bullet_railgun/particles/bullet_hit_struct_railgun_sparks.rules"],
+    # Boitata (10 tiros/s): sem as 80-100 faiscas do bullet_railgun_sparks por acerto
+    "plasma_fast": [f"{D}/bullet_railgun/particles/bullet_hit_railgun.rules",
+                    f"{D}/bullet_railgun/particles/bullet_flash_railgun.rules"],
+    # carga explosiva das balas rapidas (Cigarra APHE, Furacao Padrao/APHE): impacto leve do chaingun em overclock
+    # (2-3 particulas de 0,3 s) + clarao, no lugar da explosao inteira do missil HE a 17-36 tiros/s
+    "he_fast": [f"{D}/chaingun_shot/overclock/particles/chaingun_shot_overclock_hit.rules",
+                f"{D}/bullet_med/particles/bullet_flash_med.rules"],
     "flak": [f"{D}/flak_large/particles/flak_large_shrapnel.rules", f"{D}/flak_large/particles/flak_large_flash.rules",
              f"{D}/flak_large/particles/flak_large_smoke.rules"],
 }
 
-TRAILS = {
-    "med": f"{D}/bullet_med/particles/bullet_trail_med.rules",
-    "large": f"{D}/bullet_large/particles/bullet_trail_large.rules",
-    "deck": f"{D}/bullet_deck/particles/bullet_trail_deck.rules",
-    "plasma": f"{D}/bullet_railgun/particles/bullet_trail_railgun.rules",
-}
+
+def _trail_ref(s):
+    """Rastro de particulas do projetil (bsgen/trails.py): copia propria no bucket de cima, na cor da municao;
+    Padrao/APHE dos canhoes de conves usam o bullet_trail_deck.rules vanilla (ja e BulletTrailUpper)."""
+    name = TR.trail_name(s["trail"], s.get("trail_color"))
+    if name is None:
+        return f"&<{TR.VANILLA_DECK}>"
+    # pasta do projetil: BulletStrike/shots/<id>/ -> ../bs_trails/
+    return f"&<../{TR.DIR.split('/', 1)[1]}/{name}.rules>"
 
 GLOW = {
     "Texture": {"File": Q("./Data/common_effects/particles/blob.png"), "MipLevels": "max", "SampleMode": "Linear"},
 }
+
+# nossos projeteis e rajadas passam por cima do proprio casco (Low) e das nossas torres de conves e sensores
+# (High, todos os TurretCollider sao IsHigh): bullet_deck.rules l.41, manipulator_beam.rules l.5-6
+OWN_SHIP_PASS = {"FriendlyShipLowCollisions": False, "FriendlyShipHighCollisions": False}
 
 
 def _sound(preset, volume, max_conc, speed_var=0.2):
@@ -85,18 +106,36 @@ def _val(v):
     return {"BaseValue": v, "EffectScaleExponent": 1}
 
 
+def _blob_sprite(bucket, wh, color, offset):
+    """Sprite aditivo de blob.png (emissivo: aparece sobre o espaco e sobre cascos)."""
+    return {"Type": "Sprite", "RenderBucket": bucket, "Offset": [round(offset, 3), 0],
+            "Sprite": {**GLOW, "Size": list(wh), "VertexColor": list(color), "TargetBlendMode": "Add"}}
+
+
 def _sprite_components(s):
-    """Sprite principal + brilho aditivo (bullet_med.rules l.155-197, bullet_deck l.156-210)."""
+    """Visual em voo (R1): visual por arma em bs_data.VIS, so a cor segue a municao.
+
+    tracer (metralhadoras, 20/30 mm): risco aditivo alongado com a cabeca no projetil (pd_shot.rules: Size [8, .25],
+        Offset [-3.5, 0] = -0.4375 L, LerpScaleFrom [.25, 1], LerpTime .05) + nucleo branco-quente (Upper4);
+    energy (plasma): raio aditivo + nucleo; large (granadas): AnimatedSprite do bullet_large / bullet_deck.
+    Mais o brilho IsLight (fancy_light) de sempre, maior, e o rastro so nas armas lentas."""
     comps = {}
-    look = s.get("look", "med")
-    size = s.get("sprite_size", 0.3)
-    if look == "med":
-        comps["Sprite"] = {"Type": "Sprite", "RenderBucket": "BulletUpper3", "ReduceScaleWith": "Hit",
-                           "ReduceScaleExponent": 0.5,
-                           "Sprite": {"Texture": {"File": Q("./Data/shots/bullet_med/bullet_med.png"),
-                                                  "SampleMode": "Linear", "MipLevels": "max"},
-                                      "Size": [size, size]}}
-    elif look == "large":
+    look = s.get("look", "tracer")
+    if look in ("tracer", "energy"):
+        L, W = s["sprite_wh"]
+        cl, cw = s["core_wh"]
+        if look == "tracer":
+            spr = _blob_sprite("BulletUpper3", [L, W], s["tracer_color"], -0.4375 * L)
+            spr["LerpScaleFrom"] = [0.25, 1]
+            spr["LerpTime"] = 0.05
+        else:
+            spr = _blob_sprite("BulletUpper3", [L, W], s["tracer_color"], -0.2 * L)
+        comps["Sprite"] = spr
+        comps["CoreSprite"] = _blob_sprite("BulletUpper4", [cl, cw], s["core_color"], -0.35 * cl)
+        glow_off = s.get("glow_offset", -0.4 * L if look == "tracer" else -0.25 * L)
+        unlit = 0.2  # pd_shot.rules: risco rapido brilha um pouco mais sobre o espaco
+    else:
+        size = s["sprite_size"]
         comps["Sprite"] = {"Type": "AnimatedSprite", "RenderBucket": "BulletUpper3", "ReduceScaleWith": "Hit",
                            "ReduceScaleExponent": 0.5,
                            "Animation": {"AtlasSprite": {"Texture": {"File": Q("./Data/shots/bullet_large/bullet_large.png"),
@@ -107,26 +146,17 @@ def _sprite_components(s):
                            "NormalsTexture": "&Animation/AtlasSprite/Texture",
                            "DiffuseShader": Q("./Data/default.shader"),
                            "NormalsShader": Q("./Data/no_normals.shader")}
-    elif look == "own":
-        comps["Sprite"] = {"Type": "Sprite", "RenderBucket": "BulletUpper3", "ReduceScaleWith": "Hit",
-                           "ReduceScaleExponent": 0.5,
-                           "Sprite": {"Texture": {"File": Q(s["sprite_file"]), "SampleMode": "Linear", "MipLevels": "max"},
-                                      "Size": s.get("sprite_wh", [size, size])}}
-    elif look == "energy":
-        col = s["glow_color"]
-        comps["Sprite"] = {"Type": "Sprite", "RenderBucket": "BulletUpper3",
-                           "Sprite": {**GLOW, "Size": s.get("sprite_wh", [size * 3, size]),
-                                      "VertexColor": [min(255, c + 120) for c in col],
-                                      "TargetBlendMode": "Add"}}
-    gl = s.get("glow_size", [4, 2])
-    comps["GlowSprite"] = {"Type": "Sprite", "RenderBucket": "BulletUpper4", "Z": 0, "IsLight": True,
-                           "Offset": [-gl[0] / 8, 0],
+        glow_off = s.get("glow_offset", -1)
+        unlit = 0.125
+    gl = s["glow_size"]
+    comps["GlowSprite"] = {"Type": "Sprite", "RenderBucket": "BulletUpper4", "Z": s.get("glow_z", 0), "IsLight": True,
+                           "Offset": [round(glow_off, 3), 0],
                            "Sprite": {**GLOW, "Size": gl, "VertexColor": s["glow_color"], "TargetBlendMode": "Add",
                                       "Shader": Q("./Data/common_effects/fancy_light.shader"),
                                       "_z": 1, "_nrmlStrengthLimit": 1, "_litReflectiveStrength": 24,
-                                      "_litAdditiveStrength": 0.05, "_unlitAdditiveStrength": 0.125}}
+                                      "_litAdditiveStrength": 0.05, "_unlitAdditiveStrength": unlit}}
     if s.get("trail"):
-        comps["Trail"] = {"Type": "MediaEffects", "MediaEffects": [f"&<{TRAILS[s['trail']]}>"]}
+        comps["Trail"] = {"Type": "MediaEffects", "MediaEffects": [_trail_ref(s)]}
     return comps
 
 
@@ -202,7 +232,7 @@ def build_kinetic(s):
         "Type": "PenetratingHit",
         "Penetration": s["penetration"],
         "PenetrationSpeed": s.get("pen_speed", 25),
-        "FriendlyShipLowCollisions": False,
+        **OWN_SHIP_PASS,
         "CrewCollisions": "{Enemies=true; Junk=true}",
         "PenetratesCrew": True,
         "HitCrew": "&HitOperational",
@@ -227,7 +257,7 @@ def build_kinetic(s):
         r, total = s["finish_explosion"]
         hit["FinishedPenetratingOperational"] = {
             "HitEffects": [_explosion(r, total, fire_per_n=s.get("explosion_fire"))],
-            "MediaEffects": _media("he", 0.5, 20, s.get("shake", 0.03))}
+            "MediaEffects": _media("he_fast", 0.4, 20) if s.get("fast") else _media("he", 0.5, 20, s.get("shake", 0.03))}
     else:
         hit["FinishedPenetratingOperational"] = "&PenetratingOperational"
     hit["FinishedPenetratingStructural"] = "&PenetratingStructural"
@@ -270,7 +300,7 @@ def _bolt_kinetic(s, top, hit_op, hit_struct):
                                                     "ValueType": "Interpolated"}]
     hit_struct = dict(hit_struct)
     hit_struct.pop("ReduceEffectsByPenetration", None)
-    hit = {"Type": "PenetratingHit", "FriendlyShipLowCollisions": False,
+    hit = {"Type": "PenetratingHit", **OWN_SHIP_PASS,
            "CrewCollisions": "{Enemies=true; Junk=true}", "HitCrew": "&HitOperational"}
     if s.get("shield_damage") is not None:
         hit["HitShield"] = {"Offset": [-0.15, 0],
@@ -327,7 +357,7 @@ def build_explosive(s):
     hit_op = {"HitEffects": fx_list,
               "MediaEffects": _media(preset, s.get("volume", 0.8), s.get("max_conc", 12), s.get("shake", 0.08),
                                      extra=s.get("extra_particles"))}
-    hit = {"Type": "SimpleHit", "FriendlyShipLowCollisions": False, "HitOperational": hit_op,
+    hit = {"Type": "SimpleHit", **OWN_SHIP_PASS, "HitOperational": hit_op,
            "HitStructural": "&HitOperational", "HitCrew": "&HitOperational",
            "CrewCollisions": "{Enemies=true; Junk=true}"}
     if s.get("shield_factor") is not None and s["shield_factor"] != 1:
@@ -361,14 +391,14 @@ def build_explosive(s):
     return top
 
 
-# ============================================================================= misseis de convés
-# Nucleo comum (copiado de shots/missile_he/missile_he.rules l.9-48, 110-123, versao "de convés"):
+# ============================================================================= misseis de conves
+# Nucleo comum (copiado de shots/missile_he/missile_he.rules l.9-48, 110-123, versao "de conves"):
 #   - Hit com FriendlyShipLowCollisions = false + FriendlyShipHighCollisions = false (passa por cima do
-#     proprio casco e das torres de convés vizinhas; bullet_deck.rules l.41) e SourcePartCollisionDelay;
+#     proprio casco e das torres de conves vizinhas; bullet_deck.rules l.41) e SourcePartCollisionDelay;
 #   - Targetable categoria "missile" (PD/flak vanilla e SW:ACD derrubam); abatido = so efeito (HitFriendly);
 #   - explosoes SEM Friendlies = true; numeros escalaveis como { BaseValue; EffectScaleExponent = 1 };
 #   - sprite e brilho em buckets Upper (os Lower das particulas de propulsor ficariam sob o nosso teto).
-# Os mesmos campos de convés vao em TODO projetil filho (submunicao, carga grudenta, ogiva, isca): nao se
+# Os mesmos campos de conves vao em TODO projetil filho (submunicao, carga grudenta, ogiva, isca): nao se
 # sabe se um filho de SpawnBullets herda a nave de origem (missiles_gaps §2.1/§6 Q2).
 MSL_D = f"{D}/missile_he"
 MSL_T = f"{D}/missile_thermal"
@@ -431,8 +461,7 @@ def _missile_media(s, shake=True, key=None):
 def _deck_flags(s, hit_type="SimpleHit"):
     v = s.get("variants", {})
     delay = "0.3" if v.get("source_part_collision_delay") == "s_0_3" else "1.5 / (&/Simulation/PhysicsUpdatesPerSecond)"
-    return {"Type": hit_type, "SourcePartCollisionDelay": delay,
-            "FriendlyShipLowCollisions": False, "FriendlyShipHighCollisions": False}
+    return {"Type": hit_type, "SourcePartCollisionDelay": delay, **OWN_SHIP_PASS}
 
 
 def _missile_hit(s, hit_op, hit_shield, friendly_key=None):
@@ -491,7 +520,7 @@ def _arc(deg_pair):
 
 
 def _proximity_accel(rng, accel, ships, bullets, friendlies, enemies, categories=None):
-    """ProximityAcceleration: imã (buzzdroid.rules l.37-44) ou afastamento entre misseis (mine.rules l.20-30)."""
+    """ProximityAcceleration: ima (buzzdroid.rules l.37-44) ou afastamento entre misseis (mine.rules l.20-30)."""
     e = {"Type": "ProximityAcceleration", "Range": rng, "Acceleration": accel, "AccelerateTowardsShips": ships,
          "AccelerateTowardsBullets": bullets}
     if categories:
@@ -597,7 +626,7 @@ def _limpet_blast(s):
 
 def _payload_limpet(s):
     """Carrapato: gruda (carga filha) e explode 2,5 s depois; em escudo so estoura (nao gruda em bolha).
-    limpet_anchor: F1 broca lenta + imã (padrao) | F1_drill sem imã | F2 status de peca | F3 carga
+    limpet_anchor: F1 broca lenta + ima (padrao) | F1_drill sem ima | F2 status de peca | F3 carga
     parada no referencial do alvo | F4 explosao no impacto. Mesma espoleta, explosao e raio em todos."""
     d, p, v = s["damage"], s["params"], s.get("variants", {})
     anchor = v.get("limpet_anchor", "F1")
@@ -724,7 +753,7 @@ MISSILE_PAYLOADS = {"he": _payload_he, "napalm": _payload_napalm, "cluster": _pa
 
 
 def build_missile(s):
-    """Missil de convés (arquivo que o lancador dispara): nucleo comum + carga (s['payload'])."""
+    """Missil de conves (arquivo que o lancador dispara): nucleo comum + carga (s['payload'])."""
     pl = MISSILE_PAYLOADS[s["payload"]](s)
     top = dict(pl["stats"])
     top.update({"ID": Q(s["id"]), "Range": s["range"], "IdealRange": s["range"], "Speed": s["speed"]})
@@ -747,8 +776,8 @@ def build_missile(s):
 
 # ----------------------------------------------------------------------------- projeteis filhos
 def build_cluster_child(c):
-    """Submunicao da Piranha: homing tardio e fraco + imã de casco (buzz droid) + afastamento (mina);
-    um brilho barato (desempenho). cluster_children=magnet_only: sem TargetHoming, so o imã."""
+    """Submunicao da Piranha: homing tardio e fraco + ima de casco (buzz droid) + afastamento (mina);
+    um brilho barato (desempenho). cluster_children=magnet_only: sem TargetHoming, so o ima."""
     v = c.get("variants", {})
     p = c["params"]["child"]
     top = {"STAT_DAMAGE": c["damage"], "STAT_RADIUS": c["radius"], "ID": Q(c["id"]), "Range": c["range"],
@@ -775,7 +804,7 @@ def build_cluster_child(c):
 
 
 def build_limpet_charge(c):
-    """Carga do Carrapato (receita do buzz droid do SW em tipos vanilla: imã buzzdroid.rules l.37-44 +
+    """Carga do Carrapato (receita do buzz droid do SW em tipos vanilla: ima buzzdroid.rules l.37-44 +
     PenetratingHit lento l.78-81): fica no casco e explode pela espoleta (DeathByLifetime -> BLAST).
     SEM Targetable no padrao (regra do usuario; e o PD da vitima nao atira no proprio casco)."""
     v = c.get("variants", {})
@@ -888,20 +917,19 @@ def build_flak_beam(s):
     cats = s["categories"]
     top = {
         "STAT_DAMAGE": s["vs_shots"],
-        "STAT_SHIP_DAMAGE": s["vs_ships"],
         "STAT_RADIUS": s["radius"],
         "Range": s["range"],
         "IdealRange": round(s["range"] * 0.9),
         "ClipRangeToTarget": True,
         "RandomOffsetRadius": s.get("offset", [0.5, 3]),
-        "FriendlyShipLowCollisions": False,
+        # passa por cima do casco (Low) e das nossas torres (High): manipulator_beam.rules l.5-6. Sem isso a
+        # rajada parava na primeira torre nossa no caminho e a explosao saia em cima dela (R5)
+        **OWN_SHIP_PASS,
     }
     fx = [
         {"Type": "ExplosiveDamage", "TotalDamage": _val(s["vs_shots"]), "Radius": s["radius"], "Slices": 1,
          "Filter": {"Ships": False, "Shields": False, "Bullets": True, "OnlyBulletCategories": cats, "Crew": True}},
-        {"Type": "ExplosiveDamage", "TotalDamage": _val(s["vs_ships"]), "Radius": s.get("ship_radius", s["radius"]),
-         "Filter": {"Ships": True, "Shields": True, "Bullets": False, "Crew": False}},
-    ]
+    ]  # so defesa: sem a 2a explosao contra naves e escudos da flak vanilla
     if s.get("spawn_cloud"):
         fx.append({"Type": "SpawnBullets", "Bullet": f"&<{s['spawn_cloud']}>", "Count": 1})
     media = [f"&<{p}>" for p in PARTICLES["flak"][: s.get("particles", 2)]]
@@ -914,8 +942,10 @@ def build_flak_beam(s):
 
 
 def _cloud_filter(s):
-    """Variante ciws_vs_own_missiles=enemies_only (fallback T09): filtro de projeteis explicito so de inimigos na
-    nuvem (formato do BulletCollisions do pd_shot.rules l.92-99, sem Friendlies). Padrao: nuvem como a vanilla."""
+    """Variante ciws_vs_own_missiles=enemies_only (fallback NAO comprovado do T09): filtro de projeteis so de
+    inimigos na nuvem (formato do BulletCollisions do pd_shot.rules l.92-99, sem Friendlies). O jogo base so usa
+    esse grupo em SimpleHit/PenetratingHit, nunca em VolumeHit, entao pode nao ter efeito. Padrao as_is: nuvem como
+    a vanilla, sem o grupo."""
     if not s.get("enemies_only"):
         return {}
     return {"BulletCollisions": {"Enemies": True, "Junk": True, "Neutrals": True, "Friendlies": False}}

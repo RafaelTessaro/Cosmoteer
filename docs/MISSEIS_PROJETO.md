@@ -178,11 +178,15 @@ ModeToggle_he { Type = ModeToggle; Mode = MissileTypeToggle; OnMode = 0 }       
 
 // (1) UM PAIOL POR FAMÍLIA DE RECURSO (he / cluster / limpet / torpedo dividem MagStorage_HE), fora de qualquer ToggledComponents
 UsesHE     { Type = MultiToggle; Toggles = [ModeToggle_he, ModeToggle_cluster, ModeToggle_limpet, ModeToggle_torpedo]; Mode = Any }
-ConsumeHE  { Type = MultiToggle; Toggles = [CommandConsumptionToggle, UsesHE]; Mode = All }
 MagStorage_HE  { Type = ResourceStorage; ResourceType = missile_part_he; MaxResources = 64; DelayBeforeReadyToUse = .5
                  DropResourcesWhenDestroyed = true; DropResourcesWhenRemoved = true; ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver; UITileRect = [...] }
-MagConsumer_HE { Type = ResourceConsumer; ResourceType = missile_part_he; Storage = MagStorage_HE; DefaultPriority = &/PRIORITIES/Weapon_Supply
-                 OperationalToggle = ConsumeHE; ConsumptionToggleButtonOffset = [0, -.4] }
+// consumidor com o MESMO ID em dois blocos (chaingun.rules l.383-437 ToggledOn/ToggledOffAmmoConsumers): família em uso = consumidor
+// normal (com a entrega de prioridade mínima do jogo, mesmo com o lançador desligado); família fora de uso = nenhuma entrega
+AmmoConsumersOnHE  { Type = ToggledComponents; Toggle = UsesHE
+                     Components { MagConsumer_HE { Type = ResourceConsumer; ResourceType = missile_part_he; Storage = MagStorage_HE
+                                  DefaultPriority = &/PRIORITIES/Weapon_Supply; OperationalToggle = CommandConsumptionToggle; ConsumptionToggleButtonOffset = [0, -.4] } } }
+AmmoConsumersOffHE { Type = ToggledComponents; Toggle = UsesHE; Invert = true
+                     Components { MagConsumer_HE { ...; OperationalToggle = UsesHE /* sempre desligado aqui */; AllowNonOperationalMinPriorityDelivery = false } } }
 // ... MagStorage_Thermal (napalm), MagStorage_EMP (emp), MagStorage_Nuke (nuclear, só na Mula)
 
 // (2) POR MODO: trava das células, autocarregador tripulado, toggles de limiar (padrões de thruster_boost.rules:176-199)
@@ -374,7 +378,7 @@ ScorchedEffects_Rack_he / DestroyedEffects_Rack_he { ... FactorHitEffectsWith = 
 
 - **Mecânica.** Cadeia em dois estágios no padrão do nuclear do jogo base: ESTÁGIO DE LANÇAMENTO (1,5 s; `BoxPhysics [2.0, .65]`; `TargetHoming 90d Delay .3`; `Acceleration 12`, sem `LinearDamping`; `Targetable` HP "missile" que apaga; `Hit = &<arquivo da ogiva>/Components/Hit`, para um impacto precoce ainda detonar), cujo `Deploy = DeathByLifetime { Lifetime = 1.5; FactorEffectsWith = Targetable; OnDeath { HitEffects [ SpawnBullets { Bullet = &~/WARHEAD; Count = 1; InheritVelocity = true; HealthFactor {...} }; SpawnBullets { Bullet = &~/DECOY; Count = N; Distance = [0.5, 1.5]; Arc = [-60d, 120d]; Spread = [-10d, 10d]; InheritVelocity = true } ] } }`. WARHEAD (ogiva): `Speed 0` (herda), mira 90d, `Acceleration 12`, `SimpleHit`; `HitOperational` = [ `ExplosiveDamage` operacional (`ExpandDuration .5`; `ExpandStartRadius 1.5`; `ExpandLoss 100%`; filtro só operacional), `ExplosiveDamage` só estrutural ] (formato de `missile_nuke_stage1.rules`:141-160, literais, sem `Friendlies`); `HitShield` = só o bloco operacional. DECOY (isca): `Speed 0`, `Box [1.2, .4]`, mira 70d `Delay .4`, `Acceleration 12`, `Spacing ProximityAcceleration` (`Range 3.5`, -6, [missile], aliados), `Lifetime 9`, `Targetable` HP "missile", `SimpleHit` com as opções de convés e SEM `HitEffects` (só um estalo pequeno de mídia).
 - **Especial.** O 'torpedo (maior, único)' do SW: lento, resistente (um gatilho do Tamanduá de 3 x 2.000 não mata uma ogiva de fim de jogo de 6.500 HP) e escondido entre iscas que gastam tiros de alvo único dos pontos de defesa e as reservas da flak.
-- **Contra-jogada.** Flak de área (as iscas não enganam uma explosão grande); um Tamanduá precisa de dois gatilhos por ogiva de fim de jogo; naves rápidas fazem a curva por dentro dele (90 graus/s); escudos recebem a explosão operacional.
+- **Contra-jogada.** Flak de área (as iscas não enganam uma explosão grande); um Tamanduá precisa de dois gatilhos por ogiva de fim de jogo; naves rápidas fazem a curva por dentro do torpedo (ele gira só 90 graus/s); escudos recebem a explosão operacional.
 - **Plano B (sem mudar números).** Se dois `SpawnBullets` numa mesma lista `OnDeath` se comportarem mal (T17): torpedo de um estágio só + iscas disparadas por um segundo `BulletEmitter` por célula de torpedo (`Burst` N, `BurstDelay 0.1`, sem `ResourceStorage`) - mesmas contagens e HP.
 - **Risco.** BAIXO-MÉDIO (dois `SpawnBullets` num `OnDeath`)
 
@@ -718,7 +722,7 @@ O fogo faz no máximo 28 de dano/s por quadro em chamas (`DAMAGE_PER_TICK` 7 a c
 | T06 | Lançamento por cima do próprio casco (gap Q4) | Lançadores cercados de blindagem e torres de convés; o míssil mais lento (torpedo) numa célula fora do centro; alvos atrás da nave. | nenhum `HitFriendly` apagando nas nossas peças, no casulo ou nas torres vizinhas | `SourcePartCollisionDelay` 0,05 -> 0,3 s nesse projétil |
 | T07 | Desvio da mira sobre o próprio casco (gap Q5) | 3 variantes: `AvoidanceRaycastDistance` omitido (padrão) / 250 / `AvoidsFriendlies = false`. | sem frear nem desviar logo depois do lançamento | usar a melhor variante (não é número de balanceamento) |
 | T08 | Cascos aliados (gap Q6) | Duas naves aliadas na linha de tiro. | documentado (as granadas de convés se comportam igual) | só uma linha na descrição |
-| T09 | Nossa CIWS/flak contra os nossos mísseis (gap Q9) | Disparar salvas de Piranha e A.E. através das explosões aéreas do nosso Tamanduá e da nuvem da Muralha de Flak da Pororoca. | nenhuma perda própria | filtro explícito só de inimigos no `VolumeHit` da nuvem de estilhaços (`bs_cloud_flak_heavy`; arquivo da defesa, nenhum número de míssil) |
+| T09 | Nossa CIWS/flak contra os nossos mísseis (gap Q9) | Disparar salvas de Piranha e A.E. através das explosões aéreas do nosso Tamanduá e da nuvem da Muralha de Flak da Pororoca. | nenhuma perda própria | fallback NÃO comprovado: filtro explícito só de inimigos (`BulletCollisions`) no `VolumeHit` da nuvem de estilhaços (`bs_cloud_flak_heavy`; arquivo da defesa, nenhum número de míssil). O jogo base só usa esse grupo em `SimpleHit`/`PenetratingHit`, então o `VolumeHit` pode ignorá-lo: ligar só se o T09 falhar e confirmar no jogo |
 | T10 | CIWS LOCK x RETARGET (balanceamento §1) | Disparar 16 mísseis com cadência da salva de 4/30 s através de UM Tamanduá; contar mortes por gatilho; repetir com a Pororoca. | medir qual modelo vale; refazer as contas de interceptação (`balance_checks.interception` do spec) com ele | só ajuste de balanceamento: HP do míssil / cadência da salva, nunca mudança de mecânica |
 | T11 | Piranha: herança, ímã, espalhamento (gap Q1/Q2) | 1 portador num alvo fora do eixo; registrar as peças diferentes atingidas; variante `RandomizeTarget = true`; abrir uma com um inimigo a 20 m do nosso casco grande. Danificar um portador até cerca de metade do HP com ponto de defesa e deixá-lo acertar um casco, esgotar o tempo (11 s) e abrir por proximidade. | os filhos miram depois de 0,25 s e acertam >= 3 peças; nenhum apagando em aliado; os filhos de um portador meio morto nascem com cerca de metade do HP nos três caminhos (`HealthFactor` ponderado pelo `Targetable` no `ProximityFuse`, no `TimedFuse` e no `Hit` de impacto) | filhos só com ímã; `StartDelay 1.0`; `RandomizeTarget` continua desligado |
 | T12 | Piranha contra escudos | Bolhas do SW e do jogo base. | o portador abre na bolha; os filhos se gastam nela | - |
@@ -779,7 +783,7 @@ Apelidos de caminho: `R/` = as regras do jogo base 0.30.5 RC4 (a pasta `Data` do
 | Dois `SpawnBullets` num `OnDeath` (iscas) | BAIXO-MÉDIO | iscas por emissor, mesmas contagens (T17) |
 | Registro de status por mod (só para o F2 do Carrapato) | MÉDIO | pular o F2 (T14b) |
 | Desempenho (<= 96 filhos por salva de lançador) | MÉDIO | tirar o visual + apagar o `Spacing` (T13) |
-| A nuvem de estilhaços da nossa flak (Pororoca) contra os nossos mísseis | BAIXO [INFERIDO: só inimigos] | filtro só de inimigos na nuvem (T09) |
+| A nuvem de estilhaços da nossa flak (Pororoca) contra os nossos mísseis | BAIXO-MÉDIO [NÃO CONFIRMADO: a nuvem vanilla não declara filtro de aliados] | teste no jogo (T09); fallback não comprovado: filtro só de inimigos na nuvem |
 | Alinhamento de `FireInterval` / `BurstDelay` aos ticks | BAIXO | as cadências são múltiplas do tick; medir (T22) |
 | `CategoryLimits` no 0.30.5 RC | BAIXO | distribuir sem limites (como a Boiúna/Mapinguari) |
 | `DryFlush` com espera (a rampa `ValueTween` chegando a 100%) | BAIXO [padrão do chaingun do jogo base] | `dry_flush=instant`, mesmos números (T05) |
@@ -933,7 +937,7 @@ Toda mecânica arriscada é uma **variante selecionável** no spec (`mechanic_va
 | `emp_shield_drain` | T16 | `area` | `single_part` | 2 |
 | `torpedo_decoys` | T17 | `spawn_on_stage` | `emitter` | 2 |
 | `category_limits` | T18 | `on` | `off` | 2 |
-| `ciws_vs_own_missiles` | T09 | `as_is` | `enemies_only` (filtro só de inimigos na nuvem de estilhaços da Pororoca) | 2 |
+| `ciws_vs_own_missiles` | T09 | `as_is` (nuvem de estilhaços da Pororoca igual à do jogo) | `enemies_only` (filtro só de inimigos na nuvem; não comprovado, o `VolumeHit` pode ignorá-lo) | 2 |
 | `performance_strip` | T13 | `off` | `on` | 2 |
 
 Estágios do gerador (`BUILD_LAUNCHERS` / `BUILD_PAYLOADS` em `tools/bs_data.py`):

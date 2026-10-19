@@ -1,18 +1,26 @@
-"""Gerador das armas de convés (ataque) do Bullet Strike.
+"""Gerador das armas de conves (ataque) do Bullet Strike.
 
 Arquitetura (so padroes ja usados pelo jogo base 0.30.x):
   * Torre unica (TurretWeapon) com FireInterval modificavel:
       - divide pelo buff RateOfFire (spin-up da minigun, igual ao chaingun.rules l.765-790)
       - multiplica pelo fator de overclock (BuffRemap Overclock Multiply, idem)
-  * Municao: para cada tipo de municao k ha um ResourceStorage (carregadores) + um
-    InlineResourceConverter "Splitter_k" que abre 1 carregador em N tiros (chaingun.rules l.353-374).
-    O consumidor (pedido de entrega para a tripulacao) so fica ativo para o tipo selecionado.
+  * Municao: um ResourceStorage "MagStorage_k" por MODO de municao k (Perfurante e Perfurante-Explosiva usam o
+    mesmo Carregador Perfurante, mas cada um guarda o seu) + um InlineResourceConverter "Splitter_k" que abre
+    1 carregador em N tiros (chaingun.rules l.353-374); com mais de 1 carregador por disparo o emissor puxa
+    direto do deposito (cannon_deck.rules l.845-846).
+    O consumidor (pedido de entrega para a tripulacao) de cada modo existe em dois ToggledComponents com o
+    mesmo ID, ligados pelo ModeToggle_k (common.toggled_consumers, chaingun.rules l.383-437): modo escolhido =
+    consumidor normal (com a entrega de prioridade minima de qualquer arma, mesmo desligada); modo nao
+    escolhido = nenhuma entrega (AllowNonOperationalMinPriorityDelivery = false). Cada modo guarda o proprio
+    estoque e o proprio carregador aberto na arma, e nenhum carregador sai como outro tipo ao trocar a municao.
   * Seletor de municao: UIToggle "bs_ammo_type" + ModeToggle (missile_launcher.rules l.125-146).
   * Emissores: blocos ToggledComponents mutuamente exclusivos (tipo x overclock) que definem
     componentes com os MESMOS nomes (TargetEmitter, Emitter1..n); a torre e os efeitos usam
     EmitterProxy (cannon_deck.rules l.827-928).
-  * Convés: anel 'tall', TurretCollider IsHigh, IgnoreFriendlyShipLowLOSChecks,
-    AntiPhasingRaycastIgnoreLowCollisions e sprites em "roof_turrets" (cannon_deck).
+  * Conves: anel 'tall', TurretCollider IsHigh, IgnoreFriendlyShipLowLOSChecks e
+    IgnoreFriendlyShipHighLOSChecks (a torre atira por cima do casco e das nossas torres; os tiros tambem
+    passam por cima delas: shots.OWN_SHIP_PASS), AntiPhasingRaycastIgnoreLowCollisions com o raio comecando
+    no anel da propria torre e sprites em "roof_turrets" (cannon_deck).
 """
 
 from rules_dsl import Q, VOID, comment
@@ -161,7 +169,7 @@ def deck_light_graphics(comp, g):
 
 
 def deck_graphics(comp, g, geo, reset_triggers, spin=False, recoil_interval=0.06, spin_speed=None):
-    """Componentes de grafico de uma torre de convés (casco, torre, canos, luzes).
+    """Componentes de grafico de uma torre de conves (casco, torre, canos, luzes).
 
     Com arte 3D usa os quadros/normais do meta.json (recuo com calor, giro, torre animada, luzes
     dinamicas roof_lights_fancy e brilho interno lights_add); sem ela, o formato da arte procedural."""
@@ -218,7 +226,7 @@ def _barrels_per_trigger(pattern, nb):
 
 
 def build_gun(g, shot_paths):
-    """Retorna (texto_rules, info) de uma arma de convés.
+    """Retorna (texto_rules, info) de uma arma de conves.
 
     shot_paths: dict (k, oc_state) -> caminho relativo do arquivo do tiro a partir da pasta da peca.
     """
@@ -290,15 +298,24 @@ def build_gun(g, shot_paths):
     if sel:
         comp["AmmoTypeToggle"] = {"Type": "UIToggle", "ToggleID": Q("bs_ammo_type"), "Default": modes[0]["mode"],
                                   "AlwaysAllowInBuildMode": True}
+    # um deposito, um divisor e um consumidor por MODO (como na versao testada no jogo), mesmo quando dois modos
+    # usam o mesmo recurso (Perfurante e Perfurante-Explosiva usam o Carregador Perfurante): ao trocar de modo, o
+    # estoque e o carregador ja aberto do modo anterior ficam guardados com ele e nunca saem como o outro tipo.
+    # A chave e o numero do modo (MagStorage_0 e o do Padrao, usado nos stats).
+
+    def direct(m):
+        # mais de 1 carregador por disparo: o emissor puxa ResourcesUsed direto do deposito (cannon_deck.rules
+        # l.209-217 e l.845-846), nunca mais do que um InlineResourceConverter entrega
+        return m["units_per_shot"] > 1
+
+    def ammo_src(m):
+        return f"MagStorage_{m['mode']}" if direct(m) else f"Splitter_{m['mode']}"
+
     for i, m in enumerate(modes):
         k = m["mode"]
         if sel:
             comp[f"ModeToggle_{k}"] = {"Type": "ModeToggle", "Mode": "AmmoTypeToggle", "OnMode": k}
-            comp[f"ConsumeToggle_{k}"] = {"Type": "MultiToggle", "Toggles": ["CommandConsumptionToggle", f"ModeToggle_{k}"],
-                                          "Mode": "All"}
-        tile_x = (i % w) + 7 / 64
-        tile_y = (h - 1) + 7 / 64
-        comp[f"MagStorage_{k}"] = {
+        st = {
             "Type": "ResourceStorage",
             "ResourceType": m["res"],
             "MaxResources": m["storage"],
@@ -306,23 +323,28 @@ def build_gun(g, shot_paths):
             "ReceiveResourceMediaEffects": "&/COMMON_EFFECTS/AmmoDeliver",
             "DropResourcesWhenDestroyed": True,
         }
-        comp[f"Splitter_{k}"] = {"Type": "InlineResourceConverter", "ResourceType": m["res"],
-                                 "FromStorage": f"MagStorage_{k}", "FromQuantity": 1,
-                                 "ToQuantity": m["shots_per_unit"]}
-        comp[f"MagConsumer_{k}"] = {
-            "Type": "ResourceConsumer",
-            "ResourceType": m["res"],
-            "Storage": f"MagStorage_{k}",
-            "DefaultPriority": "&/PRIORITIES/Weapon_Supply",
-            "OperationalToggle": f"ConsumeToggle_{k}" if sel else "CommandConsumptionToggle",
-            "ConsumptionToggleButtonOffset": [0, -0.4 + 0.25 * i] if sel else [0, -0.4],
-        }
+        if direct(m):
+            # liga so com carregadores para 1 disparo inteiro (cannon_deck.rules l.216-217 / l.259-260)
+            st["ToggleOnResources"] = m["units_per_shot"]
+            st["ToggleOffResources"] = m["units_per_shot"] - 1
+        comp[f"MagStorage_{k}"] = st
+        if not direct(m):
+            comp[f"Splitter_{k}"] = {"Type": "InlineResourceConverter", "ResourceType": m["res"],
+                                     "FromStorage": f"MagStorage_{k}", "FromQuantity": 1,
+                                     "ToQuantity": m["shots_per_unit"]}
         if sel:
-            comp[f"HasAmmo_{k}"] = {"Type": "MultiToggle", "Toggles": [f"ModeToggle_{k}", f"Splitter_{k}"], "Mode": "All"}
+            # consumidor do modo k ligado pelo proprio ModeToggle_k (so o modo escolhido recebe entregas)
+            C.toggled_consumers(comp, f"MagConsumer_{k}", f"ModeToggle_{k}", m["res"], f"MagStorage_{k}",
+                                f"AmmoConsumersOn_{k}", f"AmmoConsumersOff_{k}")
+        else:
+            comp[f"MagConsumer_{k}"] = C.mag_consumer(m["res"], f"MagStorage_{k}", "CommandConsumptionToggle")
     if sel:
+        for m in modes:
+            k = m["mode"]
+            comp[f"HasAmmo_{k}"] = {"Type": "MultiToggle", "Toggles": [f"ModeToggle_{k}", ammo_src(m)], "Mode": "All"}
         comp["AmmoPrereq"] = {"Type": "MultiToggle", "Toggles": [f"HasAmmo_{m['mode']}" for m in modes], "Mode": "Any"}
     else:
-        comp["AmmoPrereq"] = {"Type": "MultiToggle", "Toggles": [f"Splitter_{modes[0]['mode']}"], "Mode": "Any"}
+        comp["AmmoPrereq"] = {"Type": "MultiToggle", "Toggles": [ammo_src(modes[0])], "Mode": "Any"}
     if sel and oc:
         for m in modes:
             k = m["mode"]
@@ -382,7 +404,10 @@ def build_gun(g, shot_paths):
         "FireThresholdAngle": f"{g.get('threshold', 2)}d",
         "AIFirepowerRating": "&~/Part/StatsByCategory/0/Stats/DamagePerSecond",
         "Emitter": "TargetEmitterProxy",
+        # atira por cima do casco (Low) e das nossas torres de conves (High), como o tiro, que tambem passa por
+        # cima delas (shots.OWN_SHIP_PASS): manipulator_beam_emitter.rules l.447-448
         "IgnoreFriendlyShipLowLOSChecks": True,
+        "IgnoreFriendlyShipHighLOSChecks": True,
         "AutoTargets": [{"TargetType": "ShipParts", "Toggle": "AutoTargetToggle"}],
         "BlueprintArcSprite": {"Texture": "&/INDICATORS/WeaponArc", "Size": [0, 1.5], "Color": [255, 0, 0, 63]},
         "BlueprintArcRadius": 10,
@@ -429,6 +454,9 @@ def build_gun(g, shot_paths):
     comp[C.comment("---- emissores: um bloco por tipo de municao (e por estado de overclock) ----")] = None
     oc_states = [False, True] if oc else [False]
     spread = g["spread"]
+    # raio anti-phasing comeca no anel da propria torre, nunca atras do pivo nem dentro da peca vizinha
+    # (cannon_deck: min(2, 3.75 - 1.5) = 2; cannon_med 2 - 1.5 = 0.5 a frente do pivo)
+    anti_phasing = round(min(2.0, max(0.0, geo["muzzle"] - (geo["collider"] or 0))), 2)
     for m in modes:
         k = m["mode"]
         for s in oc_states:
@@ -443,10 +471,10 @@ def build_gun(g, shot_paths):
                 "Bullet": f"&<{shot}>",
                 "Spread": [f"-{spread}d", f"{spread}d"] if not s else
                 ["-(&~/OVERCLOCK/HALF_SPREAD)", "(&~/OVERCLOCK/HALF_SPREAD)"],
-                "ResourceStorage": f"Splitter_{k}",
+                "ResourceStorage": ammo_src(m),
                 "ResourcesUsed": m.get("units_per_shot", 1),
                 "Recoil": g["recoil"] if not s else f"{g['recoil']} * (&~/OVERCLOCK/RECOIL_FACTOR)",
-                "AntiPhasingRaycastDistance": 2,
+                "AntiPhasingRaycastDistance": anti_phasing,
                 "AntiPhasingRaycastIgnoreLowCollisions": True,
             }
             burst_cfg = burst
@@ -571,8 +599,9 @@ def build_gun(g, shot_paths):
     part["Stats"] = {
         "CrewRequired": "&~/Part/Components/PartCrew/Crew",
         "AmmoCapacity": f"&~/Part/Components/MagStorage_{m0['mode']}/MaxResources",
-        "BSShotsPerMag": f"&~/Part/Components/Splitter_{m0['mode']}/ToQuantity",
     }
+    if not direct(m0):
+        part["Stats"]["BSShotsPerMag"] = f"&~/Part/Components/Splitter_{m0['mode']}/ToQuantity"
     if g.get("stun"):
         part["Stats"]["CrewStunDuration"] = [0, "&~/Part/Components/StunEffect/HitEffects/0/Duration/BaseValue"]
         part["Stats"]["CrewStunRadius"] = "&~/Part/Components/StunEffect/HitEffects/0/Radius/BaseValue"
@@ -608,7 +637,8 @@ def build_gun(g, shot_paths):
             "TurretSpeed": "deg(&~/Part/Components/Turret/RotateSpeed)",
             "ShotSpeed": f"{em}/Bullet/Speed",
             "ShotHP": f"{em}/Bullet/Components/Targetable/Health",
-            "AmmoPerShot": f"({em}/ResourcesUsed) / (&~/Part/Components/Splitter_{k}/ToQuantity)",
+            "AmmoPerShot": f"{em}/ResourcesUsed" if direct(m) else
+            f"({em}/ResourcesUsed) / (&~/Part/Components/Splitter_{m['mode']}/ToQuantity)",
             "AmmoPerSecond": "(&AmmoPerShot) * (&ShotsPerSecond)",
             "ShotAmmoUsage": ["&../AmmoPerShot", "&../AmmoPerSecond"],
         })

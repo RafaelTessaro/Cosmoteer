@@ -243,12 +243,6 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 			Toggles = [ModeToggle_he, ModeToggle_cluster, ModeToggle_limpet, ModeToggle_torpedo]
 			Mode = Any
 		}
-		ConsumeHE
-		{
-			Type = MultiToggle
-			Toggles = [CommandConsumptionToggle, UsesHE]
-			Mode = All
-		}
 		MagStorage_HE
 		{
 			Type = ResourceStorage
@@ -260,26 +254,47 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 			DropResourcesWhenDestroyed = true
 			DropResourcesWhenRemoved = true
 		}
-		MagConsumer_HE
+		AmmoConsumersOnHE
 		{
-			Type = ResourceConsumer
-			ResourceType = missile_part_he
-			Storage = MagStorage_HE
-			DefaultPriority = &/PRIORITIES/Weapon_Supply
-			OperationalToggle = ConsumeHE
-			ConsumptionToggleButtonOffset = [0, -0.4]
+			Type = ToggledComponents
+			Toggle = UsesHE
+			Components
+			{
+				MagConsumer_HE
+				{
+					Type = ResourceConsumer
+					ResourceType = missile_part_he
+					Storage = MagStorage_HE
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = CommandConsumptionToggle
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
+		}
+		AmmoConsumersOffHE
+		{
+			Type = ToggledComponents
+			Toggle = UsesHE
+			Invert = true
+			Components
+			{
+				MagConsumer_HE
+				{
+					Type = ResourceConsumer
+					ResourceType = missile_part_he
+					Storage = MagStorage_HE
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = UsesHE
+					AllowNonOperationalMinPriorityDelivery = false
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
 		}
 		UsesThermal
 		{
 			Type = MultiToggle
 			Toggles = [ModeToggle_napalm]
 			Mode = Any
-		}
-		ConsumeThermal
-		{
-			Type = MultiToggle
-			Toggles = [CommandConsumptionToggle, UsesThermal]
-			Mode = All
 		}
 		MagStorage_Thermal
 		{
@@ -292,26 +307,47 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 			DropResourcesWhenDestroyed = true
 			DropResourcesWhenRemoved = true
 		}
-		MagConsumer_Thermal
+		AmmoConsumersOnThermal
 		{
-			Type = ResourceConsumer
-			ResourceType = missile_part_thermal
-			Storage = MagStorage_Thermal
-			DefaultPriority = &/PRIORITIES/Weapon_Supply
-			OperationalToggle = ConsumeThermal
-			ConsumptionToggleButtonOffset = [0, -0.15]
+			Type = ToggledComponents
+			Toggle = UsesThermal
+			Components
+			{
+				MagConsumer_Thermal
+				{
+					Type = ResourceConsumer
+					ResourceType = missile_part_thermal
+					Storage = MagStorage_Thermal
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = CommandConsumptionToggle
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
+		}
+		AmmoConsumersOffThermal
+		{
+			Type = ToggledComponents
+			Toggle = UsesThermal
+			Invert = true
+			Components
+			{
+				MagConsumer_Thermal
+				{
+					Type = ResourceConsumer
+					ResourceType = missile_part_thermal
+					Storage = MagStorage_Thermal
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = UsesThermal
+					AllowNonOperationalMinPriorityDelivery = false
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
 		}
 		UsesEMP
 		{
 			Type = MultiToggle
 			Toggles = [ModeToggle_emp]
 			Mode = Any
-		}
-		ConsumeEMP
-		{
-			Type = MultiToggle
-			Toggles = [CommandConsumptionToggle, UsesEMP]
-			Mode = All
 		}
 		MagStorage_EMP
 		{
@@ -324,14 +360,41 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 			DropResourcesWhenDestroyed = true
 			DropResourcesWhenRemoved = true
 		}
-		MagConsumer_EMP
+		AmmoConsumersOnEMP
 		{
-			Type = ResourceConsumer
-			ResourceType = missile_part_emp
-			Storage = MagStorage_EMP
-			DefaultPriority = &/PRIORITIES/Weapon_Supply
-			OperationalToggle = ConsumeEMP
-			ConsumptionToggleButtonOffset = [0, 0.1]
+			Type = ToggledComponents
+			Toggle = UsesEMP
+			Components
+			{
+				MagConsumer_EMP
+				{
+					Type = ResourceConsumer
+					ResourceType = missile_part_emp
+					Storage = MagStorage_EMP
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = CommandConsumptionToggle
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
+		}
+		AmmoConsumersOffEMP
+		{
+			Type = ToggledComponents
+			Toggle = UsesEMP
+			Invert = true
+			Components
+			{
+				MagConsumer_EMP
+				{
+					Type = ResourceConsumer
+					ResourceType = missile_part_emp
+					Storage = MagStorage_EMP
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = UsesEMP
+					AllowNonOperationalMinPriorityDelivery = false
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
 		}
 		// ---- modo he (Jararaca): rack, autoloader, troca de modo, salva parcial ----
 		ReadyRack_he
@@ -3014,6 +3077,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 			FireThresholdAngle = 25d
 			AllowFireWithBlockedLOS = true
 			IgnoreFriendlyShipLowLOSChecks = true
+			IgnoreFriendlyShipHighLOSChecks = true
 			AIFirepowerRating = &~/Part/StatsByCategory/0/Stats/DamagePerSecond
 			Emitter = TargetEmitterProxy
 			AutoTargets

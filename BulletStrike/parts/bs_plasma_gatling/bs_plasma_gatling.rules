@@ -233,6 +233,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 			AIFirepowerRating = &~/Part/StatsByCategory/0/Stats/DamagePerSecond
 			Emitter = TargetEmitterProxy
 			IgnoreFriendlyShipLowLOSChecks = true
+			IgnoreFriendlyShipHighLOSChecks = true
 			AutoTargets
 			[
 				{
@@ -284,7 +285,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					ResourceStorage = Splitter_0
 					ResourcesUsed = 1
 					Recoil = 4
-					AntiPhasingRaycastDistance = 2
+					AntiPhasingRaycastDistance = 0.95
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
 				Emitter1 : TargetEmitter
@@ -314,7 +315,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					ResourceStorage = Splitter_0
 					ResourcesUsed = 1
 					Recoil = 4 * (&~/OVERCLOCK/RECOIL_FACTOR)
-					AntiPhasingRaycastDistance = 2
+					AntiPhasingRaycastDistance = 0.95
 					AntiPhasingRaycastIgnoreLowCollisions = true
 				}
 				Emitter1 : TargetEmitter

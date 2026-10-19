@@ -4,7 +4,9 @@
 
 **Bullet Strike** é um mod para **Cosmoteer: Starship Architect & Commander** com armas que usam **munição** em
 vez de energia. Todas as armas são **de convés**: ficam por cima da nave, podem ser cercadas de blindagem e atiram
-por cima do casco. Do começo ao fim do jogo, a sensação é de batalha naval no espaço: traçantes, clarões de boca,
+por cima do casco. Os tiros, as rajadas de flak e os mísseis passam por cima de toda a própria nave, inclusive das
+nossas outras torres de convés: nenhuma arma acerta a própria nave (só a explosão de munição de uma peça destruída).
+Do começo ao fim do jogo, a sensação é de batalha naval no espaço: traçantes, clarões de boca,
 granadas explodindo, flak enchendo o céu e salvas de mísseis saindo em sequência. É *tiro, porrada e bomba*.
 
 - **15 armas** (metralhadoras, autocanhões, canhões navais, plasma, flak/CIWS e um obuseiro nuclear) e
@@ -101,9 +103,10 @@ Outros detalhes:
 
 - **Defesa multi-alvo:** Tatu, Tamanduá e Pororoca usam flak de explosão aérea que danifica **todos** os mísseis,
   minas, granadas, disparos laser e tiros iônicos (inclusive os do SW:ACD) dentro da explosão. Em compensação,
-  gastam muita munição. Feixes (como o do prisma iônico) não podem ser abatidos, igual ao jogo base. Podem ficar em
-  Defender, Atacar ou Atacar + Defender; atacando, a mesma explosão acerta naves e escudos (300 de dano no Tatu,
-  400 no Tamanduá e 1.200 na Pororoca, por explosão).
+  gastam muita munição. Feixes (como o do prisma iônico) não podem ser abatidos, igual ao jogo base.
+  **Só defendem:** não têm o modo Atacar, não aceitam alvo nem controle direto e a explosão não causa dano em naves
+  nem em escudos. A rajada passa por cima das nossas outras torres e a torre atira mesmo com outra torre nossa na
+  frente.
 - **Tranco:** Tambor, Trovão, Boiúna e Mapinguari atordoam por um instante a tripulação que estiver perto da torre
   na hora do disparo (mais forte com overclock), como o canhão de convés do jogo.
 - **Cigarra, Furacão e Boitatá aceleram** enquanto atiram: começam devagar e chegam à cadência máxima em alguns
@@ -145,6 +148,12 @@ igual ao seletor do lança-mísseis do jogo. Cada modo puxa o carregador certo:
 | **Perfurante** | Carregador Perfurante | Penetradores endurecidos que atravessam blindagem (a blindagem resiste só 60% do normal) e destroem o que está atrás, com metade do dano em cada peça depois da primeira. Fracos contra escudos. |
 | **Perfurante-Explosiva** | Carregador Perfurante | Atravessa uma ou duas placas de blindagem e então detona **dentro** do casco inimigo. |
 | **P.E.M.** | Carregador P.E.M. | Cada acerto drena a energia de escudos e peças energizadas. Menos dano ao casco, mas ótima contra naves que dependem de energia e escudos. |
+
+Ao trocar de munição, cada modo continua com o próprio depósito na arma (Perfurante e Perfurante-Explosiva usam o
+mesmo Carregador Perfurante, mas cada um guarda o seu); a tripulação só reabastece o modo escolhido e nenhum
+carregador sai como outro tipo. Para testar, monte a nave sem "Reabastecer todos os recursos" e sem recursos
+cheios, porque os dois enchem os depósitos de **todos** os tipos na arma. Se o depósito P.E.M. já estiver cheio, o
+certo é a arma atirar P.E.M. desse depósito e os Carregadores Padrão continuarem no depósito deles.
 
 Saci, Tamanduá e Pororoca usam só o Carregador Padrão. Boitatá e Curupira usam células de plasma; a Boiúna usa
 projéteis nucleares.
@@ -358,11 +367,15 @@ O roteiro completo, item por item, está em **[docs/COMO_TESTAR.md](docs/COMO_TE
    `--- End of inner exception stack trace ---`. Mande essas linhas que eu corrijo.
 3. No **modo Criativo**, monte uma nave de teste e confira:
    - [ ] As peças aparecem na aba **Bullet Strike** e dá para colocá-las cercadas de blindagem.
-   - [ ] A tripulação leva munição e carregadores até as armas, e as armas atiram por cima do casco.
-   - [ ] O **seletor de munição** troca entre Padrão / Perfurante / Perfurante-Explosiva / P.E.M.
+   - [ ] A tripulação leva munição e carregadores até as armas, e as armas atiram por cima do casco e das nossas
+     outras torres, sem acertá-las.
+   - [ ] Todo disparo aparece em voo: traçantes na cor da munição nas metralhadoras e canhões rápidos, granadas com
+     rastro de fogo nos canhões grandes.
+   - [ ] O **seletor de munição** troca entre Padrão / Perfurante / Perfurante-Explosiva / P.E.M., e cada tipo
+     continua com o próprio estoque na arma.
    - [ ] O **overclock** das armas e das fábricas liga e gera calor (precisa de termodutos e radiadores).
    - [ ] Cigarra, Furacão e Boitatá **aceleram** enquanto atiram.
-   - [ ] Tatu, Tamanduá, Pororoca e Saci derrubam mísseis e projéteis (teste no modo Defender).
+   - [ ] Tatu, Tamanduá e Pororoca derrubam mísseis e projéteis sozinhos (só têm defesa); o Saci, no modo Defender.
    - [ ] As fábricas produzem carregadores, células de plasma e projéteis nucleares, e só animam produzindo.
    - [ ] O limite nuclear recusa uma 3ª arma nuclear (2 Mulas + 1 Boiúna), mas aceita 1 Mula + 1 Boiúna.
 
@@ -379,7 +392,9 @@ pronto no gerador (as variantes de mecânica do spec dos mísseis), que muda o m
    abastecimento lento, continua saindo a salva cheia.
 5. **Mísseis por cima do próprio convés** (T06/T07): não explodem nas nossas torres nem freiam ou desviam logo
    depois do lançamento.
-6. **Nossa CIWS e flak contra os nossos mísseis** (T09) e quantos mísseis cada disparo da CIWS derruba (T10).
+6. **Nossa CIWS e flak contra os nossos mísseis** (T09): nenhum míssil nosso cai nas explosões do Tamanduá. A nuvem
+   de estilhaços da Pororoca (overclock) é igual à do jogo e ainda pode pegar os nossos mísseis que passarem por
+   ela; o teste diz se precisa de ajuste. Também: quantos mísseis cada disparo da CIWS derruba (T10).
 7. **Piranha** (T11/T12/T13): os minimísseis herdam o alvo, se espalham por várias peças, não estouram sobre o
    nosso casco, e o jogo aguenta muitas submunições ao mesmo tempo.
 8. **Carrapato** (T14): a carga gruda numa nave que gira e acelera e explode 2,5 s depois.

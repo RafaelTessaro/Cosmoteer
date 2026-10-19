@@ -693,8 +693,8 @@
    "shot_speed_mps": 0,
    "damage_per_hit_std": 0,
    "penetration_std": 0,
-   "explosive_radius_m": 2.5,
-   "explosive_damage": 300,
+   "explosive_radius_m": 0,
+   "explosive_damage": 0,
    "fire_chance": 0.0,
    "spread_deg_half": 1.0,
    "firing_arc_deg": 360,
@@ -704,8 +704,7 @@
     "mine",
     "bullet",
     "laser",
-    "ion_shot",
-    "ships"
+    "ion_shot"
    ],
    "anti_projectile": {
     "blast_radius_m": 3.0,
@@ -716,13 +715,13 @@
    "shot_hp": 0,
    "per_ship_limit": 0,
    "mgr_equivalent_per_shot": 5,
-   "fire_pref_default": 2,
+   "fire_pref_default": null,
    "engine_template": "T4 flak",
    "overclock": null,
    "computed": {
-    "dps_hull_std": 450.0,
-    "dps_per_tile": 112.5,
-    "dps_per_crew": 450.0,
+    "dps_hull_std": 0,
+    "dps_per_tile": 0,
+    "dps_per_crew": 0,
     "ammo_units_per_s": 1.5,
     "bullet_equivalent_per_s": 1.5,
     "factories_needed_sustained": 0.75,
@@ -731,10 +730,10 @@
     "crew_trips_per_min_sustained": 4.5,
     "internal_seconds_of_fire": 13.3,
     "hull_damage_per_bullet_eq": null,
-    "shield_dps_std": 900.0,
-    "shield_dps_per_tile": 225.0,
+    "shield_dps_std": 0,
+    "shield_dps_per_tile": 0,
     "build_cost_credits": 2800,
-    "credits_per_dps": 6.22,
+    "credits_per_dps": null,
     "credits_per_s_ammo": 6.0,
     "anti_shot_pool_per_s": 3000.0,
     "anti_shot_pool_per_s_per_tile": 750.0,
@@ -748,7 +747,9 @@
      "vanilla nuke missile": 8
     }
    },
-   "visual_concept": "Armadillo-shell segmented dome with two stubby barrels; grey flak puffs (vanilla flak particles at 60 %) dotting the sky in front of small ships."
+   "visual_concept": "Armadillo-shell segmented dome with two stubby barrels; grey flak puffs (vanilla flak particles at 60 %) dotting the sky in front of small ships.",
+   "defend_only": true,
+   "defend_only_note": "defend_only: true - never fires at ships (no fire_pref, no ShipParts AutoTarget, no ship blast)"
   },
   {
    "id": "rafaeltessaro.bs_quad_hmg",
@@ -1243,8 +1244,8 @@
    "shot_speed_mps": 0,
    "damage_per_hit_std": 0,
    "penetration_std": 0,
-   "explosive_radius_m": 3.0,
-   "explosive_damage": 400,
+   "explosive_radius_m": 0,
+   "explosive_damage": 0,
    "fire_chance": 0.0,
    "spread_deg_half": 0.8,
    "firing_arc_deg": 360,
@@ -1254,8 +1255,7 @@
     "mine",
     "bullet",
     "laser",
-    "ion_shot",
-    "ships"
+    "ion_shot"
    ],
    "anti_projectile": {
     "blast_radius_m": 4.5,
@@ -1271,7 +1271,7 @@
    "shot_hp": 0,
    "per_ship_limit": 0,
    "mgr_equivalent_per_shot": 10,
-   "fire_pref_default": 1,
+   "fire_pref_default": null,
    "engine_template": "T4 flak (burst)",
    "overclock": {
     "name_en": "Barrage",
@@ -1287,9 +1287,9 @@
     "heat_per_second": 60
    },
    "computed": {
-    "dps_hull_std": 1000.0,
-    "dps_per_tile": 111.1,
-    "dps_per_crew": 500.0,
+    "dps_hull_std": 0,
+    "dps_per_tile": 0,
+    "dps_per_crew": 0,
     "ammo_units_per_s": 1.0,
     "bullet_equivalent_per_s": 5.0,
     "factories_needed_sustained": 3.75,
@@ -1298,13 +1298,13 @@
     "crew_trips_per_min_sustained": 10.0,
     "internal_seconds_of_fire": 12.0,
     "hull_damage_per_bullet_eq": null,
-    "shield_dps_std": 2000.0,
-    "shield_dps_per_tile": 222.2,
+    "shield_dps_std": 0,
+    "shield_dps_per_tile": 0,
     "build_cost_credits": 11450,
-    "credits_per_dps": 11.45,
+    "credits_per_dps": null,
     "credits_per_s_ammo": 24.0,
-    "dps_hull_overclock": 1300.0,
-    "dps_per_tile_overclock": 144.4,
+    "dps_hull_overclock": 0,
+    "dps_per_tile_overclock": 0,
     "range_overclock_m": 250.0,
     "ammo_units_per_s_overclock": 1.3,
     "crew_trips_per_min_overclock": 13.0,
@@ -1323,7 +1323,9 @@
     "anti_shot_pool_per_s_overclock": 13000.0,
     "anti_shot_pool_per_s_per_tile_overclock": 1444.4
    },
-   "visual_concept": "White radome over a 4-barrel rotary snout and a spinning radar dish; each trigger throws 3 airbursts scattered around the aim point (RandomOffsetRadius [0.5, 3.5]) - a crackling carpet of grey-orange flashes. Defaults to Defend."
+   "visual_concept": "White radome over a 4-barrel rotary snout and a spinning radar dish; each trigger throws 3 airbursts scattered around the aim point (RandomOffsetRadius [0.5, 3.5]) - a crackling carpet of grey-orange flashes. Defense only: never fires at ships.",
+   "defend_only": true,
+   "defend_only_note": "defend_only: true - never fires at ships (no fire_pref, no ShipParts AutoTarget, no ship blast)"
   },
   {
    "id": "rafaeltessaro.bs_rotary_30",
@@ -1710,8 +1712,8 @@
    "shot_speed_mps": 0,
    "damage_per_hit_std": 0,
    "penetration_std": 0,
-   "explosive_radius_m": 4.0,
-   "explosive_damage": 1200,
+   "explosive_radius_m": 0,
+   "explosive_damage": 0,
    "fire_chance": 0.0,
    "spread_deg_half": 1.1,
    "firing_arc_deg": 360,
@@ -1721,8 +1723,7 @@
     "mine",
     "bullet",
     "laser",
-    "ion_shot",
-    "ships"
+    "ion_shot"
    ],
    "anti_projectile": {
     "blast_radius_m": 7.0,
@@ -1737,7 +1738,7 @@
    "shot_hp": 0,
    "per_ship_limit": 0,
    "mgr_equivalent_per_shot": 16.67,
-   "fire_pref_default": 2,
+   "fire_pref_default": null,
    "engine_template": "T4 flak (burst)",
    "overclock": {
     "name_en": "Flak Wall",
@@ -1758,9 +1759,9 @@
     "heat_per_second": 100
    },
    "computed": {
-    "dps_hull_std": 1800.0,
-    "dps_per_tile": 112.5,
-    "dps_per_crew": 450.0,
+    "dps_hull_std": 0,
+    "dps_per_tile": 0,
+    "dps_per_crew": 0,
     "ammo_units_per_s": 1.0,
     "bullet_equivalent_per_s": 5.0,
     "factories_needed_sustained": 3.75,
@@ -1769,13 +1770,13 @@
     "crew_trips_per_min_sustained": 10.0,
     "internal_seconds_of_fire": 12.0,
     "hull_damage_per_bullet_eq": null,
-    "shield_dps_std": 3600.0,
-    "shield_dps_per_tile": 225.0,
+    "shield_dps_std": 0,
+    "shield_dps_per_tile": 0,
     "build_cost_credits": 22000,
-    "credits_per_dps": 12.22,
+    "credits_per_dps": null,
     "credits_per_s_ammo": 24.0,
-    "dps_hull_overclock": 2250.0,
-    "dps_per_tile_overclock": 140.6,
+    "dps_hull_overclock": 0,
+    "dps_per_tile_overclock": 0,
     "range_overclock_m": 320.0,
     "ammo_units_per_s_overclock": 1.25,
     "crew_trips_per_min_overclock": 12.5,
@@ -1794,7 +1795,9 @@
     "anti_shot_pool_per_s_overclock": 16875.0,
     "anti_shot_pool_per_s_per_tile_overclock": 1054.7
    },
-   "visual_concept": "Wide sea-teal mount with twin long 57 mm-style barrels and wave-shaped splash shields; each trigger throws 2 heavy airbursts scattered wide (RandomOffsetRadius [1, 6]) - big black-and-orange flak clouds."
+   "visual_concept": "Wide sea-teal mount with twin long 57 mm-style barrels and wave-shaped splash shields; each trigger throws 2 heavy airbursts scattered wide (RandomOffsetRadius [1, 6]) - big black-and-orange flak clouds.",
+   "defend_only": true,
+   "defend_only_note": "defend_only: true - never fires at ships (no fire_pref, no ShipParts AutoTarget, no ship blast)"
   },
   {
    "id": "rafaeltessaro.bs_nuke_howitzer",
@@ -2080,12 +2083,12 @@
     "resource": "bullet",
     "damage": 0,
     "penetration": 0,
-    "shield_damage": 300,
-    "explosive_radius_m": 2.5,
-    "explosive_damage": 300,
+    "shield_damage": 0,
+    "explosive_radius_m": 0,
+    "explosive_damage": 0,
     "emp_drain": 0,
     "fire_chance": 0.0,
-    "notes": "Hitscan BeamEmitter clipped to the aim point (ClipRangeToTarget), Burst 1, RandomOffsetRadius scatter. HitNothing -> Blast 1: 1000 pool r3.0 Slices = 1, Filter { Ships = false; Shields = false; Bullets = true; OnlyBulletCategories = [missile, mine, bullet, laser, ion_shot] }. Blast 2: 300 r2.5 vs ships + shields. Same category list in the turret AutoTargets BulletTargetCategories."
+    "notes": "Hitscan BeamEmitter clipped to the aim point (ClipRangeToTarget), Burst 1, RandomOffsetRadius scatter. HitNothing -> Blast 1: 1000 pool r3.0 Slices = 1, Filter { Ships = false; Shields = false; Bullets = true; OnlyBulletCategories = [missile, mine, bullet, laser, ion_shot] }. No ship blast (defense only). Same category list in the turret AutoTargets BulletTargetCategories."
    }
   },
   "rafaeltessaro.bs_quad_hmg": {
@@ -2224,12 +2227,12 @@
     "resource": "rafaeltessaro.bs_mag_std",
     "damage": 0,
     "penetration": 0,
-    "shield_damage": 400,
-    "explosive_radius_m": 3.0,
-    "explosive_damage": 400,
+    "shield_damage": 0,
+    "explosive_radius_m": 0,
+    "explosive_damage": 0,
     "emp_drain": 0,
     "fire_chance": 0.0,
-    "notes": "Hitscan BeamEmitter clipped to the aim point (ClipRangeToTarget), Burst 3, RandomOffsetRadius scatter. HitNothing -> Blast 1: 2000 pool r4.5 Slices = 1, Filter { Ships = false; Shields = false; Bullets = true; OnlyBulletCategories = [missile, mine, bullet, laser, ion_shot] }. Blast 2: 400 r3.0 vs ships + shields. Same category list in the turret AutoTargets BulletTargetCategories."
+    "notes": "Hitscan BeamEmitter clipped to the aim point (ClipRangeToTarget), Burst 3, RandomOffsetRadius scatter. HitNothing -> Blast 1: 2000 pool r4.5 Slices = 1, Filter { Ships = false; Shields = false; Bullets = true; OnlyBulletCategories = [missile, mine, bullet, laser, ion_shot] }. No ship blast (defense only). Same category list in the turret AutoTargets BulletTargetCategories."
    }
   },
   "rafaeltessaro.bs_rotary_30": {
@@ -2354,12 +2357,12 @@
     "resource": "rafaeltessaro.bs_mag_std",
     "damage": 0,
     "penetration": 0,
-    "shield_damage": 1200,
-    "explosive_radius_m": 4.0,
-    "explosive_damage": 1200,
+    "shield_damage": 0,
+    "explosive_radius_m": 0,
+    "explosive_damage": 0,
     "emp_drain": 0,
     "fire_chance": 0.0,
-    "notes": "Hitscan BeamEmitter clipped to the aim point (ClipRangeToTarget), Burst 2, RandomOffsetRadius scatter. HitNothing -> Blast 1: 4000 pool r7.0 Slices = 1, Filter { Ships = false; Shields = false; Bullets = true; OnlyBulletCategories = [missile, mine, bullet, laser, ion_shot] }. Blast 2: 1200 r4.0 vs ships + shields. Same category list in the turret AutoTargets BulletTargetCategories."
+    "notes": "Hitscan BeamEmitter clipped to the aim point (ClipRangeToTarget), Burst 2, RandomOffsetRadius scatter. HitNothing -> Blast 1: 4000 pool r7.0 Slices = 1, Filter { Ships = false; Shields = false; Bullets = true; OnlyBulletCategories = [missile, mine, bullet, laser, ion_shot] }. No ship blast (defense only). Same category list in the turret AutoTargets BulletTargetCategories."
    }
   },
   "rafaeltessaro.bs_nuke_howitzer": {
@@ -2923,8 +2926,8 @@
    "codename": "Tatu",
    "template": "T4 flak",
    "vanilla_patterns": [
-    "flak_cannon_large beam+blast (hitscan BeamEmitter, ClipRangeToTarget, HitNothing -> 2 ExplosiveDamage, anti-shot Slices = 1)",
-    "flak_cannon_large fire_pref Attack/Defend/Both toggle",
+    "flak_cannon_large beam+blast (hitscan BeamEmitter, ClipRangeToTarget, HitNothing -> 1 ExplosiveDamage (projectiles only), anti-shot Slices = 1)",
+    "defend-only turret: point_defense fire_mode AvailableChoices [-1, 1, 2] (no fire_pref); CanBeGivenExplicitTarget / AllowShipWideExplicitTargets / AllowDirectControl = false; AIFirepowerRating 0; IncludeInFirepowerEstimation false (tractor/manipulator); beam FriendlyShipLow/HighCollisions false; IgnoreFriendlyShipLow/HighLOSChecks true",
     "chaingun InlineResourceConverter (bullet 1:2 bursts)",
     "flak_cannon_shoot_flash_large muzzle (Upper)"
    ],
@@ -3014,7 +3017,7 @@
     "flak_cannon_large beam+blast",
     "chaingun BeamEmitter Burst 3 / BurstDelay 0.08 / UseResourcePerShotInBurst (chaingun.rules l.936-939)",
     "point_defense FireInterval BuffRemap Overclock",
-    "flak fire_pref toggle (Default = 1 Defend)",
+    "defend-only turret: point_defense fire_mode AvailableChoices [-1, 1, 2] (no fire_pref); CanBeGivenExplicitTarget / AllowShipWideExplicitTargets / AllowDirectControl = false; AIFirepowerRating 0; IncludeInFirepowerEstimation false (tractor/manipulator); beam FriendlyShipLow/HighCollisions false; IgnoreFriendlyShipLow/HighLOSChecks true",
     "chaingun InlineResourceConverter (magazine 1:5)"
    ],
    "ammo_pipeline": "bs_mag_std ResourceStorage (12) + consumer -> splitter 1:5 -> BeamEmitter Burst 3",
@@ -3087,7 +3090,7 @@
     "chaingun BeamEmitter Burst 2",
     "flak_large_overclock beam + flak_large_overclock_field VolumeHit SpawnBullets - COPIED into the mod with literal LIFETIME 4 / DAMAGE_POOL 500 and our own field art",
     "chaingun InlineResourceConverter (magazine 1:3)",
-    "flak fire_pref toggle (Default = 2 Both)"
+    "defend-only turret: point_defense fire_mode AvailableChoices [-1, 1, 2] (no fire_pref); CanBeGivenExplicitTarget / AllowShipWideExplicitTargets / AllowDirectControl = false; AIFirepowerRating 0; IncludeInFirepowerEstimation false (tractor/manipulator); beam FriendlyShipLow/HighCollisions false; IgnoreFriendlyShipLow/HighLOSChecks true"
    ],
    "ammo_pipeline": "bs_mag_std ResourceStorage (12) -> splitter 1:3 -> BeamEmitter Burst 2 / OC BeamEmitter",
    "overclock": "emitter swap to OC beam that spawns our field file",

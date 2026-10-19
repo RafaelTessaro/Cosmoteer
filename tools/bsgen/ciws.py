@@ -1,9 +1,14 @@
-"""Gerador das defesas (flak / CIWS de convés) do Bullet Strike.
+"""Gerador das defesas (flak / CIWS de conves) do Bullet Strike.
 
 Padrao vanilla: flak_cannon_large.rules — BeamEmitter instantaneo ate o ponto mirado
 (ClipRangeToTarget) + ExplosiveDamage filtrado por categorias de projetil (acerta VARIOS projeteis
 de uma vez, os mais proximos do centro primeiro). Overclock: cadencia maior (FireInterval BuffRemap) e,
 quando o spec pede (Pororoca), um feixe proprio que deixa uma nuvem de estilhacos no ar.
+
+So defesa (sem modo Atacar): torre no molde do point_defense (fire_mode sem alvo explicito, sem fire_pref,
+sem busca de pecas de nave, sem controle direto) e explosao so contra projeteis. O feixe passa por cima do
+nosso casco e das nossas torres (FriendlyShipLow/HighCollisions = false) e a torre ignora as nossas pecas na
+linha de tiro (IgnoreFriendlyShipLow/HighLOSChecks), como o manipulator_beam_emitter.
 """
 
 from rules_dsl import Q, VOID, Inh
@@ -50,7 +55,7 @@ def build_ciws(c, beam_path, beam_oc_path):
     part["EditorIcon"] = C.editor_icon(w, h, geo["overhang"])
 
     comp = {}
-    comp.update(C.standard_toggles(bool(oc), c["cp"], defense=True, fire_pref_default=c.get("fire_pref_default", 1)))
+    comp.update(C.standard_toggles(bool(oc), c["cp"], defend_only=True))
 
     comp[C.comment("---- municao ----")] = None
     comp["MagStorage"] = {"Type": "ResourceStorage", "ResourceType": m["res"], "MaxResources": m["storage"],
@@ -84,20 +89,26 @@ def build_ciws(c, beam_path, beam_oc_path):
         "FireInterval": fi,
         "FiringArc": f"{c['arc']}d",
         "RotateSpeed": f"{c['rotate']}d",
-        "FireThresholdAngle": f"{c.get('threshold', 10)}d",
+        # angulo do raio da explosao no alcance (bs_data._defense); 1d = point_defense.rules l.381
+        "FireThresholdAngle": f"{c.get('threshold', 1)}d",
         "TargetSearchesPerSecond": c.get("searches", 8),
-        "AIFirepowerRating": "&~/Part/StatsByCategory/0/Stats/DamagePerSecond",
+        # so defende: nunca mira pecas de nave nem aceita alvo do jogador (point_defense.rules l.383/390,
+        # tractor_beam_emitter.rules l.574/577, manipulator_beam_emitter.rules l.441-445); a unica busca automatica
+        # e a de projeteis (sem a de ShipParts que o point_defense vanilla ainda tem)
+        "AIFirepowerRating": 0,
+        "IncludeInFirepowerEstimation": False,
+        "CanBeGivenExplicitTarget": False,
+        "AllowShipWideExplicitTargets": False,
+        "AllowDirectControl": False,
         "Emitter": "BaseFlakEmitter",
+        # passa por cima das nossas torres (IsHigh): manipulator_beam_emitter.rules l.447-448
         "IgnoreFriendlyShipLowLOSChecks": True,
-        "AllowShipWideExplicitTargetsToggle": "FirePrefAttack",
-        "EstimateFirepowerToggle": "AttackToggle",
+        "IgnoreFriendlyShipHighLOSChecks": True,
         "AlwaysShowCoverage": True,
-        "AllowDirectControlToggle": "FirePrefAttack",
         "FirePermissionToggle": "FireModeToggle",
         "AutoTargetCrewSafetyDist": 8,
         "AutoTargets": [
-            {"TargetType": "Bullets", "BulletTargetCategories": cats, "Toggle": "DefendToggle"},
-            {"TargetType": "ShipParts", "Toggle": "AttackToggle", "Overridable": True},
+            {"TargetType": "Bullets", "BulletTargetCategories": cats, "Toggle": "AutoTargetToggle"},
         ],
         "BlueprintArcSprite": {"Texture": "&/INDICATORS/WeaponArc", "Size": [0, 1.5], "Color": [255, 0, 255, 63]},
         "BlueprintArcRadius": 10,
@@ -197,11 +208,8 @@ def build_ciws(c, beam_path, beam_oc_path):
         "NameKey": Q("StatCategories/BSFlak"),
         "Stats": {
             "DamagePerShotVsShots": f"{em}/STAT_DAMAGE",
-            "DamagePerShot": f"{em}/STAT_SHIP_DAMAGE",
             "ROF": f"{burst} / ({fi_path})",
-            "DamagePerSecond": "(&DamagePerShot) * (&ROF)",
             "DamagePerSecondVsShots": "(&DamagePerShotVsShots) * (&ROF)",
-            "MaxDamage": ["&../DamagePerShot", "&../DamagePerSecond"],
             "ShotDamage": ["&../DamagePerShotVsShots", "&../DamagePerSecondVsShots"],
             "DamageArea": f"{em}/STAT_RADIUS",
             "Range": f"{em}/Range",

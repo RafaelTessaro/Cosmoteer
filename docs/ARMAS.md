@@ -1,7 +1,7 @@
 # Bullet Strike: armas, munições e fábricas
 
 > Gerado automaticamente por `tools/make_docs.py` a partir de `tools/spec/bullet_strike_spec.json` e `tools/spec/bullet_strike_missiles.json`. Não edite à mão.
-> DPS = dano por segundo com munição padrão, sem overclock: dano direto + metade das explosões (convenção do spec). Nas defesas, o DPS é o da explosão contra naves e escudos; ao lado, o dano por segundo contra projéteis.
+> DPS = dano por segundo com munição padrão, sem overclock: dano direto + metade das explosões (convenção do spec). As defesas (Tatu, Tamanduá e Pororoca) só defendem: não causam dano em naves; a coluna mostra o dano por segundo contra projéteis.
 
 ## Início de jogo
 
@@ -10,7 +10,7 @@
 | **Metralhadora Leve de Convés** | Marimbondo | 1x1 | 1 | 220 m | 260 | Munição avulsa (jogo base) | - |
 | **Metralhadora Pesada de Convés** | Mangangá | 1x2 | 1 | 240 m | 540 | Munição avulsa (jogo base) | - |
 | **Canhão Automático de Convés 20 mm** | Carcará | 2x2 | 1 | 250 m | 1.000 | Munição avulsa (jogo base) | - |
-| **Flak Leve de Convés** | Tatu | 2x2 | 1 | 180 m | 450 (3.000/s contra projéteis) | Munição avulsa (jogo base) | - |
+| **Flak Leve de Convés** | Tatu | 2x2 | 1 | 180 m | só defesa: 3.000/s contra projéteis | Munição avulsa (jogo base) | - |
 
 ## Meio de jogo
 
@@ -20,7 +20,7 @@
 | **Minigun de Convés** | Cigarra | 2x3 | 2 | 300 m | 2.040 | Carregadores (Padrão/Perfurante/Perf.-Explosiva/P.E.M.) | Bafo de Dragão |
 | **Canhão Naval Automático 76 mm** | Tambor | 3x4 | 3 | 340 m | 3.750 | Carregadores (Padrão/Perfurante/Perf.-Explosiva/P.E.M.) | Salva Rápida |
 | **Gatling de Plasma** | Boitatá | 2x3 | 2 | 320 m | 1.600 | Células de plasma | Sobrecarga |
-| **CIWS de Convés** | Tamanduá | 3x3 | 2 | 250 m | 1.000 (10.000/s contra projéteis) | Carregador Padrão | Barragem |
+| **CIWS de Convés** | Tamanduá | 3x3 | 2 | 250 m | só defesa: 10.000/s contra projéteis | Carregador Padrão | Barragem |
 
 ## Fim de jogo
 
@@ -31,7 +31,7 @@
 | **Canhão de Plasma Pesado** | Curupira | 4x5 | 4 | 550 m | 5.400 | Células de plasma | Erupção Solar |
 | **Obuseiro Nuclear de Convés** | Boiúna | 5x6 | 6 | 600 m | 8.000 | Projéteis nucleares | Fat Boy (carga reforçada) |
 | **Torre Naval Tripla 406 mm** | Mapinguari | 6x7 | 10 | 600 m | 16.000 | Carregadores (Padrão/Perfurante/Perf.-Explosiva/P.E.M.) | Bordada Total |
-| **Bateria Flak Pesada** | Pororoca | 4x4 | 4 | 320 m | 1.800 (12.000/s contra projéteis) | Carregador Padrão | Muralha de Flak |
+| **Bateria Flak Pesada** | Pororoca | 4x4 | 4 | 320 m | só defesa: 12.000/s contra projéteis | Carregador Padrão | Muralha de Flak |
 
 ## Mísseis de convés
 
@@ -178,6 +178,8 @@ No modo **Construir e Batalhar** a Tocandira já vem liberada (lista branca), ma
 ## Tipos de munição (seletor das armas de meio/fim de jogo)
 
 Armas com seletor: Cigarra, Tambor, Furacão, Trovão, Mapinguari. Perfurante e Perfurante-Explosiva usam o mesmo Carregador Perfurante.
+
+Ao trocar de munição, cada modo continua com o próprio depósito na arma (Perfurante e Perfurante-Explosiva usam o mesmo Carregador Perfurante, mas cada um guarda o seu); a tripulação só reabastece o modo escolhido e nenhum carregador sai como outro tipo. Para testar, monte a nave sem "Reabastecer todos os recursos" e sem recursos cheios, porque os dois enchem os depósitos de **todos** os tipos na arma. Se o depósito P.E.M. já estiver cheio, o certo é a arma atirar P.E.M. desse depósito e os Carregadores Padrão continuarem no depósito deles.
 
 | Tipo | Carregador | Para que serve |
 |---|---|---|

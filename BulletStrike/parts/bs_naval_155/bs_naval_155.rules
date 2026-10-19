@@ -137,12 +137,6 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Mode = AmmoTypeToggle
 			OnMode = 0
 		}
-		ConsumeToggle_0
-		{
-			Type = MultiToggle
-			Toggles = [CommandConsumptionToggle, ModeToggle_0]
-			Mode = All
-		}
 		MagStorage_0
 		{
 			Type = ResourceStorage
@@ -151,41 +145,50 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			UITileRect = [0 + 7/64, 4 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true
+			ToggleOnResources = 2
+			ToggleOffResources = 1
 		}
-		Splitter_0
+		AmmoConsumersOn_0
 		{
-			Type = InlineResourceConverter
-			ResourceType = rafaeltessaro.bs_mag_std
-			FromStorage = MagStorage_0
-			FromQuantity = 1
-			ToQuantity = 1
+			Type = ToggledComponents
+			Toggle = ModeToggle_0
+			Components
+			{
+				MagConsumer_0
+				{
+					Type = ResourceConsumer
+					ResourceType = rafaeltessaro.bs_mag_std
+					Storage = MagStorage_0
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = CommandConsumptionToggle
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
 		}
-		MagConsumer_0
+		AmmoConsumersOff_0
 		{
-			Type = ResourceConsumer
-			ResourceType = rafaeltessaro.bs_mag_std
-			Storage = MagStorage_0
-			DefaultPriority = &/PRIORITIES/Weapon_Supply
-			OperationalToggle = ConsumeToggle_0
-			ConsumptionToggleButtonOffset = [0, -0.4]
-		}
-		HasAmmo_0
-		{
-			Type = MultiToggle
-			Toggles = [ModeToggle_0, Splitter_0]
-			Mode = All
+			Type = ToggledComponents
+			Toggle = ModeToggle_0
+			Invert = true
+			Components
+			{
+				MagConsumer_0
+				{
+					Type = ResourceConsumer
+					ResourceType = rafaeltessaro.bs_mag_std
+					Storage = MagStorage_0
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = ModeToggle_0
+					AllowNonOperationalMinPriorityDelivery = false
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
 		}
 		ModeToggle_1
 		{
 			Type = ModeToggle
 			Mode = AmmoTypeToggle
 			OnMode = 1
-		}
-		ConsumeToggle_1
-		{
-			Type = MultiToggle
-			Toggles = [CommandConsumptionToggle, ModeToggle_1]
-			Mode = All
 		}
 		MagStorage_1
 		{
@@ -195,41 +198,50 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			UITileRect = [1 + 7/64, 4 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true
+			ToggleOnResources = 2
+			ToggleOffResources = 1
 		}
-		Splitter_1
+		AmmoConsumersOn_1
 		{
-			Type = InlineResourceConverter
-			ResourceType = rafaeltessaro.bs_mag_ap
-			FromStorage = MagStorage_1
-			FromQuantity = 1
-			ToQuantity = 1
+			Type = ToggledComponents
+			Toggle = ModeToggle_1
+			Components
+			{
+				MagConsumer_1
+				{
+					Type = ResourceConsumer
+					ResourceType = rafaeltessaro.bs_mag_ap
+					Storage = MagStorage_1
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = CommandConsumptionToggle
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
 		}
-		MagConsumer_1
+		AmmoConsumersOff_1
 		{
-			Type = ResourceConsumer
-			ResourceType = rafaeltessaro.bs_mag_ap
-			Storage = MagStorage_1
-			DefaultPriority = &/PRIORITIES/Weapon_Supply
-			OperationalToggle = ConsumeToggle_1
-			ConsumptionToggleButtonOffset = [0, -0.15]
-		}
-		HasAmmo_1
-		{
-			Type = MultiToggle
-			Toggles = [ModeToggle_1, Splitter_1]
-			Mode = All
+			Type = ToggledComponents
+			Toggle = ModeToggle_1
+			Invert = true
+			Components
+			{
+				MagConsumer_1
+				{
+					Type = ResourceConsumer
+					ResourceType = rafaeltessaro.bs_mag_ap
+					Storage = MagStorage_1
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = ModeToggle_1
+					AllowNonOperationalMinPriorityDelivery = false
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
 		}
 		ModeToggle_2
 		{
 			Type = ModeToggle
 			Mode = AmmoTypeToggle
 			OnMode = 2
-		}
-		ConsumeToggle_2
-		{
-			Type = MultiToggle
-			Toggles = [CommandConsumptionToggle, ModeToggle_2]
-			Mode = All
 		}
 		MagStorage_2
 		{
@@ -239,41 +251,50 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			UITileRect = [2 + 7/64, 4 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true
+			ToggleOnResources = 2
+			ToggleOffResources = 1
 		}
-		Splitter_2
+		AmmoConsumersOn_2
 		{
-			Type = InlineResourceConverter
-			ResourceType = rafaeltessaro.bs_mag_ap
-			FromStorage = MagStorage_2
-			FromQuantity = 1
-			ToQuantity = 1
+			Type = ToggledComponents
+			Toggle = ModeToggle_2
+			Components
+			{
+				MagConsumer_2
+				{
+					Type = ResourceConsumer
+					ResourceType = rafaeltessaro.bs_mag_ap
+					Storage = MagStorage_2
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = CommandConsumptionToggle
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
 		}
-		MagConsumer_2
+		AmmoConsumersOff_2
 		{
-			Type = ResourceConsumer
-			ResourceType = rafaeltessaro.bs_mag_ap
-			Storage = MagStorage_2
-			DefaultPriority = &/PRIORITIES/Weapon_Supply
-			OperationalToggle = ConsumeToggle_2
-			ConsumptionToggleButtonOffset = [0, 0.1]
-		}
-		HasAmmo_2
-		{
-			Type = MultiToggle
-			Toggles = [ModeToggle_2, Splitter_2]
-			Mode = All
+			Type = ToggledComponents
+			Toggle = ModeToggle_2
+			Invert = true
+			Components
+			{
+				MagConsumer_2
+				{
+					Type = ResourceConsumer
+					ResourceType = rafaeltessaro.bs_mag_ap
+					Storage = MagStorage_2
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = ModeToggle_2
+					AllowNonOperationalMinPriorityDelivery = false
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
 		}
 		ModeToggle_3
 		{
 			Type = ModeToggle
 			Mode = AmmoTypeToggle
 			OnMode = 3
-		}
-		ConsumeToggle_3
-		{
-			Type = MultiToggle
-			Toggles = [CommandConsumptionToggle, ModeToggle_3]
-			Mode = All
 		}
 		MagStorage_3
 		{
@@ -283,28 +304,67 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			UITileRect = [3 + 7/64, 4 + 7/64, 1 - 14/64, 1 - 14/64]
 			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
 			DropResourcesWhenDestroyed = true
+			ToggleOnResources = 2
+			ToggleOffResources = 1
 		}
-		Splitter_3
+		AmmoConsumersOn_3
 		{
-			Type = InlineResourceConverter
-			ResourceType = rafaeltessaro.bs_mag_emp
-			FromStorage = MagStorage_3
-			FromQuantity = 1
-			ToQuantity = 1
+			Type = ToggledComponents
+			Toggle = ModeToggle_3
+			Components
+			{
+				MagConsumer_3
+				{
+					Type = ResourceConsumer
+					ResourceType = rafaeltessaro.bs_mag_emp
+					Storage = MagStorage_3
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = CommandConsumptionToggle
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
 		}
-		MagConsumer_3
+		AmmoConsumersOff_3
 		{
-			Type = ResourceConsumer
-			ResourceType = rafaeltessaro.bs_mag_emp
-			Storage = MagStorage_3
-			DefaultPriority = &/PRIORITIES/Weapon_Supply
-			OperationalToggle = ConsumeToggle_3
-			ConsumptionToggleButtonOffset = [0, 0.35]
+			Type = ToggledComponents
+			Toggle = ModeToggle_3
+			Invert = true
+			Components
+			{
+				MagConsumer_3
+				{
+					Type = ResourceConsumer
+					ResourceType = rafaeltessaro.bs_mag_emp
+					Storage = MagStorage_3
+					DefaultPriority = &/PRIORITIES/Weapon_Supply
+					OperationalToggle = ModeToggle_3
+					AllowNonOperationalMinPriorityDelivery = false
+					ConsumptionToggleButtonOffset = [0, -0.4]
+				}
+			}
+		}
+		HasAmmo_0
+		{
+			Type = MultiToggle
+			Toggles = [ModeToggle_0, MagStorage_0]
+			Mode = All
+		}
+		HasAmmo_1
+		{
+			Type = MultiToggle
+			Toggles = [ModeToggle_1, MagStorage_1]
+			Mode = All
+		}
+		HasAmmo_2
+		{
+			Type = MultiToggle
+			Toggles = [ModeToggle_2, MagStorage_2]
+			Mode = All
 		}
 		HasAmmo_3
 		{
 			Type = MultiToggle
-			Toggles = [ModeToggle_3, Splitter_3]
+			Toggles = [ModeToggle_3, MagStorage_3]
 			Mode = All
 		}
 		AmmoPrereq
@@ -390,6 +450,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			AIFirepowerRating = &~/Part/StatsByCategory/0/Stats/DamagePerSecond
 			Emitter = TargetEmitterProxy
 			IgnoreFriendlyShipLowLOSChecks = true
+			IgnoreFriendlyShipHighLOSChecks = true
 			AutoTargets
 			[
 				{
@@ -456,7 +517,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					OperationalToggle = IsOperational
 					Bullet = &<../../shots/bs_shot_naval_155_std/bs_shot_naval_155_std.rules>
 					Spread = [-1.0d, 1.0d]
-					ResourceStorage = Splitter_0
+					ResourceStorage = MagStorage_0
 					ResourcesUsed = 2
 					Recoil = 325
 					AntiPhasingRaycastDistance = 2
@@ -491,7 +552,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					OperationalToggle = IsOperational
 					Bullet = &<../../shots/bs_shot_naval_155_std/bs_shot_naval_155_std.rules>
 					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
-					ResourceStorage = Splitter_0
+					ResourceStorage = MagStorage_0
 					ResourcesUsed = 2
 					Recoil = 325 * (&~/OVERCLOCK/RECOIL_FACTOR)
 					AntiPhasingRaycastDistance = 2
@@ -526,7 +587,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					OperationalToggle = IsOperational
 					Bullet = &<../../shots/bs_shot_naval_155_ap/bs_shot_naval_155_ap.rules>
 					Spread = [-1.0d, 1.0d]
-					ResourceStorage = Splitter_1
+					ResourceStorage = MagStorage_1
 					ResourcesUsed = 2
 					Recoil = 325
 					AntiPhasingRaycastDistance = 2
@@ -561,7 +622,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					OperationalToggle = IsOperational
 					Bullet = &<../../shots/bs_shot_naval_155_ap/bs_shot_naval_155_ap.rules>
 					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
-					ResourceStorage = Splitter_1
+					ResourceStorage = MagStorage_1
 					ResourcesUsed = 2
 					Recoil = 325 * (&~/OVERCLOCK/RECOIL_FACTOR)
 					AntiPhasingRaycastDistance = 2
@@ -596,7 +657,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					OperationalToggle = IsOperational
 					Bullet = &<../../shots/bs_shot_naval_155_aphe/bs_shot_naval_155_aphe.rules>
 					Spread = [-1.0d, 1.0d]
-					ResourceStorage = Splitter_2
+					ResourceStorage = MagStorage_2
 					ResourcesUsed = 2
 					Recoil = 325
 					AntiPhasingRaycastDistance = 2
@@ -631,7 +692,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					OperationalToggle = IsOperational
 					Bullet = &<../../shots/bs_shot_naval_155_aphe/bs_shot_naval_155_aphe.rules>
 					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
-					ResourceStorage = Splitter_2
+					ResourceStorage = MagStorage_2
 					ResourcesUsed = 2
 					Recoil = 325 * (&~/OVERCLOCK/RECOIL_FACTOR)
 					AntiPhasingRaycastDistance = 2
@@ -666,7 +727,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					OperationalToggle = IsOperational
 					Bullet = &<../../shots/bs_shot_naval_155_emp/bs_shot_naval_155_emp.rules>
 					Spread = [-1.0d, 1.0d]
-					ResourceStorage = Splitter_3
+					ResourceStorage = MagStorage_3
 					ResourcesUsed = 2
 					Recoil = 325
 					AntiPhasingRaycastDistance = 2
@@ -701,7 +762,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 					OperationalToggle = IsOperational
 					Bullet = &<../../shots/bs_shot_naval_155_emp/bs_shot_naval_155_emp.rules>
 					Spread = [-(&~/OVERCLOCK/HALF_SPREAD), (&~/OVERCLOCK/HALF_SPREAD)]
-					ResourceStorage = Splitter_3
+					ResourceStorage = MagStorage_3
 					ResourcesUsed = 2
 					Recoil = 325 * (&~/OVERCLOCK/RECOIL_FACTOR)
 					AntiPhasingRaycastDistance = 2
@@ -1424,7 +1485,6 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 	{
 		CrewRequired = &~/Part/Components/PartCrew/Crew
 		AmmoCapacity = &~/Part/Components/MagStorage_0/MaxResources
-		BSShotsPerMag = &~/Part/Components/Splitter_0/ToQuantity
 		CrewStunDuration = [0, &~/Part/Components/StunEffect/HitEffects/0/Duration/BaseValue]
 		CrewStunRadius = &~/Part/Components/StunEffect/HitEffects/0/Radius/BaseValue
 	}
@@ -1446,7 +1506,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				TurretSpeed = deg(&~/Part/Components/Turret/RotateSpeed)
 				ShotSpeed = &~/Part/Components/Fire_0_N/Components/TargetEmitter/Bullet/Speed
 				ShotHP = &~/Part/Components/Fire_0_N/Components/TargetEmitter/Bullet/Components/Targetable/Health
-				AmmoPerShot = (&~/Part/Components/Fire_0_N/Components/TargetEmitter/ResourcesUsed) / (&~/Part/Components/Splitter_0/ToQuantity)
+				AmmoPerShot = &~/Part/Components/Fire_0_N/Components/TargetEmitter/ResourcesUsed
 				AmmoPerSecond = (&AmmoPerShot) * (&ShotsPerSecond)
 				ShotAmmoUsage = [&../AmmoPerShot, &../AmmoPerSecond]
 			}
@@ -1467,7 +1527,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				TurretSpeed = deg(&~/Part/Components/Turret/RotateSpeed)
 				ShotSpeed = &~/Part/Components/Fire_1_N/Components/TargetEmitter/Bullet/Speed
 				ShotHP = &~/Part/Components/Fire_1_N/Components/TargetEmitter/Bullet/Components/Targetable/Health
-				AmmoPerShot = (&~/Part/Components/Fire_1_N/Components/TargetEmitter/ResourcesUsed) / (&~/Part/Components/Splitter_1/ToQuantity)
+				AmmoPerShot = &~/Part/Components/Fire_1_N/Components/TargetEmitter/ResourcesUsed
 				AmmoPerSecond = (&AmmoPerShot) * (&ShotsPerSecond)
 				ShotAmmoUsage = [&../AmmoPerShot, &../AmmoPerSecond]
 			}
@@ -1488,7 +1548,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				TurretSpeed = deg(&~/Part/Components/Turret/RotateSpeed)
 				ShotSpeed = &~/Part/Components/Fire_2_N/Components/TargetEmitter/Bullet/Speed
 				ShotHP = &~/Part/Components/Fire_2_N/Components/TargetEmitter/Bullet/Components/Targetable/Health
-				AmmoPerShot = (&~/Part/Components/Fire_2_N/Components/TargetEmitter/ResourcesUsed) / (&~/Part/Components/Splitter_2/ToQuantity)
+				AmmoPerShot = &~/Part/Components/Fire_2_N/Components/TargetEmitter/ResourcesUsed
 				AmmoPerSecond = (&AmmoPerShot) * (&ShotsPerSecond)
 				ShotAmmoUsage = [&../AmmoPerShot, &../AmmoPerSecond]
 			}
@@ -1509,7 +1569,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				TurretSpeed = deg(&~/Part/Components/Turret/RotateSpeed)
 				ShotSpeed = &~/Part/Components/Fire_3_N/Components/TargetEmitter/Bullet/Speed
 				ShotHP = &~/Part/Components/Fire_3_N/Components/TargetEmitter/Bullet/Components/Targetable/Health
-				AmmoPerShot = (&~/Part/Components/Fire_3_N/Components/TargetEmitter/ResourcesUsed) / (&~/Part/Components/Splitter_3/ToQuantity)
+				AmmoPerShot = &~/Part/Components/Fire_3_N/Components/TargetEmitter/ResourcesUsed
 				AmmoPerSecond = (&AmmoPerShot) * (&ShotsPerSecond)
 				ShotAmmoUsage = [&../AmmoPerShot, &../AmmoPerSecond]
 			}

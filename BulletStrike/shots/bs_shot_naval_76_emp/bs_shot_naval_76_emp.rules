@@ -36,6 +36,7 @@ Components
 		Penetration = 1
 		PenetrationSpeed = 25
 		FriendlyShipLowCollisions = false
+		FriendlyShipHighCollisions = false
 		CrewCollisions = {Enemies=true; Junk=true}
 		PenetratesCrew = true
 		HitCrew = &HitOperational
@@ -210,20 +211,30 @@ Components
 	}
 	Sprite
 	{
-		Type = Sprite
+		Type = AnimatedSprite
 		RenderBucket = BulletUpper3
 		ReduceScaleWith = Hit
 		ReduceScaleExponent = 0.5
-		Sprite
+		Animation
 		{
-			Texture
+			AtlasSprite
 			{
-				File = "./Data/shots/bullet_med/bullet_med.png"
-				SampleMode = Linear
-				MipLevels = max
+				Texture
+				{
+					File = "./Data/shots/bullet_large/bullet_large.png"
+					SampleMode = Linear
+					MipLevels = max
+				}
+				Size = [0.7, 0.7]
 			}
-			Size = [0.32, 0.32]
+			FrameCount = 16
+			FrameSize = [256, 256]
+			FramesPerRow = 4
+			FramesPerSecond = 120
 		}
+		NormalsTexture = &Animation/AtlasSprite/Texture
+		DiffuseShader = "./Data/default.shader"
+		NormalsShader = "./Data/no_normals.shader"
 	}
 	GlowSprite
 	{
@@ -231,7 +242,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		Offset = [-0.625, 0]
+		Offset = [-1, 0]
 		Sprite
 		{
 			Texture
@@ -240,7 +251,7 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [5, 2.5]
+			Size = [12, 6]
 			VertexColor = [80, 150, 255]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"
@@ -250,5 +261,10 @@ Components
 			_litAdditiveStrength = 0.05
 			_unlitAdditiveStrength = 0.125
 		}
+	}
+	Trail
+	{
+		Type = MediaEffects
+		MediaEffects = [&<../bs_trails/bs_trail_large_emp.rules>]
 	}
 }

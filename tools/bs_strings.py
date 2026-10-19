@@ -119,9 +119,9 @@ def strings():
         crew_pt = f"{g['crew']} tripulante" + ("s" if g["crew"] > 1 else "")
         if g in D.DEFENSES:
             role_en = ("DEFENSE. Airburst flak that damages EVERY missile, mine, shell, laser bolt and ion shot inside its blast. "
-                       "Set it to Defend, Attack or Attack + Defend.")
+                       "Defense only: it never fires at ships.")
             role_pt = ("DEFESA. Flak de explosão aérea que danifica TODOS os mísseis, minas, granadas, disparos laser e iônicos "
-                       "dentro da explosão. Pode ser ajustada para Defender, Atacar ou Atacar + Defender.")
+                       "dentro da explosão. Só defende: nunca atira em naves.")
         else:
             role_en, role_pt = "", ""
         oc_en = " Can be overclocked." if g.get("oc") else ""
@@ -389,7 +389,7 @@ def _vezes(x):
 
 def _choice_codename(D, mt):
     """Codinome de uma escolha do seletor compartilhado: o do tipo e os das variantes de cada lancador que a
-    oferece (ex.: 'Jararaca / Muriçoca', 'Taturana / Taturana-mirim')."""
+    oferece (ex.: 'Jararaca / Muricoca', 'Taturana / Taturana-mirim')."""
     t = D.MISSILE_TYPES[mt]
     built = {lch["id"] for lch in D.LAUNCHERS if t["toggle_index"] in lch["available"]}
     names = [t["codename"]]

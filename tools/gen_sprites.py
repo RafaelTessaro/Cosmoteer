@@ -99,7 +99,7 @@ def noise_overlay(img, amount=10, seed=1):
 
 
 def draw_base(w_tiles, h_tiles, accent, ammo_strip_rows=1, seed=0):
-    """Plataforma de montagem de convés.
+    """Plataforma de montagem de conves.
 
     As `ammo_strip_rows` linhas de baixo sao a faixa de carregamento de
     municao (onde a tripulacao entrega a municao), igual ao Deck Cannon.

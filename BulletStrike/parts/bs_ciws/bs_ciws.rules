@@ -93,6 +93,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Type = UIToggle
 			ToggleID = "fire_mode"
 			Default = 1
+			AvailableChoices = [-1, 1, 2]
 			ToggledOnChoices = [0, 1, 2]
 		}
 		AutoTargetToggle
@@ -106,36 +107,6 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Type = ModeToggle
 			Mode = FireModeToggle
 			OnMode = 2
-		}
-		FirePrefToggle
-		{
-			Type = UIToggle
-			ToggleID = "fire_pref"
-			Default = 1
-		}
-		FirePrefAttack
-		{
-			Type = ModeToggle
-			Mode = FirePrefToggle
-			OnModes = [0, 2]
-		}
-		FirePrefDefend
-		{
-			Type = ModeToggle
-			Mode = FirePrefToggle
-			OnModes = [1, 2]
-		}
-		AttackToggle
-		{
-			Type = MultiToggle
-			Toggles = [AutoTargetToggle, FirePrefAttack]
-			Mode = All
-		}
-		DefendToggle
-		{
-			Type = MultiToggle
-			Toggles = [AutoTargetToggle, FirePrefDefend]
-			Mode = All
 		}
 		IsOperationalNonOverclocked
 		{
@@ -200,15 +171,17 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			}
 			FiringArc = 360d
 			RotateSpeed = 240d
-			FireThresholdAngle = 10d
+			FireThresholdAngle = 1.03d
 			TargetSearchesPerSecond = 8
-			AIFirepowerRating = &~/Part/StatsByCategory/0/Stats/DamagePerSecond
+			AIFirepowerRating = 0
+			IncludeInFirepowerEstimation = false
+			CanBeGivenExplicitTarget = false
+			AllowShipWideExplicitTargets = false
+			AllowDirectControl = false
 			Emitter = BaseFlakEmitter
 			IgnoreFriendlyShipLowLOSChecks = true
-			AllowShipWideExplicitTargetsToggle = FirePrefAttack
-			EstimateFirepowerToggle = AttackToggle
+			IgnoreFriendlyShipHighLOSChecks = true
 			AlwaysShowCoverage = true
-			AllowDirectControlToggle = FirePrefAttack
 			FirePermissionToggle = FireModeToggle
 			AutoTargetCrewSafetyDist = 8
 			AutoTargets
@@ -216,12 +189,7 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				{
 					TargetType = Bullets
 					BulletTargetCategories = [missile, mine, bullet, laser, ion_shot]
-					Toggle = DefendToggle
-				}
-				{
-					TargetType = ShipParts
-					Toggle = AttackToggle
-					Overridable = true
+					Toggle = AutoTargetToggle
 				}
 			]
 			BlueprintArcSprite
@@ -693,11 +661,8 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Stats
 			{
 				DamagePerShotVsShots = &~/Part/Components/BaseFlakEmitter/STAT_DAMAGE
-				DamagePerShot = &~/Part/Components/BaseFlakEmitter/STAT_SHIP_DAMAGE
 				ROF = 3 / (&~/Part/Components/Turret/FireInterval/BaseValue)
-				DamagePerSecond = (&DamagePerShot) * (&ROF)
 				DamagePerSecondVsShots = (&DamagePerShotVsShots) * (&ROF)
-				MaxDamage = [&../DamagePerShot, &../DamagePerSecond]
 				ShotDamage = [&../DamagePerShotVsShots, &../DamagePerSecondVsShots]
 				DamageArea = &~/Part/Components/BaseFlakEmitter/STAT_RADIUS
 				Range = &~/Part/Components/BaseFlakEmitter/Range

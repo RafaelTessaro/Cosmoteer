@@ -34,6 +34,7 @@ Components
 	{
 		Type = PenetratingHit
 		FriendlyShipLowCollisions = false
+		FriendlyShipHighCollisions = false
 		CrewCollisions = {Enemies=true; Junk=true}
 		HitCrew = &HitOperational
 		HitShield
@@ -170,6 +171,7 @@ Components
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper3
+		Offset = [-0.56, 0]
 		Sprite
 		{
 			Texture
@@ -183,13 +185,11 @@ Components
 			TargetBlendMode = Add
 		}
 	}
-	GlowSprite
+	CoreSprite
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper4
-		Z = 0
-		IsLight = true
-		Offset = [-1.25, 0]
+		Offset = [-0.49, 0]
 		Sprite
 		{
 			Texture
@@ -198,7 +198,27 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [10, 5]
+			Size = [1.4, 0.5]
+			VertexColor = [225, 255, 255]
+			TargetBlendMode = Add
+		}
+	}
+	GlowSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Z = 0
+		IsLight = true
+		Offset = [-1, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [12, 6]
 			VertexColor = [0, 255, 220]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"
@@ -206,12 +226,12 @@ Components
 			_nrmlStrengthLimit = 1
 			_litReflectiveStrength = 24
 			_litAdditiveStrength = 0.05
-			_unlitAdditiveStrength = 0.125
+			_unlitAdditiveStrength = 0.2
 		}
 	}
 	Trail
 	{
 		Type = MediaEffects
-		MediaEffects = [&<./Data/shots/bullet_railgun/particles/bullet_trail_railgun.rules>]
+		MediaEffects = [&<../bs_trails/bs_trail_deck_plasma.rules>]
 	}
 }

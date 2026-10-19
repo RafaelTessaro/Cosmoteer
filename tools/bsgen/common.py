@@ -86,7 +86,9 @@ def door_locations(w, h):
     return doors
 
 
-def standard_toggles(overclock, command_points, defense=False, fire_pref_default=2):
+def standard_toggles(overclock, command_points, defense=False, fire_pref_default=2, defend_only=False):
+    """defense = Atacar/Defender/Ambos (flak vanilla, Saci); defend_only = so defesa (flak/CIWS do mod):
+    sem fire_pref e sem "Atirar no alvo" no fire_mode, como o point_defense.rules l.97-116."""
     c = {}
     toggles = ["PowerToggle", "PartCrew", "ScorchedToggle"]
     if overclock:
@@ -98,9 +100,14 @@ def standard_toggles(overclock, command_points, defense=False, fire_pref_default
     c["CommandConsumer"] = {"Type": "CommandConsumer", "OperationalToggle": "CommandConsumptionToggle",
                             "CommandPoints": command_points}
     c["FireModeToggle"] = {"Type": "UIToggle", "ToggleID": Q("fire_mode"), "Default": 1, "ToggledOnChoices": [0, 1, 2]}
+    if defend_only:
+        # -1 Suspender fogo, 1 Disparar a vontade, 2 Disparar automaticamente (sem 0 = alvo explicito),
+        # AvailableChoices do point_defense.rules l.102
+        c["FireModeToggle"] = {"Type": "UIToggle", "ToggleID": Q("fire_mode"), "Default": 1,
+                               "AvailableChoices": [-1, 1, 2], "ToggledOnChoices": [0, 1, 2]}
     c["AutoTargetToggle"] = {"Type": "ModeToggle", "Mode": "FireModeToggle", "OnModes": [1, 2]}
     c["AutoFireToggle"] = {"Type": "ModeToggle", "Mode": "FireModeToggle", "OnMode": 2}
-    if defense:
+    if defense and not defend_only:
         # Atacar / Defender / Ambos (flak_cannon_large.rules l.143-192)
         c["FirePrefToggle"] = {"Type": "UIToggle", "ToggleID": Q("fire_pref"), "Default": fire_pref_default}
         c["FirePrefAttack"] = {"Type": "ModeToggle", "Mode": "FirePrefToggle", "OnModes": [0, 2]}
@@ -112,6 +119,33 @@ def standard_toggles(overclock, command_points, defense=False, fire_pref_default
                                             "Toggles": ["IsOperational", "{ Toggle=IsOverclocked; Invert=true }"],
                                             "Mode": "All"}
     return c
+
+
+def mag_consumer(res, storage, toggle, no_min_priority=False):
+    """Consumidor de carregadores da tripulacao (prioridade de arma, botao de consumo no proprio tile)."""
+    c = {"Type": "ResourceConsumer", "ResourceType": res, "Storage": storage,
+         "DefaultPriority": "&/PRIORITIES/Weapon_Supply", "OperationalToggle": toggle}
+    if no_min_priority:
+        c["AllowNonOperationalMinPriorityDelivery"] = False
+    c["ConsumptionToggleButtonOffset"] = [0, -0.4]
+    return c
+
+
+def toggled_consumers(comp, cid, uses, res, storage, on_block, off_block):
+    """Consumidor de um tipo de municao numa arma com seletor (chaingun.rules l.383-437).
+
+    O mesmo ID (cid) em dois ToggledComponents ligados pelo toggle 'uses' (tipo escolhido):
+      - tipo escolhido: OperationalToggle = CommandConsumptionToggle e entrega de prioridade minima padrao,
+        como qualquer arma do jogo (missile_launcher_he.rules): desligada ou chamuscada, a arma continua sendo
+        completada se sobrar tripulacao, e volta pronta;
+      - tipo fora de uso: OperationalToggle = o proprio 'uses' (sempre desligado dentro deste bloco) e
+        AllowNonOperationalMinPriorityDelivery = false: nenhuma entrega; o estoque que ja esta na arma fica.
+    Manter o mesmo ID mantem viva a chave de prioridade e a reserva de recursos na troca de tipo (o comentario
+    do chaingun: "If storage assignments thrash, then that causes resource AI issues")."""
+    comp[on_block] = {"Type": "ToggledComponents", "Toggle": uses,
+                      "Components": {cid: mag_consumer(res, storage, "CommandConsumptionToggle")}}
+    comp[off_block] = {"Type": "ToggledComponents", "Toggle": uses, "Invert": True,
+                       "Components": {cid: mag_consumer(res, storage, uses, no_min_priority=True)}}
 
 
 def overclock_machinery(center, w, h, heat_triggers, has_constant_heat=True, shot_heat=True, port_rows=None):

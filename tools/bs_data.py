@@ -6,6 +6,7 @@ dicas de implementacao (estilo de arte, tipo de cano, efeitos) que nao sao balan
 """
 
 import json
+import math
 import os
 
 from rules_dsl import Q
@@ -100,6 +101,43 @@ FX = {
 
 GLOW = {"bullet": [255, 140, 40], "std": [255, 120, 30], "ap": [200, 225, 255], "aphe": [255, 80, 40],
         "emp": [80, 150, 255], "plasma": [0, 255, 220], "nuclear": [140, 255, 60]}
+# cor do risco (tracer) e do nucleo branco-quente por municao (R1): ambar no Padrao, vermelho-alaranjado na
+# Perfurante-Explosiva, branco-azulado na Perfurante, azul no P.E.M., ciano no plasma
+TRACER = {"bullet": [255, 170, 60], "std": [255, 170, 60], "aphe": [255, 95, 45], "ap": [190, 215, 255],
+          "emp": [100, 170, 255], "plasma": [120, 255, 255], "nuclear": [160, 255, 90]}
+CORE = {"bullet": [255, 235, 190], "std": [255, 235, 190], "aphe": [255, 205, 170], "ap": [240, 248, 255],
+        "emp": [200, 225, 255], "plasma": [225, 255, 255], "nuclear": [230, 255, 200]}
+
+# Visual do projetil por ARMA (calibre), nao por municao: trocar a municao so troca a cor (R1). Antes o tamanho
+# vinha do dano de cada municao, e as balas pequenas eram um "slug" de latao de 0,18 m sem brilho proprio nem
+# rastro, invisivel a 250-320 m/s.
+#   tracer: risco aditivo alongado (blob.png, molde do pd_shot.rules: Size [L, W], Offset -0.4375 L, LerpScaleFrom)
+#           + nucleo branco-quente + brilho IsLight. Zero particulas.
+#   energy: raio de plasma aditivo (blob) + nucleo + brilho (laser_bolt_small: brilho 6x6).
+#   large:  granada AnimatedSprite bullet_large.png com brilho e Z do bullet_large/bullet_deck vanilla.
+# Rastro de particulas so ate ~2,5 tiros/s; acima disso so sprites (sem spam de particulas: cada projetil com
+# rastro mantem ~EmitPerSecond x 0,2 s particulas vivas; cannon_med vanilla ~63 por arma, cannon_deck ~91).
+VIS = {
+    "bs_lmg": {"look": "tracer", "wh": [3.0, 0.26], "core": [1.0, 0.12], "glow": [6, 2]},
+    "bs_minigun": {"look": "tracer", "wh": [3.0, 0.26], "core": [1.0, 0.12], "glow": [6, 2]},
+    "bs_hmg": {"look": "tracer", "wh": [3.5, 0.32], "core": [1.2, 0.15], "glow": [7, 2.5]},
+    "bs_quad_hmg": {"look": "tracer", "wh": [3.5, 0.32], "core": [1.2, 0.15], "glow": [7, 2.5]},
+    # 2,5 tiros/s: rastro med a 150/s (~30 vivas por projetil, ~75 por arma)
+    "bs_autocannon_20": {"look": "tracer", "wh": [4.0, 0.40], "core": [1.4, 0.18], "glow": [8, 3], "trail": "med"},
+    "bs_rotary_30": {"look": "tracer", "wh": [5.0, 0.48], "core": [1.8, 0.22], "glow": [9, 3.5]},
+    "bs_plasma_gatling": {"look": "energy", "wh": [2.0, 0.5], "core": [0.9, 0.22], "glow": [6, 3]},
+    # granadas no molde vanilla: bullet_large (0,7 / brilho 12x6 / -1) e bullet_deck (1,1 / 18x9 / -1,5 / Z 0,5)
+    "bs_naval_76": {"look": "large", "size": 0.7, "glow": [12, 6], "glow_off": -1, "trail": "large"},
+    "bs_naval_155": {"look": "large", "size": 1.1, "glow": [18, 9], "glow_off": -1.5, "z": 0.5, "trail": "deck"},
+    "bs_naval_406": {"look": "large", "size": 1.35, "glow": [22, 11], "glow_off": -1.8, "z": 0.5, "trail": "deck"},
+    "bs_nuke_howitzer": {"look": "large", "size": 1.35, "glow": [22, 11], "glow_off": -1.8, "z": 0.5, "trail": "deck"},
+    # rastro deck ciano (300/s, ~250 por arma) no lugar das faiscas do railgun (2000/s, ~11.000 vivas por arma)
+    "bs_plasma_heavy": {"look": "energy", "wh": [2.8, 1.12], "core": [1.4, 0.5], "glow": [12, 6], "glow_off": -1,
+                        "trail": "deck"},
+}
+# a partir desta cadencia (tiros/s, ja com o overclock) o impacto usa efeitos leves (chaingun_shot_overclock_hit
+# vanilla: 2-3 particulas de 0,3 s) no lugar da explosao de missil / faiscas de railgun / raios do disruptor
+FAST_RATE = 5
 
 
 def _caliber(dmg):
@@ -179,33 +217,43 @@ def _shot_spec(w, ammo, t, oc=None, oc_range=None):
             exp_r = oc["explosive_radius_m"]
         if oc.get("structural_explosive_damage"):
             struct = [oc["structural_explosive_radius_m"], oc["structural_explosive_damage"]]
+    # calibre pelo dano: so efeitos de impacto, som, tremor e raio de fisica (o visual em voo vem de VIS)
     cal = _caliber(dmg + exp_d)
-    look = "med" if cal in ("mg", "med") else "large"
-    size = {"mg": 0.18, "med": 0.32, "large": 0.7, "deck": 1.05}[cal]
     color = GLOW.get(ammo, GLOW["std"])
+    vis = VIS[short]
+    oc_rate = max(1, ((w.get("overclock") or {}).get("fire_rate_factor") or 1))
+    fast = w["fire_rate_shots_per_s"] * oc_rate >= FAST_RATE
     s = {
         "file": name, "id": f"{AUTHOR}.{name}", "title": f"{w['name_en']} - {ammo}{' (overclock)' if oc else ''}",
         "range": rng, "speed": max(60, speed), "health": w.get("shot_hp") or max(60, round((dmg + exp_d) * 0.35)),
-        "look": look, "sprite_size": size, "glow_color": color,
-        "glow_size": {"mg": [3, 1.5], "med": [5, 2.5], "large": [10, 5], "deck": [16, 8]}[cal],
-        "fx": {"mg": "mg", "med": "med", "large": "large", "deck": "deck"}[cal],
+        "look": vis["look"], "glow_color": color, "glow_size": list(vis["glow"]),
+        "tracer_color": TRACER.get(ammo, TRACER["std"]), "core_color": CORE.get(ammo, CORE["std"]),
+        "fx": {"mg": "mg", "med": "mg" if fast else "med", "large": "large", "deck": "deck"}[cal],
         "volume": {"mg": 0.5, "med": 0.6, "large": 0.8, "deck": 1.0}[cal],
         "max_conc": {"mg": 30, "med": 20, "large": 12, "deck": 8}[cal],
         "shake": {"mg": 0, "med": 0, "large": 0.04, "deck": 0.08}[cal],
         "radius": {"mg": 0.1, "med": 0.15, "large": 0.3, "deck": 0.45}[cal],
         "fire": fire,
     }
-    if cal in ("large", "deck") and not w.get("spinup"):
-        s["trail"] = "large" if cal == "large" else "deck"
+    if vis["look"] == "large":
+        s["sprite_size"] = vis["size"]
+    else:
+        s["sprite_wh"] = list(vis["wh"])
+        s["core_wh"] = list(vis["core"])
+    if "glow_off" in vis:
+        s["glow_offset"] = vis["glow_off"]
+    if "z" in vis:
+        s["glow_z"] = vis["z"]
+    if vis.get("trail"):
+        # forma do rastro + cor da municao (bsgen/trails.py escolhe o arquivo)
+        s["trail"] = vis["trail"]
+        s["trail_color"] = ammo
+    if fast:
+        s["fast"] = True
     if ammo == "plasma":
-        s["look"] = "energy"
-        s["fx"] = "plasma"
-        s["sprite_wh"] = [size * 4, size * 1.6]
-        s.pop("trail", None)
-        if cal in ("large", "deck"):
-            s["trail"] = "plasma"
+        s["fx"] = "plasma_fast" if fast else "plasma"
     if ammo == "emp":
-        s["fx"] = "emp"
+        s["fx"] = "emp_fast" if fast else "emp"
     if ammo == "nuclear" or (exp_d and pen <= 1 and ammo in ("std", "bullet", "nuclear", "plasma") and exp_d >= dmg * 0.25):
         # granada que explode no impacto
         s.update({"kind": "explosive", "damage": dmg, "explosion": [max(1.0, exp_r), exp_d],
@@ -400,15 +448,16 @@ def _attach_art3d(g):
 
 def _defense(w, hint, short, oc, ap):
     rng = w["range_m"]
-    # explosao 2 (contra naves e escudos): explosive_damage / explosive_radius_m do spec (300 r2,5 / 400 r3 /
-    # 1200 r4); damage_per_hit_std e 0 nas defesas (o feixe nao tem dano direto)
+    # so defesa: a explosao so danifica projeteis (sem a 2a explosao contra naves/escudos da flak vanilla);
+    # damage_per_hit_std e 0 nas defesas (o feixe nao tem dano direto)
     beam = {"kind": "flak", "file": f"bs_flak_{short.replace('bs_', '')}", "dir": short,
-            "range": rng, "vs_shots": ap["damage_vs_shots"], "vs_ships": w.get("explosive_damage") or 0,
+            "range": rng, "vs_shots": ap["damage_vs_shots"],
             "radius": ap["blast_radius_m"],
-            "ship_radius": w.get("explosive_radius_m") or max(1.5, ap["blast_radius_m"] * 0.6),
             "categories": ["missile", "mine", "bullet", "laser", "ion_shot"],
             "offset": list(w.get("random_offset_radius_m") or [0.5, max(2.0, rng / 60)]),
-            "volume": 0.3, "max_conc": 12, "particles": 2}
+            # explosao com estilhacos + clarao + fumaca (flak_large.rules l.40-59) e volume perto do vanilla (.5):
+            # a rajada que acerta tem que ser vista e ouvida
+            "volume": 0.4, "max_conc": 12, "particles": 3}
     SHOTS.append(beam)
     nb = int(w.get("barrels") or 1)
     res = w["ammo_resource"]
@@ -417,6 +466,12 @@ def _defense(w, hint, short, oc, ap):
         "name_en": w["name_en"], "name_pt": w["name_ptbr"], "codename": w.get("codename", ""), "tier": w["tier"],
         "size": w["size"], "crew": w["crew"], "cp": w["command_points"], "hp": w["max_health"], "cost": w["build_cost"],
         "ring": w.get("prohibit_ring_tiles", 1), "arc": w["firing_arc_deg"], "rotate": w["rotate_speed_deg_s"],
+        # tolerancia de mira = angulo do raio da explosao no alcance maximo (point_defense.rules l.381 usa 1d):
+        # com o cano assim alinhado, o erro de mira no alcance maximo fica no maximo igual ao raio e a rajada cai
+        # perto do alvo. O feixe ainda soma a dispersao aleatoria (RandomOffsetRadius, que cresce com a distancia,
+        # flak_large.rules l.4; ate 3 / 3,5 / 6 m no alcance maximo), entao uma rajada ainda pode errar. Nao
+        # apertar mais: no Tatu a dispersao maxima ja e igual ao raio (raio - dispersao = 0)
+        "threshold": round(math.degrees(math.atan(ap["blast_radius_m"] / rng)), 2),
         "fire_interval": round(int(w.get("shots_per_trigger") or 1) / w["fire_rate_shots_per_s"], 4),
         "burst": int(w.get("shots_per_trigger") or 1), "beam": beam["file"],
         "ammo": {"res": res, "shots_per_unit": int(w.get("shots_per_resource_unit") or 1),
@@ -425,8 +480,7 @@ def _defense(w, hint, short, oc, ap):
         "barrels": {"count": 1 if hint["barrel"] == "gatling" else min(nb, 4), "spacing": 0.3 if w["size"][0] <= 3 else 0.5,
                     "length": {"early": 0.9, "mid": 1.4, "late": 1.9}[w["tier"]],
                     "width": 0.14 if hint["barrel"] != "gatling" else 0.3},
-        # Atacar / Defender / Atacar + Defender: padrao do spec (Tatu e Pororoca 2, Tamandua 1)
-        "fx": dict(FX["flak"]), "fire_pref_default": int(w.get("fire_pref_default") or 1),
+        "fx": dict(FX["flak"]),
         "art": {"style": hint["style"], "barrel": hint["barrel"], "accent": hint["accent"]},
         "desc": w.get("visual_concept", ""), "spec": w,
     }
@@ -521,7 +575,7 @@ AMMO_CHOICES = [
     (3, "bs_ammo_emp", "PartToggles/BSAmmo_EMP", "ammo_emp.png"),
 ]
 
-# ============================================================================= lancadores de misseis de convés
+# ============================================================================= lancadores de misseis de conves
 # O projeto dos lancadores fica num spec proprio (tools/spec/bullet_strike_missiles.json, legivel em
 # docs/MISSEIS_PROJETO.md). Os lancadores NAO entram em GUNS: tem modelo de recarga proprio
 # (carregador por familia -> autoloader tripulado -> rack com trava -> salva em ripple), ver bsgen/launchers.py.
@@ -556,7 +610,9 @@ def _variants():
 
 
 MISSILE_VARIANTS = _variants()
-# ciws_vs_own_missiles (T09): a nuvem de estilhacos das nossas CIWS ganha filtro so de inimigos no fallback
+# ciws_vs_own_missiles (T09): padrao as_is = nuvem de estilhacos da Pororoca igual a vanilla (so campos vistos no
+# VolumeHit vanilla). enemies_only e um fallback NAO comprovado: o jogo base so usa BulletCollisions em SimpleHit e
+# PenetratingHit, entao o VolumeHit pode ignorar o filtro; so ligar se o T09 mostrar a nuvem pegando nossos misseis
 for _s in SHOTS:
     if _s["kind"] == "cloud" and MISSILE_VARIANTS.get("ciws_vs_own_missiles") == "enemies_only":
         _s["enemies_only"] = True
@@ -595,7 +651,7 @@ FX["launch_s"] = {
 # torpedos com o som do lancador nuclear vanilla
 FX["launch_m"] = dict(FX["launch_s"], volume=0.6, max_concurrent=16, shake=0.01,
                       sound_heavy=[f"{T}/missile_launcher/nuke/sounds/launcher_launch_nuke.wav"])
-# fim (Mula): leque de fumaca do canhao de convés (RoofCannonSmoke), tremor 0.02 por lancamento e uma pancada
+# fim (Mula): leque de fumaca do canhao de conves (RoofCannonSmoke), tremor 0.02 por lancamento e uma pancada
 # de 0.15 quando o rack esvazia (ultimo missil da salva)
 FX["launch_l"] = dict(FX["launch_m"], volume=0.7, shake=0.02, thump=0.15,
                       backblast=[f"{T}/cannon_deck/particles/cannon_smoke_deck.rules"])
@@ -1181,7 +1237,7 @@ def _mod_description():
         "lançador de mísseis Caipora, todos com overclock.\n"
         "- Fim de jogo: canhão rotativo de 30 mm, canhão naval duplo de 155 mm, plasma pesado, flak pesada, "
         "obuseiro nuclear, torre tripla de 406 mm e a bateria de mísseis Mula-sem-Cabeça, todos com overclock.\n"
-        "- Flak e CIWS que destroem vários mísseis, minas, granadas e disparos de uma vez, mas gastam muita munição.\n"
+        "- Flak e CIWS que só defendem: destroem vários mísseis, minas, granadas e disparos de uma vez, mas gastam muita munição.\n"
         f"- Logística de carregadores: {n_f} fábricas novas, todas com overclock; a tripulação leva os carregadores "
         "até as armas. Os lança-mísseis usam as peças de míssil do jogo base.\n"
         "- Seletor de munição: Padrão, Perfurante, Perfurante-Explosiva e P.E.M., além de células de plasma e "
@@ -1196,7 +1252,7 @@ def _mod_description():
         "launcher, all with overclock.\n"
         "- Late game: 30 mm rotary cannon, twin 155 mm naval gun, heavy plasma, heavy flak, nuclear howitzer, "
         "triple 406 mm turret and the Mula-sem-Cabeça missile battery, all with overclock.\n"
-        "- Flak and CIWS that shred many missiles, mines, shells and bolts at once, but eat ammo.\n"
+        "- Defense-only flak and CIWS that shred many missiles, mines, shells and bolts at once, but eat ammo.\n"
         f"- Magazine logistics: {n_f} new factories, all with overclock; crew carry the magazines to the guns. The "
         "missile launchers use the vanilla missile parts.\n"
         "- Ammo selector: Standard, Armor-Piercing, AP-Explosive and EMP, plus plasma cells and nuclear shells.\n"

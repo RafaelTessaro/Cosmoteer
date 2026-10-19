@@ -38,7 +38,7 @@ def fmt_t(x):
 
 
 def _missile_section():
-    """Seção de mísseis: lançadores, modos, tipos de míssil, arquivos de projétil e techs."""
+    """Secao de misseis: lancadores, modos, tipos de missil, arquivos de projetil e techs."""
     from bs_strings import MISSILE_TXT
     L_BY = {L["id"]: L for L in D.MSPEC["launchers"]}
     out = ["## Mísseis de convés", "",
@@ -300,8 +300,8 @@ def main():
              "> Gerado automaticamente por `tools/make_docs.py` a partir de `tools/spec/bullet_strike_spec.json` e "
              "`tools/spec/bullet_strike_missiles.json`. Não edite à mão.",
              "> DPS = dano por segundo com munição padrão, sem overclock: dano direto + metade das explosões "
-             "(convenção do spec). Nas defesas, o DPS é o da explosão contra naves e escudos; ao lado, o dano por "
-             "segundo contra projéteis.", ""]
+             "(convenção do spec). As defesas (Tatu, Tamanduá e Pororoca) só defendem: não causam dano em naves; "
+             "a coluna mostra o dano por segundo contra projéteis.", ""]
     for tier in ("early", "mid", "late"):
         lines += [f"## {TIER[tier]} de jogo", "",
                   "| Arma | Codinome | Tamanho | Tripulação | Alcance | DPS | Munição | Overclock |",
@@ -312,8 +312,8 @@ def main():
             w = g["spec"]
             if g in D.DEFENSES:
                 ap = w["anti_projectile"]
-                dps = (f"{fmt(round(w['computed'].get('dps_hull_std', 0)))} "
-                       f"({fmt(round(ap['damage_vs_shots'] * w['fire_rate_shots_per_s']))}/s contra projéteis)")
+                # so defesa: nenhum dano em nave, so a explosao contra projeteis
+                dps = f"só defesa: {fmt(round(ap['damage_vs_shots'] * w['fire_rate_shots_per_s']))}/s contra projéteis"
                 ammo = "Carregador Padrão" if g["ammo"]["res"] != "bullet" else AMMO["bullet"]
             else:
                 dps = fmt(round(w["computed"].get("dps_hull_std", 0)))
@@ -331,6 +331,11 @@ def main():
     lines += ["## Tipos de munição (seletor das armas de meio/fim de jogo)", "",
               "Armas com seletor: " + ", ".join(f"{g['codename']}" for g in D.GUNS if g["selector"]) +
               ". Perfurante e Perfurante-Explosiva usam o mesmo Carregador Perfurante.", "",
+              "Ao trocar de munição, cada modo continua com o próprio depósito na arma (Perfurante e "
+              "Perfurante-Explosiva usam o mesmo Carregador Perfurante, mas cada um guarda o seu); a tripulação só "
+              "reabastece o modo escolhido e nenhum carregador sai como outro tipo. Para testar, monte a nave sem \"Reabastecer todos os recursos\" e sem recursos cheios, "
+              "porque os dois enchem os depósitos de **todos** os tipos na arma. Se o depósito P.E.M. já estiver cheio, o certo é "
+              "a arma atirar P.E.M. desse depósito e os Carregadores Padrão continuarem no depósito deles.", "",
               "| Tipo | Carregador | Para que serve |", "|---|---|---|"]
     from bs_strings import AMMO_DESC, AMMO_NAMES
     sel = next(g for g in D.GUNS if g["selector"])

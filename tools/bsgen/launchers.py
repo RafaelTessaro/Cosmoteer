@@ -1,4 +1,4 @@
-"""Gerador dos lancadores de misseis de convés do Bullet Strike (Tocandira / Caipora / Mula-sem-Cabeca).
+"""Gerador dos lancadores de misseis de conves do Bullet Strike (Tocandira / Caipora / Mula-sem-Cabeca).
 
 Projeto: tools/spec/bullet_strike_missiles.json (launch_logic, launchers, mechanic_variants) e
 docs/MISSEIS_PROJETO.md. So tipos de componente vanilla:
@@ -132,11 +132,9 @@ def _mode_constants(lch, m, has_burst):
 def _family_blocks(lch, comp):
     """(1) um carregador por familia de recurso, consumidor so com um modo da familia selecionado."""
     w, h = lch["size"]
-    n_fam = len(lch["families"])
     for i, f in enumerate(lch["families"]):
         F = f["key"]
         comp[f"Uses{F}"] = {"Type": "MultiToggle", "Toggles": [f"ModeToggle_{k}" for k in f["modes"]], "Mode": "Any"}
-        comp[f"Consume{F}"] = {"Type": "MultiToggle", "Toggles": ["CommandConsumptionToggle", f"Uses{F}"], "Mode": "All"}
         comp[f"MagStorage_{F}"] = {
             "Type": "ResourceStorage", "ResourceType": f["res"], "MaxResources": f["mag"],
             "DelayBeforeReadyToUse": 0.5,
@@ -144,11 +142,10 @@ def _family_blocks(lch, comp):
             "ReceiveResourceMediaEffects": "&/COMMON_EFFECTS/AmmoDeliver",
             "DropResourcesWhenDestroyed": True, "DropResourcesWhenRemoved": True,
         }
-        comp[f"MagConsumer_{F}"] = {
-            "Type": "ResourceConsumer", "ResourceType": f["res"], "Storage": f"MagStorage_{F}",
-            "DefaultPriority": "&/PRIORITIES/Weapon_Supply", "OperationalToggle": f"Consume{F}",
-            "ConsumptionToggleButtonOffset": [0, -0.4 + (0.25 * i if n_fam > 1 else 0)],
-        }
+        # familia em uso: entrega normal (e a de prioridade minima com a peca desligada, como o
+        # missile_launcher_he.rules); familia fora de uso: nenhuma entrega (chaingun.rules l.383-437)
+        C.toggled_consumers(comp, f"MagConsumer_{F}", f"Uses{F}", f["res"], f"MagStorage_{F}",
+                            f"AmmoConsumersOn{F}", f"AmmoConsumersOff{F}")
 
 
 def _media_sounds(files, volume=None, interior=True, max_conc=None):
@@ -368,7 +365,7 @@ def _fire_block(lch, m, geo, shot_path, v):
             "Layer": Q("roof_turrets"), "ResourceStorage": f"ReadyRack_{k}", "RangeLow": a, "RangeHigh": b,
             "HasZeroResourceSprite": True, "ResourceLevels": levels}
     bbs = geo.get("backblast") or []
-    if len(bbs) > 1:
+    if bbs:
         # varios casulos: o sopro sai atras do casulo que disparou (um ponto por casulo, o mais proximo na lateral)
         by_pod = {}
         for i in range(n):
@@ -608,7 +605,8 @@ def build_launcher(lch, shot_paths):
         "Type": "TurretWeapon", "Location": geo["pivot"], "Rotation": "-90d", "OperationalToggle": "IsOperational",
         "AutoFireToggle": "AutoFireToggle", "FirePermissionToggle": "FirePermission", "FireInterval": "&~/RIPPLE",
         "FiringArc": f"{lch['arc']}d", "RotateSpeed": f"{lch['rotate']}d", "FireThresholdAngle": f"{lch['threshold']}d",
-        "AllowFireWithBlockedLOS": True, "IgnoreFriendlyShipLowLOSChecks": True,
+        # por cima do casco e das nossas torres (manipulator_beam_emitter.rules l.447-448); os misseis ja passam
+        "AllowFireWithBlockedLOS": True, "IgnoreFriendlyShipLowLOSChecks": True, "IgnoreFriendlyShipHighLOSChecks": True,
         "AIFirepowerRating": ai,
         "Emitter": "TargetEmitterProxy",          # so para mirar (cannon_deck.rules l.617)
         "AutoTargets": [{"TargetType": "ShipParts", "Toggle": "AutoTargetToggle", "EnableInDirectControlMode": True}],
@@ -630,12 +628,6 @@ def build_launcher(lch, shot_paths):
     for m in modes:
         comp[f"Fire_{m['type']}"] = _fire_block(lch, m, geo, shot_paths[m["type"]], v)
     comp["TargetEmitterProxy"] = {"Type": "EmitterProxy", "ComponentID": "TargetEmitter", "ChainedTo": "Turret"}
-    bbs = geo.get("backblast") or []
-    if len(bbs) == 1:
-        # um casulo so: o sopro sai a cada disparo da torre
-        comp["Backblast_0"] = {"Type": "TriggeredEffects", "ChainedTo": "Turret", "Trigger": "Turret",
-                               "Location": list(bbs[0]), "Rotation": "180d",
-                               "MediaEffects": [f"&<{p}>" for p in lch["fx"]["backblast"]]}
 
     _cookoff(lch, comp, center)
 

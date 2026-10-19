@@ -3,7 +3,7 @@
     python3 tools/make_gallery.py
 
 Gera em docs/preview/3d/:
-  galeria_armas_3d.png     - armas, defesas e lancadores de convés por fase (inicio / meio / fim), como aparecem no jogo
+  galeria_armas_3d.png     - armas, defesas e lancadores de conves por fase (inicio / meio / fim), como aparecem no jogo
   galeria_fabricas_3d.png  - fabricas (interior trabalhando + teto pintado) com a municao que produzem (pilha cheia + icone)
 """
 
