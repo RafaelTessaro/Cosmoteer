@@ -92,6 +92,23 @@ sai clarão e som, e o tiro chega no alvo dentro do alcance.
   automaticamente** ("disparar continuamente, mesmo se não houver nada em que disparar"), com o arco de tiro
   virado para o lado da fileira.
 
+- [ ] **B20** **Efeitos de plasma (Boitatá e Curupira):** nenhum clarão laranja de pólvora na boca. A cada tiro sai
+  uma descarga ciano com centro branco (ponta de lança para frente, faíscas curtas, um anel pequeno). A luz no
+  casco é fraca e a boca da Boitatá brilha de leve só em parte dos tiros: a arte da torre não pode sumir no
+  clarão. No Curupira, logo depois de cada tiro, aparece um brilho entre as pontas dos canos (é um brilho que
+  fica depois do disparo, não uma carga antes dele) e arcos elétricos. O projétil é um raio branco-quente com
+  borda ciano. Na Boitatá a cauda é uma **serpente**: um fio forte e outro mais fraco que ondulam, mais abertos
+  logo atrás da cabeça e finos na ponta. No Curupira a cauda é **reta e grossa, com anéis de pulso** correndo
+  para trás, mais um rastro fino que some rápido. A cauda só aparece depois que o raio sai da boca (não pode
+  ficar por cima da torre), e o rastro do Curupira também começa longe da torre. O raio do Curupira solta
+  faíscas elétricas em voo no normal e no overclock; o da Boitatá, só no overclock. No casco: borrifo ciano,
+  faíscas e uma brasa ciano que some. Em peça já destruída: um respingo menor, com som. No escudo: respingo
+  achatado na face do escudo, sem brasa. Raio abatido no ar: estouro pequeno com um chiado baixo. Em overclock
+  tudo fica maior e mais branco, e o impacto do Curupira ganha um anel fino de pressão (Erupção Solar) que abre
+  rápido e some sem cobrir o respingo. Com várias Boitatás atirando o jogo não pode ficar lento; se ficar, anote
+  quantas. Se o jogo acusar arquivo não encontrado ao carregar (sons `heavy_laser_*`, `laser_blaster_impact_*`,
+  `laser_bolt_large_hit` ou a textura `railgun_shoot.png`), anote o nome do arquivo.
+
 ### C. Munição e logística
 
 - [ ] **C1** A **Prensa de Carregadores** transforma munição do jogo em **Carregadores Padrão** (5 → 1).

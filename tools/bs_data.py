@@ -11,6 +11,7 @@ import os
 
 from rules_dsl import Q
 import art3d as A3
+from bsgen import plasma_fx as PFX
 from launcher_layout import cell_layout
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -88,12 +89,16 @@ FX = {
                            f"{T}/cannon_deck/particles/cannon_shoot_deck_flare.rules", f"{T}/cannon_deck/particles/cannon_smoke_deck.rules"],
              "sound": f"{T}/cannon_deck/sounds/deck_cannon_overclocked_shot.wav", "volume": 1.0, "shake": 0.16,
              "shake_time": 0.9, "offset": -0.5},
-    "plasma": {"particles": [f"{T}/chaingun/particles/chaingun_shoot_flash.rules", f"{T}/cannon_deck/particles/cannon_shoot_deck_flare.rules"],
+    # plasma: descarga ciano propria (bsgen/plasma_fx.py), sem o clarao laranja de polvora do chaingun/cannon_deck;
+    # particles_oc = descarga do overclock (mais quente e maior). Caminhos relativos a parts/<id>/.
+    "plasma": {"particles": PFX.muzzle_paths("gatling", False), "particles_oc": PFX.muzzle_paths("gatling", True),
                "sound": [f"{T}/laser_blaster_small/sounds/laser_overclocked_shot_0{i}.wav" for i in (1, 2, 3)],
-               "volume": 0.7, "max_concurrent": 30, "shake": 0.01, "offset": -0.2},
-    "plasma_big": {"particles": [f"{T}/cannon_deck/particles/cannon_shoot_deck_flash.rules", f"{T}/cannon_deck/particles/cannon_shoot_deck_flare.rules"],
-                   "sound": f"{T}/cannon_deck/sounds/deck_cannon_overclocked_shot.wav", "volume": 0.9, "shake": 0.08,
-                   "offset": -0.4},
+               "volume": 0.7, "max_concurrent": 30, "shake": 0.01, "offset": 0},
+    # Curupira: tiro de laser pesado no lugar do estrondo de canhao de polvora
+    "plasma_big": {"particles": PFX.muzzle_paths("heavy", False), "particles_oc": PFX.muzzle_paths("heavy", True),
+                   "sound": [f"{T}/laser_blaster_large/sounds/heavy_laser_shot_0{i}.wav" for i in (1, 2, 3, 4)],
+                   "sound_oc": [f"{T}/laser_blaster_large/sounds/heavy_laser_overclocked_shot_0{i}.wav" for i in (1, 2, 3)],
+                   "volume": 0.9, "max_concurrent": 12, "shake": 0.08, "offset": -0.05},
     "flak": {"particles": [f"{T}/flak_cannon_large/particles/flak_cannon_shoot_flash_large.rules"],
              "sound": [f"{T}/flak_cannon_large/sounds/flak_cannon_shot_0{i}.wav" for i in (1, 2, 3, 4)],
              "volume": 0.35, "max_concurrent": 30, "shake": 0, "offset": 0},
@@ -125,15 +130,17 @@ VIS = {
     # 2,5 tiros/s: rastro med a 150/s (~30 vivas por projetil, ~75 por arma)
     "bs_autocannon_20": {"look": "tracer", "wh": [4.0, 0.40], "core": [1.4, 0.18], "glow": [8, 3], "trail": "med"},
     "bs_rotary_30": {"look": "tracer", "wh": [5.0, 0.48], "core": [1.8, 0.22], "glow": [9, 3.5]},
-    "bs_plasma_gatling": {"look": "energy", "wh": [2.0, 0.5], "core": [0.9, 0.22], "glow": [6, 3]},
+    # plasma: visual proprio (bsgen/plasma_fx.CFG); wh/core/glow so valem para as estatisticas e documentos
+    "bs_plasma_gatling": {"look": "energy", "wh": [2.0, 0.5], "core": [0.9, 0.22], "glow": [6, 3], "plasma": "gatling"},
     # granadas no molde vanilla: bullet_large (0,7 / brilho 12x6 / -1) e bullet_deck (1,1 / 18x9 / -1,5 / Z 0,5)
     "bs_naval_76": {"look": "large", "size": 0.7, "glow": [12, 6], "glow_off": -1, "trail": "large"},
     "bs_naval_155": {"look": "large", "size": 1.1, "glow": [18, 9], "glow_off": -1.5, "z": 0.5, "trail": "deck"},
     "bs_naval_406": {"look": "large", "size": 1.35, "glow": [22, 11], "glow_off": -1.8, "z": 0.5, "trail": "deck"},
     "bs_nuke_howitzer": {"look": "large", "size": 1.35, "glow": [22, 11], "glow_off": -1.8, "z": 0.5, "trail": "deck"},
-    # rastro deck ciano (300/s, ~250 por arma) no lugar das faiscas do railgun (2000/s, ~11.000 vivas por arma)
+    # rastro ionizado proprio (bsgen/plasma_fx.py: ~20 particulas vivas por raio) no lugar das faiscas do railgun
+    # (2000/s, ~11.000 vivas por arma) e do rastro deck ciano (300/s, ~250 por arma)
     "bs_plasma_heavy": {"look": "energy", "wh": [2.8, 1.12], "core": [1.4, 0.5], "glow": [12, 6], "glow_off": -1,
-                        "trail": "deck"},
+                        "plasma": "heavy"},
 }
 # a partir desta cadencia (tiros/s, ja com o overclock) o impacto usa efeitos leves (chaingun_shot_overclock_hit
 # vanilla: 2-3 particulas de 0,3 s) no lugar da explosao de missil / faiscas de railgun / raios do disruptor
@@ -250,6 +257,10 @@ def _shot_spec(w, ammo, t, oc=None, oc_range=None):
         s["trail_color"] = ammo
     if fast:
         s["fast"] = True
+    if vis.get("plasma"):
+        # familia de efeitos de plasma (bsgen/plasma_fx.py): raio, cauda, impacto e variante de overclock
+        s["plasma_fx"] = vis["plasma"]
+        s["plasma_oc"] = bool(oc)
     if ammo == "plasma":
         s["fx"] = "plasma_fast" if fast else "plasma"
     if ammo == "emp":

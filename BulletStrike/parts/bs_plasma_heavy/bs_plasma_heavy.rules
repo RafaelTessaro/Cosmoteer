@@ -345,16 +345,27 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Type = TriggeredEffects
 			ChainedTo = Emitter1Proxy_N
 			Trigger = Emitter1Proxy_N
-			Location = [-0.4, 0]
+			Location = [-0.05, 0]
 			MediaEffects
 			[
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flash.rules>
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flare.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_muzzle_burst.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_muzzle_streaks.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_muzzle_ring.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_muzzle_light.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_muzzle_glow.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_muzzle_arcs.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
-					Sound = "./Data/ships/terran/cannon_deck/sounds/deck_cannon_overclocked_shot.wav"
+					RandomSounds
+					[
+						"./Data/ships/terran/laser_blaster_large/sounds/heavy_laser_shot_01.wav"
+						"./Data/ships/terran/laser_blaster_large/sounds/heavy_laser_shot_02.wav"
+						"./Data/ships/terran/laser_blaster_large/sounds/heavy_laser_shot_03.wav"
+						"./Data/ships/terran/laser_blaster_large/sounds/heavy_laser_shot_04.wav"
+					]
 					Volume = 0.9
 					SpeedVariation = 0.15
+					MaxConcurrent = 12
 				}
 				: /BASE_SHAKE
 				{
@@ -368,16 +379,27 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Type = TriggeredEffects
 			ChainedTo = Emitter2Proxy_N
 			Trigger = Emitter2Proxy_N
-			Location = [-0.4, 0]
+			Location = [-0.05, 0]
 			MediaEffects
 			[
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flash.rules>
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flare.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_muzzle_burst.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_muzzle_streaks.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_muzzle_ring.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_muzzle_light.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_muzzle_glow.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_muzzle_arcs.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
-					Sound = "./Data/ships/terran/cannon_deck/sounds/deck_cannon_overclocked_shot.wav"
+					RandomSounds
+					[
+						"./Data/ships/terran/laser_blaster_large/sounds/heavy_laser_shot_01.wav"
+						"./Data/ships/terran/laser_blaster_large/sounds/heavy_laser_shot_02.wav"
+						"./Data/ships/terran/laser_blaster_large/sounds/heavy_laser_shot_03.wav"
+						"./Data/ships/terran/laser_blaster_large/sounds/heavy_laser_shot_04.wav"
+					]
 					Volume = 0.9
 					SpeedVariation = 0.15
+					MaxConcurrent = 12
 				}
 				: /BASE_SHAKE
 				{
@@ -391,16 +413,26 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Type = TriggeredEffects
 			ChainedTo = Emitter1Proxy_OC
 			Trigger = Emitter1Proxy_OC
-			Location = [-0.4, 0]
+			Location = [-0.05, 0]
 			MediaEffects
 			[
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flash.rules>
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flare.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_oc_muzzle_burst.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_oc_muzzle_streaks.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_oc_muzzle_ring.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_oc_muzzle_light.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_oc_muzzle_glow.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_oc_muzzle_arcs.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
-					Sound = "./Data/ships/terran/cannon_deck/sounds/deck_cannon_overclocked_shot.wav"
+					RandomSounds
+					[
+						"./Data/ships/terran/laser_blaster_large/sounds/heavy_laser_overclocked_shot_01.wav"
+						"./Data/ships/terran/laser_blaster_large/sounds/heavy_laser_overclocked_shot_02.wav"
+						"./Data/ships/terran/laser_blaster_large/sounds/heavy_laser_overclocked_shot_03.wav"
+					]
 					Volume = 0.9
 					SpeedVariation = 0.15
+					MaxConcurrent = 12
 				}
 				: /BASE_SHAKE
 				{
@@ -414,16 +446,26 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Type = TriggeredEffects
 			ChainedTo = Emitter2Proxy_OC
 			Trigger = Emitter2Proxy_OC
-			Location = [-0.4, 0]
+			Location = [-0.05, 0]
 			MediaEffects
 			[
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flash.rules>
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flare.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_oc_muzzle_burst.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_oc_muzzle_streaks.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_oc_muzzle_ring.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_oc_muzzle_light.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_oc_muzzle_glow.rules>
+				&<../../shots/bs_plasma_fx/bs_pfx_heavy_oc_muzzle_arcs.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
-					Sound = "./Data/ships/terran/cannon_deck/sounds/deck_cannon_overclocked_shot.wav"
+					RandomSounds
+					[
+						"./Data/ships/terran/laser_blaster_large/sounds/heavy_laser_overclocked_shot_01.wav"
+						"./Data/ships/terran/laser_blaster_large/sounds/heavy_laser_overclocked_shot_02.wav"
+						"./Data/ships/terran/laser_blaster_large/sounds/heavy_laser_overclocked_shot_03.wav"
+					]
 					Volume = 0.9
 					SpeedVariation = 0.15
+					MaxConcurrent = 12
 				}
 				: /BASE_SHAKE
 				{

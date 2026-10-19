@@ -1,5 +1,6 @@
 // Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
-// Rastro de particulas (copia vanilla, ver bsgen/trails.py)
+// Efeito de plasma (ver bsgen/plasma_fx.py e bsgen/plasma_tex.py)
+// Rastro ionizado atras do raio de plasma (Curupira overclock)
 
 Type = Particles
 Def
@@ -12,7 +13,7 @@ Def
 			Type = LocationToWorldSpace
 			LocationIn = location
 			LocationOut = location
-			Name = "Convert location to world space."
+			Name = ""
 			Enabled = true
 			UpdateAfterInit = false
 		}
@@ -20,15 +21,8 @@ Def
 			Type = VelocityToWorldSpace
 			VelocityIn = velocity
 			VelocityOut = velocity
-			Name = "Convert velocity to world space"
+			Name = ""
 			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = AddFrameOfReference
-			VelocityInOut = velocity
-			Name = "Add frame of reference"
-			Enabled = false
 			UpdateAfterInit = false
 		}
 		{
@@ -41,50 +35,10 @@ Def
 			UpdateAfterInit = false
 		}
 		{
-			Type = ScaleToWorldSpace
-			ScaleIn = base_scale
-			ScaleOut = base_scale
-			Name = ""
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = SetRandom
-			DataOut = rot
-			ValueType = Angle
-			FromValue = 84.999985d
-			ToValue = 95d
-			Name = Rotation
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
 			Type = RotationToWorldSpace
 			RotationIn = rot
 			RotationOut = rot
 			Name = ""
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = SetRandom
-			DataOut = rand_color
-			ValueType = Color
-			FromValue
-			{
-				Rf = 0
-				Gf = 0
-				Bf = 0
-				Af = 0
-			}
-			ToValue
-			{
-				Rf = 0
-				Gf = 0
-				Bf = 1
-				Af = 0
-			}
-			Name = "random blue (offset)"
 			Enabled = true
 			UpdateAfterInit = false
 		}
@@ -101,8 +55,8 @@ Def
 		{
 			Type = Lifetime
 			LifeInOut = life
-			Lifetime = 0.2
-			Name = Lifetime
+			Lifetime = 0.15
+			Name = ""
 			Enabled = true
 			UpdateAfterInit = false
 		}
@@ -113,32 +67,29 @@ Def
 			BIn = velocity
 			ResultOut = location
 			Operator = AddDt
-			Name = "Apply velocity."
+			Name = ""
 			Enabled = true
 			UpdateAfterInit = false
 		}
 		{
 			Type = Lerp
 			LerpIn = life
-			DataOut = scale
+			DataOut = scale2
 			Invert = false
-			ValueType = Float
-			FromValue = 0.3
-			ToValue = 0.8
-			Name = "scale over life"
+			ValueType = Vector2
+			FromValue
+			{
+				X = 1
+				Y = 1
+			}
+			ToValue
+			{
+				X = 0.85
+				Y = 0.35
+			}
+			Name = ""
 			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = Operator
-			DataType = Float
-			AIn = scale
-			BIn = base_scale
-			ResultOut = scale
-			Operator = Multiply
-			Name = "apply base scale"
-			Enabled = true
-			UpdateAfterInit = false
+			UpdateAfterInit = true
 		}
 		{
 			Type = ColorRamp
@@ -148,8 +99,8 @@ Def
 			Colors
 			[
 				{
-					Rf = 0
-					Gf = 0
+					Rf = 1
+					Gf = 1
 					Bf = 1
 					Af = 1
 				}
@@ -157,63 +108,22 @@ Def
 					Rf = 1
 					Gf = 1
 					Bf = 1
-					Af = 1
+					Af = 0.45
+				}
+				{
+					Rf = 1
+					Gf = 1
+					Bf = 1
+					Af = 0.15
+				}
+				{
+					Rf = 1
+					Gf = 1
+					Bf = 1
+					Af = 0
 				}
 			]
 			Name = ""
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = ColorRamp
-			LerpIn = life
-			ColorOut = alpha
-			Invert = false
-			Colors
-			[
-				{
-					Rf = 1
-					Gf = 1
-					Bf = 1
-					Af = 0
-				}
-				{
-					Rf = 1
-					Gf = 1
-					Bf = 1
-					Af = 0.5882353
-				}
-				{
-					Rf = 1
-					Gf = 1
-					Bf = 1
-					Af = 0.3137255
-				}
-				{
-					Rf = 1
-					Gf = 1
-					Bf = 1
-					Af = 0.15686275
-				}
-				{
-					Rf = 1
-					Gf = 1
-					Bf = 1
-					Af = 0
-				}
-			]
-			Name = "alpha ramp"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = Operator
-			DataType = Color
-			AIn = color
-			BIn = alpha
-			ResultOut = color
-			Operator = Multiply
-			Name = "apply alpha ramp"
 			Enabled = true
 			UpdateAfterInit = true
 		}
@@ -221,10 +131,10 @@ Def
 			Type = Operator
 			DataType = Color
 			AIn = color
-			BIn = rand_color
+			BIn = base_color
 			ResultOut = color
-			Operator = Add
-			Name = "apply random color"
+			Operator = Multiply
+			Name = ""
 			Enabled = true
 			UpdateAfterInit = true
 		}
@@ -241,78 +151,48 @@ Def
 	{
 		Type = StandardQuadRenderer
 		LocationIn = location
-		ScaleIn = scale
-		Scale2In
+		ScaleIn
+		Scale2In = scale2
 		RotationIn = rot
 		ColorIn = color
 		UvRectIn
 		BaseSize
 		{
-			X = 1.5
-			Y = 1.5
+			X = 5
+			Y = 0.36
 		}
 		Offset
 		{
 			X = 0
-			Y = 0.5
+			Y = 0
 		}
 		Name = ""
 	}
 	Material
 	{
-		Shader
-		{
-			File = "./Data/common_effects/particles/particle_distort.shader"
-		}
-		_distortMultiplier = -0.5
-		_erodeMultiplier = 3
-		_noiseScale
-		{
-			X = 0.69
-			Y = 0.19
-		}
-		_scrollSpeed
-		{
-			X = 0
-			Y = -0.7
-		}
-		_color1
-		{
-			X = 0
-			Y = 0.85
-			Z = 0.75
-			W = 1
-		}
-		_color2
-		{
-			X = 0.65
-			Y = 1
-			Z = 0.95
-			W = 1
-		}
-		_noiseTexture
-		{
-			File = "./Data/common_effects/particles/noise_voronoi2.png"
-			MipLevels = 8
-			SampleMode = Linear
-			UMode = Wrap
-			VMode = Wrap
-		}
 		Texture
 		{
-			File = "./Data/shots/bullet_med/particles/bullet_trail_med.png"
-			MipLevels = 8
+			File = "./Data/common_effects/particles/blob.png"
+			MipLevels = max
 			SampleMode = Linear
 		}
-		TargetBlendMode = Add
+		TargetBlendMode
+		{
+			SourceRgbFactor = SourceAlpha
+			DestRgbFactor = One
+			RgbOperator = Add
+			SourceAlphaFactor = InverseDestAlpha
+			DestAlphaFactor = One
+			AlphaOperator = Add
+		}
 	}
 	DeleteMode = Fast
 	EnableMultithreading = false
-	InitCapacity = 256
+	InitCapacity = 128
 }
 EmitterDef
 {
-	EmitPerSecond = 300
+	EmitPerSecond = 180
 	EmitPerOneShot
 	{
 		Min = 0
@@ -321,25 +201,39 @@ EmitterDef
 	PreInitializers
 	[
 		{
-			Type = SetRandom
-			DataOut = base_scale
-			ValueType = Float
-			FromValue = 4
-			ToValue = 8
-			Name = "random scale"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
 			Type = SetValue
 			DataOut = location
 			ValueType = Vector2
 			Value
 			{
-				X = 1
+				X = -2.8
 				Y = 0
 			}
-			Name = "set location"
+			Name = ""
+			Enabled = true
+			UpdateAfterInit = false
+		}
+		{
+			Type = SetValue
+			DataOut = rot
+			ValueType = Angle
+			Value = 0d
+			Name = ""
+			Enabled = true
+			UpdateAfterInit = false
+		}
+		{
+			Type = SetValue
+			DataOut = base_color
+			ValueType = Color
+			Value
+			{
+				Rf = 0.3
+				Gf = 0.9
+				Bf = 1
+				Af = 0.5
+			}
+			Name = ""
 			Enabled = true
 			UpdateAfterInit = false
 		}
@@ -351,7 +245,7 @@ EmitterDef
 			UpdateAfterInit = false
 		}
 	]
-	PostInitializers[]
+	PostInitializers = []
 }
 Bucket = BulletTrailUpper
 UseRealTime = false
@@ -363,7 +257,7 @@ IsSimple = false
 Sharing = Global
 UnsharedRenderInWorldSpace = false
 DontEmitWhenOffScreen = true
-DontEmitWhenOffScreenSizeInflate = 1
+DontEmitWhenOffScreenSizeInflate = 3
 UseCustomShapeForOffScreenCheck = false
 MaxEmissionZoom = 30
 ScaleEmissionWithIntensity = false
@@ -395,5 +289,5 @@ Filter
 	Junk = true
 	TargetedJunk
 }
-Delay = 0
+Delay = 0.03
 IgnoreIntensity = false

@@ -27,7 +27,24 @@ Components
 		TargetCategory = "laser"
 		OnDeath
 		{
-			MediaEffects = &~/Components/Hit/HitOperational/MediaEffects
+			MediaEffects
+			[
+				&<../bs_plasma_fx/bs_pfx_heavy_hit_shield.rules>
+				&<../bs_plasma_fx/bs_pfx_heavy_hit_flash.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/laser_bolt_small/sounds/laser_blaster_impact_01.wav"
+						"./Data/shots/laser_bolt_small/sounds/laser_blaster_impact_02.wav"
+						"./Data/shots/laser_bolt_small/sounds/laser_blaster_impact_03.wav"
+						"./Data/shots/laser_bolt_small/sounds/laser_blaster_impact_04.wav"
+					]
+					Volume = 0.36
+					SpeedVariation = 0.2
+					MaxConcurrent = 8
+				}
+			]
 		}
 	}
 	Hit
@@ -59,7 +76,18 @@ Components
 					}
 				}
 			]
-			MediaEffects = &../HitOperational/MediaEffects
+			MediaEffects
+			[
+				&<../bs_plasma_fx/bs_pfx_heavy_hit_shield.rules>
+				&<../bs_plasma_fx/bs_pfx_heavy_hit_flash.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds = ["./Data/shots/laser_bolt_large/laser_bolt_large_hit.wav"]
+					Volume = 0.8
+					SpeedVariation = 0.2
+					MaxConcurrent = 12
+				}
+			]
 		}
 		HitOperational
 		{
@@ -102,17 +130,13 @@ Components
 			]
 			MediaEffects
 			[
-				&<./Data/shots/bullet_railgun/particles/bullet_hit_railgun.rules>
-				&<./Data/shots/bullet_railgun/particles/bullet_railgun_sparks.rules>
-				&<./Data/shots/bullet_railgun/particles/bullet_flash_railgun.rules>
+				&<../bs_plasma_fx/bs_pfx_heavy_hit_splash.rules>
+				&<../bs_plasma_fx/bs_pfx_heavy_hit_sparks.rules>
+				&<../bs_plasma_fx/bs_pfx_heavy_hit_flash.rules>
+				&<../bs_plasma_fx/bs_pfx_heavy_hit_scorch.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
-					RandomSounds
-					[
-						"./Data/shots/bullet_railgun/sounds/railgun_impact_01.wav"
-						"./Data/shots/bullet_railgun/sounds/railgun_impact_02.wav"
-						"./Data/shots/bullet_railgun/sounds/railgun_impact_03.wav"
-					]
+					RandomSounds = ["./Data/shots/laser_bolt_large/laser_bolt_large_hit.wav"]
 					Volume = 0.8
 					SpeedVariation = 0.2
 					MaxConcurrent = 12
@@ -148,8 +172,16 @@ Components
 			]
 			MediaEffects
 			[
-				&<./Data/shots/bullet_railgun/particles/bullet_hit_struct_railgun.rules>
-				&<./Data/shots/bullet_railgun/particles/bullet_hit_struct_railgun_sparks.rules>
+				&<../bs_plasma_fx/bs_pfx_heavy_hit_struct.rules>
+				&<../bs_plasma_fx/bs_pfx_heavy_hit_sparks.rules>
+				&<../bs_plasma_fx/bs_pfx_heavy_hit_flash.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds = ["./Data/shots/laser_bolt_large/laser_bolt_large_hit.wav"]
+					Volume = 0.64
+					SpeedVariation = 0.2
+					MaxConcurrent = 12
+				}
 			]
 		}
 		PenetratingOperational
@@ -167,11 +199,36 @@ Components
 		{
 		}
 	}
+	TailSprite
+	{
+		Type = AnimatedSprite
+		RenderBucket = BulletUpper3
+		StartTime = 0.032
+		Offset = [-2.98, 0]
+		Animation
+		{
+			AtlasSprite
+			{
+				Texture
+				{
+					File = "../bs_plasma_fx/bs_plasma_wake.png"
+					MipLevels = max
+					SampleMode = Linear
+				}
+				Size = [6.2, 1.2]
+				TargetBlendMode = Add
+			}
+			FrameCount = 8
+			FrameSize = [512, 64]
+			FramesPerRow = 2
+			FramesPerSecond = 30
+		}
+	}
 	Sprite
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper3
-		Offset = [-0.56, 0]
+		Offset = [-0.704, 0]
 		Sprite
 		{
 			Texture
@@ -180,8 +237,8 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [2.8, 1.12]
-			VertexColor = [120, 255, 255]
+			Size = [3.2, 1.3]
+			VertexColor = [0, 160, 245]
 			TargetBlendMode = Add
 		}
 	}
@@ -189,17 +246,17 @@ Components
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper4
-		Offset = [-0.49, 0]
+		Offset = [-0.58, 0]
 		Sprite
 		{
 			Texture
 			{
-				File = "./Data/common_effects/particles/blob.png"
+				File = "../bs_plasma_fx/bs_plasma_bolt.png"
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [1.4, 0.5]
-			VertexColor = [225, 255, 255]
+			Size = [2.4, 0.75]
+			VertexColor = [255, 255, 255]
 			TargetBlendMode = Add
 		}
 	}
@@ -209,7 +266,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		Offset = [-1, 0]
+		Offset = [-1.44, 0]
 		Sprite
 		{
 			Texture
@@ -219,7 +276,7 @@ Components
 				SampleMode = Linear
 			}
 			Size = [12, 6]
-			VertexColor = [0, 255, 220]
+			VertexColor = [0, 235, 255]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"
 			_z = 1
@@ -229,9 +286,15 @@ Components
 			_unlitAdditiveStrength = 0.2
 		}
 	}
+	Crackle
+	{
+		Type = MediaEffects
+		Offset = [-0.62, 0]
+		MediaEffects = [&<../bs_plasma_fx/bs_pfx_heavy_crackle.rules>]
+	}
 	Trail
 	{
 		Type = MediaEffects
-		MediaEffects = [&<../bs_trails/bs_trail_deck_plasma.rules>]
+		MediaEffects = [&<../bs_plasma_fx/bs_pfx_heavy_trail.rules>]
 	}
 }

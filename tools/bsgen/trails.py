@@ -5,7 +5,7 @@ bullet_trail_def.rules e shots/bullet_deck/particles/bullet_trail_deck.rules, co
   * Bucket = BulletTrailUpper (o do bullet_trail_deck): o rastro fica por cima dos tetos, visivel sobre o
     nosso casco e sobre o casco inimigo (BulletTrail esta nos MiddleBuckets, sob o teto);
   * EmitPerSecond menor nos rastros de canhao rapido (orcamento de particulas, ver bs_data.VIS);
-  * nos coloridos (Perfurante, P.E.M., nuclear, plasma) a Def vai inteira no arquivo e muda so _color1/_color2:
+  * nos coloridos (Perfurante, P.E.M., nuclear) a Def vai inteira no arquivo e muda so _color1/_color2:
     no particle_distort.shader a cor vem do material (col = lerp(_color1, _color2, tex.r)), a cor da particula
     nao tinge o rastro. Caminhos relativos da Def viram ./Data/... (os tres existem no jogo).
 Nada de heranca parcial da Def ("Def : <...> { Material : ... }"): nao ha exemplo vanilla e o
@@ -416,8 +416,8 @@ COLORS = {
     "ap": ((0.35, 0.5, 1, 1), (0.85, 0.92, 1, 1)),        # branco-azulado do Perfurante
     "emp": ((0.05, 0.3, 1, 1), (0.5, 0.8, 1, 1)),          # azul do P.E.M.
     "nuclear": ((0.3, 1, 0, 1), (0.8, 1, 0.45, 1)),        # verde da Boiuna
-    "plasma": ((0, 0.85, 0.75, 1), (0.65, 1, 0.95, 1)),    # ciano da Curupira
 }
+# (o plasma do Curupira tem rastro proprio em bsgen/plasma_fx.py)
 
 # (forma, cor ou None = ambar vanilla, particulas/s): um arquivo por combinacao usada pelos projeteis
 TRAILS = {
@@ -428,7 +428,6 @@ TRAILS = {
     "bs_trail_deck_ap": ("deck", "ap", 300),
     "bs_trail_deck_emp": ("deck", "emp", 300),
     "bs_trail_deck_nuclear": ("deck", "nuclear", 300),
-    "bs_trail_deck_plasma": ("deck", "plasma", 300),
 }
 
 # rastro vanilla ja no bucket de cima (sem copia): canhoes de conves de 155/406 mm com Padrao / Perfurante-Explosiva
@@ -445,7 +444,7 @@ def _color_lines(c):
 
 
 def trail_name(shape, color):
-    """Nome do arquivo do rastro de uma forma (med/large/deck) e cor (ap/emp/nuclear/plasma; outra = ambar).
+    """Nome do arquivo do rastro de uma forma (med/large/deck) e cor (ap/emp/nuclear; outra = ambar).
     None = rastro vanilla bullet_trail_deck.rules (deck ambar)."""
     key = color if color in COLORS else "amber"
     name = f"bs_trail_{shape}_{key}"

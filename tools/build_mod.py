@@ -22,7 +22,7 @@ sys.path.insert(0, HERE)
 
 from rules_dsl import render  # noqa: E402
 from bsgen import common as C  # noqa: E402
-from bsgen import guns, ciws, shots, factory, resources, infra, launchers, trails  # noqa: E402
+from bsgen import guns, ciws, shots, factory, resources, infra, launchers, trails, plasma_fx  # noqa: E402
 import bs_data as DATA  # noqa: E402
 import art3d as A3  # noqa: E402
 
@@ -135,6 +135,8 @@ def build(args):
     for rel, text in trails.all_trails():
         out.text(rel, "\n".join(f"// {ln}" for ln in (HEADER + "\nRastro de particulas (copia vanilla, ver bsgen/trails.py)").split("\n"))
                  + "\n\n" + text)
+    # efeitos de plasma da Boitata e do Curupira (texturas PIL + particulas; bsgen/plasma_fx.py)
+    plasma_fx.write(out, HEADER + "\nEfeito de plasma (ver bsgen/plasma_fx.py e bsgen/plasma_tex.py)")
     # projeteis
     shot_rel = {}
     for s in DATA.SHOTS:

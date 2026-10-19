@@ -518,8 +518,8 @@ def build_gun(g, shot_paths):
 
     # ------------------------------------------------------------------ efeitos de disparo
     fx = g["fx"]
-    def fire_media(sound, shake):
-        media = [f"&<{p}>" for p in fx["particles"]]
+    def fire_media(sound, shake, particles):
+        media = [f"&<{p}>" for p in particles]
         snd = {"Volume": fx.get("volume", 1.0), "SpeedVariation": fx.get("speed_var", 0.15)}
         if isinstance(sound, list):
             snd = {"RandomSounds": [Q(s) for s in sound], **snd}
@@ -536,12 +536,14 @@ def build_gun(g, shot_paths):
     for i, p in enumerate(proxies_n):
         comp[f"FireEffect{i + 1}"] = {"Type": "TriggeredEffects", "ChainedTo": p, "Trigger": p,
                                       "Location": [fx.get("offset", 0), 0],
-                                      "MediaEffects": fire_media(fx["sound"], fx.get("shake", 0))}
+                                      "MediaEffects": fire_media(fx["sound"], fx.get("shake", 0), fx["particles"])}
     for i, p in enumerate(proxies_oc):
         comp[f"Overclock_FireEffect{i + 1}"] = {"Type": "TriggeredEffects", "ChainedTo": p, "Trigger": p,
                                                 "Location": [fx.get("offset", 0), 0],
+                                                # particles_oc: clarao proprio do overclock (plasma: mais quente e maior)
                                                 "MediaEffects": fire_media(fx.get("sound_oc", fx["sound"]),
-                                                                           fx.get("shake_oc", fx.get("shake", 0)))}
+                                                                           fx.get("shake_oc", fx.get("shake", 0)),
+                                                                           fx.get("particles_oc", fx["particles"]))}
 
     # atordoamento da tripulacao pelo sopro (so armas grandes)
     if g.get("stun"):

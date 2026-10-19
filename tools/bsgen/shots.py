@@ -7,6 +7,7 @@ desconhecidos e as estatisticas das pecas leem esses valores (evita caminhos fra
 
 from rules_dsl import Q, Inh
 from bsgen import trails as TR
+from bsgen import plasma_fx as PFX
 
 D = "./Data/shots"
 
@@ -118,7 +119,11 @@ def _sprite_components(s):
     tracer (metralhadoras, 20/30 mm): risco aditivo alongado com a cabeca no projetil (pd_shot.rules: Size [8, .25],
         Offset [-3.5, 0] = -0.4375 L, LerpScaleFrom [.25, 1], LerpTime .05) + nucleo branco-quente (Upper4);
     energy (plasma): raio aditivo + nucleo; large (granadas): AnimatedSprite do bullet_large / bullet_deck.
-    Mais o brilho IsLight (fancy_light) de sempre, maior, e o rastro so nas armas lentas."""
+    Mais o brilho IsLight (fancy_light) de sempre, maior, e o rastro so nas armas lentas.
+    Plasma (s["plasma_fx"] = gatling/heavy): visual proprio de bsgen/plasma_fx.py (nucleo branco-quente, corona,
+    cauda animada, crepitar; o rastro do Curupira tambem e de la, nao de bsgen/trails.py)."""
+    if s.get("plasma_fx"):
+        return PFX.bolt_components(s["plasma_fx"], s.get("plasma_oc"))
     comps = {}
     look = s.get("look", "tracer")
     if look in ("tracer", "energy"):
@@ -205,6 +210,11 @@ def build_kinetic(s):
                              {"Type": "Impulse", "Impulse": _val(s.get("impulse", 5))}],
               "MediaEffects": _media(preset, s.get("volume", 0.6), s.get("max_conc", 30), s.get("shake", 0),
                                      extra=s.get("extra_particles"))}
+    if s.get("plasma_fx"):
+        # familia de efeitos de plasma (bsgen/plasma_fx.py): respingo, faiscas, clarao e brasa ciano; no overclock
+        # do Curupira a onda de choque da "Erupcao Solar" entra no lugar da bola de fogo laranja do missil HE
+        hit_op["MediaEffects"] = PFX.hit_media(s["plasma_fx"], s.get("plasma_oc"), "hull", s.get("volume", 0.6),
+                                               s.get("max_conc", 30), s.get("shake", 0))
     if s.get("impact_explosion"):
         # explosao no impacto (overclock "Erupcao Solar" da Curupira)
         r, total = s["impact_explosion"]
@@ -219,6 +229,9 @@ def build_kinetic(s):
                   "HitEffects": [{"Type": "Damage", "Damage": _val(s.get("struct_damage", round(s["damage"] / 4)))},
                                  {"Type": "Impulse", "Impulse": _val(max(1, s.get("impulse", 5) / 2))}],
                   "MediaEffects": _media(preset, struct=True)}
+    if s.get("plasma_fx"):
+        hit_struct["MediaEffects"] = PFX.hit_media(s["plasma_fx"], s.get("plasma_oc"), "struct", s.get("volume", 0.6),
+                                                   s.get("max_conc", 30))
     # pecas atravessadas depois da primeira: perfurante com dano proprio (50% do primeiro acerto), demais repetem
     pen_op = {"ReduceEffectsByPenetration": True,
               "HitEffects": [{"Type": "Damage", "Damage": _val(s.get("pen_damage", s["damage"]))},
@@ -282,6 +295,10 @@ def _kinetic_components(s, hit):
                        "OnDeath": {"MediaEffects": "&~/Components/Hit/HitOperational/MediaEffects"}},
         "Hit": hit,
     }
+    if s.get("plasma_fx"):
+        # abatido no ar: so o estouro (respingo + clarao) e um chiado baixo, sem brasa de casco nem faiscas
+        comps["Targetable"]["OnDeath"]["MediaEffects"] = PFX.hit_media(s["plasma_fx"], s.get("plasma_oc"), "pop",
+                                                                       s.get("volume", 0.6))
     comps.update(_sprite_components(s))
     return comps
 
@@ -307,6 +324,10 @@ def _bolt_kinetic(s, top, hit_op, hit_struct):
                             "HitEffects": [{"Type": "Damage", "Damage": _val(s["shield_damage"])},
                                            {"Type": "Impulse", "Impulse": _val(s.get("impulse", 5))}],
                             "MediaEffects": "&../HitOperational/MediaEffects"}
+        if s.get("plasma_fx"):
+            # escudo: respingo achatado na face do escudo + clarao (o escudo ja desenha a propria ondulacao)
+            hit["HitShield"]["MediaEffects"] = PFX.hit_media(s["plasma_fx"], s.get("plasma_oc"), "shield",
+                                                             s.get("volume", 0.6), s.get("max_conc", 30))
     else:
         hit["HitShield"] = "&HitOperational"
     hit["HitOperational"] = hit_op
