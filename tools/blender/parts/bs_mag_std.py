@@ -2,11 +2,12 @@
 
 REWORK futurista (USER_NOTES 2026-10-21; SPEC 2.0 art_assets.assets.resources): caixa de carregador blindada da
 familia 2.0 (parts/_bs2_itens_helpers.magazine, exoesqueleto: bandeja de nucleo escuro, bochechas claras em cunha,
-placa traseira clara de bisel duplo com pega embutida e pastilhas ambar, vao em DIVISA com a fenda de LED AMBAR) e 3
-granadas HE do nivel S (as do Tambor 2.0: luva de composito clara com junta escura, faixa ambar, ogiva grafite e
-espoleta de aco de ponta chata com o anel do sensor) deitadas na bandeja, a do meio adiantada (a ponta vira seta).
+placa traseira clara de bisel duplo com cantos octogonais, pega embutida e a fenda preta com 3 pastilhas ambar, vao
+em DIVISA com a fenda de LED AMBAR) e 3 granadas HE do nivel S (as do Tambor 2.0: luva de composito clara com junta
+escura, faixa ambar, ogiva grafite e espoleta de aco com o anel do sensor) deitadas na bandeja, a do meio adiantada:
+a 1x a HE e a das 3 OGIVAS ESCURAS PONTUDAS em seta (a SAP tem tampas claras chatas, a AP agulhas).
 A ID e a da 1.x (Carregador Padrao); so a arte muda. A pilha (MAG_LAYOUT): 1 no centro, 2 lado a lado, 3 e 4 em
-duas fileiras de costas uma para a outra, 5 e 6 com a camada de cima deitada sobre as placas traseiras.
+duas fileiras de costas uma para a outra, 5 e 6 com a camada de cima CRUZADA (girada 90 graus) sobre as placas.
 """
 
 import bs3d as B  # noqa: F401  (contrato dos modelos)

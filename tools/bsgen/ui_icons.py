@@ -381,6 +381,31 @@ def fragment_fan(p, cx, cy, n, spread, r0=13.0, r1=30.0, th=2.6, layer="acc"):
                layer)
 
 
+def shard_fan(p, cx, cy, n, spread, r0=12.0, r1=34.0, w=7.0, layer="acc"):
+    """Leque de n ESTILHACOS triangulares (pipa: base estreita perto do centro, largura maxima a ~35% e ponta afiada
+    para fora) a partir de (cx, cy), abertura total 'spread' graus; tamanhos e giros alternados (nuvem irregular de
+    fragmentos, nao um repuxo de tracos)."""
+    for i in range(n):
+        ang = -spread / 2 + spread * i / max(1, n - 1)
+        big = i % 2 == 0
+        rr0 = r0 if big else r0 * 1.15
+        rr1 = r1 if big else r1 * 0.82
+        ww = w if big else w * 0.78
+        tw = 9.0 if (i // 2) % 2 == 0 else -9.0             # giro proprio de cada caco (irregular)
+        a, at = math.radians(ang), math.radians(ang + tw)
+        L = rr1 - rr0
+        bx, by = cx + math.sin(a) * rr0, cy - math.cos(a) * rr0
+        ux, uy = math.sin(at), -math.cos(at)                  # eixo do caco
+        nx, ny = -uy, ux
+        m = 0.36 * L
+        pts = [(bx - nx * ww * 0.18, by - ny * ww * 0.18),
+               (bx + ux * m - nx * ww / 2, by + uy * m - ny * ww / 2),
+               (bx + ux * L, by + uy * L),
+               (bx + ux * m * 0.8 + nx * ww / 2, by + uy * m * 0.8 + ny * ww / 2),
+               (bx + nx * ww * 0.18, by + ny * ww * 0.18)]
+        p.poly(pts, layer)
+
+
 def _case(p, cx, y0, y1, w, rim=3.0):
     """Corpo do cartucho 2.0 (de y0 ate a base y1) com o aro da base mais largo e a fresta do sulco do aro."""
     p.rect(cx - w / 2, y0, cx + w / 2, y1 - 4)
@@ -394,15 +419,15 @@ def icon_ammo2(kind):
     p = Pen()
     cx = 48
     if kind == "he":
-        # granada 2.0: espoleta de ponta chata (corpo estreito + anel do sensor), ogiva longa, 2 frestas de luva e o aro
+        # granada 2.0: ogiva PONTUDA com a espoleta curta separada pelo anel do sensor (le como granada, nao como
+        # garrafa), a juncao ogiva/luva + 1 fresta de luva (2 frestas no corpo, o spec) e o aro da base
         w = 26
-        p.poly([(cx - 4.2, 5), (cx + 4.2, 5), (cx + 5.6, 6.6), (cx + 5.6, 14), (cx - 5.6, 14), (cx - 5.6, 6.6)])
-        p.gap(cx - 8, 8.8, cx + 8, 10.8)                   # anel do sensor na espoleta
-        left, right = ogive_flat(cx, 14, 46, w, 6.0, sharp=0.9)
+        left, right = ogive(cx, 4, 46, w, sharp=0.75)
         p.poly(left + right[::-1])
+        p.gap(cx - 9, 15.4, cx + 9, 17.6)                   # anel do sensor: a ponta acima vira a espoleta
         p.gap(cx - w / 2 - 2, 45.6, cx + w / 2 + 2, 47.8)   # juncao ogiva / luva
         _case(p, cx, 47.8, 89, w)
-        sleeve_gaps(p, cx, 48, 83, 2, w)
+        sleeve_gaps(p, cx, 48, 84, 1, w)
         return p.render()
     if kind == "ap":
         # penetrador longo (dardo) com anel de sensor, colar do sabot em petalas, luva com 1 fresta e o aro
@@ -429,30 +454,30 @@ def icon_ammo2(kind):
         star(p, cx + w / 2 + 1, 56, 6.0, 14, n=7, rot=10)
         return p.render(ACC["fire"])
     if kind == "ac":
-        # guiada: corpo fino, ogiva longa com o buscador (anel), canards no ombro, aletas na cauda e a faixa de OURO
-        w = 22
-        left, right = ogive(cx, 6, 38, w, sharp=1.1)
+        # guiada, mas GRANADA: ogiva pontuda com o anel do buscador, canards PEQUENOS no ombro, a faixa de OURO e o
+        # estojo de canhao com o aro (sem as aletas de cauda: com elas o icone virava o missil_he)
+        w = 24
+        left, right = ogive(cx, 5, 42, w, sharp=1.0)
         p.poly(left + right[::-1])
-        p.gap(cx - 6, 13.2, cx + 6, 15.2)                 # anel do buscador
-        canards(p, cx, 30, w, span=7.5, h=7)
-        p.rect(cx - w / 2, 38, cx + w / 2, 84)
-        p.gap(cx - w / 2 - 3, 37.8, cx + w / 2 + 3, 40)
-        p.rect(cx - w / 2 - 1, 46, cx + w / 2 + 1, 54, "acc")   # faixa de ouro
-        p.gap(cx - w / 2 - 3, 44.2, cx + w / 2 + 3, 46.2)
-        p.gap(cx - w / 2 - 3, 54, cx + w / 2 + 3, 56)
-        fins(p, cx, 66, w, h=24, span=11)
-        p.poly([(cx - 8, 84), (cx + 8, 84), (cx + 9.5, 91), (cx - 9.5, 91)])
-        p.gap(cx - w / 2 - 12, 83.6, cx + w / 2 + 12, 85.4)
+        p.gap(cx - 7, 13.6, cx + 7, 15.6)                 # anel do buscador
+        canards(p, cx, 31, w, span=5.0, h=6)
+        p.gap(cx - w / 2 - 7, 41.6, cx + w / 2 + 7, 43.8)   # juncao ogiva / luva
+        _case(p, cx, 43.8, 89, w)
+        p.rect(cx - w / 2 - 1.5, 52, cx + w / 2 + 1.5, 61, "acc")   # faixa de ouro (cinta guia)
+        p.gap(cx - w / 2 - 3, 50, cx + w / 2 + 3, 52)
+        p.gap(cx - w / 2 - 3, 61, cx + w / 2 + 3, 63)
+        sleeve_gaps(p, cx, 63, 84, 1, w)
         return p.render(ACC["gold"])
     if kind == "frag":
-        # granada curta e gorda (luva de fragmentos com 3 frestas) e o leque de 7 tracos para a frente (verde-agua)
+        # granada curta e gorda (luva de fragmentos com 3 frestas) e o leque de 7 ESTILHACOS triangulares afiados
+        # para a frente (verde-agua): os tracos finos de antes liam como planta ou repuxo a 48 px
         w = 32
         left, right = ogive_flat(cx, 48, 60, w, 8.0, sharp=0.5)
         p.poly(left + right[::-1])
         p.gap(cx - w / 2 - 2, 59.6, cx + w / 2 + 2, 61.8)
         _case(p, cx, 61.8, 92, w)
         sleeve_gaps(p, cx, 61.8, 87, 2, w, th=2.2)
-        fragment_fan(p, cx, 50, 7, 124, r0=12, r1=34)
+        shard_fan(p, cx, 52, 7, 132, r0=17, r1=40, w=9.0)
         return p.render(ACC["teal"])
     raise ValueError(kind)
 

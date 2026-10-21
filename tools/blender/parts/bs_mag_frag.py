@@ -1,7 +1,8 @@
 """Carregador FRAG - Nuvem de Fragmentos (bs_mag_frag, 2.0, NOVO; so defesas); pilha de 6.
 
 A mesma caixa da familia (parts/_bs2_itens_helpers.magazine) com a fenda de LED e as pastilhas VERDE-AGUA
-(palette.frag) e 3 granadas de flak CURTAS e gordas: luva de fragmentos segmentada (aneis claros com sulcos pretos),
+(palette.frag 120,210,200: faixa, pastilhas e LED no mesmo matiz ~170, longe do verde nuclear) e 3 granadas de flak
+CURTAS e gordas (a ponta fica antes das outras): luva de fragmentos segmentada (aneis claros com sulcos pretos),
 faixa verde-agua e espoleta de proximidade chata (aro de aco com a lente escura). Os narizes curtos e os aneis
 listrados separam a FRAG das outras a 1x.
 """

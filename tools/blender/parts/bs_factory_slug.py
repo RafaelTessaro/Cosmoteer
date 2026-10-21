@@ -25,8 +25,10 @@ Animacao: 12 quadros x 0,25 s = 3,0 s = um projetil por volta (R07: F6 3,0 s): 0
 (o projetil anterior sai do berco em 1) | 4 desce para a prensa | 5 crava 2 colares (lampejo) | 6 avanca | 7 crava
 os outros 2 | 8 abre | 9-10 desce ao berco de acabamento e esfria | 11 a haste nova entra no forno.
 Teto: placas verdes; espinha central no estilo da Tupa (grafite com placas brancas grossas nas laterais, canal azul
-fino aceso, aneis segmentados com pinos laranja); tampas das colunas com respiros; escotilhas em seta nas
-entradas e na saida.
+fino aceso, aneis segmentados com pinos laranja); colunas com uma tampa por celula (capo com respiro em cima,
+tampa octogonal do acionamento embaixo, travessa escura com fresta azul entre elas); celula [1,2] (maquina) com o
+capuz do berco de acabamento (bochechas brancas + canal grafite com fresta azul, SEM seta); escotilhas em seta so
+nas entradas e na saida.
 """
 
 import math
@@ -47,8 +49,8 @@ PART = {
 W, HH = PART["size"]
 NF = PART["machine_frames"]
 RAIL_BLUE = (0.026, 0.171, 1.0)          # azul eletrico da Tupa nova (parts/bs_rail.py BLUE, 45 115 255)
-RAIL_ORANGE = (1.0, 0.36, 0.035)         # LED laranja de estado da Tupa nova (bs_rail.py ORANGE)
-ORANGE_P = (0.42, 0.125, 0.012)          # tinta laranja das molas e pinos (bs_rail.py ORANGE_P)
+RAIL_ORANGE = (1.0, 0.42, 0.035)         # LED laranja de estado da Tupa nova (bs_rail.py ORANGE)
+ORANGE_P = (0.60, 0.25, 0.020)           # tinta laranja-ouro das molas e pinos (bs_rail.py ORANGE_P refinado)
 GRAPH = (0.055, 0.057, 0.063)            # grafite da blindagem (igual a parts/bs_rail.py)
 FURN_Y0, FURN_Y1 = 1.12, 1.84            # tunel do forno
 PRESS_Y = 0.76                           # linha dos mordentes
@@ -137,11 +139,28 @@ def _column(prefix, sx, M, X, tags, hole):
 MILL_HOLE = [(-1.20, 0.44), (-0.82, 0.44), (-0.82, 1.76), (-1.20, 1.76)]
 
 
+def _well(prefix, x, M, X, tags, rails, slits, y0=0.47, y1=1.73):
+    """Fundo do gabinete (janela da coluna): piso grafite (core_mid) logo acima do leito preto do bezel, trilhos-guia
+    de aco ao longo de y, travessas nas pontas e frestas azuis fracas num rebaixo (o poco deixa de ser um buraco
+    preto com rolos flutuando)."""
+    K, KM, S = M["core"], M["core_mid"], M["steel"]
+    yc, L = (y0 + y1) / 2, y1 - y0
+    B.box(prefix + "_floor", x, yc, 0.36, L + 0.02, 0.16, 0.172, KM, bevel=0.0, tags=tags)
+    for k, dx in enumerate(rails):
+        B.box(f"{prefix}_rail{k}", x + dx, yc, 0.022, L, 0.172, 0.198, S, bevel=0.004, tags=tags)
+    for k, yy in enumerate((y0 + 0.03, y1 - 0.03)):
+        B.box(f"{prefix}_tie{k}", x, yy, 0.34, 0.035, 0.172, 0.205, KM, bevel=0.005, tags=tags)
+    for k, dx in enumerate(slits):
+        B.box(f"{prefix}_sk{k}", x + dx, yc, 0.026, L - 0.12, 0.170, 0.176, K, bevel=0.0, tags=tags)
+        B.box(f"{prefix}_sg{k}", x + dx, yc, 0.010, L - 0.16, 0.176, 0.179, X["blue_lo"], bevel=0.0, tags=tags)
+
+
 def _mill(M, Xm, X, tags, st):
     """Trefila de hastes: a haste sobe entre 3 pares de rolos de grafite (marcas correndo)."""
     K, KM, A, AM, S = M["core"], M["core_mid"], M["armor"], M["armor_mid"], M["steel"]
     _column("ml", -1, M, X, tags, MILL_HOLE)
     x = -1.01
+    _well("ml_w", x, M, X, tags, rails=(-0.165, 0.165), slits=(-0.048, 0.048))
     B.cyl("ml_rod", x, 1.10, 0.24, 0.024, 1.28, Xm["tungsten"], axis="Y", verts=8, bevel=0.0, tags=tags)
     for k, y in enumerate((0.64, 1.10, 1.56)):
         for sx in (-1, 1):
@@ -170,6 +189,7 @@ def _winder(M, Xm, X, tags, st):
     K, KM, A, AM, S = M["core"], M["core_mid"], M["armor"], M["armor_mid"], M["steel"]
     _column("wd", 1, M, X, tags, ARM_HOLE)
     x = 1.01
+    _well("wd_w", x, M, X, tags, rails=(-0.115, 0.115), slits=(-0.158, 0.158))
     # carretel (disco escuro com fio azul-grafite) girando
     B.cyl("wd_spool", x, 1.52, 0.20, 0.15, 0.06, X["graph"], axis="Z", verts=16, bevel=0.004, tags=tags)
     B.torus("wd_wire", x, 1.52, 0.26, 0.11, 0.022, B.mat_metal("f6_wire", (0.16, 0.22, 0.32), rough=0.3, metal=0.9),
@@ -229,7 +249,8 @@ def _press(M, Xm, X, tags, st):
     K, KM, A, AM, S = M["core"], M["core_mid"], M["armor"], M["armor_mid"], M["steel"]
     y = PRESS_Y
     B.box("pr_bed", 0, y, 0.94, 0.40, 0.0, 0.08, KM, bevel=0.01, tags=tags)
-    B.box("pr_chan", 0, y, 0.10, 0.40, 0.08, 0.085, M["black"], bevel=0.0, tags=tags)
+    B.box("pr_chan", 0, y, 0.10, 0.40, 0.08, 0.085, K, bevel=0.0, tags=tags)
+    B.box("pr_chang", 0, y, 0.012, 0.36, 0.085, 0.088, X["blue_lo"], bevel=0.0, tags=tags)
     g = 0.15 - 0.10 * st["jaws"]
     for sx in (-1, 1):
         jaw = [(0.0, -0.15), (0.13, -0.15), (0.16, -0.12), (0.16, 0.12), (0.13, 0.15), (0.0, 0.15), (-0.035, 0.07),
@@ -262,7 +283,8 @@ def _press(M, Xm, X, tags, st):
             B.box(f"pr_fl{k}", 0, y + dy, 0.13, 0.012, 0.40, 0.41, fl, bevel=0.0, tags=tags)
     for k, yy in enumerate((y + 0.27, y - 0.32)):
         B.box(f"pr_g{k}", 0, yy, 0.20, 0.10, 0.0, 0.16, KM, bevel=0.01, tags=tags)
-        B.box(f"pr_gk{k}", 0, yy, 0.06, 0.10, 0.16, 0.165, M["black"], bevel=0.0, tags=tags)
+        B.box(f"pr_gk{k}", 0, yy, 0.06, 0.10, 0.16, 0.165, K, bevel=0.0, tags=tags)
+        B.box(f"pr_gl{k}", 0, yy, 0.036, 0.012, 0.165, 0.168, X["blue_lo"], bevel=0.0, tags=tags)
 
 
 FHOOD = [(-0.47, -0.08), (-0.30, -0.08), (-0.22, -0.16), (-0.22, -0.76), (-0.30, -0.84), (-0.47, -0.84)]
@@ -273,7 +295,10 @@ def _finish(M, Xm, X, tags, st):
     K, KM, A, AM, S = M["core"], M["core_mid"], M["armor"], M["armor_mid"], M["steel"]
     B.plate("fn_block", B.rpoly(0, -0.5, 0.94, 0.94, 0, chamfer=0.14), 0.0, 0.035, K, slope=0.012, tags=tags)
     B.box("fn_tr", 0, -0.48, 0.30, 0.86, 0.03, 0.07, KM, bevel=0.008, tags=tags)
-    B.box("fn_well", 0, -0.48, 0.20, 0.82, 0.07, 0.074, M["black"], bevel=0.0, tags=tags)
+    B.box("fn_well", 0, -0.48, 0.20, 0.82, 0.07, 0.074, KM, bevel=0.0, tags=tags)
+    for sx in (-1, 1):
+        B.box(f"fn_wk{sx}", sx * 0.075, -0.48, 0.024, 0.74, 0.072, 0.076, K, bevel=0.0, tags=tags)
+        B.box(f"fn_wg{sx}", sx * 0.075, -0.48, 0.010, 0.70, 0.076, 0.079, X["blue_lo"], bevel=0.0, tags=tags)
     for sx in (-1, 1):
         B.box(f"fn_rail{sx}", sx * 0.13, -0.48, 0.02, 0.84, 0.04, 0.10, S, bevel=0.003, tags=tags)
         ha, hp = B.shard(f"fn_h{sx}", H.flip(sx)(FHOOD), 0.0, 0.30, A, slope=0.045, groove=0.02, panel_h=0.022,
@@ -347,17 +372,58 @@ def roof(M, T="roof"):
         B.cut(rg, [B.box(f"sp_rgc{k}", 0, y, 0.10, 0.10, 0.2, 0.8, K, bevel=0.0)])
         for sx in (-1, 1):
             B.box(f"sp_pin{k}{sx}", sx * 0.20, y, 0.04, 0.03, 0.36, 0.38, X["orange"], bevel=0.004, tags=tags)
-    # tampas das colunas (trefila / bobinadeira): capo claro com respiro e fenda azul
+    # colunas (trefila / bobinadeira), uma tampa por celula sobre a placa verde (a cada ~0,3-0,5 quadro uma quebra,
+    # STYLE 1.8): em cima o capo do motor com respiro, linha de painel e fenda de LEDs; embaixo a tampa octogonal do
+    # acionamento (coroa clara de 6 segmentos sobre base escura, cubo grafite com LED azul e pinos laranja); entre
+    # as duas, a travessa escura da coluna com a fresta azul
     for sx in (-1, 1):
-        cov = H.flip(sx)([(-1.36, 1.80), (-1.26, 1.90), (-0.74, 1.90), (-0.64, 1.80), (-0.64, 0.30), (-0.74, 0.20),
-                          (-1.26, 0.20), (-1.36, 0.30)])
-        B.plate(f"rf_ck{sx}", B.offset_poly(cov, -0.03), 0.06, 0.10, K, slope=0.01, tags=tags)
-        ca, cp = B.shard(f"rf_cov{sx}", cov, 0.09, 0.26, A, slope=0.05, groove=0.022, panel_h=0.024, tags=tags)
-        H.vent(f"rf_cv{sx}", sx * 1.0, 1.42, 0.40, 0.42, 0.21, 0.26, M, tags, n=5, targets=[ca, cp])
-        H.ledslot(f"rf_cs{sx}", sx * 1.0, 0.86, 0.034, 0.40, 0.21, 4, M, tags, [ca, cp], pw=0.016,
+        cx = sx * 1.0
+        hood = B.rpoly(cx, 1.50, 0.66, 0.64, 0, chamfer=0.11)
+        B.plate(f"rf_ck{sx}", B.offset_poly(hood, -0.03), 0.06, 0.10, K, slope=0.01, tags=tags)
+        ca, cp = B.shard(f"rf_cov{sx}", hood, 0.09, 0.26, A, slope=0.05, groove=0.022, panel_h=0.024, tags=tags)
+        H.vent(f"rf_cv{sx}", cx, 1.645, 0.40, 0.20, 0.21, 0.26, M, tags, n=4, targets=[ca, cp])
+        if cp is not None:
+            B.cut(cp, [B.box(f"rf_cpl{sx}", cx, 1.475, 0.52, 0.022, 0.24, 0.8, K, bevel=0.0)])
+        H.ledslot(f"rf_cs{sx}", cx, 1.33, 0.34, 0.034, 0.21, 4, M, tags, [ca, cp], vertical=False, pw=0.016,
                   pips=[X["blue_lo"], None, X["blue_lo"], X["led_o"]])
-        B.bolts(f"rf_cb{sx}", [(sx * 1.26, 0.30), (sx * 0.74, 0.30)], 0.26, 0.016, S, tags=tags)
-    # celula [1,2]: escotilha em seta (o projetil desce para a saida)
-    pa, pp = deck[(1, 2)]
-    H.roof_hatch("rf_mid", M, 0.0, -0.5, 270, (pa, pp), T=T, led_mat=X["blue_lo"])
+        B.bolts(f"rf_cb{sx}", [(cx - 0.25, 1.235), (cx + 0.25, 1.235)], 0.26, 0.016, S, tags=tags)
+        oc = (cx, 0.50)
+        B.plate(f"rf_dk{sx}", H.octo(oc[0], oc[1], 0.31), 0.04, 0.13, K, slope=0.015, tags=tags)
+        for k in range(6):
+            a = 60 * k
+            seg = [(oc[0] + math.cos(math.radians(a + d)) * r, oc[1] + math.sin(math.radians(a + d)) * r)
+                   for r, d in ((0.17, -22), (0.285, -22), (0.285, 0), (0.285, 22), (0.17, 22), (0.17, 0))]
+            B.shard(f"rf_dseg{sx}{k}", seg, 0.12, 0.22, A, slope=0.02, groove=0.01, panel_h=0.012, tags=tags)
+        B.plate(f"rf_dhub{sx}", H.octo(oc[0], oc[1], 0.12), 0.12, 0.20, X["graph"], slope=0.015, tags=tags)
+        B.cyl(f"rf_dled{sx}", oc[0], oc[1], 0.20, 0.032, 0.008, X["blue_lo"], axis="Z", verts=8, bevel=0.0,
+              tags=tags)
+        for k in range(3):
+            a = 90 + 120 * k
+            B.rbox(f"rf_dpin{sx}{k}", oc[0] + math.cos(math.radians(a)) * 0.085,
+                   oc[1] + math.sin(math.radians(a)) * 0.085, 0.034, 0.026, 0.20, 0.215, X["orange"], rot=a,
+                   bevel=0.004, tags=tags)
+        B.box(f"rf_cr{sx}", cx, 0.995, 0.20, 0.40, 0.06, 0.14, KM, bevel=0.012, tags=tags)
+        B.box(f"rf_crk{sx}", cx, 0.995, 0.05, 0.28, 0.14, 0.145, K, bevel=0.0, tags=tags)
+        B.box(f"rf_crg{sx}", cx, 0.995, 0.016, 0.24, 0.145, 0.149, X["blue_lo"], bevel=0.0, tags=tags)
+        B.bolts(f"rf_crb{sx}", [(cx - 0.065, 0.86), (cx + 0.065, 1.13)], 0.14, 0.014, S, tags=tags)
+    # celula [1,2] (maquina, bloqueada): capuz do berco de acabamento, a continuacao da espinha da Tupa - bochechas
+    # brancas com fendas de LED, canal grafite com a fresta azul do projetil esfriando e pinos laranja. Sem seta:
+    # so as entradas e as saidas levam escotilha em seta.
+    B.plate("rf_fb", B.rpoly(0, -0.5, 0.66, 0.86, 0, chamfer=0.12), 0.04, 0.13, K, slope=0.015, tags=tags)
+    cheek = [(-0.31, -0.12), (-0.17, -0.12), (-0.13, -0.16), (-0.13, -0.84), (-0.17, -0.88), (-0.31, -0.88)]
+    for sx in (-1, 1):
+        ha, hp = B.shard(f"rf_fh{sx}", H.flip(sx)(cheek), 0.10, 0.27, A, slope=0.035, groove=0.016, panel_h=0.018,
+                         tags=tags)
+        if hp is not None:
+            B.cut(hp, [B.box(f"rf_fpl{sx}", sx * 0.22, -0.37, 0.16, 0.02, 0.25, 0.8, K, bevel=0.0)])
+        H.ledslot(f"rf_fs{sx}", sx * 0.22, -0.63, 0.034, 0.30, 0.20, 3, M, tags, [ha, hp], pw=0.016,
+                  pips=[X["blue_lo"], X["blue_lo"], X["led_o"]])
+    ch = B.plate("rf_fch", B.rpoly(0, -0.5, 0.22, 0.80, 0, chamfer=0.04), 0.10, 0.21, X["graph"], slope=0.02,
+                 tags=tags)
+    B.cut(ch, [B.box("rf_fchc", 0, -0.5, 0.05, 0.66, 0.18, 0.6, K, bevel=0.0)])
+    B.box("rf_fchb", 0, -0.5, 0.05, 0.66, 0.175, 0.18, K, bevel=0.0, tags=tags)
+    B.box("rf_fchg", 0, -0.5, 0.022, 0.62, 0.18, 0.185, X["blue"], bevel=0.0, tags=tags)
+    for k, y in enumerate((-0.20, -0.80)):
+        for sx in (-1, 1):
+            B.box(f"rf_fpin{k}{sx}", sx * 0.07, y, 0.04, 0.03, 0.21, 0.225, X["orange"], bevel=0.004, tags=tags)
     H.roof_unpaint(T)

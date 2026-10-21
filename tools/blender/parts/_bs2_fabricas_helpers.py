@@ -519,7 +519,7 @@ def _slug(M, Xm, tags, collars=4, heat=0.0, lit=True, rod_only=False):
         return
     tipm = B.mat_metal("f2_tipblue", (0.30, 0.37, 0.48), rough=0.32, metal=0.5)
     B.cyl("sg_tip", 0, 0.225, r, r, 0.05, tipm, axis="Y", verts=8, bevel=0.0, tags=tags, r2=0.003)
-    orange = B.mat_paint("f2_railorange", (0.42, 0.125, 0.012), rough=0.36, metal=0.3, wear=0.0, grime=0.0, scale=6)
+    orange = B.mat_paint("f2_railorange", (0.60, 0.25, 0.020), rough=0.36, metal=0.3, wear=0.0, grime=0.0, scale=6)
     B.cyl("sg_oc", 0, 0.185, r, r * 1.35, 0.016, orange, axis="Y", verts=8, bevel=0.0, tags=tags)
     for sx in (-1, 1):
         poly = [(sx * r * 0.7, -0.20), (sx * r * 2.6, -0.21), (sx * r * 2.6, -0.17), (sx * r * 0.7, -0.13)]

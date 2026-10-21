@@ -100,6 +100,7 @@ def _extra(st=None):
         "glint": B.mat_paint("f5_glint", (0.42, 0.50, 0.47), rough=0.15, metal=0.0, wear=0.0, grime=0.0, scale=4),
         "lead": B.mat_metal("f5_lead", (0.075, 0.08, 0.085), rough=0.55, metal=0.5),
         "mid": B.mat_paint("f5_mid", (0.26, 0.268, 0.28), rough=0.5, metal=0.3, wear=0.0, grime=0.05, scale=4),
+        "wfloor": B.mat_metal("f5_wfloor", (0.030, 0.052, 0.040), rough=0.38, metal=0.8),
     }
 
 
@@ -196,7 +197,18 @@ def _hotcell(M, Xm, X, tags, st):
                       for dy in (-1, 1)], 0.50, 0.016, KM, tags=tags)
     # moldura: fendas de pips verdes nos lados, linha de painel em cima, fenda na cunha de baixo
     if fp is not None:
-        B.cut(fp, [B.box("hc_tpl", wx, 1.71, 0.90, 0.024, 0.48, 0.9, K, bevel=0.0)])
+        # linhas de painel na moldura (STYLE 1.8: uma quebra a cada 0,3-0,5 quadro): faixa de cima, lados e cunha de
+        # baixo partidas em placas menores
+        cuts = [B.box("hc_tpl", wx, 1.71, 0.90, 0.024, 0.48, 0.9, K, bevel=0.0)]
+        for sx in (-1, 1):
+            cuts.append(B.box(f"hc_tv{sx}", sx * 0.30, 1.69, 0.022, 0.24, 0.48, 0.9, K, bevel=0.0))
+            cuts.append(B.box(f"hc_sh{sx}", sx * 0.735, 1.24, 0.30, 0.022, 0.48, 0.9, K, bevel=0.0))
+            cuts.append(B.box(f"hc_sl{sx}", sx * 0.735, 0.86, 0.30, 0.022, 0.48, 0.9, K, bevel=0.0))
+            cuts.append(B.box(f"hc_bv{sx}", sx * 0.30, 0.55, 0.022, 0.24, 0.48, 0.9, K, bevel=0.0))
+            cuts.append(B.rbox(f"hc_bd{sx}", sx * 0.67, 0.62, 0.20, 0.022, 0.48, 0.9, K, rot=-sx * 50, bevel=0.0))
+        B.cut(fp, cuts)
+    for sx in (-1, 1):
+        H.vent(f"hc_sv{sx}", sx * 0.725, 1.05, 0.14, 0.24, 0.44, 0.50, M, tags, n=3, targets=[fa, fp])
     for sx in (-1, 1):
         H.ledslot(f"hc_side{sx}", sx * 0.78, 1.42, 0.034, 0.24, 0.46, 3, M, tags, [fa, fp], pip_mat=X["led_lo"],
                   pw=0.016)
@@ -333,6 +345,15 @@ def _lathe(M, Xm, X, tags, st):
     hole = [(-1.84, 0.42), (-1.50, 0.42), (-1.50, 1.62), (-1.84, 1.62)]
     H.bezel("la_win", hole, B.offset_poly(hole, 0.02), 0.20, 0.40, M, tags, (ca, cp))
     x = -1.67
+    # fundo do poco: piso grafite esverdeado (nao um buraco preto), trilhos-guia do carro da ferramenta, travessas e
+    # frestas verdes fracas num rebaixo
+    B.box("la_floor", x, 1.02, 0.32, 1.18, 0.20, 0.212, X["wfloor"], bevel=0.0, tags=tags)
+    for k, sx in enumerate((-1, 1)):
+        B.box(f"la_rail{k}", x + sx * 0.14, 1.02, 0.022, 1.14, 0.212, 0.24, S, bevel=0.004, tags=tags)
+        B.box(f"la_sk{k}", x + sx * 0.115, 1.02, 0.024, 0.98, 0.210, 0.215, K, bevel=0.0, tags=tags)
+        B.box(f"la_sg{k}", x + sx * 0.115, 1.02, 0.010, 0.94, 0.215, 0.218, X["led_lo"], bevel=0.0, tags=tags)
+    for k, yy in enumerate((0.47, 1.57)):
+        B.box(f"la_tie{k}", x, yy, 0.30, 0.04, 0.212, 0.245, KM, bevel=0.005, tags=tags)
     B.box("la_head", x, 1.52, 0.22, 0.10, 0.20, 0.32, KM, bevel=0.01, tags=tags)
     B.box("la_tail", x, 0.52, 0.14, 0.06, 0.20, 0.30, KM, bevel=0.01, tags=tags)
     B.cyl("la_body", x, 1.0, 0.30, 0.10, 0.84, A, axis="Y", verts=12, bevel=0.006, tags=tags)

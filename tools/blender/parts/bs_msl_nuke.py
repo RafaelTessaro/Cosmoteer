@@ -18,7 +18,7 @@ PART = {
     "accent": "green",
     "max_stack": 2,
     "unit_scale": IT.NK_SCALE,
-    "icon_scale": 0.92,
+    "icon_scale": 0.85,                 # o halo do overlay (borrao de 5 px) cabe inteiro nos 128 px
     "stack_layout": IT.NK_LAYOUT,
     "stack_rot": [0, 0, 0, 0, 0, 0],
 }
