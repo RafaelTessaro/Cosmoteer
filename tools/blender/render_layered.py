@@ -63,6 +63,21 @@ icon.png, blueprints.png e meta.json:
      "walls": "walls.png" | null, "icon": "icon.png", "blueprints": "blueprints.png", "files": [...],
      "crew_pos": [...], "notes": [...]}      # crew_pos/notes: copiados de PART (as notas sao para quem liga as regras)
 
+Extensoes da logistica 2.0 (paiois, fita, placas; todas opcionais, sem elas nada muda):
+
+    PART["folder"] = "bs_paiol", PART["sub"] = "1x1"   # varias PARTS numa pasta SO (art3d/<folder>/): o meta.json
+        vira {"version": 1, "kind": "layered", "shared": true, "id": PART["folder_id"], "folder": ...,
+              "parts": {sub: <meta normal da peca>, ...}, "files": [uniao]}; --part re-renderiza uma e mescla
+    PART["walls_file"] / PART["blueprints_file"]       # nomes do walls.png / blueprints.png (pasta compartilhada)
+    PART["meta_extra"] = {...}                          # copiado para o meta da peca (ex.: retangulo da placa)
+    PART["icon"]["file"] = "icon_{v}_1x1.png", ["per_variant"] = "roof"   # um icone por variante daquela camada
+    PART["icon"]["ppt"] = 64                            # px por quadro do icone (em vez de "size")
+    PART["icon"]["extra"] = "<funcao>"                  # fn(P, out, img, variant) -> img: cola placa/medidor no icone
+    camada "post": "<funcao>"                           # fn(P, layer, path_png, **kw) depois de gravar cada sprite (o
+                                                        # alfa das normais e re-sincronizado depois)
+    camada "px": [w, h]                                 # so camadas "pil:": tamanho da TEXTURA diferente de rect x 64
+                                                        # (digitos 24 x 40 desenhados no tamanho do rect)
+
 Este arquivo nao muda render_part.py: ele so importa de la os utilitarios (emission_pass, warn_empty,
 _oc_glow_sprite). Contrato de estilo: tools/blender/STYLE.md.
 """
@@ -268,6 +283,10 @@ def render_layer(mod, P, layer, out):
     name = layer["name"]
     rect = rect_of(P, layer)
     px = rect_px(rect)
+    if layer.get("px"):                              # extensao: textura de tamanho proprio (so camadas PIL)
+        if not layer.get("fn", name).startswith("pil:"):
+            raise SystemExit(f"{P['id']}/{name}: 'px' so vale para camadas 'pil:'")
+        px = (int(layer["px"][0]), int(layer["px"][1]))
     cx, cy = rect_center(P, rect)
     fn = layer.get("fn", name)
     files, norms = [], []
@@ -279,6 +298,8 @@ def render_layer(mod, P, layer, out):
             if img.size != px:
                 raise SystemExit(f"{P['id']}/{name}: a funcao PIL devolveu {img.size}, esperado {px}")
             img.save(stem + ".png")
+            if layer.get("post"):
+                getattr(mod, layer["post"])(P, layer, stem + ".png", **kw)
             files.append(fname)
             continue
         M = fresh(P.get("accent", "amber"))
@@ -295,6 +316,8 @@ def render_layer(mod, P, layer, out):
             else:
                 img = RP._oc_glow_sprite(em, blur_px=layer.get("halo_px", 3.0), gain=layer.get("gain", 1.1))
             img.save(stem + ".png")
+            if layer.get("post"):
+                getattr(mod, layer["post"])(P, layer, stem + ".png", **kw)
             files.append(fname)
             continue
         want_n = bool(layer.get("normals"))
@@ -318,6 +341,12 @@ def render_layer(mod, P, layer, out):
                 arr = np.asarray(n).copy()
                 arr[..., 3] = 255
                 Image.fromarray(arr, "RGBA").save(stem + "_normals.png")
+        if layer.get("post"):                        # extensao: pos-processo PIL do sprite (alinhado ao pixel)
+            getattr(mod, layer["post"])(P, layer, stem + ".png", **kw)
+            if want_n:
+                n = np.asarray(_load(stem + "_normals.png")).copy()
+                n[..., 3] = np.asarray(_load(stem + ".png"))[..., 3]
+                Image.fromarray(n, "RGBA").save(stem + "_normals.png")
         files.append(fname)
         if want_n:
             norms.append(normals_name(fname))
@@ -328,6 +357,8 @@ def render_layer(mod, P, layer, out):
     for k in ("levels", "frames", "variants", "situations", "interval", "blend"):
         if k in layer:
             ent[k] = layer[k]
+    if layer.get("px"):
+        ent["px"] = [int(px[0]), int(px[1])]
     ent["opaque"] = bool(layer.get("opaque"))
     ent["emission_only"] = bool(layer.get("emission_only"))
     ent["islands"] = bool(layer.get("islands"))
@@ -358,7 +389,7 @@ def composite(P, out, meta_layers, pick=None, paint=None, roof=True, lights=None
     W, H = P["size"]
     roofs = ("roofs", "roof_doodads", "roof_turrets", "roof_lights_fancy")
     stack = []
-    wp = os.path.join(out, "walls.png")
+    wp = os.path.join(out, P.get("walls_file", "walls.png"))
     if os.path.exists(wp):
         stack.append((GAME_LAYERS.index("walls"), -1, _load(wp), (0, 0)))
     for k, (name, ent) in enumerate(meta_layers.items()):
@@ -397,17 +428,32 @@ def composite(P, out, meta_layers, pick=None, paint=None, roof=True, lights=None
 
 
 def make_icon(P, out, meta_layers):
+    """icon.png (ou PART["icon"]["file"]); com "per_variant": <camada> um icone por variante daquela camada
+    ({v} no nome). Devolve o nome (ou a lista de nomes, com per_variant)."""
     ic = P.get("icon")
     if not ic:
         return None
     W, H = P["size"]
-    pick = {n: (0 if n in ic.get("layers", meta_layers) else None) for n in meta_layers}
-    pick.update(ic.get("pick", {}))
-    lights = {n: (v[0], v[1]) for n, v in ic.get("lights", {}).items()}
-    img = composite(P, out, meta_layers, pick=pick, paint=ic.get("paint", [120, 124, 132]), lights=lights)
-    img = img.resize(tuple(ic["size"]), Image.LANCZOS)
-    img.save(os.path.join(out, "icon.png"))
-    return "icon.png"
+    size = tuple(ic["size"]) if "size" in ic else (int(W * ic["ppt"]), int(H * ic["ppt"]))
+    pv = ic.get("per_variant")
+    variants = [None]
+    if pv:
+        variants = list(meta_layers[pv].get("variants") or [])
+    names = []
+    for k, v in enumerate(variants):
+        pick = {n: (0 if n in ic.get("layers", meta_layers) else None) for n in meta_layers}
+        pick.update(ic.get("pick", {}))
+        if pv:
+            pick[pv] = k
+        lights = {n: (vv[0], vv[1]) for n, vv in ic.get("lights", {}).items()}
+        img = composite(P, out, meta_layers, pick=pick, paint=ic.get("paint", [120, 124, 132]), lights=lights)
+        if ic.get("extra"):
+            img = ic["_mod"].__dict__[ic["extra"]](P, out, img, v)
+        img = img.resize(size, Image.LANCZOS)
+        name = ic.get("file", "icon.png").format(v=v)
+        img.save(os.path.join(out, name))
+        names.append(name)
+    return names if pv else names[0]
 
 
 def make_blueprint(P, out, meta_layers):
@@ -430,8 +476,9 @@ def make_blueprint(P, out, meta_layers):
             spr = Image.fromarray(a.astype(np.uint8), "RGBA")
         for r in ent_rects(ent):
             sil.alpha_composite(spr, (int(round(r[0] * PX)), int(round(r[1] * PX))))
-    blueprint_from(W, H, sil).save(os.path.join(out, "blueprints.png"))
-    return "blueprints.png"
+    name = P.get("blueprints_file", "blueprints.png")
+    blueprint_from(W, H, sil).save(os.path.join(out, name))
+    return name
 
 
 # ============================================================================ uma peca
@@ -453,6 +500,8 @@ def render_layered(mod, P, out, only):
     layers = {}
     mp = os.path.join(out, "meta.json")
     old = json.load(open(mp)) if (only and os.path.exists(mp)) else {}
+    if P.get("folder"):                              # pasta compartilhada: o meta antigo DESTA peca
+        old = old.get("parts", {}).get(P["sub"], {}) if old.get("shared") else {}
     for l in P["layers"]:
         if only and l["name"] not in only and "hull" not in only:
             if l["name"] in old.get("layers", {}):
@@ -481,27 +530,47 @@ def render_layered(mod, P, out, only):
             Image.fromarray(o.astype(np.uint8), "RGBA").save(os.path.join(out, f))
         print(f"  camada {l['name']}: pixels de {sa['layer']}{sa['index']} (same_as)")
     files = []
+    wname = P.get("walls_file", "walls.png")
     wimg = walls_png(W, H, P.get("walls", "closed"))
     if wimg is not None:
-        wimg.save(os.path.join(out, "walls.png"))
-        files.append("walls.png")
+        wimg.save(os.path.join(out, wname))
+        files.append(wname)
     for ent in layers.values():
         files += ent["files"] + (ent["normals"] or [])
     meta = {"version": 1, "kind": "layered", "id": P["id"], "size": [W, H], "layers": layers,
-            "walls": "walls.png" if wimg is not None else None}
+            "walls": wname if wimg is not None else None}
     if all(os.path.exists(os.path.join(out, f)) for e in layers.values() for f in e["files"]):
+        if P.get("icon") and P["icon"].get("extra"):
+            P["icon"]["_mod"] = mod
         ic = make_icon(P, out, layers)
+        if P.get("icon"):
+            P["icon"].pop("_mod", None)
         bp = make_blueprint(P, out, layers)
         if ic:
             meta["icon"] = ic
-            files.append(ic)
+            files += ic if isinstance(ic, list) else [ic]
         if bp:
             meta["blueprints"] = bp
             files.append(bp)
     for k in ("crew_pos", "notes"):
         if k in P:
             meta[k] = P[k]
+    meta.update(P.get("meta_extra", {}))
     meta["files"] = sorted(set(files))
+    if P.get("folder"):
+        meta["sub"] = P["sub"]
+        shared = json.load(open(mp)) if os.path.exists(mp) else {}
+        if not shared.get("shared"):
+            shared = {}
+        parts = shared.get("parts", {})
+        parts[P["sub"]] = meta
+        top = {"version": 1, "kind": "layered", "shared": True, "id": P.get("folder_id", P["id"]),
+               "folder": P["folder"], "parts": dict(sorted(parts.items())),
+               "files": sorted({f for m in parts.values() for f in m["files"]})}
+        if P.get("folder_notes"):
+            top["notes"] = P["folder_notes"]
+        json.dump(top, open(mp, "w"), indent=1, ensure_ascii=False)
+        return meta
     json.dump(meta, open(mp, "w"), indent=1, ensure_ascii=False)
     return meta
 
@@ -533,7 +602,8 @@ def main():
         for ps, P in parts.items():
             if want and ps not in want:
                 continue
-            out = os.path.join(base_out, ps) if base_out else os.path.join(ROOT, "art3d", ps)
+            folder = P.get("folder", ps)             # extensao: varias pecas numa pasta compartilhada
+            out = os.path.join(base_out, folder) if base_out else os.path.join(ROOT, "art3d", folder)
             render_layered(mod, P, out, only)
     else:
         out = base_out or os.path.join(ROOT, "art3d", short)

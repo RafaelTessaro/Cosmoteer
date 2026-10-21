@@ -1,35 +1,38 @@
-"""Prensa de Carregadores (Magazine Press) 2x2 - empacota 5 balas de canhao em 1 Carregador Padrao.
+"""F1 Prensa HE (HE Press) 2x2 - funde e prensa o Carregador HE a partir de enxofre (spec 2.0, factories F1).
 
-Layout fixo das regras (tools/bsgen/factory.py): fileira de cima = maquinario (bloqueado para a tripulacao);
-fileira de baixo = grade de ENTRADA no tile da esquerda e de SAIDA no tile da direita, onde o jogo desenha as
-pilhas de recursos. Coordenadas centradas na peca, +Y = frente (topo da imagem), 1 unidade = 1 tile.
+Mesmo ID da 1.x (rafaeltessaro.bs_factory_mag_std), arte REFEITA para a 2.0: o insumo agora e enxofre bruto.
+Grade (vanilla factory_ammo 2x2): fileira de cima = maquinario (BlockedTravelCells [0,0],[1,0]); fileira de
+baixo = ENTRADA de enxofre [0,1] (esquerda) e SAIDA do Carregador HE [1,1] (direita). As duas bases ficam livres
+(o jogo desenha as pilhas ali e a tripulacao chega pelas portas [-1,1], [2,1], [0,2], [1,2]).
+Coordenadas centradas na peca, +Y = frente (topo da imagem), 1 unidade = 1 quadro.
 
-Maquinario (fileira de cima), na linguagem da familia (nucleo escuro + lascas claras com bisel duplo):
-  * cilindro hidraulico facetado (como um cano curto e grosso, com canal escuro, LED e colar) no centro,
-    apontado para a matriz; o martelo em ponta de seta avanca e bate na bigorna da matriz;
-  * ombreiras em L (as "garras" da familia): a garra interna aponta para a matriz, a externa desce pela ponta
-    ate o modulo do rotor; aleta com fenda de pips, baia de respiro e cacador ambar; tambores acumuladores
-    com contador nos vaos escuros;
-  * esteira de alimentacao: as balas de canhao (corpo cinza-azulado e ogiva de latao, como a bala do jogo que
-    fica na grade de entrada) saem do alimentador esquerdo e entram na matriz; a janela da matriz mostra as
-    balas sendo empacotadas (1..5) com o contador ambar abaixo;
-  * esteira de saida: carregadores prontos (o proprio modelo do Carregador Padrao, parts/bs_mag_std.py, em
-    miniatura e com a cunha apontando para a saida) saem por baixo da matriz e somem no ejetor direito;
-  * rotores nos modulos das pontas, bicos de entrada/saida com setas ambar em calhas escuras;
-  * LEDs das grades (na borda de cima de cada berco, fora da area das pilhas) ficam no quadro da maquina, para
-    apagarem junto com ela.
-A animacao (phase 0..1, 10 quadros = 1,25 s = intervalo da receita) e um ciclo da prensa: carrega 5 balas,
-avanca o martelo, bate (lampejo e duas faiscas laranja), recua e ejeta um carregador.
-Teto: placas verdes (pintura) e a cabeca blindada da prensa em seta (espinha = carcaca do martelo com trilhos-guia
-de aco, tampa com fendas de respiro e visor de inspecao com o contador de 4 pips do carregador; ombreiras com
-respiro, laminas diagonais com fenda de luz); escotilhas das grades com setas de entrada/saida.
+Maquinario (familia das armas: cascas claras com bisel duplo sobre nucleo escuro, LEDs ambar so em recessos):
+  * TREMONHA DE ENXOFRE (esquerda, sobre a base de entrada): casca clara com janela octogonal em degrau que
+    mostra o funil escuro em aneis com os graos amarelos girando e o agitador de 3 pas; a CALHA desce da
+    tremonha ate a borda da base de entrada (graos subindo, seta ambar para cima na boca);
+  * ROSCA ALIMENTADORA: calha aberta da tremonha ate a matriz, com a rosca (palhetas de aco inclinadas que
+    andam) levando os graos;
+  * MATRIZ DE FUNDICAO (meio-direita): bloco claro em U com a cavidade do carregador (janela escura) e o portao
+    de baixo; enche de graos (3 quadros), o martelo prensa (lampejo e 2 faiscas), o carregador sai em brasa,
+    o portao abre e o Carregador HE 2.0 (caixa blindada, 3 municoes, faixa ambar) desce para a saida;
+  * MARTELO: cilindro hidraulico facetado no alto (canal escuro com LED que acende na batida) e cabeca em seta
+    que desce sobre a matriz;
+  * BOCA DE SAIDA embaixo da matriz (capuz escuro, guias de aco, seta ambar para baixo) e o modulo de bomba
+    hidraulica na faixa da direita (fenda de pips, mangueiras ate o cilindro).
+Animacao: 10 quadros x 0,125 s = 1,25 s = um carregador por volta (econ interval_s_base 1,25):
+  0 repouso (= sprite desligado) | 1-3 a rosca enche a cavidade | 4 o martelo desce | 5 batida (lampejo, faiscas,
+  o carregador aparece fundido, pontas em brasa) | 6 segura | 7 recua, o portao abre | 8-9 o carregador desce
+  para a boca de saida.
+Teto: placas verdes (pintura) nas bases com escotilhas em seta (entra / sai) e, sobre a fileira de cima, a coroa
+blindada: tampa octogonal da tremonha (bocal de carga e respiros radiais), torre da prensa em seta apontando
+para a saida (espinha com visor de contagem e trilhos-guia), lamina diagonal e ombreiras com respiros.
 """
 
 import math
 
 import bs3d as B
 import models as Mo
-from parts import bs_mag_std as MAG
+from parts import _bs2_fabricas_helpers as H
 
 PART = {
     "id": "rafaeltessaro.bs_factory_mag_std",
@@ -40,399 +43,361 @@ PART = {
     "machine_interval": 0.125,
 }
 
-NFR = PART["machine_frames"]
-# geometria compartilhada (fileira de cima: y em [0, 1]; as paredes cobrem 0.11 nas bordas da peca)
-BELT_Y0, BELT_Y1 = 0.10, 0.37      # faixa da esteira
-BELT_YC = (BELT_Y0 + BELT_Y1) / 2
-DIE_X, DIE_Y1 = 0.235, 0.40        # meia largura e fundo da ponte da matriz
-CAP_X = 0.59                       # borda interna dos modulos das pontas
-LANE = 0.295                       # meia largura do corredor do martelo (entre as ombreiras)
-RAM_IN, RAM_OUT = 0.548, 0.402     # frente do martelo recolhido / batendo
-RAM_D = 0.14                       # profundidade do martelo
-CYL_Y0, CYL_Y1 = 0.695, 0.885      # cilindro hidraulico
-CYL_Z, CYL_R = 0.27, 0.20
+W, HH = PART["size"]
+NF = PART["machine_frames"]
+HOP = (-0.55, 0.60)        # centro da janela da tremonha
+HOP_R = 0.185              # raio da janela octogonal
+CHUTE_X = -0.50            # calha de entrada (centro da base de entrada)
+AUG_Y = 0.335              # rosca alimentadora
+AUG_X0, AUG_X1 = -0.36, 0.25
+DIE = (0.45, 0.375)        # centro da cavidade da matriz
+CAV = (0.24, 0.17)         # cavidade (largura, altura)
+RAM_X = DIE[0]
+RAM_IN, RAM_OUT = 0.685, 0.545   # frente do martelo recolhido / batendo
+CYL_Y0, CYL_Y1 = 0.70, 0.885
+OUT_X = 0.50               # boca de saida (centro da base de saida)
+MAG_S = 0.80               # escala do Carregador HE na matriz (0.24 x 0.17 quadro)
+
+META_EXTRA = {
+    "factory_code": "F1",
+    "name_ptbr": "Prensa HE",
+    "grid": {"blocked": [[0, 0], [1, 0]], "inputs": {"sulfur": [0, 1, 1, 1]},
+             "outputs": {"he": [1, 1, 1, 1]}},
+    "notes": ["10 quadros x 0,125 s = 1,25 s = um Carregador HE por volta (interval_s_base 1,25)",
+              "lights.png vem do quadro 1 (repouso): so LEDs pequenos"],
+}
 
 
-def _mat_rough():
-    """Cinza medio fosco (escotilhas e cantoneiras): sem o brilho frio da contraluz nos chanfros de baixo."""
-    return B.mat_paint("armor_mid_rough", Mo.ARMOR_MID, rough=0.72, metal=0.12, wear=0.3, grime=0.1)
-
-
-def _frame(phase):
-    return int(round(phase * NFR)) % NFR
-
-
-def _ram_ext(phase):
-    """Extensao do martelo (0 = recolhido, 1 = batendo) ao longo do ciclo."""
-    return [0.0, 0.0, 0.0, 0.0, 0.0, 0.55, 1.0, 0.94, 0.5, 0.15][_frame(phase)]
-
-
-def _loaded(phase):
-    """Balas dentro da matriz (janela de contagem): 1..5 carregando, 5 na batida, 0 depois da ejecao."""
-    return [1, 2, 3, 4, 5, 5, 5, 5, 0, 0][_frame(phase)]
-
-
-def _swap_mat(names, mat):
-    for n in names:
-        ob = B.bpy.data.objects.get(n)
-        if ob is not None:
-            ob.data.materials[0] = mat
-
-
-def _round(name, x, y, z, r, L, M, tags):
-    """Bala de canhao deitada ao longo de Y, como a bala do jogo: corpo cinza-azulado com cinta escura e ogiva de
-    latao rombuda apontando para +Y (mesmos materiais das balas na janela do carregador)."""
-    body, brass = MAG._round_mats()
-    lc = L * 0.58
-    B.cyl(name + "_case", x, y - L / 2 + lc / 2, z, r, lc, body, axis="Y", verts=10, bevel=0.0, tags=tags)
-    B.cyl(name + "_band", x, y - L / 2 + lc * 0.72, z, r * 1.06, L * 0.07, M["core_mid"], axis="Y", verts=10,
-          bevel=0.0, tags=tags)
-    lt = L - lc
-    B.cyl(name + "_tip", x, y - L / 2 + lc + lt / 2, z, r, lt, brass, axis="Y", verts=10, bevel=0.0, tags=tags,
-          r2=r * 0.5)
-
-
-MINI = 0.34   # escala do Carregador Padrao na esteira de saida (0.31 x 0.21 tile)
-
-
-def _mini_mag(name, x, y, z, M, tags):
-    """Carregador Padrao em miniatura na esteira de saida: o proprio modelo do recurso (bs_mag_std.item), deitado
-    com a cunha apontando para a saida (+X). Altura total MINI * 0.445 + z (fica abaixo do fundo da janela da
-    matriz e do recesso dos rotores, que o escondem enquanto passa por baixo)."""
-    sc = B.bpy.context.scene
-    before = set(o.name for o in sc.objects)
-    MAG.item(M, tags[0])
-    emp = B.bpy.data.objects.new(name, None)
-    sc.collection.objects.link(emp)
-    for o in [o for o in sc.objects if o.name not in before and o.parent is None and o is not emp]:
-        o.parent = emp
-    emp.location = (x, y, z)
-    emp.scale = (MINI, MINI, MINI)
-    emp.rotation_euler.z = math.radians(-90)
-    return emp
+def _state(phase):
+    i = int(round(phase * NF)) % NF
+    return {
+        "i": i,
+        "fill": {1: 1, 2: 2, 3: 3, 4: 3}.get(i, 0),
+        "ram": {4: 0.5, 5: 1.0, 6: 0.88, 7: 0.35, 8: 0.08}.get(i, 0.0),
+        "mag": i in (5, 6, 7, 8, 9),
+        "cast": {5: 1.0, 6: 0.75, 7: 0.45, 8: 0.25, 9: 0.1}.get(i, 0.0),
+        "drop": {8: 0.10, 9: 0.215}.get(i, 0.0),
+        "gate": {7: 0.6, 8: 1.0, 9: 1.0}.get(i, 0.0),
+        "flow": i in (1, 2, 3),
+    }
 
 
 # ============================================================================ piso
-PAD_LED_Y = -0.06   # LED de cada berco: na borda de cima do tile de baixo, fora da area da pilha (inset de 6 px)
-
-
 def floor(M, T="floor"):
-    """Piso: poco escuro com grade sob a maquina; bercos de entrada/saida com cantoneiras e recesso para o LED
-    (o LED em si fica no quadro da maquina, para apagar junto com ela)."""
+    """Poco escuro da maquina + base de entrada (seta para cima, enxofre) e de saida (seta para baixo)."""
+    H.floor_grid(M, W, HH, machine={(0, 0), (1, 0)}, pads={(0, 1): 90, (1, 1): (270, 90)}, T=T)
     tags = (T,)
+    # divisoria central entre as bases: barra de aco com parafusos
+    B.box("fl_div", 0, -0.5, 0.05, 0.80, 0.0, 0.05, M["steel"], bevel=0.01, tags=tags)
+    B.bolts("fl_divb", [(0, -0.20), (0, -0.80)], 0.05, 0.015, M["core_mid"], tags=tags)
+
+
+# ============================================================================ maquina
+def _hopper(M, Xm, tags, st):
+    """Tremonha de enxofre: casca clara com janela octogonal, funil em aneis, graos girando e agitador."""
     K, KM, A, AM, S = M["core"], M["core_mid"], M["armor"], M["armor_mid"], M["steel"]
-    AR = _mat_rough()
-    B.box("fl_base", 0, 0, 2, 2, -0.05, 0.0, K, bevel=0.0, tags=tags)
-    # fileira de cima: poco da maquina (moldura escura e grade de aco)
-    pit = B.plate("fl_pit", B.rpoly(0, 0.5, 1.92, 0.92, 0, chamfer=0.06), 0.0, 0.03, KM, slope=0.01, tags=tags)
-    B.cut(pit, [B.box("fl_pitc", 0, 0.5, 1.80, 0.80, 0.0, 0.2, K, bevel=0.0)])
-    B.box("fl_pitbed", 0, 0.5, 1.80, 0.80, -0.01, 0.002, M["black"], bevel=0.0, tags=tags)
-    for i in range(11):
-        B.box(f"fl_grate{i}", -0.85 + i * 0.17, 0.5, 0.025, 0.80, 0.0, 0.015, KM, bevel=0.0, tags=tags)
-    # fileira de baixo: um berco por grade (entrada esquerda, saida direita)
-    for side, cx in (("in", -0.5), ("out", 0.5)):
-        cy = -0.5
-        B.plate(f"fl_tray_{side}", B.rpoly(cx, cy, 0.92, 0.92, 0, chamfer=0.07), 0.0, 0.025, KM, slope=0.01,
+    hx, hy = HOP
+    shell = [(-0.885, 0.31), (-0.36, 0.31), (-0.28, 0.39), (-0.28, 0.80), (-0.36, 0.885), (-0.80, 0.885),
+             (-0.885, 0.80)]
+    sa, sp = B.shard("hop", shell, 0.0, 0.30, A, slope=0.06, groove=0.026, panel_h=0.026, tags=tags)
+    out = H.octo(hx, hy, HOP_R + 0.035)
+    inn = H.octo(hx, hy, HOP_R)
+    H.bezel("hop_win", out, inn, 0.10, 0.335, M, tags, [sa, sp], bed=False)
+    # funil: fundo escuro e um anel de aco em degrau na borda (o monte de enxofre fica dentro)
+    B.plate("hop_fb", H.octo(hx, hy, HOP_R), 0.02, 0.05, K, slope=0.01, tags=tags)
+    ring = B.plate("hop_fr", H.octo(hx, hy, HOP_R), 0.05, 0.10, KM, slope=0.015, tags=tags)
+    B.cut(ring, [B.loft("hop_frc", H.octo(hx, hy, HOP_R - 0.03), H.octo(hx, hy, HOP_R - 0.03), 0.0, 0.3, K,
+                        bevel=0.0)])
+    # enxofre: monte no funil + torroes girando com o agitador
+    ang = -st["i"] * 36.0
+    H.heap("hop_heap", hx, hy, 0.05, HOP_R * 0.88, HOP_R * 0.88, 0.07, Xm["sulfur"], tags, mat2=Xm["sulfur_dk"])
+    pts = []
+    for k, (r, n) in enumerate(((HOP_R * 0.80, 7), (HOP_R * 0.52, 4))):
+        for j in range(n):
+            a = math.radians(ang * (1.0 if k == 0 else 1.6) + j * 360.0 / n + k * 17)
+            pts.append((hx + math.cos(a) * r, hy + math.sin(a) * r))
+    H.grains("hop_g", pts, 0.085, 0.026, Xm["sulfur"], tags, seed=3, mat2=Xm["sulfur_dk"])
+    # agitador de 3 pas (aco) e cubo
+    for b in range(3):
+        a = ang * 1.3 + b * 120
+        ca, sa_ = math.cos(math.radians(a)), math.sin(math.radians(a))
+        B.rbox(f"hop_bl{b}", hx + ca * HOP_R * 0.42, hy + sa_ * HOP_R * 0.42, HOP_R * 0.78, 0.028, 0.12, 0.15, S,
+               rot=a, bevel=0.004, tags=tags)
+    B.cyl("hop_hub", hx, hy, 0.16, 0.038, 0.03, KM, axis="Z", verts=8, bevel=0.006, tags=tags)
+    B.cyl("hop_hubc", hx, hy, 0.18, 0.018, 0.012, S, axis="Z", verts=8, bevel=0.0, tags=tags)
+    # LEDs de nivel da tremonha (fenda vertical na borda direita da casca)
+    H.ledslot("hop_lv", -0.325, 0.60, 0.032, 0.24, 0.25, 4, M, tags, [sa, sp], pw=0.016,
+              pips=[M["glow_dim"], M["glow_dim"], None, None])
+    # respiro no canto de cima-esquerda da casca
+    H.vent("hop_v", -0.80, 0.80, 0.09, 0.13, 0.26, 0.31, M, tags, n=3, vertical=True, targets=[sa, sp])
+    return sa, sp
+
+
+def _chute_in(M, Xm, tags, st):
+    """Calha da base de entrada ate a tremonha: graos subindo (2 passos por volta)."""
+    K, KM, S = M["core"], M["core_mid"], M["steel"]
+    x = CHUTE_X
+    # duto coberto (aco escuro com nervuras) e uma janelinha de inspecao onde passam os torroes
+    B.box("ch_tr", x, 0.18, 0.15, 0.28, 0.0, 0.10, KM, bevel=0.01, tags=tags)
+    for k, y in enumerate((0.075, 0.27)):
+        B.box(f"ch_rib{k}", x, y, 0.17, 0.03, 0.0, 0.12, S, bevel=0.005, tags=tags)
+    win = B.box("ch_wc", x, 0.17, 0.07, 0.11, 0.06, 0.3, K, bevel=0.0)
+    B.cut(B.bpy.context.scene.objects["ch_tr"], [win])
+    B.box("ch_wbed", x, 0.17, 0.07, 0.11, 0.055, 0.06, M["black"], bevel=0.0, tags=tags)
+    s = (st["i"] * 0.3) % 1.0
+    pts = [(x + (0.012 if k % 2 else -0.012), 0.12 + (k + s) * 0.05) for k in range(3)]
+    H.grains("ch_gr", [p for p in pts if p[1] < 0.215], 0.06, 0.02, Xm["sulfur"], tags, seed=5,
+             mat2=Xm["sulfur_dk"])
+    B.box("ch_mouth", x, 0.02, 0.13, 0.04, 0.0, 0.05, M["black"], bevel=0.0, tags=tags)
+    H.chevron("ch_ar", x, 0.025, 90, M["glow_dim"], tags, z=0.05, s=0.6)
+
+
+def _auger(M, Xm, tags, st):
+    """Rosca alimentadora: calha aberta, palhetas inclinadas andando para a matriz e graos."""
+    K, KM, S, AM = M["core"], M["core_mid"], M["steel"], M["armor_mid"]
+    L = AUG_X1 - AUG_X0
+    xc = (AUG_X0 + AUG_X1) / 2
+    B.box("au_tr", xc, AUG_Y, L, 0.15, 0.0, 0.07, KM, bevel=0.008, tags=tags)
+    B.box("au_bed", xc, AUG_Y, L, 0.10, 0.07, 0.074, M["black"], bevel=0.0, tags=tags)
+    for g in (-1, 1):
+        B.box(f"au_rl{g}", xc, AUG_Y + g * 0.062, L, 0.022, 0.06, 0.115, S, bevel=0.004, tags=tags)
+    B.cyl("au_shaft", xc, AUG_Y, 0.10, 0.014, L, S, axis="X", verts=8, bevel=0.0, tags=tags)
+    p = 0.075
+    s = (st["i"] * 0.25) % 1.0
+    for k in range(-1, 10):
+        x = AUG_X0 + (k + s) * p
+        if AUG_X0 + 0.01 < x < AUG_X1 - 0.01:
+            B.rbox(f"au_fl{k}", x, AUG_Y, 0.016, 0.10, 0.08, 0.125, S, rot=28, bevel=0.003, tags=tags)
+            if st["flow"] or st["i"] == 0:
+                H.grains(f"au_gr{k}", [(x + p / 2, AUG_Y + (0.018 if k % 2 else -0.018))], 0.074, 0.022,
+                         Xm["sulfur"], tags, seed=k + 11, mat2=Xm["sulfur_dk"])
+    # mancais nas pontas
+    for k, x in enumerate((AUG_X0, AUG_X1)):
+        B.box(f"au_brg{k}", x, AUG_Y, 0.05, 0.16, 0.0, 0.14, AM, bevel=0.01, tags=tags)
+
+
+def _die(M, Xm, tags, st):
+    """Matriz de fundicao em U com a cavidade do carregador, o portao de baixo e o carregador fundido."""
+    K, KM, A, AM, S = M["core"], M["core_mid"], M["armor"], M["armor_mid"], M["steel"]
+    dx, dy = DIE
+    cw, ch = CAV
+    # bloco claro: duas bochechas (esquerda/direita) e a ponte de cima, em U aberto embaixo
+    cheek = [(dx - 0.235, dy - 0.155), (dx - cw / 2 - 0.012, dy - 0.155), (dx - cw / 2 - 0.012, dy + ch / 2 + 0.01),
+             (dx - 0.07, dy + ch / 2 + 0.01), (dx - 0.07, dy + 0.165), (dx - 0.20, dy + 0.165),
+             (dx - 0.235, dy + 0.13)]
+    parts = []
+    for sx in (-1, 1):
+        poly = cheek if sx < 0 else [(2 * dx - x, y) for x, y in reversed(cheek)]
+        parts.append(B.shard(f"die{sx}", poly, 0.0, 0.27, A, slope=0.045, groove=0.02, panel_h=0.022, tags=tags))
+    # ponte de cima (onde o martelo bate): escura, com a placa de impacto de aco
+    B.box("die_br", dx, dy + ch / 2 + 0.06, 0.15, 0.10, 0.0, 0.22, KM, bevel=0.01, tags=tags)
+    B.box("die_anvil", dx, dy + ch / 2 + 0.085, 0.13, 0.05, 0.22, 0.245, S, bevel=0.006, tags=tags)
+    # cavidade: leito preto + molde do carregador (contorno de aco em degrau)
+    B.box("die_cav", dx, dy, cw, ch, 0.0, 0.035, M["black"], bevel=0.0, tags=tags)
+    B.box("die_mold", dx, dy, cw - 0.02, ch - 0.02, 0.035, 0.045, KM, bevel=0.004, tags=tags)
+    # graos enchendo a cavidade (de baixo para cima)
+    if st["fill"] and not st["mag"]:
+        # leito de enxofre subindo na cavidade (de baixo para cima) com torroes na frente do enchimento
+        f = st["fill"] / 3.0
+        hy_ = (ch - 0.03) * f
+        B.box("die_fillb", dx, dy - (ch - 0.03) / 2 + hy_ / 2, cw - 0.03, hy_, 0.045, 0.07, Xm["sulfur"],
+              bevel=0.006, tags=tags)
+        y_top = dy - (ch - 0.03) / 2 + hy_
+        H.grains("die_gr", [(dx - 0.07 + c * 0.047, y_top - 0.005) for c in range(4)], 0.07, 0.022, Xm["sulfur"],
+                 tags, seed=21, mat2=Xm["sulfur_dk"])
+    # carregador fundido (na cavidade ou descendo pela boca)
+    if st["mag"]:
+        H.mini_mag("die_mag", dx, dy - st["drop"], 0.045, M, Xm, tags, kind="he", s=MAG_S, cast=st["cast"])
+    # portao de baixo: barra escura que desliza para a direita quando abre
+    g = st["gate"]
+    B.box("die_gate", dx + g * 0.20, dy - 0.135, cw + 0.02, 0.04, 0.10, 0.17, KM, bevel=0.006, tags=tags)
+    B.box("die_gled", dx + g * 0.20, dy - 0.135, 0.06, 0.012, 0.17, 0.176,
+          M["glow_dim"] if g > 0.5 else M["core_mid"], bevel=0.0, tags=tags)
+    # fendas de pips nas bochechas (contador de enchimento a esquerda, temperatura a direita)
+    fill_pips = [M["glow_dim"] if k < st["fill"] or st["mag"] else None for k in range(3)]
+    H.ledslot("die_fl", dx - 0.195, dy + 0.0, 0.03, 0.14, 0.20, 3, M, tags, list(parts[0]), pw=0.014,
+              pips=list(reversed(fill_pips)))
+    hot = st["cast"]
+    H.ledslot("die_tp", dx + 0.195, dy + 0.0, 0.03, 0.14, 0.20, 3, M, tags, list(parts[1]), pw=0.014,
+              pips=[(M["glow"] if hot > 0.7 else M["glow_dim"]) if hot > t else None for t in (0.6, 0.3, 0.05)])
+    for sx in (-1, 1):
+        B.bolts(f"die_b{sx}", [(dx + sx * 0.20, dy - 0.12), (dx + sx * 0.20, dy + 0.135)], 0.27, 0.014, S,
                 tags=tags)
-        tin = B.rpoly(cx, cy, 0.76, 0.78, 0, chamfer=0.05)
-        B.loft(f"fl_trayin_{side}", tin, tin, 0.025, 0.032, K, bevel=0.0, tags=tags)
-        # grade da pilha (2 x 2) em relevo fino
-        B.box(f"fl_tgv_{side}", cx, cy, 0.012, 0.70, 0.032, 0.038, KM, bevel=0.0, tags=tags)
-        B.box(f"fl_tgh_{side}", cx, cy, 0.70, 0.012, 0.032, 0.038, KM, bevel=0.0, tags=tags)
-        # cantoneiras em L nos quatro cantos (vaos escuros entre elas)
-        for qx in (-1, 1):
-            for qy in (-1, 1):
-                ox, oy = cx + qx * 0.41, cy + qy * 0.41
-                poly = [(ox, oy), (ox - qx * 0.24, oy), (ox - qx * 0.24, oy - qy * 0.07), (ox - qx * 0.07,
-                        oy - qy * 0.07), (ox - qx * 0.07, oy - qy * 0.24), (ox, oy - qy * 0.24)]
-                B.shard(f"fl_br_{side}{qx}{qy}", poly, 0.0, 0.06, AR, slope=0.012, groove=0.008, panel_h=0.012,
-                        tags=tags)
-        # recesso escuro do LED no vao de cima (o LED vem no quadro da maquina)
-        B.box(f"fl_ledbed_{side}", cx, PAD_LED_Y, 0.20, 0.05, 0.02, 0.035, M["black"], bevel=0.0, tags=tags)
-    # divisoria central entre as grades: barra de aco com parafusos
-    B.box("fl_div", 0, -0.5, 0.06, 0.80, 0.0, 0.05, S, bevel=0.01, tags=tags)
-    B.bolts("fl_divb", [(0, -0.22), (0, -0.78)], 0.05, 0.016, KM, tags=tags)
 
 
-# ============================================================================ maquinario (animado)
-def machine(M, T="machine", phase=0.0):
-    tags = (T,)
+def _ram(M, tags, st):
+    """Cilindro hidraulico facetado + cabeca do martelo em seta descendo sobre a matriz."""
     K, KM, A, AM, S = M["core"], M["core_mid"], M["armor"], M["armor_mid"], M["steel"]
-    fi = _frame(phase)
-
-    # ---------------------------------------------------------------- esteira (base, trilhos, lona)
-    B.box("bt_bed", 0, BELT_YC, 1.70, BELT_Y1 - BELT_Y0 + 0.04, 0.0, 0.08, KM, bevel=0.008, tags=tags)
-    B.box("bt_lona", 0, BELT_YC, 1.70, BELT_Y1 - BELT_Y0 - 0.02, 0.08, 0.095, M["black"], bevel=0.0, tags=tags)
-    for sy in (BELT_Y0, BELT_Y1):
-        B.box(f"bt_rail{sy}", 0, sy, 1.70, 0.025, 0.06, 0.14, S, bevel=0.006, tags=tags)
-    # esteira de entrada: taliscas + balas (anda 2 passos por ciclo)
-    p_in = 0.095
-    s_in = (phase * 2.0) % 1.0
-    for k in range(-1, 6):
-        x = -CAP_X - 0.08 + (k + s_in) * p_in
-        if x > -DIE_X + 0.04:
-            continue
-        B.box(f"bt_cl{k}", x, BELT_YC, 0.012, BELT_Y1 - BELT_Y0 - 0.03, 0.095, 0.11, S, bevel=0.0, tags=tags)
-        xr = x + p_in / 2
-        if xr < -DIE_X + 0.02:
-            _round(f"bt_rd{k}", xr, BELT_YC, 0.135, 0.033, 0.22, M, tags)
-    # esteira de saida: taliscas + carregadores prontos (sai 1 carregador por ciclo; nascem escondidos sob a
-    # matriz e passam por baixo do fundo da janela, que fica acima deles)
-    p_out = 0.38
-    s_out = (phase - 0.75) % 1.0
-    p_c = p_out / 3
-    for j in range(-1, 6):
-        xc = DIE_X + (j + (s_out * 3) % 1.0) * p_c
-        if DIE_X - 0.03 < xc < CAP_X + 0.03:
-            B.box(f"bt_co{j}", xc, BELT_YC, 0.012, BELT_Y1 - BELT_Y0 - 0.03, 0.095, 0.11, S, bevel=0.0, tags=tags)
-    for k in range(-1, 2):
-        xm = 0.12 + (k + s_out) * p_out
-        if DIE_X - 0.16 < xm < CAP_X + 0.16:
-            _mini_mag(f"mm{k}", xm, BELT_YC, 0.095, M, tags)
-
-    # ---------------------------------------------------------------- ponte da matriz (bigorna sobre a esteira)
-    B.plate("die_jaw", B.rpoly(0, 0.225, 2 * DIE_X + 0.10, 0.34, 0, chamfer=0.06), 0.0, 0.20, KM, slope=0.02,
-            tags=tags)
-    for sx in (-1, 1):
-        B.cyl(f"die_roll{sx}", sx * (DIE_X + 0.03), BELT_YC, 0.21, 0.02, 0.30, S, axis="Y", verts=10, bevel=0.0,
-              tags=tags)
-    # bigorna em hexagono alongado: pontas de seta apontando para as duas esteiras
-    die = [(-0.31, 0.225), (-DIE_X, 0.075), (-0.18, 0.04), (0.18, 0.04), (DIE_X, 0.075), (0.31, 0.225),
-           (DIE_X, 0.37), (0.19, DIE_Y1), (-0.19, DIE_Y1), (-DIE_X, 0.37)]
-    da, dp = B.shard("die", die, 0.10, 0.30, A, slope=0.05, groove=0.022, panel_h=0.025, tags=tags)
-    # janela de contagem: balas entrando no carregador (1..5); o fundo fica ACIMA do carregador pronto que passa
-    # por baixo da matriz (topo da alca em 0.095 + 0.445 * MINI = 0.246), senao ele apareceria na janela
-    wy0, wy1 = 0.19, 0.325
-    for t in (da, dp):
-        B.cut(t, [B.box(f"die_wc{id(t) % 7}", 0, (wy0 + wy1) / 2, 0.33, wy1 - wy0, 0.255, 0.6, K, bevel=0.0)])
-    B.box("die_wbed", 0, (wy0 + wy1) / 2, 0.33, wy1 - wy0, 0.255, 0.26, M["black"], bevel=0.0, tags=tags)
-    n = _loaded(phase)
-    for i in range(n):
-        _round(f"die_rd{i}", -0.128 + i * 0.064, (wy0 + wy1) / 2, 0.282, 0.024, 0.125, M, tags)
-    # contador ambar (pips acesos = balas carregadas) numa fenda escura abaixo da janela
-    Mo.slot_with_pips("die_sl", 0.13, -0.15, 0.15, 0.032, 0.325, 5, M, tags, target=[da, dp], depth=0.075,
-                      vertical=False)
-    _swap_mat([f"die_sl_pip{i}" for i in range(n, 5)], KM)
-
-    # ---------------------------------------------------------------- modulos das pontas (alimentador/ejetor)
-    capL = [(-0.885, 0.035), (-0.68, 0.035), (-0.59, 0.10), (-0.59, 0.20), (-0.655, 0.27), (-0.885, 0.27)]
-    for sx, f in ((-1, lambda p: p), (1, Mo.mirror)):
-        ca, cp = B.shard(f"cap{sx}", f(capL), 0.0, 0.30, A, slope=0.05, groove=0.025, panel_h=0.025, tags=tags)
-        rx, ry = sx * 0.765, 0.152
-        rec = B.rpoly(rx, ry, 0.16, 0.16, 0, chamfer=0.047)
-        for t in (ca, cp):
-            B.cut(t, [B.loft(f"cap_rc{sx}{id(t) % 7}", rec, rec, 0.25, 0.6, K, bevel=0.0)])
-        # fundo do recesso acima do topo do carregador que passa por baixo do modulo (z 0.25)
-        B.loft(f"cap_rbed{sx}", rec, rec, 0.25, 0.26, M["black"], bevel=0.0, tags=tags)
-        # rotor de 3 pas: uma volta por ciclo (0,3 de passo por quadro, sem serrilhado de movimento)
-        ang = -sx * phase * 360.0
-        for b in range(3):
-            a = ang + b * 120
-            B.rbox(f"rot{sx}{b}", rx + math.cos(math.radians(a)) * 0.036, ry + math.sin(math.radians(a)) * 0.036,
-                   0.064, 0.026, 0.26, 0.285, S, rot=a, bevel=0.004, tags=tags)
-        B.cyl(f"rot_hub{sx}", rx, ry, 0.29, 0.026, 0.025, KM, axis="Z", verts=12, bevel=0.004, tags=tags)
-        # capuz do tunel do alimentador/ejetor sobre a esteira, entre o modulo e a ombreira: as balas saem e os
-        # carregadores entram por baixo dele (acima do topo do carregador, 0.246), com labio de aco na boca
-        hood = [(0.595, 0.235), (0.885, 0.235), (0.885, 0.40), (0.66, 0.40), (0.595, 0.335)]
-        B.plate(f"hood{sx}", hood if sx > 0 else Mo.mirror(hood), 0.25, 0.285, KM, slope=0.015, tags=tags)
-        B.box(f"hood_lip{sx}", sx * 0.605, 0.30, 0.022, 0.11, 0.25, 0.30, S, bevel=0.005, tags=tags)
-        # bico de entrada/saida na borda de baixo (calha escura com guias de aco e seta ambar)
-        cx = sx * 0.70
-        B.box(f"chute{sx}", cx, -0.005, 0.26, 0.11, 0.0, 0.06, K, bevel=0.006, tags=tags)
-        for gx in (-1, 1):
-            B.box(f"chute_g{sx}{gx}", cx + gx * 0.12, -0.005, 0.025, 0.12, 0.0, 0.09, S, bevel=0.004, tags=tags)
-        d = 1 if sx < 0 else -1   # entrada aponta para dentro (+Y), saida aponta para fora (-Y)
-        chev = [(cx - 0.06, -0.005 - d * 0.02), (cx, -0.005 + d * 0.025), (cx + 0.06, -0.005 - d * 0.02),
-                (cx + 0.06, -0.005 - d * 0.04), (cx, -0.005 + d * 0.005), (cx - 0.06, -0.005 - d * 0.04)]
-        B.loft(f"chute_ar{sx}", chev, chev, 0.06, 0.068, M["glow_dim"], bevel=0.0, tags=tags)
-
-    # ---------------------------------------------------------------- ombreiras em garra + tambores nos vaos
-    # ombreira em L: cobre o canto de cima e desce pela ponta ate o modulo do rotor; garra interna aponta
-    # para a matriz, garra externa aponta para o modulo
-    paul = [(-0.875, 0.875), (-0.345, 0.875), (-LANE, 0.83), (-LANE, 0.64), (-0.335, 0.555), (-0.49, 0.555),
-            (-0.585, 0.505), (-0.625, 0.39), (-0.69, 0.305), (-0.875, 0.305)]
-    # aleta (segundo nivel) na parte externa, com fenda vertical de pips
-    fin = [(-0.835, 0.80), (-0.70, 0.80), (-0.665, 0.765), (-0.665, 0.44), (-0.71, 0.375), (-0.835, 0.375)]
-    # cacador descendo para a matriz: periodo de 5 quadros (divide os 10 do ciclo, sem tropeco na volta)
-    lit = [2, 1, 0, None, None][fi % 5]
-    for sx, f in ((-1, lambda p: p), (1, Mo.mirror)):
-        pa, pp = B.shard(f"paul{sx}", f(paul), 0.0, 0.36, A, slope=0.085, groove=0.03, panel_h=0.03, tags=tags)
-        # baia de respiro (persianas) no alto da ombreira
-        vx = sx * 0.50
-        for t in (pa, pp):
-            B.cut(t, [B.box(f"pv_c{sx}{id(t) % 7}", vx, 0.735, 0.16, 0.08, 0.31, 0.6, K, bevel=0.0)])
-        B.box(f"pv_bed{sx}", vx, 0.735, 0.16, 0.08, 0.30, 0.31, M["black"], bevel=0.0, tags=tags)
-        for i in range(4):
-            B.box(f"pv_lv{sx}{i}", vx - 0.06 + i * 0.04, 0.735, 0.016, 0.07, 0.31, 0.37, KM, bevel=0.003, tags=tags)
-        # fenda vertical de 3 pips junto da garra interna (cacador descendo em direcao a matriz)
-        Mo.slot_with_pips(f"paul_sl{sx}", sx * 0.405, 0.655, 0.785, 0.034, 0.39, 3, M, tags, target=[pa, pp],
-                          depth=0.075)
-        _swap_mat([f"paul_sl{sx}_pip{i}" for i in range(3) if i != lit], M["glow_dim"])
-        # linhas de painel: corte no cotovelo de baixo e corte cruzado na perna que desce ao modulo do rotor
-        for t in (pa, pp):
-            B.cut(t, [B.rbox(f"paul_pl{sx}{id(t) % 7}a", sx * 0.43, 0.585, 0.014, 0.10, 0.30, 0.6, K, rot=0,
-                             bevel=0.0),
-                      B.rbox(f"paul_pl{sx}{id(t) % 7}b", sx * 0.60, 0.585, 0.11, 0.014, 0.30, 0.6, K, rot=-sx * 35,
-                             bevel=0.0)])
-        # aleta externa em cinza medio: as ombreiras recuam e a prensa (matriz + martelo) manda na leitura
-        fa, fp = B.shard(f"fin{sx}", f(fin), 0.39, 0.47, AM, slope=0.035, groove=0.018, panel_h=0.02, tags=tags)
-        Mo.slot_with_pips(f"fin_sl{sx}", sx * 0.75, 0.48, 0.70, 0.034, 0.49, 3, M, tags, target=[fa, fp],
-                          depth=0.07, pip_mat=M["glow_dim"])
-        # tambor acumulador no vao entre ombreira e esteira (contador ambar, aneis de aco)
-        dx = sx * 0.45
-        B.cyl(f"drum{sx}", dx, 0.475, 0.11, 0.06, 0.22, KM, axis="X", verts=8, bevel=0.008, tags=tags)
-        for i, ox in enumerate((-0.09, 0.0, 0.09)):  # aneis
-            B.cyl(f"drumr{sx}{i}", dx + ox, 0.475, 0.11, 0.066, 0.022, S, axis="X", verts=8, bevel=0.004, tags=tags)
-        B.box(f"drumled{sx}", dx - sx * 0.05, 0.475, 0.022, 0.03, 0.165, 0.175, M["glow_dim"], bevel=0.0, tags=tags)
-        # mangueira do tambor ate o cilindro
-        B.cyl(f"hose{sx}", sx * 0.30, 0.50, 0.08, 0.016, 0.12, S, axis="Y", verts=8, bevel=0.0, tags=tags)
-
-    # ---------------------------------------------------------------- cilindro hidraulico facetado (o heroi)
-    cl = CYL_Y1 - CYL_Y0
-    yc = (CYL_Y0 + CYL_Y1) / 2
-    cyl = B.cyl("cyl", 0, yc, CYL_Z, CYL_R, cl, A, axis="Y", verts=8, bevel=0.012, tags=tags)
-    B.cut(cyl, [B.box("cyl_ch", 0, yc + 0.03, 0.07, cl - 0.05, CYL_Z + CYL_R - 0.06, CYL_Z + 0.5, K, bevel=0.0)])
-    B.box("cyl_chbed", 0, yc + 0.03, 0.07, cl - 0.05, CYL_Z + CYL_R - 0.075, CYL_Z + CYL_R - 0.055, M["black"],
-          bevel=0.0, tags=tags)
-    B.box("cyl_chled", 0, yc + 0.03, 0.022, cl - 0.11, CYL_Z + CYL_R - 0.055, CYL_Z + CYL_R - 0.05,
-          M["glow"] if _ram_ext(phase) > 0.9 else M["glow_dim"], bevel=0.0, tags=tags)
-    B.cyl("cyl_col", 0, CYL_Y0 + 0.022, CYL_Z, CYL_R + 0.014, 0.04, AM, axis="Y", verts=8, bevel=0.006, tags=tags)
-    for sx in (-1, 1):
-        # conexoes hidraulicas nas faces laterais do cilindro
-        B.cyl(f"cyl_port{sx}", sx * (CYL_R - 0.01), yc + 0.04, CYL_Z + 0.06, 0.022, 0.06, S, axis="Z", verts=8,
-              bevel=0.004, tags=tags)
-    B.cyl("cyl_gland", 0, CYL_Y0 - 0.008, CYL_Z - 0.02, 0.10, 0.03, S, axis="Y", verts=8, bevel=0.006, tags=tags)
-    # buchas das guias, presas nas ombreiras
-    for sx in (-1, 1):
-        B.box(f"gbush{sx}", sx * 0.245, CYL_Y0 + 0.02, 0.06, 0.06, 0.06, 0.20, KM, bevel=0.008, tags=tags)
-
-    # ---------------------------------------------------------------- martelo (animado)
-    e = _ram_ext(phase)
+    e = st["ram"]
+    H.hcyl("cyl", CYL_Y0, CYL_Y1, RAM_X, 0.27, 0.15, M, tags, axis="Y",
+           led_mat=M["glow"] if e > 0.9 else M["glow_dim"], collars=2)
+    B.cyl("cyl_gland", RAM_X, CYL_Y0 - 0.008, 0.25, 0.085, 0.03, S, axis="Y", verts=8, bevel=0.006, tags=tags)
     yf = RAM_IN + (RAM_OUT - RAM_IN) * e
-    yb = yf + RAM_D
+    yb = yf + 0.10
     L = CYL_Y0 - yb
     if L > 0.01:
-        B.cyl("ram_rod", 0, yb + L / 2, CYL_Z - 0.03, 0.06, L, S, axis="Y", verts=12, bevel=0.0, tags=tags)
-    Lg = CYL_Y0 + 0.05 - yb
+        B.cyl("ram_rod", RAM_X, yb + L / 2, 0.24, 0.045, L, S, axis="Y", verts=12, bevel=0.0, tags=tags)
+    head = [(RAM_X - 0.06, yf), (RAM_X + 0.06, yf), (RAM_X + 0.13, yf + 0.05), (RAM_X + 0.13, yb),
+            (RAM_X - 0.13, yb), (RAM_X - 0.13, yf + 0.05)]
+    ra, rp = B.shard("ram", head, 0.08, 0.31, A, slope=0.035, groove=0.016, panel_h=0.02, tags=tags)
+    H.ledslot("ram_sl", RAM_X, yf + 0.065, 0.11, 0.024, 0.27, 2, M, tags, [ra, rp], vertical=False, pw=0.012,
+              pip_mat=M["glow"] if e > 0.9 else M["glow_dim"])
+    # guias do martelo (barras de aco dos dois lados)
     for sx in (-1, 1):
-        B.cyl(f"ram_gr{sx}", sx * 0.245, yb + Lg / 2, 0.13, 0.02, Lg, S, axis="Y", verts=10, bevel=0.0, tags=tags)
-    ram = [(-0.17, yf), (0.17, yf), (0.26, yf + 0.06), (0.26, yb), (-0.26, yb), (-0.26, yf + 0.06)]
-    B.box("ram_face", 0, yf + 0.014, 0.31, 0.03, 0.05, 0.22, K, bevel=0.004, tags=tags)
-    ra, rp = B.shard("ram", ram, 0.06, 0.32, A, slope=0.04, groove=0.02, panel_h=0.025, tags=tags)
-    Mo.slot_with_pips("ram_sl", yf + 0.085, -0.10, 0.10, 0.03, 0.345, 3, M, tags, target=[ra, rp], depth=0.07,
-                      vertical=False, pip_mat=M["glow"] if e > 0.9 else M["glow_dim"])
-    for sx in (-1, 1):
-        B.bolts(f"ram_b{sx}", [(sx * 0.20, yb - 0.035)], 0.345, 0.014, S, tags=tags)
-    # batida: linha ambar curta no encontro martelo/matriz e duas faiscas laranja curtas saindo pelos lados
+        B.box(f"ram_gd{sx}", RAM_X + sx * 0.175, (RAM_OUT + CYL_Y1) / 2 - 0.02, 0.024, CYL_Y1 - RAM_OUT, 0.0, 0.16, S,
+              bevel=0.004, tags=tags)
     if e > 0.99:
-        # linha curta e mais fraca que os LEDs: o halo nao lava a borda clara da matriz (bisel duplo continua lendo)
-        hit = B.mat_glow("hit", Mo.ACCENTS["amber"], 4.5)
-        B.box("hit", 0, DIE_Y1 + 0.004, 0.22, 0.01, 0.22, 0.235, hit, bevel=0.0, tags=tags)
-        spark = B.mat_glow("spark", (1.0, 0.30, 0.03), 7.0)
-        for i, sx in enumerate((-1, 1)):
-            B.rbox(f"spark{i}", sx * 0.30, 0.418, 0.06, 0.011, 0.33, 0.34, spark, rot=sx * 22, bevel=0.0, tags=tags)
+        hit = H.glow(Mo.ACCENTS["amber"], 3.5, "hit")
+        B.box("hit", RAM_X, RAM_OUT - 0.004, 0.13, 0.01, 0.24, 0.255, hit, bevel=0.0, tags=tags)
+        spark = H.glow((1.0, 0.30, 0.03), 6.0, "spark")
+        for k, sx in enumerate((-1, 1)):
+            B.rbox(f"spark{k}", RAM_X + sx * 0.12, RAM_OUT - 0.02, 0.055, 0.011, 0.30, 0.31, spark, rot=-sx * 25,
+                   bevel=0.0, tags=tags)
 
-    # ---------------------------------------------------------------- LEDs das grades (no recesso do piso)
-    for side, cx in (("in", -0.5), ("out", 0.5)):
-        B.box(f"pad_led_{side}", cx, PAD_LED_Y, 0.10, 0.018, 0.035, 0.042, M["glow_dim"], bevel=0.0, tags=tags)
+
+def _outlet(M, tags, st):
+    """Boca de saida embaixo da matriz: capuz escuro com labio de aco, guias e seta para baixo."""
+    K, KM, S = M["core"], M["core_mid"], M["steel"]
+    B.box("ot_tr", OUT_X, 0.11, 0.28, 0.22, 0.0, 0.05, K, bevel=0.006, tags=tags)
+    for g in (-1, 1):
+        B.box(f"ot_g{g}", OUT_X + g * 0.15, 0.11, 0.024, 0.22, 0.0, 0.10, S, bevel=0.004, tags=tags)
+    # capuz por cima da ultima parte da boca (o carregador some debaixo dele)
+    hood = [(OUT_X - 0.165, 0.005), (OUT_X + 0.165, 0.005), (OUT_X + 0.165, 0.10), (OUT_X + 0.12, 0.13),
+            (OUT_X - 0.12, 0.13), (OUT_X - 0.165, 0.10)]
+    B.plate("ot_hood", hood, 0.13, 0.17, KM, slope=0.015, tags=tags)
+    B.box("ot_lip", OUT_X, 0.125, 0.24, 0.02, 0.13, 0.18, S, bevel=0.005, tags=tags)
+    H.chevron("ot_ar", OUT_X, 0.055, 270, M["glow_dim"], tags, z=0.17, s=0.7)
+
+
+def _pump(M, tags, st):
+    """Modulo de bomba hidraulica na faixa da direita: casca clara estreita, fenda de pips e mangueiras."""
+    K, KM, A, AM, S = M["core"], M["core_mid"], M["armor"], M["armor_mid"], M["steel"]
+    poly = [(0.715, 0.20), (0.885, 0.20), (0.885, 0.80), (0.80, 0.885), (0.715, 0.885), (0.715, 0.62),
+            (0.69, 0.59), (0.69, 0.235)]
+    pa, pp = B.shard("pump", poly, 0.0, 0.29, A, slope=0.05, groove=0.022, panel_h=0.022, tags=tags)
+    lit = st["i"] % 5
+    H.ledslot("pump_sl", 0.80, 0.42, 0.03, 0.22, 0.24, 3, M, tags, [pa, pp], pw=0.014,
+              pips=[M["glow_dim"] if k == (2 - lit % 3) else None for k in range(3)])
+    H.vent("pump_v", 0.80, 0.745, 0.10, 0.12, 0.25, 0.30, M, tags, n=3, targets=[pa, pp])
+    for k, y in enumerate((0.74, 0.82)):
+        B.cyl(f"pump_h{k}", 0.65, y, 0.12, 0.016, 0.10, S, axis="X", verts=8, bevel=0.0, tags=tags)
+
+
+def _accum(M, tags, st):
+    """Acumuladores hidraulicos no vao entre a tremonha e a prensa: 2 tambores escuros deitados com aneis de aco,
+    janela de contagem e mangueiras ate o cilindro do martelo (os detalhes mecanicos ficam no nucleo escuro)."""
+    K, KM, A, AM, S = M["core"], M["core_mid"], M["armor"], M["armor_mid"], M["steel"]
+    for k, y in enumerate((0.585, 0.78)):
+        B.cyl(f"acc{k}", -0.035, y, 0.10, 0.072, 0.40, KM, axis="X", verts=8, bevel=0.008, tags=tags)
+        for j, ox in enumerate((-0.16, -0.05, 0.06, 0.17)):
+            B.cyl(f"accr{k}{j}", -0.035 + ox, y, 0.10, 0.078, 0.02, S, axis="X", verts=8, bevel=0.004, tags=tags)
+        B.cyl(f"accc{k}", -0.035 - 0.215, y, 0.10, 0.05, 0.03, S, axis="X", verts=8, bevel=0.004, tags=tags)
+    # janela de pressao no tambor de cima (pip acende na batida)
+    B.box("acc_w", 0.005, 0.78, 0.07, 0.03, 0.165, 0.175, M["black"], bevel=0.0, tags=tags)
+    B.box("acc_led", 0.005, 0.78, 0.04, 0.014, 0.175, 0.18, M["glow"] if st["ram"] > 0.9 else M["glow_dim"],
+          bevel=0.0, tags=tags)
+    # mangueiras ate o cilindro do martelo e suportes
+    for k, y in enumerate((0.585, 0.78)):
+        B.cyl(f"acc_h{k}", 0.215, y, 0.09, 0.016, 0.07, S, axis="X", verts=8, bevel=0.0, tags=tags)
+    for k, x in enumerate((-0.20, 0.13)):
+        B.box(f"acc_st{k}", x, 0.68, 0.035, 0.32, 0.0, 0.07, AM, bevel=0.006, tags=tags)
+
+
+def machine(M, T="machine", phase=0.0):
+    tags = (T,)
+    Xm = H.X(M)
+    st = _state(phase)
+    B.plate("mc_bed", B.rpoly(0, 0.47, 1.80, 0.88, 0, chamfer=0.08), 0.0, 0.03, M["core_mid"], slope=0.01, tags=tags)
+    _chute_in(M, Xm, tags, st)
+    _hopper(M, Xm, tags, st)
+    _auger(M, Xm, tags, st)
+    _die(M, Xm, tags, st)
+    _ram(M, tags, st)
+    _outlet(M, tags, st)
+    _pump(M, tags, st)
+    _accum(M, tags, st)
 
 
 # ============================================================================ teto
 def roof(M, T="roof"):
-    """Teto: placas verdes (pintura da nave) e, sobre a prensa, a cabeca blindada clara (espinha = carcaca do
-    martelo + ombreiras)."""
+    """Teto: placas verdes com escotilhas em seta (entra / sai) e a coroa blindada da prensa."""
     tags = (T,)
-    green = B.mat_roof_green()
+    green = H.roof_green()
     K, KM, A, AM, S = M["core"], M["core_mid"], M["armor"], M["armor_mid"], M["steel"]
-    AR = _mat_rough()
-    B.box("rf_under", 0, 0, 2, 2, -0.05, 0.02, K, bevel=0.0, tags=tags)
-    for tx in range(2):
-        for ty in range(2):
-            cx, cy = tx - 0.5, 0.5 - ty
-            _, pnl = B.shard(f"rf{tx}{ty}", B.rpoly(cx, cy, 0.94, 0.94, 0, chamfer=0.07), 0.0, 0.06, green,
-                             slope=0.025, groove=0.05, panel_h=0.02, tags=tags)
-            if ty == 1 and pnl is not None:
-                # linha de painel diagonal (espelhada nos dois tiles de baixo): corta o painel inteiro e mostra um
-                # filete escuro no fundo, senao a linha paralela a luz (tile da direita) some
-                sgn = tx * 2 - 1
-                lx, ly = cx + sgn * 0.22, cy - 0.22
-                B.cut(pnl, [B.rbox(f"rf_dl{tx}", lx, ly, 0.016, 0.36, 0.045, 0.2, K, rot=sgn * 45, bevel=0.0)])
-                B.rbox(f"rf_dlb{tx}", lx, ly, 0.014, 0.34, 0.058, 0.064, K, rot=sgn * 45, bevel=0.0, tags=tags)
-    # escotilhas das grades: entrada (seta para dentro) e saida (seta para fora), com bisel duplo
-    for sx in (-1, 1):
-        cx, cy = sx * 0.5, -0.54
-        ha, hp = B.shard(f"rf_hatch{sx}", B.rpoly(cx, cy, 0.48, 0.42, 0, chamfer=0.10), 0.07, 0.12, AR,
-                         slope=0.025, groove=0.02, panel_h=0.015, tags=tags)
-        d = 1 if sx < 0 else -1
-        chev = [(cx - 0.10, cy - d * 0.04), (cx, cy + d * 0.06), (cx + 0.10, cy - d * 0.04),
-                (cx + 0.10, cy - d * 0.09), (cx, cy + d * 0.01), (cx - 0.10, cy - d * 0.09)]
-        for t in (ha, hp):
-            B.cut(t, [B.loft(f"rf_chc{sx}{id(t) % 7}", chev, chev, 0.09, 0.3, K, bevel=0.0)])
-        B.loft(f"rf_chb{sx}", chev, chev, 0.09, 0.095, M["black"], bevel=0.0, tags=tags)
-        B.box(f"rf_hh{sx}", cx, cy - 0.145, 0.18, 0.035, 0.135, 0.16, S, bevel=0.008, tags=tags)
-        B.bolts(f"rf_hb{sx}", [(cx - 0.17, cy + 0.13), (cx + 0.17, cy + 0.13)], 0.135, 0.015, S, tags=tags)
+    deck = H.roof_deck(M, W, HH, T=T)
+    H.roof_hatch("rf_in", M, -0.5, -0.5, 90, deck[(0, 1)], T=T)
+    H.roof_hatch("rf_out", M, 0.5, -0.5, 270, deck[(1, 1)], T=T)
     # LEDs de sentido no vao entre as escotilhas
-    B.box("rf_ledbed", 0, -0.54, 0.05, 0.24, 0.04, 0.07, M["black"], bevel=0.0, tags=tags)
+    B.box("rf_ledbed", 0, -0.5, 0.05, 0.24, 0.04, 0.075, M["black"], bevel=0.0, tags=tags)
     for i in range(3):
-        B.box(f"rf_led{i}", 0, -0.62 + i * 0.08, 0.022, 0.03, 0.07, 0.078, M["glow_dim"], bevel=0.0, tags=tags)
+        B.box(f"rf_led{i}", 0, -0.58 + i * 0.08, 0.022, 0.03, 0.075, 0.082, M["glow_dim"], bevel=0.0, tags=tags)
 
-    # cabeca da prensa sobre a fileira de cima, em seta apontando para as grades: nucleo escuro + espinha +
-    # ombreiras + laminas diagonais que convergem para a ponta da espinha
-    base = [(-0.30, 0.04), (0.30, 0.04), (0.74, 0.40), (0.74, 0.86), (0.66, 0.94), (-0.66, 0.94), (-0.74, 0.86),
-            (-0.74, 0.40)]
+    # ---- coroa sobre a fileira de cima: nucleo escuro de base
+    base = [(-0.90, 0.10), (0.90, 0.10), (0.90, 0.86), (0.84, 0.92), (-0.84, 0.92), (-0.90, 0.86)]
     B.plate("cr_core", base, 0.05, 0.15, K, slope=0.02, tags=tags)
-    spine = [(-0.17, 0.92), (0.17, 0.92), (0.22, 0.87), (0.22, 0.36), (0.08, 0.08), (-0.08, 0.08), (-0.22, 0.36),
-             (-0.22, 0.87)]
-    B.shard("cr_spine", spine, 0.12, 0.36, A, slope=0.085, groove=0.03, panel_h=0.03, tags=tags)
-    spine2 = [(-0.115, 0.83), (0.115, 0.83), (0.135, 0.80), (0.135, 0.42), (0.055, 0.28), (-0.055, 0.28),
-              (-0.135, 0.42), (-0.135, 0.80)]
-    s2 = B.plate("cr_spine2", spine2, 0.39, 0.47, A, slope=0.03, tags=tags)
-    # visor de inspecao sobre a matriz: fenda escura com o contador de 4 pips ambar do carregador
-    win = B.rpoly(0, 0.405, 0.16, 0.042, 0, chamfer=0.012)
+
+    # tampa da tremonha (esquerda): casca octogonal clara com o bocal de carga e 6 respiros radiais
+    hx, hy = -0.53, 0.53
+    lid = H.octo(hx, hy, 0.335)
+    la, lp = B.shard("cr_lid", lid, 0.12, 0.32, A, slope=0.07, groove=0.03, panel_h=0.03, tags=tags)
+    for k in range(6):
+        a = 30 + 60 * k
+        if k in (4,):
+            continue
+        ca, sa = math.cos(math.radians(a)), math.sin(math.radians(a))
+        for q, t in enumerate((la, lp)):
+            if t is not None:
+                B.cut(t, [B.rbox(f"cr_rv{k}{q}", hx + ca * 0.22, hy + sa * 0.22, 0.10, 0.030, 0.30, 0.8, K, rot=a,
+                                 bevel=0.0)])
+        B.rbox(f"cr_rvb{k}", hx + ca * 0.22, hy + sa * 0.22, 0.10, 0.030, 0.295, 0.30, M["black"], rot=a, bevel=0.0,
+               tags=tags)
+    cap = H.octo(hx, hy, 0.12)
+    B.plate("cr_cap", cap, 0.33, 0.39, AM, slope=0.02, tags=tags)
+    B.cyl("cr_capk", hx, hy, 0.40, 0.04, 0.03, S, axis="Z", verts=8, bevel=0.006, tags=tags)
+    B.box("cr_caph", hx, hy, 0.16, 0.026, 0.39, 0.41, S, bevel=0.004, tags=tags)
+    # fenda de nivel do enxofre (4 pips) no bisel de baixo-direita da tampa
+    H.ledslot("cr_lvl", hx + 0.19, hy - 0.19, 0.16, 0.032, 0.28, 4, M, tags, [la, lp], vertical=False, pw=0.016,
+              pip_mat=M["glow_dim"], ang=-45)
+
+    # torre da prensa (direita): espinha em seta apontando para a saida
+    sx0 = 0.45
+    spine = [(sx0 - 0.20, 0.905), (sx0 + 0.20, 0.905), (sx0 + 0.25, 0.855), (sx0 + 0.25, 0.36), (sx0 + 0.10, 0.12),
+             (sx0 - 0.10, 0.12), (sx0 - 0.25, 0.36), (sx0 - 0.25, 0.855)]
+    B.shard("cr_spine", spine, 0.12, 0.36, A, slope=0.08, groove=0.03, panel_h=0.03, tags=tags)
+    sp2 = [(sx0 - 0.13, 0.83), (sx0 + 0.13, 0.83), (sx0 + 0.15, 0.80), (sx0 + 0.15, 0.42), (sx0 + 0.06, 0.27),
+           (sx0 - 0.06, 0.27), (sx0 - 0.15, 0.42), (sx0 - 0.15, 0.80)]
+    s2 = B.plate("cr_sp2", sp2, 0.39, 0.47, A, slope=0.03, tags=tags)
+    # visor de contagem sobre a matriz (4 pips ambar = municoes do carregador)
+    win = B.rpoly(sx0, 0.405, 0.17, 0.045, 0, chamfer=0.012)
     B.cut(s2, [B.loft("cr_winc", win, win, 0.41, 0.7, K, bevel=0.0)])
     B.loft("cr_winbed", win, win, 0.405, 0.415, M["black"], bevel=0.0, tags=tags)
+    for i in range(3):
+        B.box(f"cr_cnt{i}", sx0 - 0.045 + i * 0.045, 0.405, 0.024, 0.02, 0.415, 0.421, M["glow"], bevel=0.0,
+              tags=tags)
+    # fendas de respiro transversais na tampa do martelo
     for i in range(4):
-        B.box(f"cr_cnt{i}", -0.054 + i * 0.036, 0.405, 0.02, 0.02, 0.415, 0.421, M["glow"], bevel=0.0, tags=tags)
-    Mo.slot_with_pips("cr_sl", 0.555, -0.07, 0.07, 0.035, 0.47, 3, M, tags, target=s2, depth=0.06,
-                      vertical=False, pip_mat=M["glow_dim"])
-    # tampa da carcaca do martelo: fendas de respiro transversais (no lugar da tampa redonda, que lia como olho)
-    for i in range(4):
-        yv = 0.635 + i * 0.05
-        B.cut(s2, [B.box(f"cr_slc{i}", 0, yv, 0.15, 0.022, 0.41, 0.7, K, bevel=0.0)])
-        B.box(f"cr_slb{i}", 0, yv, 0.15, 0.022, 0.405, 0.415, M["black"], bevel=0.0, tags=tags)
-    # trilhos-guia de aco do martelo dos dois lados da tampa, com batentes
-    for sx in (-1, 1):
-        B.box(f"cr_rail{sx}", sx * 0.152, 0.62, 0.028, 0.40, 0.36, 0.405, S, bevel=0.008, tags=tags)
+        yv = 0.62 + i * 0.05
+        B.cut(s2, [B.box(f"cr_slc{i}", sx0, yv, 0.15, 0.022, 0.41, 0.7, K, bevel=0.0)])
+        B.box(f"cr_slb{i}", sx0, yv, 0.15, 0.022, 0.405, 0.415, M["black"], bevel=0.0, tags=tags)
+    for sxx in (-1, 1):
+        B.box(f"cr_rail{sxx}", sx0 + sxx * 0.167, 0.62, 0.026, 0.40, 0.36, 0.405, S, bevel=0.008, tags=tags)
         for yb in (0.43, 0.81):
-            B.box(f"cr_stop{sx}{yb}", sx * 0.152, yb, 0.044, 0.03, 0.36, 0.42, KM, bevel=0.006, tags=tags)
-    paul = [(-0.27, 0.92), (-0.27, 0.66), (-0.34, 0.585), (-0.62, 0.585), (-0.72, 0.66), (-0.72, 0.85),
-            (-0.65, 0.92)]
-    blade = [(-0.72, 0.53), (-0.58, 0.53), (-0.285, 0.25), (-0.25, 0.135), (-0.33, 0.11), (-0.72, 0.41)]
-    for sx, f in ((-1, lambda p: p), (1, Mo.mirror)):
-        pa, pp = B.shard(f"cr_paul{sx}", f(paul), 0.12, 0.32, A, slope=0.075, groove=0.03, panel_h=0.025, tags=tags)
-        # baia de respiro (persianas escuras) e fenda de pips na ombreira
-        vx = sx * 0.53
-        for t in (pa, pp):
-            B.cut(t, [B.box(f"cr_vc{sx}{id(t) % 7}", vx, 0.75, 0.17, 0.15, 0.25, 0.6, K, bevel=0.0)])
-        B.box(f"cr_vbed{sx}", vx, 0.75, 0.17, 0.15, 0.25, 0.256, M["black"], bevel=0.0, tags=tags)
-        for i in range(4):
-            B.box(f"cr_lv{sx}{i}", vx, 0.693 + i * 0.038, 0.15, 0.016, 0.256, 0.30, KM, bevel=0.003, tags=tags)
-        Mo.slot_with_pips(f"cr_psl{sx}", sx * 0.37, 0.68, 0.82, 0.034, 0.345, 3, M, tags, target=[pa, pp],
-                          depth=0.07, pip_mat=M["glow_dim"])
-        # lamina diagonal com fenda de luz fraca (como as laminas do 76 mm)
-        ba, bp = B.shard(f"cr_blade{sx}", f(blade), 0.12, 0.27, A, slope=0.045, groove=0.02, panel_h=0.02,
-                         tags=tags)
-        ang = sx * 43
-        for t in (ba, bp):
-            B.cut(t, [B.rbox(f"cr_bc{sx}{id(t) % 7}", sx * 0.49, 0.342, 0.18, 0.03, 0.22, 0.6, K, rot=ang, bevel=0.0)])
-        B.rbox(f"cr_bbed{sx}", sx * 0.49, 0.342, 0.18, 0.03, 0.215, 0.225, M["black"], rot=ang, bevel=0.0, tags=tags)
-        B.rbox(f"cr_bglow{sx}", sx * 0.49, 0.342, 0.13, 0.011, 0.225, 0.231, M["glow_dim"], rot=ang, bevel=0.0,
-               tags=tags)
-        # linha hidraulica no vao entre espinha e ombreira
-        B.cyl(f"cr_line{sx}", sx * 0.245, 0.69, 0.18, 0.016, 0.40, S, axis="Y", verts=8, bevel=0.0, tags=tags)
-    B.bolts("cr_b", [(-0.68, 0.88), (0.68, 0.88), (-0.66, 0.46), (0.66, 0.46)], 0.15, 0.016, S, tags=tags)
-    # o verde do conves nao reflete nem rebate luz nas pecas sem pintura (senao a pintura vaza nas bordas claras)
-    for o in B.bpy.context.scene.objects:
-        if o.type == "MESH" and o.get(T) and any(m is green for m in o.data.materials):
-            o.visible_glossy = False
-            o.visible_diffuse = False
+            B.box(f"cr_stop{sxx}{yb}", sx0 + sxx * 0.167, yb, 0.042, 0.03, 0.36, 0.42, KM, bevel=0.006, tags=tags)
+    # ombreira da direita (respiro) e lamina diagonal ligando a tampa a torre
+    paul = [(0.745, 0.905), (0.875, 0.905), (0.875, 0.30), (0.80, 0.22), (0.745, 0.30)]
+    pa, pp = B.shard("cr_paul", paul, 0.12, 0.30, A, slope=0.05, groove=0.022, panel_h=0.022, tags=tags)
+    H.vent("cr_pv", 0.81, 0.72, 0.075, 0.20, 0.25, 0.30, M, tags, n=4, targets=[pa, pp])
+    H.ledslot("cr_psl", 0.81, 0.45, 0.034, 0.18, 0.25, 3, M, tags, [pa, pp], pw=0.018, pip_mat=M["glow_dim"])
+    blade = [(-0.17, 0.30), (0.06, 0.30), (0.20, 0.17), (0.20, 0.12), (-0.04, 0.12), (-0.17, 0.24)]
+    ba, bp = B.shard("cr_blade", blade, 0.12, 0.26, A, slope=0.04, groove=0.018, panel_h=0.018, tags=tags)
+    for q, t in enumerate((ba, bp)):
+        if t is not None:
+            B.cut(t, [B.rbox(f"cr_bc{q}", 0.02, 0.21, 0.16, 0.03, 0.21, 0.6, K, rot=-25, bevel=0.0)])
+    B.rbox("cr_bbed", 0.02, 0.21, 0.16, 0.03, 0.205, 0.215, M["black"], rot=-25, bevel=0.0, tags=tags)
+    B.rbox("cr_bglow", 0.02, 0.21, 0.11, 0.011, 0.215, 0.221, M["glow_dim"], rot=-25, bevel=0.0, tags=tags)
+    # duto da tremonha para a torre (a rosca por baixo)
+    B.cyl("cr_duct", -0.08, 0.40, 0.17, 0.05, 0.22, KM, axis="X", verts=8, bevel=0.006, tags=tags)
+    for k, x in enumerate((-0.15, -0.01)):
+        B.cyl(f"cr_dr{k}", x, 0.40, 0.17, 0.056, 0.02, S, axis="X", verts=8, bevel=0.004, tags=tags)
+    B.bolts("cr_b", [(-0.85, 0.87), (0.85, 0.15), (-0.85, 0.15)], 0.15, 0.016, S, tags=tags)
+    H.roof_unpaint(T)

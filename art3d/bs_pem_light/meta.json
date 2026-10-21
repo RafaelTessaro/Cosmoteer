@@ -8,10 +8,10 @@
  ],
  "pivot": [
   0.5,
-  0.55
+  0.5
  ],
  "turret_size": 1.0,
- "collider": 0.45,
+ "collider": 0.46,
  "turret": {
   "frames": [
    "turret.png"
