@@ -48,7 +48,8 @@ CHIP = {
 LED = {
     "he": (1.0, 0.42, 0.04), "ap": (0.50, 0.72, 1.0), "sap": (1.0, 0.115, 0.012), "ac": (1.0, 0.02, 0.08),
     "frag": (0.05, 0.78, 0.60), "plasma": (0.08, 0.72, 1.0), "pem": (0.03, 0.30, 1.0), "slug": (0.026, 0.171, 1.0),
-    "slug_hi": (0.13, 0.43, 1.0), "nuke": (0.32, 1.0, 0.0), "msl_he": (1.0, 0.42, 0.04), "msl_cluster": (1.0, 0.78, 0.11),
+    "slug_hi": (0.13, 0.43, 1.0), "nuke": (0.32, 1.0, 0.0), "msl_he": (1.0, 0.42, 0.04),
+    "msl_cluster": (1.0, 0.78, 0.11),
     "msl_emp": (0.06, 0.45, 1.0), "white": (1.0, 0.92, 0.75), "nuke_core": (0.12, 1.0, 0.06),
 }
 
@@ -366,8 +367,9 @@ def magazine(M, Xm, tags, ammo, led_s=1.0, round_led=0.0):
     if ammo == "ac":
         # estojo premium: tampas de canto de OURO nos 4 cantos (le a 1x mesmo na pilha)
         for s in (-1, 1):
-            c = [(s * (hw - ch - 0.035), MAG_Y0 + 0.005), (s * (hw - ch), MAG_Y0 + 0.005), (s * hw, MAG_Y0 + ch + 0.005),
-                 (s * hw, MAG_Y0 + ch + 0.06), (s * (hw - ch - 0.035), MAG_Y0 + ch + 0.06)]
+            c = [(s * (hw - ch - 0.035), MAG_Y0 + 0.005), (s * (hw - ch), MAG_Y0 + 0.005),
+                 (s * hw, MAG_Y0 + ch + 0.005), (s * hw, MAG_Y0 + ch + 0.06),
+                 (s * (hw - ch - 0.035), MAG_Y0 + ch + 0.06)]
             c = c if s < 0 else list(reversed(c))
             B.plate(f"mg_gcb{s}", c, 0.0, PLATE_Z + 0.035, Xm["gold"], slope=0.014, tags=tags)
             f = [(s * (hw - 0.075), 0.15), (s * hw, 0.15), (s * hw, 0.19), (s * (hw - 0.05), 0.265),
@@ -661,8 +663,8 @@ def charge_part(pid, kind, accent):
 # ============================================================================ ogiva nuclear (Iara)
 # Unidade ao longo de +Y (~0.40 x 0.96): ogiva GORDA da Iara 2.0 (o unico missil de blindagem escura): base com colar
 # claro de bisel, corpo de grafite com a faixa VERDE larga num sulco e a janela de contencao com o nucleo verde atras
-# da grade de aco, colar claro no pescoco, ogiva clara com o TREVO de 3 cunhas escuras sobre disco verde (STYLE 7 / 11.6:
-# permitido no recurso nuclear) e o sensor escuro na ponta. Sem divisas e sem amarelo.
+# da grade de aco, colar claro no pescoco, ogiva clara com o TREVO de 3 cunhas escuras sobre disco verde
+# (STYLE 7 / 11.6: permitido no recurso nuclear) e o sensor escuro na ponta. Sem divisas e sem amarelo.
 NK_R = 0.175
 NK_ZC = 0.185
 NK_SCALE = 0.86
