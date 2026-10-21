@@ -26,12 +26,13 @@ shell_ladder do spec de arte 2.0 (design/art/spec_art.json):
                                                     os colares EM fazem o papel das sapatas de trilho
 
 Municao pela COR e pela SILHUETA (a mesma em todos os niveis):
-  * HE (Alto-Explosivo, ambar): ogiva curta com espoleta de ponta chata (no nivel l/h a espoleta vira o domo do
-    sensor);
-  * AP (Perfurante, azul-gelo): ogiva longa com capuz balistico ESCURO (lente, em todos os niveis) e a ponta do
-    penetrador de triaco exposta;
-  * SAP (Semiperfurante, laranja): capuz rombudo largo (mais chato que o da HE e o da AP) e colar da espoleta de
-    base atras;
+  * HE (Alto-Explosivo, ambar): ogiva curta com espoleta de ponta chata (no nivel l/h a espoleta vira o nariz
+    sensor ESCALONADO e estreito: colar, degrau escuro, colar fino e a lente pequena);
+  * AP (Perfurante, azul-gelo): ogiva longa com capuz balistico ESCURO (grafite azulado, metade do tom das luvas)
+    com o filete claro de aco gelo no contorno (chanfro duplo: a ogiva pontuda le no espaco sob o halo), anel gelo
+    na divisa capuz/corpo e a ponta do penetrador de aco exposta;
+  * SAP (Semiperfurante, laranja): capuz rombudo largo (mais chato que o da HE e o da AP; no l/h ainda mais largo
+    e chato) e colar da espoleta de base atras;
   * AC (Alta Capacidade, carmim + ouro): GUIADA, corpo mais fino, 4 aletas na cauda + 4 canards de OURO maiores
     no nariz (em +: 2 de lado e a dorsal de quina vista de cima), buscador que pisca na ponta dentro de um anel de
     ouro largo, faixa carmim (mascara) entre dois aneis de ouro pintados no difuso.
@@ -50,7 +51,7 @@ Telas que diferem da shell_ladder (proporcao da tela = proporcao do corpo no jog
   ac_h  [2.0, 0.89] (spec 0.80): o corpo no jogo 2.2 x 0.983 tem proporcao 2.24; com 0.80 (2.5) esticava 12% em Y;
   pem_s [2.0, 0.80] (spec 0.70): corpo 0.5 x 0.2 (2.5); com 0.70 (2.86) esticava 14%;
   pem_m [2.0, 0.75] (spec 0.70): corpo 0.75 x 0.28 (2.68); com 0.70 esticava 7%.
-As outras telas batem com o corpo em +-3%.
+As outras telas batem com o corpo em ate 3,2% (nivel s 2.857 x corpo 2.77 = 3,2%; ac_s 2.5 x 2.42 = 3,1%).
 
     $PY tools/blender/render_part.py bs_shells2 --quick --out <rascunho> [--only he_s,slug]
     $PY tools/blender/render_part.py bs_shells2          # final em art3d/bs_shells2/
@@ -297,16 +298,17 @@ def _dome(x0, x1, r0, p=2.0, n=8, r_end=0.0):
     return out
 
 
-def led_groove(name, x, w, r, color, s, X, tags, LT, full=False):
+def led_groove(name, x, w, r, color, s, X, tags, LT, full=False, lw=0.62, lh=0.86):
     """Faixa de LED: anel escuro rebaixado (raio r, entre pecas de raio maior) com a tira acesa na face de cima
-    (full=True: anel aceso inteiro, visto de cima atravessa a largura toda)."""
+    (full=True: anel aceso inteiro, visto de cima atravessa a largura toda). lw/lh: comprimento (fracao de w) e
+    largura (fracao da face de cima) da tira."""
     ring(name + "_k", x - w / 2, x + w / 2, r, X["core"], tags)
     if full:
         ring(name + "_l", x - w * 0.32, x + w * 0.32, r * 1.012, _led(color, s), _lt(LT, s))
     else:
         zt = r * COS8
-        hw = r * TOPW / 2 * 0.86
-        B.box(name + "_l", x, 0, w * 0.62, 2 * hw, zt - 0.004, zt + 0.006, _led(color, s), bevel=0.0,
+        hw = r * TOPW / 2 * lh
+        B.box(name + "_l", x, 0, w * lw, 2 * hw, zt - 0.004, zt + 0.006, _led(color, s), bevel=0.0,
               tags=_lt(LT, s))
 
 
@@ -429,7 +431,7 @@ def _ogive2(name, og, X, tags, tier, LT, col, k, frac=0.52, front_mat=None, slit
     xs = xa + (xe - xa) * frac
     rear, front = _split(og, xs)
     if edge_mat is not None:
-        octo_edge(name + "_f", front, front_mat or X["graph"], edge_mat, tags, t=0.5)
+        octo_edge(name + "_f", front, front_mat or X["graph"], edge_mat, tags, t=0.42)
     else:
         octo(name + "_f", front, front_mat or X["graph"], tags)
     if tier in ("l", "h"):
@@ -469,9 +471,12 @@ def _nose(X, M, T, LT, ammo, tier, R, xo, k, phase):
                  X["steel"], tags)
             ring("fz_sens", xf + 0.085, xf + 0.125, rf * 0.97, X["black"], tags)
         else:
-            # nariz sensor: colar de aco curto + domo de LENTE escura brilhante
-            octo("fz_col", [(rf, xf + 0.018), (rf * 0.97, xf + 0.06)], X["steel"], tags)
-            smooth("fz_lens", _dome(xf + 0.06, X1, rf * 0.92, p=1.8, n=10), X["lens"], tags)
+            # nariz sensor ESCALONADO e estreito (a 1x nao pode ler como o capuz rombudo e largo da SAP do nivel):
+            # colar de aco, degrau escuro, colar de aco mais fino e a lente pequena e pontuda na frente
+            octo("fz_col", [(rf * 0.86, xf + 0.018), (rf * 0.84, xf + 0.065)], X["steel"], tags)
+            ring("fz_step", xf + 0.060, xf + 0.085, rf * 0.70, X["black"], tags)
+            octo("fz_col2", [(rf * 0.64, xf + 0.083), (rf * 0.60, xf + 0.125)], X["steel"], tags)
+            smooth("fz_lens", _dome(xf + 0.12, X1, rf * 0.52, p=1.6, n=10), X["lens"], tags)
         return og
     if ammo == "ap":
         # ogiva longa: base clara (composito) + capuz balistico escuro + ponta do penetrador de triaco exposta
@@ -495,12 +500,13 @@ def _nose(X, M, T, LT, ammo, tier, R, xo, k, phase):
         # ogiva media e capuz rombudo LARGO e chato (grafite; no l/h vira domo de lente): no s/m o capuz fica mais
         # largo e mais curto (p 3.2) para a SAP nao ler como a HE a 1x (a cor ambar x laranja e proxima)
         sm = not sensor
-        xcap = X1 - (0.14 if sm else 0.16)
-        og = _ogive_to(R, xcap - xo, (0.66 if sm else 0.56) * R, xo)
+        # (l/h: capuz ainda mais largo e chato que o da r2, contra o nariz sensor fino e escalonado da HE)
+        xcap = X1 - (0.14 if sm else 0.12)
+        og = _ogive_to(R, xcap - xo, (0.66 if sm else 0.64) * R, xo)
         _ogive2("sap_og", og, X, tags, tier, LT, ammo, k, frac=0.55)
         rc = og[-1][0]
         ring("sap_crimp", xcap - 0.016, xcap + 0.012, rc * 1.07, X["steel"], tags, ch=0.004)
-        prof = _dome(xcap + 0.01, X1, rc * 1.0, p=3.2 if sm else 2.4, n=10)
+        prof = _dome(xcap + 0.01, X1, rc * 1.0, p=3.2, n=10)
         if sensor:
             smooth("sap_cap", prof, X["lens"], tags)
         else:
@@ -520,11 +526,14 @@ def _body_tier(X, M, T, LT, ammo, tier, R, xs0, xs1, k, phase, n_frames, core0=N
     ring("core", xs0 - 0.02 if core0 is None else core0, xs1 + 0.01, rc, X["core"], tags)
     sleeves = []
     if tier == "s":
-        # luva de composito lisa em 2 trechos com a faixa de LED (2 quadros: aceso / fraco) no meio
+        # luva de composito lisa em 2 trechos com a faixa de LED (2 quadros: aceso / fraco) no meio. Critica r2: a
+        # 1x (46 px) o 76 mal se distinguia da granada antiga -> valores mais separados: rebaixo do LED mais largo
+        # (2.5 px a 1x), tira acesa maior e mais forte, chanfros das pontas das luvas maiores (as frestas escuras
+        # das emendas aparecem a 1x)
         xl = xs0 + (xs1 - xs0) * 0.36
-        sleeves.append(ring("sl0", xs0, xl - 0.045, R, X["comp"], tags, ch=0.012))
-        sleeves.append(ring("sl1", xl + 0.045, xs1, R, X["comp"], tags, ch=0.012))
-        led_groove("led", xl, 0.08, rg, col, 1.15 if k == 0 else 0.30, X, tags, LT)
+        sleeves.append(ring("sl0", xs0, xl - 0.058, R, X["comp"], tags, ch=0.020))
+        sleeves.append(ring("sl1", xl + 0.058, xs1, R, X["comp"], tags, ch=0.020))
+        led_groove("led", xl, 0.108, rg, col, 1.3 if k == 0 else 0.30, X, tags, LT, lw=0.74, lh=0.94)
         return sleeves
     if tier == "m":
         # anel de LED fino logo atras do obturador (aceso no quadro 0, fraco no 1) e luvas em divisa (escamas
@@ -729,10 +738,12 @@ def _ac(M, X, T, tier, phase, n_frames):
 
 # ============================================================================ PEM
 def _capsule(X, T, x0, x1, R, nose=0.22, tail=0.12, mat=None):
-    """Capsula octogonal: cauda chanfrada, corpo reto e nariz arredondado."""
+    """Capsula octogonal: cauda chanfrada, corpo reto e nariz arredondado, com um filete MEDIO no contorno
+    (octo_edge, composito medio): as pontas da capsula escura nao somem dentro da propria bainha ciano no espaco
+    (critica r2: contraste da tampa ~8-12)."""
     prof = [(R * 0.70, x0), (R * 0.92, x0 + tail * 0.4), (R, x0 + tail)]
     prof += [(R, x1 - nose)] + _dome(x1 - nose, x1, R, p=2.2, n=8)[1:]
-    return octo("cap", prof, mat or X["pem"], (T,))
+    return octo_edge("cap", prof, mat or X["pem"], X["comp_d"], (T,), t=0.32)
 
 
 def _coil(X, T, name, xc, w, R, turns=3):
@@ -835,8 +846,10 @@ def _slug(M, X, T, phase, n_frames):
     k = int(round(phase * n_frames)) % n_frames
     R = 0.10                                 # haste de ~0.185 quadro entre faces (0.15-0.20 pedido)
     xa, xc, xt = -1.40, 1.10, 1.47           # cauda da haste, inicio do cone do penetrador, ponta
-    # haste de tungstenio CLARO (octogono de topo plano, cauda chanfrada) + base escura
-    rod = octo("rod", [(R * 0.78, xa), (R, xa + 0.03), (R, xc)], X["tung"], tags)
+    # haste de tungstenio CLARO (octogono de topo plano, cauda chanfrada) com o filete MEDIO no contorno (critica
+    # r2: no casco cinza claro sob a luz violeta a haste ~165 encostava na placa ~186; o filete desenha o dardo) +
+    # base escura
+    rod = octo_edge("rod", [(R * 0.78, xa), (R, xa + 0.03), (R, xc)], X["tung"], X["comp_d"], tags, t=0.40)
     ring("base", xa - 0.03, xa + 0.012, R * 0.82, X["graph"], tags)
     # penetrador conico: cone de tungstenio, colar escuro fino, ponta quente ouro (atlas) e ponto branco-quente
     xh = xt - 0.115
