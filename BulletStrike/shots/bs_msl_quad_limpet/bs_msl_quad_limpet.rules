@@ -55,15 +55,38 @@ Components
 		{
 			Texture
 			{
-				File = "./Data/shots/missile_he/missile_he.png"
+				File = "../bs_missile_art/msl_limpet_l.png"
 				MipLevels = max
 			}
-			Size = [2, 1]
+			Size = [2.5, 1]
 		}
 		NormalsTexture
 		{
-			File = "./Data/shots/missile_he/missile_he_normals.png"
+			File = "../bs_missile_art/msl_limpet_l_normals.png"
 			MipLevels = max
+		}
+	}
+	LightsSprite
+	{
+		Type = AnimatedSprite
+		RenderBucket = BulletUpper4
+		Animation
+		{
+			AtlasSprite
+			{
+				Texture
+				{
+					File = "../bs_missile_art/msl_limpet_l_lights.png"
+					MipLevels = max
+					SampleMode = Linear
+				}
+				Size = [2.5, 1]
+				TargetBlendMode = Add
+			}
+			FrameCount = 2
+			FrameSize = [160, 64]
+			FramesPerRow = 2
+			FramesPerSecond = 3
 		}
 	}
 	GlowSprite
@@ -72,7 +95,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		Offset = [-0.9, 0]
+		Offset = [-1.18, 0]
 		Sprite
 		{
 			Texture
@@ -95,9 +118,14 @@ Components
 	MediaEffects
 	{
 		Type = MediaEffects
-		Offset = [-0.9, 0]
+		Offset = [-1.18, 0]
 		Rotation = 180d
-		MediaEffects = [&<./Data/shots/missile_he/particles/missile_he_thruster_plume_light.rules>]
+		MediaEffects
+		[
+			&<../bs_missile_fx/smoke_grey_35.rules>
+			&<../bs_missile_fx/plume_limpet_l.rules>
+			&<../bs_missile_fx/plume_light_limpet.rules>
+		]
 	}
 	Targetable
 	{
@@ -126,6 +154,7 @@ Components
 					Radius = 3
 				}
 			]
+			MediaEffectsScale = 0.6
 			MediaEffects
 			[
 				&<./Data/shots/missile_he/particles/missile_he_hit.rules>
@@ -180,11 +209,13 @@ Components
 					}
 				}
 			]
+			MediaEffectsScale = 0.65
 			MediaEffects
 			[
 				&<./Data/shots/bullet_med/particles/bullet_hit_med_sparks.rules>
 				&<./Data/shots/bullet_med/particles/bullet_flash_med.rules>
 				&<./Data/shots/missile_he/particles/missile_he_flash.rules>
+				&<../bs_missile_fx/clank_limpet.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds
@@ -208,6 +239,7 @@ Components
 		HitStructural = &HitOperational
 		HitFriendly
 		{
+			MediaEffectsScale = 0.65
 			MediaEffects
 			[
 				&<./Data/shots/missile_he/particles/missile_he_hit.rules>

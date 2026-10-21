@@ -131,8 +131,12 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			FireInterval = &~/FIRE_INTERVAL
 			FiringArc = 360d
 			RotateSpeed = 240d
-			FireThresholdAngle = 0.95d
+			FireThresholdAngle = 4d
 			TargetSearchesPerSecond = 8
+			TargetChecksPerSearch = 4
+			InstantSearchesAfterTargetLost = 3
+			HoldTargetAfterCancel = 0.5
+			ReturnToCenter = false
 			AIFirepowerRating = 0
 			IncludeInFirepowerEstimation = false
 			CanBeGivenExplicitTarget = false
@@ -141,6 +145,8 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			Emitter = BaseFlakEmitter
 			IgnoreFriendlyShipLowLOSChecks = true
 			IgnoreFriendlyShipHighLOSChecks = true
+			IgnoreJunkLOSChecks = true
+			AllowFireWithBlockedLOS = true
 			AlwaysShowCoverage = true
 			FirePermissionToggle = FireModeToggle
 			AutoTargetCrewSafetyDist = 8
@@ -148,8 +154,14 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			[
 				{
 					TargetType = Bullets
-					BulletTargetCategories = [missile, mine, bullet, laser, ion_shot]
+					BulletTargetCategories = [missile, mine]
 					Toggle = AutoTargetToggle
+				}
+				{
+					TargetType = Bullets
+					BulletTargetCategories = [bullet, laser, ion_shot]
+					Toggle = AutoTargetToggle
+					Overridable = true
 				}
 			]
 			BlueprintArcSprite
@@ -160,6 +172,12 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			}
 			BlueprintArcRadius = 10
 			BlueprintArcSpriteSegments = 64
+			CoverageSectorArc
+			{
+				Texture = &/INDICATORS/VerticalGradient
+				VertexColor = [255, 255, 255, 51]
+				QuadCount = 64
+			}
 		}
 		TurretCollider
 		{
@@ -235,7 +253,8 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			Location = [1.29, -0.2]
 			MediaEffects
 			[
-				&<./Data/ships/terran/flak_cannon_large/particles/flak_cannon_shoot_flash_large.rules>
+				&<../../shots/bs_cal_fx/bs_cal_ff_60.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cgs_60_l60.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds
@@ -259,7 +278,8 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			Location = [1.29, 0.2]
 			MediaEffects
 			[
-				&<./Data/ships/terran/flak_cannon_large/particles/flak_cannon_shoot_flash_large.rules>
+				&<../../shots/bs_cal_fx/bs_cal_ff_60.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cgs_60_l60.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds
@@ -603,6 +623,9 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 				ROF = 1 / (&~/Part/Components/Turret/FireInterval)
 				DamagePerSecondVsShots = (&DamagePerShotVsShots) * (&ROF)
 				ShotDamage = [&../DamagePerShotVsShots, &../DamagePerSecondVsShots]
+				DamagePerShotVsLasers = &~/Part/Components/BaseFlakEmitter/STAT_LASER_DAMAGE
+				DamagePerSecondVsLasers = (&DamagePerShotVsLasers) * (&ROF)
+				BSShotDamageVsLasers = [&../DamagePerShotVsLasers, &../DamagePerSecondVsLasers]
 				DamageArea = &~/Part/Components/BaseFlakEmitter/STAT_RADIUS
 				Range = &~/Part/Components/BaseFlakEmitter/Range
 				Arc = deg(&~/Part/Components/Turret/FiringArc)

@@ -54,15 +54,38 @@ Components
 		{
 			Texture
 			{
-				File = "./Data/shots/missile_he/missile_he.png"
+				File = "../bs_missile_art/msl_napalm_m.png"
 				MipLevels = max
 			}
-			Size = [1.6, 0.8]
+			Size = [1.75, 0.75]
 		}
 		NormalsTexture
 		{
-			File = "./Data/shots/missile_he/missile_he_normals.png"
+			File = "../bs_missile_art/msl_napalm_m_normals.png"
 			MipLevels = max
+		}
+	}
+	LightsSprite
+	{
+		Type = AnimatedSprite
+		RenderBucket = BulletUpper4
+		Animation
+		{
+			AtlasSprite
+			{
+				Texture
+				{
+					File = "../bs_missile_art/msl_napalm_m_lights.png"
+					MipLevels = max
+					SampleMode = Linear
+				}
+				Size = [1.75, 0.75]
+				TargetBlendMode = Add
+			}
+			FrameCount = 2
+			FrameSize = [112, 48]
+			FramesPerRow = 2
+			FramesPerSecond = 3
 		}
 	}
 	GlowSprite
@@ -71,7 +94,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		Offset = [-0.72, 0]
+		Offset = [-0.86, 0]
 		Sprite
 		{
 			Texture
@@ -94,9 +117,15 @@ Components
 	MediaEffects
 	{
 		Type = MediaEffects
-		Offset = [-0.72, 0]
+		Offset = [-0.86, 0]
 		Rotation = 180d
-		MediaEffects = [&<./Data/shots/missile_thermal/particles/missile_thermal_thruster_plume_light.rules>]
+		MediaEffects
+		[
+			&<../bs_missile_fx/fire_napalm_100_s80.rules>
+			&<../bs_missile_fx/smoke_oily_28_s80.rules>
+			&<../bs_missile_fx/plume_napalm_m.rules>
+			&<../bs_missile_fx/plume_light_napalm.rules>
+		]
 	}
 	Targetable
 	{
@@ -132,6 +161,7 @@ Components
 					DivideValueByPartArea = true
 				}
 			]
+			MediaEffectsScale = 0.8
 			MediaEffects = &../HitOperational/MediaEffects
 		}
 		HitOperational
@@ -175,11 +205,14 @@ Components
 					}
 				}
 			]
+			MediaEffectsScale = 0.8
 			MediaEffects
 			[
 				&<./Data/shots/missile_thermal/particles/missile_thermal_hit_cone.rules>
 				&<./Data/shots/missile_thermal/particles/missile_thermal_shockwave.rules>
 				&<./Data/shots/missile_thermal/particles/missile_thermal_flash.rules>
+				&<./Data/shots/missile_thermal/particles/missile_thermal_shrapnel.rules>
+				&<../bs_missile_fx/droplets_napalm.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds = ["./Data/shots/missile_thermal/missile_thermal_hit.wav"]
@@ -197,6 +230,7 @@ Components
 		HitStructural = &HitOperational
 		HitFriendly
 		{
+			MediaEffectsScale = 0.8
 			MediaEffects
 			[
 				&<./Data/shots/missile_thermal/particles/missile_thermal_hit_cone.rules>

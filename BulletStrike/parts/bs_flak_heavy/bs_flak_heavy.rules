@@ -174,9 +174,13 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				]
 			}
 			FiringArc = 360d
-			RotateSpeed = 90d
-			FireThresholdAngle = 1.25d
+			RotateSpeed = 120d
+			FireThresholdAngle = 3d
 			TargetSearchesPerSecond = 8
+			TargetChecksPerSearch = 4
+			InstantSearchesAfterTargetLost = 3
+			HoldTargetAfterCancel = 0.5
+			ReturnToCenter = false
 			AIFirepowerRating = 0
 			IncludeInFirepowerEstimation = false
 			CanBeGivenExplicitTarget = false
@@ -185,6 +189,8 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Emitter = BaseFlakEmitter
 			IgnoreFriendlyShipLowLOSChecks = true
 			IgnoreFriendlyShipHighLOSChecks = true
+			IgnoreJunkLOSChecks = true
+			AllowFireWithBlockedLOS = true
 			AlwaysShowCoverage = true
 			FirePermissionToggle = FireModeToggle
 			AutoTargetCrewSafetyDist = 8
@@ -192,8 +198,14 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			[
 				{
 					TargetType = Bullets
-					BulletTargetCategories = [missile, mine, bullet, laser, ion_shot]
+					BulletTargetCategories = [missile, mine]
 					Toggle = AutoTargetToggle
+				}
+				{
+					TargetType = Bullets
+					BulletTargetCategories = [bullet, laser, ion_shot]
+					Toggle = AutoTargetToggle
+					Overridable = true
 				}
 			]
 			BlueprintArcSprite
@@ -204,6 +216,12 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			}
 			BlueprintArcRadius = 10
 			BlueprintArcSpriteSegments = 64
+			CoverageSectorArc
+			{
+				Texture = &/INDICATORS/VerticalGradient
+				VertexColor = [255, 255, 255, 51]
+				QuadCount = 64
+			}
 		}
 		TurretCollider
 		{
@@ -289,15 +307,26 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Type = MultiTrigger
 			Triggers = [FlakEmitter2, Overclock_FlakEmitter2]
 		}
+		FireTrigger1_Overclocked
+		{
+			Type = TriggerProxy
+			ComponentID = Emitter1Trigger
+			ProxyToggle = IsOverclocked
+		}
+		FireTrigger1_NonOverclocked : FireTrigger1_Overclocked
+		{
+			InvertProxyToggle = true
+		}
 		FireEffect1
 		{
 			Type = TriggeredEffects
 			ChainedTo = Turret
-			Trigger = Emitter1Trigger
+			Trigger = FireTrigger1_NonOverclocked
 			Location = [3.17, -0.45]
 			MediaEffects
 			[
-				&<./Data/ships/terran/flak_cannon_large/particles/flak_cannon_shoot_flash_large.rules>
+				&<../../shots/bs_cal_fx/bs_cal_ff_110.rules>
+				&<../../shots/bs_cal_fx/bs_cal_fs_100.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds
@@ -313,15 +342,76 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				}
 			]
 		}
+		Overclock_FireEffect1
+		{
+			Type = TriggeredEffects
+			ChainedTo = Turret
+			Trigger = FireTrigger1_Overclocked
+			Location = [3.17, -0.45]
+			MediaEffects
+			[
+				&<../../shots/bs_cal_fx/bs_cal_ff_130.rules>
+				&<../../shots/bs_cal_fx/bs_cal_fs_120.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/ships/terran/flak_cannon_large/sounds/flak_cannon_shot_01.wav"
+						"./Data/ships/terran/flak_cannon_large/sounds/flak_cannon_shot_02.wav"
+						"./Data/ships/terran/flak_cannon_large/sounds/flak_cannon_shot_03.wav"
+						"./Data/ships/terran/flak_cannon_large/sounds/flak_cannon_shot_04.wav"
+					]
+					Volume = 0.35
+					SpeedVariation = 0.08
+					MaxConcurrent = 30
+				}
+			]
+		}
+		FireTrigger2_Overclocked
+		{
+			Type = TriggerProxy
+			ComponentID = Emitter2Trigger
+			ProxyToggle = IsOverclocked
+		}
+		FireTrigger2_NonOverclocked : FireTrigger2_Overclocked
+		{
+			InvertProxyToggle = true
+		}
 		FireEffect2
 		{
 			Type = TriggeredEffects
 			ChainedTo = Turret
-			Trigger = Emitter2Trigger
+			Trigger = FireTrigger2_NonOverclocked
 			Location = [3.17, 0.45]
 			MediaEffects
 			[
-				&<./Data/ships/terran/flak_cannon_large/particles/flak_cannon_shoot_flash_large.rules>
+				&<../../shots/bs_cal_fx/bs_cal_ff_110.rules>
+				&<../../shots/bs_cal_fx/bs_cal_fs_100.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/ships/terran/flak_cannon_large/sounds/flak_cannon_shot_01.wav"
+						"./Data/ships/terran/flak_cannon_large/sounds/flak_cannon_shot_02.wav"
+						"./Data/ships/terran/flak_cannon_large/sounds/flak_cannon_shot_03.wav"
+						"./Data/ships/terran/flak_cannon_large/sounds/flak_cannon_shot_04.wav"
+					]
+					Volume = 0.35
+					SpeedVariation = 0.08
+					MaxConcurrent = 30
+				}
+			]
+		}
+		Overclock_FireEffect2
+		{
+			Type = TriggeredEffects
+			ChainedTo = Turret
+			Trigger = FireTrigger2_Overclocked
+			Location = [3.17, 0.45]
+			MediaEffects
+			[
+				&<../../shots/bs_cal_fx/bs_cal_ff_130.rules>
+				&<../../shots/bs_cal_fx/bs_cal_fs_120.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds
@@ -830,6 +920,9 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				ROF = 2 / (&~/Part/Components/Turret/FireInterval/BaseValue)
 				DamagePerSecondVsShots = (&DamagePerShotVsShots) * (&ROF)
 				ShotDamage = [&../DamagePerShotVsShots, &../DamagePerSecondVsShots]
+				DamagePerShotVsLasers = &~/Part/Components/BaseFlakEmitter/STAT_LASER_DAMAGE
+				DamagePerSecondVsLasers = (&DamagePerShotVsLasers) * (&ROF)
+				BSShotDamageVsLasers = [&../DamagePerShotVsLasers, &../DamagePerSecondVsLasers]
 				DamageArea = &~/Part/Components/BaseFlakEmitter/STAT_RADIUS
 				Range = &~/Part/Components/BaseFlakEmitter/Range
 				Arc = deg(&~/Part/Components/Turret/FiringArc)

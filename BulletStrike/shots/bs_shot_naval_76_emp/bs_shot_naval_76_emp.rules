@@ -78,7 +78,31 @@ Components
 					]
 				}
 			]
-			MediaEffects = &../HitOperational/MediaEffects
+			MediaEffects
+			[
+				&<./Data/shots/bullet_large/particles/bullet_flash_large.rules>
+				&<./Data/shots/bullet_large/particles/bullet_hit_large_sparks.rules>
+				&<./Data/shots/missile_nuke/particles/missile_nuke_shockwave.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_01.wav"
+						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_02.wav"
+						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_03.wav"
+						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_04.wav"
+					]
+					Volume = 0.6
+					SpeedVariation = 0.2
+					MaxConcurrent = 20
+				}
+				: /BASE_SHAKE
+				{
+					ShakeAmount = 0.05
+					Duration = 0.5
+				}
+			]
+			MediaEffectsScale = 0.9
 		}
 		HitOperational
 		{
@@ -135,7 +159,13 @@ Components
 					SpeedVariation = 0.2
 					MaxConcurrent = 20
 				}
+				: /BASE_SHAKE
+				{
+					ShakeAmount = 0.05
+					Duration = 0.5
+				}
 			]
+			MediaEffectsScale = 0.6
 		}
 		HitStructural
 		{
@@ -162,10 +192,12 @@ Components
 			]
 			MediaEffects
 			[
-				&<./Data/shots/disruptor_bolt/particles/disruptor_bolt_hit_orb.rules>
-				&<./Data/shots/disruptor_bolt/particles/disruptor_bolt_hit_bolts.rules>
-				&<./Data/shots/disruptor_bolt/particles/disruptor_bolt_flash.rules>
+				&<./Data/shots/bullet_large/particles/bullet_hit_large.rules>
+				&<./Data/shots/bullet_large/particles/bullet_hit_large_sparks.rules>
+				&<./Data/shots/bullet_large/particles/bullet_smoke_large.rules>
+				&<./Data/shots/bullet_large/particles/bullet_flash_large.rules>
 			]
+			MediaEffectsScale = 0.9
 		}
 		PenetratingOperational
 		{
@@ -199,7 +231,26 @@ Components
 					}
 				}
 			]
-			MediaEffects = &../HitOperational/MediaEffects
+			MediaEffects
+			[
+				&<./Data/shots/disruptor_bolt/particles/disruptor_bolt_hit_orb.rules>
+				&<./Data/shots/disruptor_bolt/particles/disruptor_bolt_hit_bolts.rules>
+				&<./Data/shots/disruptor_bolt/particles/disruptor_bolt_flash.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_01.wav"
+						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_02.wav"
+						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_03.wav"
+						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_04.wav"
+					]
+					Volume = 0.6
+					SpeedVariation = 0.2
+					MaxConcurrent = 20
+				}
+			]
+			MediaEffectsScale = 0.65
 		}
 		PenetratingStructural : &HitStructural
 		{
@@ -211,30 +262,102 @@ Components
 	}
 	Sprite
 	{
-		Type = AnimatedSprite
+		Type = Sprite
 		RenderBucket = BulletUpper3
-		ReduceScaleWith = Hit
-		ReduceScaleExponent = 0.5
-		Animation
+		IsLit = true
+		Sprite
 		{
-			AtlasSprite
+			Texture
 			{
-				Texture
-				{
-					File = "./Data/shots/bullet_large/bullet_large.png"
-					SampleMode = Linear
-					MipLevels = max
-				}
-				Size = [0.7, 0.7]
+				File = "../bs_shell_art/bs_shell_he.png"
+				MipLevels = max
 			}
-			FrameCount = 16
-			FrameSize = [256, 256]
-			FramesPerRow = 4
-			FramesPerSecond = 120
+			Size = [0.72, 0.26]
 		}
-		NormalsTexture = &Animation/AtlasSprite/Texture
-		DiffuseShader = "./Data/default.shader"
-		NormalsShader = "./Data/no_normals.shader"
+		NormalsTexture
+		{
+			File = "../bs_shell_art/bs_shell_he_normals.png"
+			MipLevels = max
+		}
+	}
+	MaskSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		IsLit = true
+		Sprite
+		{
+			Texture
+			{
+				File = "../bs_shell_art/bs_shell_band_he.png"
+				MipLevels = max
+			}
+			Size = [0.72, 0.26]
+			VertexColor = [80, 150, 255]
+		}
+		NormalsTexture
+		{
+			File = "../bs_shell_art/bs_shell_he_normals.png"
+			MipLevels = max
+		}
+	}
+	TailSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper2
+		Offset = [-2.802, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [5.5, 0.3818]
+			VertexColor = [100, 170, 255]
+			TargetBlendMode = Add
+		}
+		LerpScaleFrom = [0.25, 1]
+		LerpTime = 0.05
+	}
+	CoreSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper2
+		Offset = [-0.946, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [2.475, 0.2182]
+			VertexColor = [200, 225, 255]
+			TargetBlendMode = Add
+		}
+		LerpScaleFrom = [0.25, 1]
+		LerpTime = 0.05
+	}
+	HeadSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper2
+		Offset = [-0.36, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [1.12, 1.12]
+			VertexColor = [255, 250, 235]
+			TargetBlendMode = Add
+		}
 	}
 	GlowSprite
 	{
@@ -242,7 +365,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		Offset = [-1, 0]
+		Offset = [0, 0]
 		Sprite
 		{
 			Texture

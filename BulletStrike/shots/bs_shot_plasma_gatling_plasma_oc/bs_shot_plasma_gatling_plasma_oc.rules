@@ -282,7 +282,7 @@ Components
 		Type = Sprite
 		RenderBucket = BulletUpper2
 		StartTime = 0.018
-		Offset = [-1.794, 0]
+		Offset = [-2.076, 0]
 		Sprite
 		{
 			Texture
@@ -291,7 +291,7 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [4.2, 0.62]
+			Size = [4.8, 1.1]
 		}
 	}
 	GlowSprite
@@ -311,14 +311,41 @@ Components
 				SampleMode = Linear
 			}
 			Size = [5.4, 1.8]
-			VertexColor = [40, 220, 255]
+			VertexColor = [10, 55, 64]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"
 			_z = 1
 			_nrmlStrengthLimit = 1
-			_litReflectiveStrength = 24
+			_litReflectiveStrength = 3
+			_litAdditiveStrength = 0
+			_unlitAdditiveStrength = 0.8
+		}
+	}
+	GlowSprite2
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Z = 0
+		IsLight = true
+		StartTime = 0.018
+		Offset = [-1.4, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [4.2, 1]
+			VertexColor = [0, 220, 255]
+			TargetBlendMode = Add
+			Shader = "./Data/common_effects/fancy_light.shader"
+			_z = 1
+			_nrmlStrengthLimit = 1
+			_litReflectiveStrength = 12
 			_litAdditiveStrength = 0.05
-			_unlitAdditiveStrength = 0.2
+			_unlitAdditiveStrength = 0
 		}
 	}
 	Crackle

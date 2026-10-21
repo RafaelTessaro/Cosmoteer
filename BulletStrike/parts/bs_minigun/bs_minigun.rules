@@ -552,6 +552,12 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 			}
 			BlueprintArcRadius = 10
 			BlueprintArcSpriteSegments = 64
+			CoverageSectorArc
+			{
+				Texture = &/INDICATORS/VerticalGradient
+				VertexColor = [255, 255, 255, 51]
+				QuadCount = 64
+			}
 		}
 		TurretCollider
 		{
@@ -836,8 +842,8 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 			Location = [-0.3, 0]
 			MediaEffects
 			[
-				&<./Data/ships/terran/chaingun/particles/chaingun_shoot.rules>
-				&<./Data/ships/terran/chaingun/particles/chaingun_shoot_flash.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cg_50.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cgf_60.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds
@@ -862,8 +868,9 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 			Location = [-0.3, 0]
 			MediaEffects
 			[
-				&<./Data/ships/terran/chaingun/particles/chaingun_shoot.rules>
-				&<./Data/ships/terran/chaingun/particles/chaingun_shoot_flash.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cg_60.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cgf_70.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cgs_60_l60.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds

@@ -23,11 +23,13 @@ BLAST
 			CrewKillChance = 50%
 		}
 	]
+	MediaEffectsScale = 0.75
 	MediaEffects
 	[
 		&<./Data/shots/missile_he/particles/missile_he_hit.rules>
 		&<./Data/shots/missile_he/particles/missile_he_flash.rules>
 		&<./Data/shots/missile_he/particles/missile_he_smoke.rules>
+		&<../bs_missile_fx/clank_limpet.rules>
 		: /BASE_SOUNDS/AudioExterior
 		{
 			RandomSounds
@@ -73,24 +75,46 @@ Components
 	}
 	Sprite
 	{
-		Type = AnimatedSprite
+		Type = Sprite
 		RenderBucket = BulletUpper3
+		IsLit = true
+		Sprite
+		{
+			Texture
+			{
+				File = "../bs_missile_art/msl_limpet_charge.png"
+				MipLevels = max
+			}
+			Size = [0.9, 0.9]
+		}
+		NormalsTexture
+		{
+			File = "../bs_missile_art/msl_limpet_charge_normals.png"
+			MipLevels = max
+		}
+	}
+	LightsSprite
+	{
+		Type = AnimatedSprite
+		RenderBucket = BulletUpper4
 		Animation
 		{
 			AtlasSprite
 			{
 				Texture
 				{
-					File = "./Data/shots/mine/mine_small_lights.png"
+					File = "../bs_missile_art/msl_limpet_charge_lights.png"
 					MipLevels = max
+					SampleMode = Linear
 				}
-				Size = [1.5, 1.5]
+				Size = [0.9, 0.9]
 				TargetBlendMode = Add
 			}
-			FrameCount = 6
-			FrameSize = [128, 128]
-			FramesPerRow = 6
-			FramesPerSecond = 7
+			FrameCount = 10
+			FrameSize = [64, 64]
+			FramesPerRow = 10
+			FramesPerSecond = 4
+			WrapMode = Clamp
 		}
 	}
 	GlowSprite

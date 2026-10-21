@@ -31,10 +31,13 @@ BURST
 			}
 		}
 	]
+	MediaEffectsScale = 0.7
 	MediaEffects
 	[
 		&<./Data/shots/missile_he/particles/missile_he_flash.rules>
 		&<./Data/shots/missile_he/particles/missile_he_smoke.rules>
+		&<../bs_missile_fx/burst_cluster.rules>
+		&<./Data/shots/missile_thermal/particles/missile_thermal_shrapnel.rules>
 		: /BASE_SOUNDS/AudioExterior
 		{
 			RandomSounds
@@ -107,15 +110,38 @@ Components
 		{
 			Texture
 			{
-				File = "./Data/shots/missile_he/missile_he.png"
+				File = "../bs_missile_art/msl_cluster_m.png"
 				MipLevels = max
 			}
-			Size = [1.6, 0.8]
+			Size = [1.75, 0.75]
 		}
 		NormalsTexture
 		{
-			File = "./Data/shots/missile_he/missile_he_normals.png"
+			File = "../bs_missile_art/msl_cluster_m_normals.png"
 			MipLevels = max
+		}
+	}
+	LightsSprite
+	{
+		Type = AnimatedSprite
+		RenderBucket = BulletUpper4
+		Animation
+		{
+			AtlasSprite
+			{
+				Texture
+				{
+					File = "../bs_missile_art/msl_cluster_m_lights.png"
+					MipLevels = max
+					SampleMode = Linear
+				}
+				Size = [1.75, 0.75]
+				TargetBlendMode = Add
+			}
+			FrameCount = 3
+			FrameSize = [112, 48]
+			FramesPerRow = 3
+			FramesPerSecond = 8
 		}
 	}
 	GlowSprite
@@ -124,7 +150,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		Offset = [-0.72, 0]
+		Offset = [-0.86, 0]
 		Sprite
 		{
 			Texture
@@ -147,9 +173,14 @@ Components
 	MediaEffects
 	{
 		Type = MediaEffects
-		Offset = [-0.72, 0]
+		Offset = [-0.86, 0]
 		Rotation = 180d
-		MediaEffects = [&<./Data/shots/missile_he/particles/missile_he_thruster_plume_light.rules>]
+		MediaEffects
+		[
+			&<../bs_missile_fx/smoke_grey_25_s80.rules>
+			&<../bs_missile_fx/plume_cluster_m.rules>
+			&<../bs_missile_fx/plume_light_cluster.rules>
+		]
 	}
 	Targetable
 	{
@@ -170,6 +201,7 @@ Components
 		HitStructural = &~/BURST
 		HitFriendly
 		{
+			MediaEffectsScale = 0.7
 			MediaEffects
 			[
 				&<./Data/shots/missile_he/particles/missile_he_flash.rules>

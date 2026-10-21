@@ -78,7 +78,25 @@ Components
 					]
 				}
 			]
-			MediaEffects = &../HitOperational/MediaEffects
+			MediaEffects
+			[
+				&<./Data/shots/bullet_med/particles/bullet_flash_med.rules>
+				&<./Data/shots/chaingun_shot/particles/chaingun_sparks.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_01.wav"
+						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_02.wav"
+						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_03.wav"
+						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_04.wav"
+					]
+					Volume = 0.5
+					SpeedVariation = 0.2
+					MaxConcurrent = 30
+				}
+			]
+			MediaEffectsScale = 1
 		}
 		HitOperational
 		{
@@ -135,6 +153,7 @@ Components
 					MaxConcurrent = 30
 				}
 			]
+			MediaEffectsScale = 0.5
 		}
 		HitStructural
 		{
@@ -161,9 +180,11 @@ Components
 			]
 			MediaEffects
 			[
-				&<./Data/shots/disruptor_bolt/particles/disruptor_bolt_hit_orb.rules>
-				&<./Data/shots/disruptor_bolt/particles/disruptor_bolt_flash.rules>
+				&<./Data/shots/chaingun_shot/particles/chaingun_hit.rules>
+				&<./Data/shots/chaingun_shot/particles/chaingun_sparks.rules>
+				&<./Data/shots/bullet_med/particles/bullet_flash_med.rules>
 			]
+			MediaEffectsScale = 1
 		}
 		PenetratingOperational
 		{
@@ -197,7 +218,25 @@ Components
 					}
 				}
 			]
-			MediaEffects = &../HitOperational/MediaEffects
+			MediaEffects
+			[
+				&<./Data/shots/disruptor_bolt/particles/disruptor_bolt_hit_orb.rules>
+				&<./Data/shots/disruptor_bolt/particles/disruptor_bolt_flash.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_01.wav"
+						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_02.wav"
+						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_03.wav"
+						"./Data/shots/disruptor_bolt/sounds/disruptor_impact_04.wav"
+					]
+					Volume = 0.5
+					SpeedVariation = 0.2
+					MaxConcurrent = 30
+				}
+			]
+			MediaEffectsScale = 0.7
 		}
 		PenetratingStructural : &HitStructural
 		{
@@ -211,7 +250,7 @@ Components
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper3
-		Offset = [-2.188, 0]
+		Offset = [-1.75, 0]
 		Sprite
 		{
 			Texture
@@ -220,7 +259,7 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [5, 0.48]
+			Size = [4, 0.36]
 			VertexColor = [100, 170, 255]
 			TargetBlendMode = Add
 		}
@@ -231,7 +270,7 @@ Components
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper4
-		Offset = [-0.63, 0]
+		Offset = [-0.525, 0]
 		Sprite
 		{
 			Texture
@@ -240,8 +279,44 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [1.8, 0.22]
+			Size = [1.5, 0.17]
 			VertexColor = [200, 225, 255]
+			TargetBlendMode = Add
+		}
+	}
+	HeadSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Offset = [0, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [0.64, 0.64]
+			VertexColor = [255, 250, 235]
+			TargetBlendMode = Add
+		}
+	}
+	SmearSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper2
+		Offset = [-2.75, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [5, 0.3]
+			VertexColor = [25, 43, 64]
 			TargetBlendMode = Add
 		}
 	}
@@ -251,7 +326,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		Offset = [-2, 0]
+		Offset = [-1.6, 0]
 		Sprite
 		{
 			Texture
@@ -260,7 +335,7 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [9, 3.5]
+			Size = [8, 3]
 			VertexColor = [80, 150, 255]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"

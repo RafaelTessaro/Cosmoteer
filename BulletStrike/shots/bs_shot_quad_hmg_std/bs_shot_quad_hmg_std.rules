@@ -40,7 +40,50 @@ Components
 		CrewCollisions = {Enemies=true; Junk=true}
 		PenetratesCrew = true
 		HitCrew = &HitOperational
-		HitShield = &HitOperational
+		HitShield
+		{
+			ReduceEffectsByPenetration = true
+			Offset = [-0.15, 0]
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage
+					{
+						BaseValue = 95
+						EffectScaleExponent = 1
+					}
+				}
+				{
+					Type = Impulse
+					Impulse
+					{
+						BaseValue = 5
+						EffectScaleExponent = 1
+					}
+				}
+			]
+			MediaEffects
+			[
+				&<./Data/shots/chaingun_shot/particles/chaingun_sparks.rules>
+				&<./Data/shots/chaingun_shot/particles/chaingun_hit_flash.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/chaingun_shot/sounds/chain_gun_impact_01.wav"
+						"./Data/shots/chaingun_shot/sounds/chain_gun_impact_02.wav"
+						"./Data/shots/chaingun_shot/sounds/chain_gun_impact_03.wav"
+						"./Data/shots/chaingun_shot/sounds/chain_gun_impact_04.wav"
+						"./Data/shots/chaingun_shot/sounds/chain_gun_impact_05.wav"
+					]
+					Volume = 0.5
+					SpeedVariation = 0.2
+					MaxConcurrent = 30
+				}
+			]
+			MediaEffectsScale = 0.75
+		}
 		HitOperational
 		{
 			ReduceEffectsByPenetration = true
@@ -67,7 +110,8 @@ Components
 			MediaEffects
 			[
 				&<./Data/shots/chaingun_shot/particles/chaingun_sparks.rules>
-				&<./Data/shots/bullet_med/particles/bullet_flash_med.rules>
+				&<./Data/shots/chaingun_shot/particles/chaingun_hit.rules>
+				&<./Data/shots/chaingun_shot/particles/chaingun_hit_flash.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds
@@ -83,6 +127,7 @@ Components
 					MaxConcurrent = 30
 				}
 			]
+			MediaEffectsScale = 0.75
 		}
 		HitStructural
 		{
@@ -107,7 +152,12 @@ Components
 					}
 				}
 			]
-			MediaEffects = [&<./Data/shots/chaingun_shot/particles/chaingun_sparks.rules>]
+			MediaEffects
+			[
+				&<./Data/shots/chaingun_shot/particles/chaingun_sparks.rules>
+				&<./Data/shots/chaingun_shot/particles/chaingun_hit_flash.rules>
+			]
+			MediaEffectsScale = 0.75
 		}
 		PenetratingOperational
 		{
@@ -141,7 +191,27 @@ Components
 					}
 				}
 			]
-			MediaEffects = &../HitOperational/MediaEffects
+			MediaEffects
+			[
+				&<./Data/shots/chaingun_shot/particles/chaingun_sparks.rules>
+				&<./Data/shots/chaingun_shot/particles/chaingun_hit.rules>
+				&<./Data/shots/chaingun_shot/particles/chaingun_hit_flash.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/chaingun_shot/sounds/chain_gun_impact_01.wav"
+						"./Data/shots/chaingun_shot/sounds/chain_gun_impact_02.wav"
+						"./Data/shots/chaingun_shot/sounds/chain_gun_impact_03.wav"
+						"./Data/shots/chaingun_shot/sounds/chain_gun_impact_04.wav"
+						"./Data/shots/chaingun_shot/sounds/chain_gun_impact_05.wav"
+					]
+					Volume = 0.5
+					SpeedVariation = 0.2
+					MaxConcurrent = 30
+				}
+			]
+			MediaEffectsScale = 0.75
 		}
 		PenetratingStructural : &HitStructural
 		{
@@ -178,7 +248,7 @@ Components
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper3
-		Offset = [-1.531, 0]
+		Offset = [-1.488, 0]
 		Sprite
 		{
 			Texture
@@ -187,7 +257,7 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [3.5, 0.32]
+			Size = [3.4, 0.22]
 			VertexColor = [255, 170, 60]
 			TargetBlendMode = Add
 		}
@@ -198,7 +268,7 @@ Components
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper4
-		Offset = [-0.42, 0]
+		Offset = [-0.385, 0]
 		Sprite
 		{
 			Texture
@@ -207,7 +277,7 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [1.2, 0.15]
+			Size = [1.1, 0.1]
 			VertexColor = [255, 235, 190]
 			TargetBlendMode = Add
 		}
@@ -218,7 +288,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		Offset = [-1.4, 0]
+		Offset = [-1.36, 0]
 		Sprite
 		{
 			Texture
@@ -227,7 +297,7 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [7, 2.5]
+			Size = [5.5, 1.8]
 			VertexColor = [255, 120, 30]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"

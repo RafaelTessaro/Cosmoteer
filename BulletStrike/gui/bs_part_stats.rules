@@ -38,4 +38,8 @@ PartStats
 		ID = BSAmmoEnrichedUraniumUsage
 		FormatKey = "Stats/BSAmmoEnrichedUraniumUsageFmt"
 	}
+	{
+		ID = BSShotDamageVsLasers
+		FormatKey = "Stats/BSShotDamageVsLasersFmt"
+	}
 ]

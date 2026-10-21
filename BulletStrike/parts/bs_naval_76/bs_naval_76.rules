@@ -486,6 +486,12 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			}
 			BlueprintArcRadius = 10
 			BlueprintArcSpriteSegments = 64
+			CoverageSectorArc
+			{
+				Texture = &/INDICATORS/VerticalGradient
+				VertexColor = [255, 255, 255, 51]
+				QuadCount = 64
+			}
 		}
 		TurretCollider
 		{
@@ -770,9 +776,10 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Location = [-0.9, 0]
 			MediaEffects
 			[
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck.rules>
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flash.rules>
-				&<./Data/ships/terran/cannon_deck/particles/cannon_smoke_deck.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cd_65.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cdf_65.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cdr_60_n60.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cds_70_n80.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					Sound = "./Data/ships/terran/cannon_large/sounds/cannon_large_shot.wav"
@@ -781,8 +788,8 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				}
 				: /BASE_SHAKE
 				{
-					ShakeAmount = 0.06
-					Duration = 0.5
+					ShakeAmount = 0.05
+					Duration = 0.6
 				}
 			]
 		}
@@ -794,9 +801,10 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Location = [-0.9, 0]
 			MediaEffects
 			[
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck.rules>
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flash.rules>
-				&<./Data/ships/terran/cannon_deck/particles/cannon_smoke_deck.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cd_80.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cdf_80.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cdr_75_n80.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cds_85_n80.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds
@@ -810,10 +818,26 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				}
 				: /BASE_SHAKE
 				{
-					ShakeAmount = 0.06
-					Duration = 0.5
+					ShakeAmount = 0.08
+					Duration = 0.6
 				}
 			]
+		}
+		RecoilSmoke1
+		{
+			Type = TriggeredEffects
+			ChainedTo = Emitter1Proxy_N
+			Trigger = Emitter1Proxy_N
+			Location = [-2.55, 0]
+			MediaEffects = [&<../../shots/bs_cal_fx/bs_cal_cgs_120_d15.rules>]
+		}
+		Overclock_RecoilSmoke1
+		{
+			Type = TriggeredEffects
+			ChainedTo = Emitter1Proxy_OC
+			Trigger = Emitter1Proxy_OC
+			Location = [-2.55, 0]
+			MediaEffects = [&<../../shots/bs_cal_fx/bs_cal_cgs_130_d15.rules>]
 		}
 		StunTrigger
 		{

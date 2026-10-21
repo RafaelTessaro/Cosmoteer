@@ -151,6 +151,12 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			}
 			BlueprintArcRadius = 10
 			BlueprintArcSpriteSegments = 64
+			CoverageSectorArc
+			{
+				Texture = &/INDICATORS/VerticalGradient
+				VertexColor = [255, 255, 255, 51]
+				QuadCount = 64
+			}
 		}
 		TurretCollider
 		{
@@ -239,8 +245,10 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			Location = [-0.2, 0]
 			MediaEffects
 			[
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flash.rules>
-				&<./Data/ships/terran/chaingun/particles/chaingun_shoot.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cg_85.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cgf_90.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cdr_30_n35_l80.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cgs_70.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					Sound = "./Data/ships/terran/cannon_med/sounds/cannon_med_shot.wav"
@@ -250,8 +258,8 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 				}
 				: /BASE_SHAKE
 				{
-					ShakeAmount = 0.02
-					Duration = 0.5
+					ShakeAmount = 0.01
+					Duration = 0.4
 				}
 			]
 		}
@@ -263,8 +271,10 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			Location = [-0.2, 0]
 			MediaEffects
 			[
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flash.rules>
-				&<./Data/ships/terran/chaingun/particles/chaingun_shoot.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cg_85.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cgf_90.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cdr_30_n35_l80.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cgs_70.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					Sound = "./Data/ships/terran/cannon_med/sounds/cannon_med_shot.wav"
@@ -274,8 +284,8 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 				}
 				: /BASE_SHAKE
 				{
-					ShakeAmount = 0.02
-					Duration = 0.5
+					ShakeAmount = 0.01
+					Duration = 0.4
 				}
 			]
 		}

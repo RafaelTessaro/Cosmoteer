@@ -12,8 +12,9 @@ projetil (pd_shot.png, laser_bolt_large.png): a FRENTE e +X (direita).
   bs_plasma_corona_heavy.png  256x64          Curupira: a mesma corona, mais cheia e com a traseira larga (~55% da
                                               largura maxima): emenda na esteira sem fechar num oval
   bs_plasma_shade[_heavy].png 256x64          sombra azul-petroleo (mistura alfa comum, NAO aditiva) por baixo do
-                                              raio: o raio continua legivel sobre casco branco (_heavy: com a
-                                              forma da corona do Curupira, mais larga ~1,2 tile atras do nariz)
+                                              raio, um pouco mais larga que as camadas aditivas e com perfil de
+                                              plato: sobre casco branco o raio le como lanca com contorno escuro
+                                              (_heavy: mais larga ~1,5 tile atras do nariz, como a corona pesada)
   bs_plasma_tail[_oc].png     8 x 512x64      Boitata: corpo de serpente de fogo grosso que afina da cabeca a ponta,
                                               ondulacao suave que NAO cresce na ponta, labaredas e escamas de luz
   bs_plasma_wake[_oc].png     8 x 512x64      Curupira: esteira ionizada reta e grossa que AFINA da cabeca a ponta,
@@ -134,7 +135,7 @@ def lance(w=256, h=64, nose=0.9, hot=1.0):
 def _taper(w, h, nose, peak, wmax, rear_w, rear_fade, power=2.0):
     """Forma afunilada (0..1) em ponta de lanca: largura maxima wmax (fracao da meia altura) em u = peak, nariz
     arredondado-pontudo ate u = nose (raiz quadrada) e corpo que afina ate rear_w * wmax em u = 0, apagando nos
-    ultimos rear_fade do comprimento. power = 2: perfil gaussiano (corona); power > 2: perfil de "platô" com borda
+    ultimos rear_fade do comprimento. power = 2: perfil gaussiano (corona); power > 2: perfil de "plato" com borda
     mais definida (sombra: escurece por igual debaixo do corpo e acaba num contorno, sem cauda longa)."""
     x, y = _grid(w, h)
     u = x / w
@@ -163,10 +164,13 @@ def shade(w=256, h=64, nose=0.97, peak=0.86, wmax=0.62, rear_w=0.35, rear_fade=0
     """Sombra por baixo do raio (Sprite SEM TargetBlendMode = mistura alfa comum, como a Sprite do missil
     missile_he.rules e a fumaca chaingun_shoot_smoke.rules, que fica num balde de cima). Sobre casco branco o ciano
     aditivo quase some (branco + ciano = branco); esta sombra azul-petroleo escurece o casco DEBAIXO do raio e o
-    ciano volta a aparecer. Ela e mais estreita que a corona e a cauda (fica dentro do contorno do raio, nada de
-    mancha de fuligem para fora quando a cauda da Boitata ondula) e mais larga perto do nariz (peak), onde o corpo
-    aditivo e mais forte, para escurecer por igual. A cor e um azul-petroleo medio, nao preto: se um pedaco
-    aparecer fora do corpo ele le como borda fria do plasma, nao como sujeira. Sobre o espaco ela quase nao aparece.
+    ciano volta a aparecer. Ela e um pouco MAIS LARGA que a corona e o comeco da cauda (power > 2: plato que
+    escurece por igual debaixo do corpo e acaba num contorno de borda suave): a faixa que sobra de cada lado e o
+    contorno escuro que desenha a lanca sobre casco branco (com a sombra mais estreita que o corpo, o ciano aditivo
+    re-saturava tudo e o raio virava uma folha clara). Mais larga perto do nariz (peak), onde o corpo aditivo e mais
+    forte, e afinando/apagando na traseira (rear_w, rear_fade): nada de faixa escura atras da cauda fina. A cor e um
+    azul-petroleo, nao preto: a borda le como borda fria do plasma, nao como sujeira; sobre o espaco ela vira so um
+    halo azul-petroleo fraco.
     RGB = cor x forma (a / alpha), entao RGB = 0 onde o alfa e 0: nunca soma cor fora da sombra, seja a mistura alfa
     simples ou pre-multiplicada (na simples, o padrao das Sprites sem TargetBlendMode, a cor sai um pouco mais
     escura: col x forma x alfa)."""
@@ -259,11 +263,12 @@ def tail(frames=8, fw=512, fh=64, body0=11.0, body1=2.6, amp=0.28, waves=1.1, li
 
 
 def wake(frames=8, fw=512, fh=64, rings=3, core_px=4.0, chan_px=10.5, gain=1.0, whiten=0.0, ring_gain=0.35,
-         ring_from=0.45, fade_k=0.7):
+         ring_from=0.45, fade_k=0.7, taper=0.6):
     """Atlas da cauda do Curupira: esteira ionizada RETA e grossa (os canos dele sao trilhos, nao a serpente da
     Boitata) que continua a corona pesada como o corpo de um cometa: nucleo branco e canal ciano que AFINAM da
-    cabeca para a ponta (sigma do canal chan_px * 1,25 na cabeca -> * 0,65 na ponta) com o brilho caindo devagar
-    perto da cabeca ((1 - d)^fade_k), entao a largura visivel so diminui, sem pescoco logo atras da cabeca.
+    cabeca para a ponta (sigma do canal chan_px * 1,25 na cabeca -> * (1,25 - taper) na ponta; taper 0,8: a
+    traseira fica fina, para o brilho espalhado nao virar uma faixa clara sobre casco branco) com o brilho caindo
+    devagar perto da cabeca ((1 - d)^fade_k), entao a largura visivel so diminui, sem pescoco atras da cabeca.
     `rings` aneis de pulso (elipses finas vistas de lado, frente mais clara, altura presa a largura do canal) so
     na parte de tras (d >= ring_from, longe da cabeca: nenhum "no" marca um pescoco) correm para o fim da cauda
     apagando. Por quadro cada anel anda (1 - ring_from) / (rings * frames) do comprimento: a animacao fecha o
@@ -282,7 +287,7 @@ def wake(frames=8, fw=512, fh=64, rings=3, core_px=4.0, chan_px=10.5, gain=1.0, 
     fade = (1 - d) ** fade_k * _head_fade(d, fw)
 
     def chan(dd):
-        return chan_px * (1.25 - 0.6 * dd)
+        return chan_px * (1.25 - taper * dd)
     # a frente da esteira fica DENTRO da corona: o canal largo entra devagar (largura e brilho sobem em d ~ 0-0,2)
     # em vez de comecar num "paredao" vertical logo atras do nariz; so o nucleo branco (que continua a lanca) entra
     # no ritmo normal do _head_fade
@@ -449,13 +454,13 @@ def all_textures():
         "bs_plasma_corona.png": corona(nose=PFX.CORONA_NOSE),
         "bs_plasma_corona_heavy.png": corona(nose=PFX.CORONA_NOSE, peak=0.68, wmax=0.8, rear_w=0.55, rear_fade=0.35),
         "bs_plasma_shade.png": shade(nose=PFX.SHADE_NOSE, peak=0.8, wmax=1.2, rear_w=0.45, rear_fade=0.5,
-                                     alpha=0.6, col=(0.0, 0.12, 0.2), power=4),
+                                     alpha=0.6, col=(0.0, 0.22, 0.32), power=4),
         "bs_plasma_shade_heavy.png": shade(nose=PFX.SHADE_NOSE, peak=0.75, wmax=1.2, rear_w=0.5, rear_fade=0.45,
-                                           alpha=0.62, col=(0.0, 0.12, 0.2), power=4),
+                                           alpha=0.62, col=(0.0, 0.22, 0.32), power=4),
         "bs_plasma_tail.png": tail(),
         "bs_plasma_tail_oc.png": tail(body0=11.5, gain=1.15, whiten=0.3, spine=1.1),
-        "bs_plasma_wake.png": wake(),
-        "bs_plasma_wake_oc.png": wake(core_px=4.6, chan_px=11.5, gain=1.15, whiten=0.3),
+        "bs_plasma_wake.png": wake(taper=0.8),
+        "bs_plasma_wake_oc.png": wake(core_px=4.6, chan_px=11.5, gain=1.15, whiten=0.3, taper=0.8),
         "bs_plasma_burst.png": burst(),
         "bs_plasma_splash.png": splash(),
         "bs_plasma_shock.png": shock_ring(),

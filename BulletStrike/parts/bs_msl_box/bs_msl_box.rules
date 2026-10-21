@@ -808,6 +808,12 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 			}
 			BlueprintArcRadius = 10
 			BlueprintArcSpriteSegments = 64
+			CoverageSectorArc
+			{
+				Texture = &/INDICATORS/VerticalGradient
+				VertexColor = [255, 255, 255, 51]
+				QuadCount = 64
+			}
 		}
 		TurretCollider
 		{
@@ -884,6 +890,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -911,6 +918,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -938,6 +946,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -965,6 +974,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -992,6 +1002,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -1019,6 +1030,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -1142,6 +1154,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -1169,6 +1182,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -1196,6 +1210,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -1223,6 +1238,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -1250,6 +1266,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -1277,6 +1294,7 @@ Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds

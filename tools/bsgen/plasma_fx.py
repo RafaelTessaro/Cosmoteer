@@ -21,13 +21,15 @@ abaixo, com SO os valores trocados (mesmos campos e tipos; nenhum campo exclusiv
 Orcamento (Boitata a 10 tiros/s por arma, 9 no overclock): boca <= 8 particulas por tiro no normal e <= 12 no
 overclock, quase todas de <= 0,14 s (~10 vivas por arma; o anel e um pulso de 0,065 s, menor que o intervalo entre
 tiros; a luz no casco fica a frente do cano e o brilho residual e fraco, para nao lavar a arte da torre a 10
-tiros/s); raio 0 particulas no normal (so 5 sprites: sombra, corona, nucleo, cauda AnimatedSprite e luz) e ~2-3
+tiros/s); raio 0 particulas no normal (so 6 sprites: sombra, corona, nucleo, cauda AnimatedSprite e 2 luzes) e ~2-3
 vivas por raio no overclock (crepitar 40/s de 0,04-0,07 s); impacto <= 9 particulas no normal e <= 10 no
 overclock, a maioria de <= 0,3 s (~20 vivas por arma). Curupira (~1,5 tiro/s, ~4 raios no ar): rastro ionizado de
 ~8-9 particulas vivas por raio (~30-40 por arma, no lugar do rastro deck de 300/s, ~250 por arma) e crepitar de
 ~4-6 vivas por raio. Todos os sistemas com InitCapacity 256, como no vanilla. Detalhes (faiscas, arcos, luzes, rastro)
-com IsFancy = true; o essencial (descarga, respingo, clarao) com IsFancy = false. Luz IsLight so para iluminar o
-casco: o que aparece sobre o espaco vazio vem de sprites/particulas aditivos comuns.
+com IsFancy = true; o essencial (descarga, respingo, clarao) com IsFancy = false. No raio, a luz IsLight fica em
+duas sprites (ver bolt_components): um halo grande que so aparece sobre o espaco e uma luz estreita no casco, colada
+na lanca. Sobre casco branco/claro o raio le como lanca por causa da sombra azul-petroleo (mistura alfa comum) MAIS
+LARGA que as camadas aditivas: o ciano aditivo sozinho nao aparece sobre branco (branco + ciano = branco).
 """
 
 from rules_dsl import Q, VOID, Inh, render
@@ -82,14 +84,15 @@ CFG = {
             "arcs": None,
             # serpente de fogo, nao girino: nucleo em lanca longa (bs_plasma_lance), corona afunilada que emenda
             # na cauda (bs_plasma_corona) e cauda = corpo grosso que afina por ~4,5 tiles (bs_plasma_tail). Sombra
-            # azul-petroleo por baixo (bs_plasma_shade) para ler sobre casco branco: curta (3,6) e estreita, fica
-            # dentro da lanca e do comeco da cauda, onde o corpo ainda e reto (o S da cauda so abre depois). Luz
-            # IsLight pequena e achatada (4,5 x 1,4, centro 1,4 tile atras): sobre casco claro a poca de luz
-            # acompanha a lanca em vez de virar um "olho" claro em volta dela
+            # azul-petroleo por baixo (bs_plasma_shade, 4,2 x 1,0) um pouco MAIS LARGA que a corona e o comeco da
+            # cauda (contorno visivel de ~0,08 tile de cada lado): sobre casco branco o ciano aditivo cai num leito
+            # escuro e a borda escura desenha a lanca. Halo IsLight 4,5 x 1,4 so sobre o espaco (glow: o mesmo halo
+            # de antes); luz no casco estreita 3,6 x 0,9 colada na lanca (light: GlowSprite2)
             "bolt": {"core": (2.2, 0.36), "core_tex": "bs_plasma_lance.png", "corona": (2.9, 0.64),
                      "corona_tex": "bs_plasma_corona.png", "corona_color": [0, 185, 255],
                      "tail": (4.6, 0.8), "tail_tex": "bs_plasma_tail.png", "tail_start": 0.018, "glow": (4.5, 1.4),
-                     "glow_x": -1.4, "glow_color": [0, 235, 255], "glow_refl": 6, "shade": (4.2, 1.0)},
+                     "glow_x": -1.4, "glow_color": [0, 235, 255], "light": (3.6, 0.9), "light_x": -1.3,
+                     "light_color": [0, 235, 255], "light_refl": 12, "shade": (4.2, 1.0)},
             "crackle": None,
             # respingo um pouco maior (2,8) e faiscas mais longas e claras: "plasma derretido espirrando" na escala
             # de batalha, ainda <= 9 particulas por impacto
@@ -103,16 +106,20 @@ CFG = {
             "streaks": {"n": (5, 6), "speed": (7, 15), "life": (0.09, 0.16), "scale": (0.7, 1.1), "spread": 0.32,
                         "white": 0.85},
             "ring": {"scale": 0.95, "life": 0.065, "x": 0.18, "pulse": True, "alpha": 1.0},
-            "light": {"scale": 2.8, "life": 0.09, "x": 0.6, "color": (0.45, 0.95, 1, 0.36)},
+            # luz no casco do overclock com pouco vermelho (R 0,2): com R 0,45 o casco branco estourava para uma
+            # mancha branca na boca a cada tiro; o "mais quente" do overclock fica nas sprites aditivas
+            "light": {"scale": 2.6, "life": 0.09, "x": 0.6, "color": (0.2, 0.92, 1, 0.32)},
             "glow": {"scale": 1.0, "wh": (1, 1), "x": -0.1, "life": 0.22, "color": (0.45, 0.95, 1, 0.28),
                      "n": (1, 1)},
             "arcs": {"n": (1, 2), "scale": (0.22, 0.32), "life": (0.16, 0.22)},
-            # o "mais quente" do overclock fica nas sprites aditivas (nucleo/corona/cauda maiores e mais brancos);
-            # a luz IsLight continua ciano e quase do tamanho do normal, senao ela vira uma nevoa clara sobre o casco
+            # o "mais quente" do overclock fica nas sprites aditivas (nucleo/corona/cauda maiores e mais brancos) e
+            # no halo do espaco (com vermelho); a luz no casco (light) e ciano puro, estreita e do tamanho da sombra:
+            # com vermelho e larga ela virava uma nevoa branca sobre casco branco
             "bolt": {"core": (2.6, 0.42), "core_tex": "bs_plasma_lance.png", "corona": (3.3, 0.74),
                      "corona_tex": "bs_plasma_corona.png", "corona_color": [60, 215, 255],
                      "tail": (5.4, 0.92), "tail_tex": "bs_plasma_tail_oc.png", "tail_start": 0.018, "glow": (5.4, 1.8),
-                     "glow_x": -1.4, "glow_color": [0, 220, 255], "glow_refl": 6, "shade": (4.8, 1.1)},
+                     "glow_x": -1.4, "glow_color": [40, 220, 255], "light": (4.2, 1.0), "light_x": -1.4,
+                     "light_color": [0, 220, 255], "light_refl": 12, "shade": (4.8, 1.1)},
             # crepitar curto (0,04-0,07 s, mais vezes por segundo para manter a densidade): ele anda junto com o
             # raio (InheritVelocity) e continua voando depois do impacto ate morrer (a barreira so para no escudo),
             # entao vida curta = sobra pouco: no pior caso ~22 tiles a 312 m/s, em media ~8
@@ -137,12 +144,15 @@ CFG = {
             # cometa / torpedo de plasma pesado, da mesma familia da lanca da Boitata (nada de "cabeca + fio"):
             # nucleo = a mesma lanca, grossa (lanca pesada), corona afunilada cheia (bs_plasma_corona_heavy, mais
             # larga ~1,2 tile atras do nariz e com a traseira a ~55% da largura) que entra na esteira reta, que
-            # afina ate a ponta (bs_plasma_wake). A largura visivel so diminui do ponto mais largo para tras. Luz
-            # IsLight 10 x 4,5 (com 12 x 6 virava uma nevoa clara de ~8 x 3 tiles sobre casco branco)
+            # afina ate a ponta (bs_plasma_wake). A largura visivel so diminui do ponto mais largo para tras. Halo
+            # IsLight 10 x 4,5 so sobre o espaco; no casco, luz estreita 5,6 x 1,6 debaixo da sombra (6,0 x 1,7, mais
+            # larga que a corona pesada): com o halo valendo tambem no casco virava uma nevoa clara de ~10 x 4 tiles
+            # sobre casco branco que engolia o cometa
             "bolt": {"core": (2.8, 0.6), "core_tex": "bs_plasma_lance.png", "corona": (4.4, 1.15),
                      "corona_tex": "bs_plasma_corona_heavy.png", "corona_color": [0, 175, 250],
                      "tail": (6.2, 1.2), "tail_tex": "bs_plasma_wake.png", "tail_start": 0.032, "glow": (10, 4.5),
-                     "glow_x": -1.6, "glow_color": [0, 210, 250], "glow_refl": 5, "shade": (6.0, 1.7),
+                     "glow_x": -1.6, "glow_color": [0, 210, 250], "light": (5.6, 1.6), "light_x": -1.8,
+                     "light_color": [0, 210, 250], "light_refl": 10, "shade": (6.0, 1.7),
                      "shade_tex": "bs_plasma_shade_heavy.png"},
             # crepitar curto (0,04-0,07 s): a 200 m/s sobra no maximo ~14 tiles depois do impacto, em media ~5
             "crackle": {"eps": 80, "scale": (0.45, 0.6), "life": (0.04, 0.07)},
@@ -154,7 +164,7 @@ CFG = {
             # vivos por raio. Comeca 0,05 s depois do disparo (200 m/s x 0,05 = 10 tiles; cada risco vai ate ~4,8
             # tiles atras do ponto onde nasce, entao a ponta de tras fica a ~5 tiles da boca: nunca por cima da
             # torre nem colada no cano)
-            "trail": {"eps": 140, "life": 0.055, "len": 4.5, "wid": 0.42, "delay": 0.05,
+            "trail": {"eps": 140, "life": 0.055, "len": 4.5, "wid": 0.36, "delay": 0.05,
                       "color": (0.1, 0.8, 1, 0.5)},
             "hit": {"splash": 4.2, "splash_life": 0.42, "sparks": (10, 14), "spark_speed": (3, 12),
                     "spark_life": (0.2, 0.5), "spark_scale": (0.7, 1.2), "flash": 3.0, "flash_life": 0.14,
@@ -165,17 +175,19 @@ CFG = {
             "streaks": {"n": (9, 11), "speed": (7, 16), "life": (0.13, 0.22), "scale": (0.9, 1.5), "spread": 0.5,
                         "white": 0.9},
             "ring": {"scale": 1.25, "life": 0.28, "x": 0.3},
-            "light": {"scale": 5.0, "life": 0.18, "x": 0.5, "color": (0.45, 0.95, 1, 0.5)},
+            # pouco vermelho e um pouco menor (5,0 -> 4,5): no casco branco a luz da boca virava nevoa branca
+            "light": {"scale": 4.5, "life": 0.18, "x": 0.5, "color": (0.2, 0.92, 1, 0.44)},
             "glow": {"scale": 1.2, "wh": (1.7, 0.65), "x": -0.25, "life": 0.38, "color": (0.55, 1, 1, 0.9),
                      "charge": True},
             "arcs": {"n": (5, 6), "scale": (0.5, 0.65), "life": (0.28, 0.38)},
             "bolt": {"core": (3.2, 0.7), "core_tex": "bs_plasma_lance.png", "corona": (5.0, 1.3),
                      "corona_tex": "bs_plasma_corona_heavy.png", "corona_color": [40, 200, 255],
                      "tail": (7.4, 1.45), "tail_tex": "bs_plasma_wake_oc.png", "tail_start": 0.032, "glow": (12, 6),
-                     "glow_x": -1.8, "glow_color": [0, 215, 255], "glow_refl": 5, "shade": (6.8, 1.9),
+                     "glow_x": -1.8, "glow_color": [40, 220, 255], "light": (6.4, 1.8), "light_x": -2.0,
+                     "light_color": [0, 215, 255], "light_refl": 10, "shade": (6.8, 1.9),
                      "shade_tex": "bs_plasma_shade_heavy.png"},
             "crackle": {"eps": 115, "scale": (0.55, 0.7), "life": (0.04, 0.07)},
-            "trail": {"eps": 180, "life": 0.05, "len": 5.0, "wid": 0.5, "delay": 0.04,
+            "trail": {"eps": 180, "life": 0.05, "len": 5.0, "wid": 0.42, "delay": 0.04,
                       "color": (0.3, 0.9, 1, 0.55)},
             # "Erupcao Solar" (explosao r3 no impacto): respingo grande + anel fino de pressao do tamanho da
             # explosao, rapido (0,24 s) e com o brilho concentrado no comeco, para nao cobrir o respingo
@@ -731,7 +743,8 @@ def _tex_sprite(bucket, wh, color, offset, tex=BLOB, lerp_from=None, lerp_time=N
 def bolt_components(w, oc):
     """Componentes visuais do raio, a mesma familia nas duas armas: sombra azul-petroleo por baixo (mistura alfa
     comum), corona ciano afunilada, nucleo branco-quente em lanca, cauda animada (AnimatedSprite, 8 quadros a 30/s:
-    corpo de serpente na Boitata, esteira reta que afina, com aneis, no Curupira), luz IsLight para o casco e, no
+    corpo de serpente na Boitata, esteira reta que afina, com aneis, no Curupira), halo IsLight para o espaco, luz
+    IsLight estreita para o casco e, no
     overclock e no Curupira, o crepitar eletrico; no Curupira ainda o rastro ionizado. Boitata = lanca fina com
     corpo de serpente; Curupira = a mesma lanca, grossa, numa corona cheia: cometa / torpedo de plasma pesado.
     Zero particulas no raio normal da Boitata."""
@@ -773,18 +786,33 @@ def bolt_components(w, oc):
                                            f"{SHOT_PREFIX}{b.get('shade_tex', 'bs_plasma_shade.png')}",
                                            start=b["tail_start"])
     gl = b["glow"]
-    # a luz IsLight tambem so liga depois que o raio saiu da boca (StartTime em Sprite, como o ArmedSprite do
-    # mine_deployed.rules): no quadro do disparo o brilho (4,5 x 1,4 na Boitata, 10 x 4,5 no Curupira) parado na
-    # boca lavava a arte da torre de ciano a cada tiro; a luz do disparo fica so com o muzzle_light (fraco e a
-    # frente do cano)
-    comps["GlowSprite"] = {"Type": "Sprite", "RenderBucket": "BulletUpper4", "Z": 0, "IsLight": True,
-                           "StartTime": b["tail_start"], "Offset": [round(b.get("glow_x", -0.12 * gl[0]), 3), 0],
-                           "Sprite": {"Texture": {"File": Q(BLOB), "MipLevels": "max", "SampleMode": "Linear"},
-                                      "Size": list(gl), "VertexColor": b["glow_color"], "TargetBlendMode": "Add",
-                                      "Shader": Q(f"{D}/common_effects/fancy_light.shader"),
-                                      "_z": 1, "_nrmlStrengthLimit": 1,
-                                      "_litReflectiveStrength": b.get("glow_refl", 24),
-                                      "_litAdditiveStrength": 0.05, "_unlitAdditiveStrength": 0.2}}
+    # as luzes IsLight so ligam depois que o raio saiu da boca (StartTime em Sprite, como o ArmedSprite do
+    # mine_deployed.rules): no quadro do disparo o brilho parado na boca lavava a arte da torre a cada tiro; a luz do
+    # disparo fica so com o muzzle_light (fraco e a frente do cano).
+    # fancy_light.shader: sobre peca (normal map) a luz e _litReflectiveStrength x cor x difusa do casco +
+    # _litAdditiveStrength x cor; sobre o espaco e _unlitAdditiveStrength x cor. Por isso a luz fica em DUAS sprites:
+    #   GlowSprite  = halo grande para o espaco: cor / 4 com _unlitAdditiveStrength 0,8 (= o mesmo halo de antes,
+    #                 0,2 x cor) e _litReflectiveStrength 3, _litAdditiveStrength 0 (menor forca do vanilla, das
+    #                 faiscas de impacto; 0 como no bullet_large_overclock.rules): sobre o casco ele fica com 1/32 da
+    #                 luz de antes. Com 24 ele virava uma nevoa clara de ate 12 x 6 tiles sobre casco branco (folha /
+    #                 nevoa branca no overclock), que engolia a lanca
+    #   GlowSprite2 = luz no casco pequena e estreita, colada na lanca (do tamanho da sombra), sem parcela no espaco
+    #                 (_unlitAdditiveStrength = 0, como no vanilla); _litReflectiveStrength 10-12 (valores do vanilla:
+    #                 mine_deployed / missile_nuke_stage1 = 10, flash_def = 12). Debaixo da sombra ela vira um contorno
+    #                 azul-petroleo que brilha; sem cor vermelha (R = 0), senao o casco branco estoura para branco.
+    #                 Duas sprites IsLight no mesmo tiro: GlowSprite + GlowSprite2 do bullet_large_overclock.rules
+    def light(size, x, color, refl, add, unlit):
+        return {"Type": "Sprite", "RenderBucket": "BulletUpper4", "Z": 0, "IsLight": True,
+                "StartTime": b["tail_start"], "Offset": [round(x, 3), 0],
+                "Sprite": {"Texture": {"File": Q(BLOB), "MipLevels": "max", "SampleMode": "Linear"},
+                           "Size": list(size), "VertexColor": color, "TargetBlendMode": "Add",
+                           "Shader": Q(f"{D}/common_effects/fancy_light.shader"),
+                           "_z": 1, "_nrmlStrengthLimit": 1, "_litReflectiveStrength": refl,
+                           "_litAdditiveStrength": add, "_unlitAdditiveStrength": unlit}}
+    comps["GlowSprite"] = light(gl, b.get("glow_x", -0.12 * gl[0]), [round(v / 4) for v in b["glow_color"]], 3, 0,
+                                0.8)
+    if b.get("light"):
+        comps["GlowSprite2"] = light(b["light"], b["light_x"], b["light_color"], b["light_refl"], 0.05, 0)
     if CFG[w][mode].get("crackle"):
         comps["Crackle"] = {"Type": "MediaEffects", "Offset": [round(-0.1 * tl, 3), 0],
                             "MediaEffects": [_ref(SHOT_PREFIX, w, mode, "crackle")]}

@@ -73,6 +73,11 @@ Components
 					InheritVelocity = true
 				}
 			]
+			MediaEffects
+			[
+				&<../bs_missile_fx/separation_torpedo.rules>
+				&<./Data/common_effects/particles/explosions/small_part_explode_debris.rules>
+			]
 		}
 	}
 	Sprite
@@ -84,15 +89,38 @@ Components
 		{
 			Texture
 			{
-				File = "./Data/shots/missile_he/missile_he.png"
+				File = "../bs_missile_art/msl_torpedo_l.png"
 				MipLevels = max
 			}
-			Size = [2.667, 1.333]
+			Size = [3.25, 1.25]
 		}
 		NormalsTexture
 		{
-			File = "./Data/shots/missile_he/missile_he_normals.png"
+			File = "../bs_missile_art/msl_torpedo_l_normals.png"
 			MipLevels = max
+		}
+	}
+	LightsSprite
+	{
+		Type = AnimatedSprite
+		RenderBucket = BulletUpper4
+		Animation
+		{
+			AtlasSprite
+			{
+				Texture
+				{
+					File = "../bs_missile_art/msl_torpedo_l_lights.png"
+					MipLevels = max
+					SampleMode = Linear
+				}
+				Size = [3.25, 1.25]
+				TargetBlendMode = Add
+			}
+			FrameCount = 2
+			FrameSize = [208, 80]
+			FramesPerRow = 2
+			FramesPerSecond = 2
 		}
 	}
 	GlowSprite
@@ -101,7 +129,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		Offset = [-1.2, 0]
+		Offset = [-1.63, 0]
 		Sprite
 		{
 			Texture
@@ -124,9 +152,14 @@ Components
 	MediaEffects
 	{
 		Type = MediaEffects
-		Offset = [-1.2, 0]
+		Offset = [-1.63, 0]
 		Rotation = 180d
-		MediaEffects = [&<./Data/shots/missile_he/particles/missile_he_thruster_plume_light.rules>]
+		MediaEffects
+		[
+			&<../bs_missile_fx/smoke_wake_70.rules>
+			&<../bs_missile_fx/plume_torpedo_l.rules>
+			&<../bs_missile_fx/plume_light_torpedo.rules>
+		]
 	}
 	Targetable
 	{

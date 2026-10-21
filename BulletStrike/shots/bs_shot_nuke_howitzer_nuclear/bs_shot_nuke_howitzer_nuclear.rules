@@ -63,7 +63,11 @@ Components
 		TargetCategory = "bullet"
 		OnDeath
 		{
-			MediaEffects = [&<./Data/shots/flak_large/particles/flak_large_flash.rules>]
+			MediaEffects
+			[
+				&<./Data/shots/missile_nuke/particles/missile_nuke_flash.rules>
+				&<../bs_nuke_fx/bs_nuke_ring_small.rules>
+			]
 		}
 	}
 	Hit
@@ -127,6 +131,8 @@ Components
 				&<./Data/shots/missile_nuke/particles/missile_nuke_flash.rules>
 				&<./Data/shots/missile_nuke/particles/missile_nuke_shockwave.rules>
 				&<./Data/shots/missile_nuke/particles/missile_nuke_hit.rules>
+				&<../bs_nuke_fx/bs_nuke_ring.rules>
+				&<../bs_nuke_fx/bs_nuke_afterglow.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds = ["./Data/shots/missile_nuke/missile_nuke_hit.wav"]
@@ -136,10 +142,11 @@ Components
 				}
 				: /BASE_SHAKE
 				{
-					ShakeAmount = 0.35
-					Duration = 0.5
+					ShakeAmount = 0.5
+					Duration = 1.5
 				}
 			]
+			MediaEffectsScale = 1.15
 		}
 		HitStructural = &HitOperational
 		HitCrew = &HitOperational
@@ -176,38 +183,52 @@ Components
 	}
 	Sprite
 	{
-		Type = AnimatedSprite
+		Type = Sprite
 		RenderBucket = BulletUpper3
-		ReduceScaleWith = Hit
-		ReduceScaleExponent = 0.5
+		IsLit = true
+		Sprite
+		{
+			Texture
+			{
+				File = "../bs_shell_art/bs_shell_nuke.png"
+				MipLevels = max
+			}
+			Size = [2.2, 0.86]
+		}
+		NormalsTexture
+		{
+			File = "../bs_shell_art/bs_shell_nuke_normals.png"
+			MipLevels = max
+		}
+	}
+	LightsSprite
+	{
+		Type = AnimatedSprite
+		RenderBucket = BulletUpper4
 		Animation
 		{
 			AtlasSprite
 			{
 				Texture
 				{
-					File = "./Data/shots/bullet_large/bullet_large.png"
-					SampleMode = Linear
+					File = "../bs_shell_art/bs_shell_nuke_lights.png"
 					MipLevels = max
+					SampleMode = Linear
 				}
-				Size = [1.35, 1.35]
+				Size = [2.2, 0.86]
+				TargetBlendMode = Add
 			}
-			FrameCount = 16
-			FrameSize = [256, 256]
+			FrameCount = 4
+			FrameSize = [256, 96]
 			FramesPerRow = 4
-			FramesPerSecond = 120
+			FramesPerSecond = 6
 		}
-		NormalsTexture = &Animation/AtlasSprite/Texture
-		DiffuseShader = "./Data/default.shader"
-		NormalsShader = "./Data/no_normals.shader"
 	}
-	GlowSprite
+	TailSprite
 	{
 		Type = Sprite
-		RenderBucket = BulletUpper4
-		Z = 0.5
-		IsLight = true
-		Offset = [-1.8, 0]
+		RenderBucket = BulletUpper2
+		Offset = [-3.397, 0]
 		Sprite
 		{
 			Texture
@@ -216,8 +237,50 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [22, 11]
-			VertexColor = [140, 255, 60]
+			Size = [5, 0.5727]
+			VertexColor = [160, 255, 90]
+			TargetBlendMode = Add
+		}
+		LerpScaleFrom = [0.25, 1]
+		LerpTime = 0.05
+	}
+	CoreSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper2
+		Offset = [-1.71, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [2.25, 0.3273]
+			VertexColor = [230, 255, 200]
+			TargetBlendMode = Add
+		}
+		LerpScaleFrom = [0.25, 1]
+		LerpTime = 0.05
+	}
+	GlowSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Z = 0.5
+		IsLight = true
+		Offset = [0, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [30, 15]
+			VertexColor = [120, 255, 60]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"
 			_z = 1
@@ -227,9 +290,61 @@ Components
 			_unlitAdditiveStrength = 0.125
 		}
 	}
+	RadiationLight
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper2
+		Spin = 180d
+		Z = 0.25
+		IsLight = true
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/shots/missile_nuke/radiation.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [8, 8]
+			VertexColor = [0, 255, 0]
+			TargetBlendMode = Add
+			Shader = "./Data/common_effects/fancy_light.shader"
+			_z = 1
+			_nrmlStrengthLimit = 1
+			_litReflectiveStrength = 10
+			_litAdditiveStrength = 0.25
+			_unlitAdditiveStrength = 0.4
+		}
+	}
+	RadiationSpin
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Spin = 360d
+		Offset = [-0.11, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/shots/missile_nuke/radiation_small.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [0.75, 0.75]
+			VertexColor = [120, 255, 60]
+			TargetBlendMode = Add
+		}
+	}
 	Trail
 	{
 		Type = MediaEffects
 		MediaEffects = [&<../bs_trails/bs_trail_deck_nuclear.rules>]
+	}
+	SmokeTrail
+	{
+		Type = MediaEffects
+		Offset = [-1.1, 0]
+		Rotation = 180d
+		MediaEffects = [&<../bs_cal_fx/bs_cal_tsm_g_60_l115.rules>]
 	}
 }

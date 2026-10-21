@@ -67,7 +67,30 @@ Components
 					}
 				}
 			]
-			MediaEffects = &../HitOperational/MediaEffects
+			MediaEffects
+			[
+				&<./Data/shots/bullet_deck/particles/bullet_flash_deck.rules>
+				&<./Data/shots/bullet_deck/particles/bullet_hit_deck_sparks.rules>
+				&<./Data/shots/missile_nuke/particles/missile_nuke_shockwave.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/bullet_deck/sounds/deck_cannon_impact_01.wav"
+						"./Data/shots/bullet_deck/sounds/deck_cannon_impact_02.wav"
+						"./Data/shots/bullet_deck/sounds/deck_cannon_impact_03.wav"
+					]
+					Volume = 1
+					SpeedVariation = 0.2
+					MaxConcurrent = 8
+				}
+				: /BASE_SHAKE
+				{
+					ShakeAmount = 0.25
+					Duration = 1
+				}
+			]
+			MediaEffectsScale = 1.5
 		}
 		HitOperational
 		{
@@ -112,10 +135,11 @@ Components
 				}
 				: /BASE_SHAKE
 				{
-					ShakeAmount = 0.08
-					Duration = 0.5
+					ShakeAmount = 0.25
+					Duration = 1
 				}
 			]
+			MediaEffectsScale = 1.5
 		}
 		HitStructural
 		{
@@ -142,9 +166,12 @@ Components
 			]
 			MediaEffects
 			[
+				&<./Data/shots/bullet_deck/particles/bullet_hit_deck.rules>
 				&<./Data/shots/bullet_deck/particles/bullet_hit_deck_sparks.rules>
-				&<./Data/shots/bullet_deck/particles/bullet_flash_deck_struct.rules>
+				&<./Data/shots/bullet_deck/particles/bullet_smoke_deck.rules>
+				&<./Data/shots/bullet_deck/particles/bullet_flash_deck.rules>
 			]
+			MediaEffectsScale = 1.5
 		}
 		PenetratingOperational
 		{
@@ -178,7 +205,27 @@ Components
 					}
 				}
 			]
-			MediaEffects = &../HitOperational/MediaEffects
+			MediaEffects
+			[
+				&<./Data/shots/bullet_deck/particles/bullet_hit_deck.rules>
+				&<./Data/shots/bullet_deck/particles/bullet_hit_deck_sparks.rules>
+				&<./Data/shots/bullet_deck/particles/bullet_smoke_deck.rules>
+				&<./Data/shots/bullet_deck/particles/bullet_flash_deck.rules>
+				&<./Data/common_effects/particles/explosions/big_part_explode_debris.rules>
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds
+					[
+						"./Data/shots/bullet_deck/sounds/deck_cannon_impact_01.wav"
+						"./Data/shots/bullet_deck/sounds/deck_cannon_impact_02.wav"
+						"./Data/shots/bullet_deck/sounds/deck_cannon_impact_03.wav"
+					]
+					Volume = 1
+					SpeedVariation = 0.2
+					MaxConcurrent = 8
+				}
+			]
+			MediaEffectsScale = 0.75
 		}
 		PenetratingStructural : &HitStructural
 		{
@@ -190,38 +237,50 @@ Components
 	}
 	Sprite
 	{
-		Type = AnimatedSprite
+		Type = Sprite
 		RenderBucket = BulletUpper3
-		ReduceScaleWith = Hit
-		ReduceScaleExponent = 0.5
-		Animation
+		IsLit = true
+		Sprite
 		{
-			AtlasSprite
+			Texture
 			{
-				Texture
-				{
-					File = "./Data/shots/bullet_large/bullet_large.png"
-					SampleMode = Linear
-					MipLevels = max
-				}
-				Size = [1.35, 1.35]
+				File = "../bs_shell_art/bs_shell_ap.png"
+				MipLevels = max
 			}
-			FrameCount = 16
-			FrameSize = [256, 256]
-			FramesPerRow = 4
-			FramesPerSecond = 120
+			Size = [2.05, 0.72]
 		}
-		NormalsTexture = &Animation/AtlasSprite/Texture
-		DiffuseShader = "./Data/default.shader"
-		NormalsShader = "./Data/no_normals.shader"
+		NormalsTexture
+		{
+			File = "../bs_shell_art/bs_shell_ap_normals.png"
+			MipLevels = max
+		}
 	}
-	GlowSprite
+	MaskSprite
 	{
 		Type = Sprite
 		RenderBucket = BulletUpper4
-		Z = 0.5
-		IsLight = true
-		Offset = [-1.8, 0]
+		IsLit = true
+		Sprite
+		{
+			Texture
+			{
+				File = "../bs_shell_art/bs_shell_band_ap.png"
+				MipLevels = max
+			}
+			Size = [2.05, 0.72]
+			VertexColor = [215, 230, 255]
+		}
+		NormalsTexture
+		{
+			File = "../bs_shell_art/bs_shell_ap_normals.png"
+			MipLevels = max
+		}
+	}
+	TailSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper2
+		Offset = [-3.971, 0]
 		Sprite
 		{
 			Texture
@@ -230,7 +289,67 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [22, 11]
+			Size = [6.5, 0.5409]
+			VertexColor = [190, 215, 255]
+			TargetBlendMode = Add
+		}
+		LerpScaleFrom = [0.25, 1]
+		LerpTime = 0.05
+	}
+	CoreSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper2
+		Offset = [-1.777, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [2.925, 0.3091]
+			VertexColor = [240, 248, 255]
+			TargetBlendMode = Add
+		}
+		LerpScaleFrom = [0.25, 1]
+		LerpTime = 0.05
+	}
+	HeadSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper2
+		Offset = [-1.025, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [1.44, 1.44]
+			VertexColor = [255, 250, 235]
+			TargetBlendMode = Add
+		}
+	}
+	GlowSprite
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Z = 0.5
+		IsLight = true
+		Offset = [0, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/common_effects/particles/blob.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [26, 13]
 			VertexColor = [200, 225, 255]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"
@@ -244,6 +363,13 @@ Components
 	Trail
 	{
 		Type = MediaEffects
-		MediaEffects = [&<../bs_trails/bs_trail_deck_ap.rules>]
+		MediaEffects = [&<../bs_trails/bs_trail_deckL_ap.rules>]
+	}
+	SmokeTrail
+	{
+		Type = MediaEffects
+		Offset = [-1.025, 0]
+		Rotation = 180d
+		MediaEffects = [&<../bs_cal_fx/bs_cal_tsm_70_n183_l40.rules>]
 	}
 }

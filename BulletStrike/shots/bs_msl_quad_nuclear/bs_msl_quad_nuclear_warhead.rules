@@ -44,15 +44,38 @@ Components
 		{
 			Texture
 			{
-				File = "./Data/shots/missile_he/missile_he.png"
+				File = "../bs_missile_art/msl_nuclear_wh_l.png"
 				MipLevels = max
 			}
-			Size = [2.667, 1.333]
+			Size = [3.1, 1.5]
 		}
 		NormalsTexture
 		{
-			File = "./Data/shots/missile_he/missile_he_normals.png"
+			File = "../bs_missile_art/msl_nuclear_wh_l_normals.png"
 			MipLevels = max
+		}
+	}
+	LightsSprite
+	{
+		Type = AnimatedSprite
+		RenderBucket = BulletUpper4
+		Animation
+		{
+			AtlasSprite
+			{
+				Texture
+				{
+					File = "../bs_missile_art/msl_nuclear_wh_l_lights.png"
+					MipLevels = max
+					SampleMode = Linear
+				}
+				Size = [3.1, 1.5]
+				TargetBlendMode = Add
+			}
+			FrameCount = 4
+			FrameSize = [198, 96]
+			FramesPerRow = 4
+			FramesPerSecond = 6
 		}
 	}
 	GlowSprite
@@ -61,7 +84,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		Offset = [-1.2, 0]
+		Offset = [-1.53, 0]
 		Sprite
 		{
 			Texture
@@ -84,9 +107,61 @@ Components
 	MediaEffects
 	{
 		Type = MediaEffects
-		Offset = [-1.2, 0]
+		Offset = [-1.53, 0]
 		Rotation = 180d
-		MediaEffects = [&<./Data/shots/missile_nuke/particles/missile_nuke_thruster_plume_light.rules>]
+		MediaEffects
+		[
+			&<../bs_missile_fx/fire_nuclear_200.rules>
+			&<../bs_missile_fx/smoke_nuke_160.rules>
+			&<../bs_missile_fx/plume_nuclear_wh_l.rules>
+			&<../bs_missile_fx/plume_light_nuclear.rules>
+		]
+	}
+	RadiationLight
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper2
+		Spin = 120d
+		Z = 0.25
+		IsLight = true
+		Offset = [0.67, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/shots/missile_nuke/radiation.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [7, 7]
+			VertexColor = [0, 255, 0]
+			TargetBlendMode = Add
+			Shader = "./Data/common_effects/fancy_light.shader"
+			_z = 1
+			_nrmlStrengthLimit = 1
+			_litReflectiveStrength = 10
+			_litAdditiveStrength = 0.25
+			_unlitAdditiveStrength = 0.4
+		}
+	}
+	RadiationSpin
+	{
+		Type = Sprite
+		RenderBucket = BulletUpper4
+		Spin = 360d
+		Offset = [0.67, 0]
+		Sprite
+		{
+			Texture
+			{
+				File = "./Data/shots/missile_nuke/radiation_small.png"
+				MipLevels = max
+				SampleMode = Linear
+			}
+			Size = [0.7, 0.7]
+			VertexColor = [90, 255, 60]
+			TargetBlendMode = Add
+		}
 	}
 	Targetable
 	{
@@ -125,6 +200,7 @@ Components
 					}
 				}
 			]
+			MediaEffectsScale = 1.1
 			MediaEffects = &../HitOperational/MediaEffects
 		}
 		HitOperational
@@ -168,12 +244,15 @@ Components
 					}
 				}
 			]
+			MediaEffectsScale = 1.1
 			MediaEffects
 			[
 				&<./Data/shots/missile_nuke/particles/missile_nuke_flash_light.rules>
 				&<./Data/shots/missile_nuke/particles/missile_nuke_flash.rules>
 				&<./Data/shots/missile_nuke/particles/missile_nuke_shockwave.rules>
 				&<./Data/shots/missile_nuke/particles/missile_nuke_hit.rules>
+				&<../bs_nuke_fx/bs_nuke_ring.rules>
+				&<../bs_nuke_fx/bs_nuke_afterglow.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds = ["./Data/shots/missile_nuke/missile_nuke_hit.wav"]
@@ -194,6 +273,8 @@ Components
 			MediaEffects
 			[
 				&<./Data/shots/missile_nuke/particles/missile_nuke_flash.rules>
+				&<../bs_missile_fx/leak_iara.rules>
+				&<../bs_nuke_fx/bs_nuke_ring_small.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds = ["./Data/shots/missile_nuke/missile_nuke_hit.wav"]

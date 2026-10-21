@@ -3,10 +3,12 @@
 
 STAT_DAMAGE = 1000
 STAT_RADIUS = 3
+STAT_LASER_DAMAGE = 2000
+STAT_LASER_RADIUS = 4
 Range = 180
 IdealRange = 162
 ClipRangeToTarget = true
-RandomOffsetRadius = [0.5, 3]
+RandomOffsetRadius = [0.5, 2]
 FriendlyShipLowCollisions = false
 FriendlyShipHighCollisions = false
 HitNothing
@@ -27,16 +29,34 @@ HitNothing
 				Ships = false
 				Shields = false
 				Bullets = true
-				OnlyBulletCategories = [missile, mine, bullet, laser, ion_shot]
+				OnlyBulletCategories = [missile, mine, bullet]
 				Crew = true
+			}
+		}
+		{
+			Type = ExplosiveDamage
+			TotalDamage
+			{
+				BaseValue = 2000
+				EffectScaleExponent = 1
+			}
+			Radius = 4
+			Slices = 1
+			Filter
+			{
+				Ships = false
+				Shields = false
+				Bullets = true
+				OnlyBulletCategories = [laser, ion_shot]
+				Crew = false
 			}
 		}
 	]
 	MediaEffects
 	[
-		&<./Data/shots/flak_large/particles/flak_large_shrapnel.rules>
 		&<./Data/shots/flak_large/particles/flak_large_flash.rules>
 		&<./Data/shots/flak_large/particles/flak_large_smoke.rules>
+		&<../bs_cal_fx/bs_cal_shr_l_100.rules>
 		: /BASE_SOUNDS/AudioExterior
 		{
 			RandomSounds
@@ -51,6 +71,7 @@ HitNothing
 			MaxConcurrent = 12
 		}
 	]
+	MediaEffectsScale = 0.6
 }
 HitShield = &HitNothing
 HitOperational = &HitNothing

@@ -55,15 +55,38 @@ Components
 		{
 			Texture
 			{
-				File = "./Data/shots/missile_he/missile_he.png"
+				File = "../bs_missile_art/msl_nuclear_decoy.png"
 				MipLevels = max
 			}
-			Size = [1.6, 0.8]
+			Size = [2, 0.75]
 		}
 		NormalsTexture
 		{
-			File = "./Data/shots/missile_he/missile_he_normals.png"
+			File = "../bs_missile_art/msl_nuclear_decoy_normals.png"
 			MipLevels = max
+		}
+	}
+	LightsSprite
+	{
+		Type = AnimatedSprite
+		RenderBucket = BulletUpper4
+		Animation
+		{
+			AtlasSprite
+			{
+				Texture
+				{
+					File = "../bs_missile_art/msl_nuclear_decoy_lights.png"
+					MipLevels = max
+					SampleMode = Linear
+				}
+				Size = [2, 0.75]
+				TargetBlendMode = Add
+			}
+			FrameCount = 2
+			FrameSize = [128, 48]
+			FramesPerRow = 2
+			FramesPerSecond = 6
 		}
 	}
 	GlowSprite
@@ -72,7 +95,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		Offset = [-0.72, 0]
+		Offset = [-0.98, 0]
 		Sprite
 		{
 			Texture
@@ -95,9 +118,14 @@ Components
 	MediaEffects
 	{
 		Type = MediaEffects
-		Offset = [-0.72, 0]
+		Offset = [-0.98, 0]
 		Rotation = 180d
-		MediaEffects = [&<./Data/shots/missile_nuke/particles/missile_nuke_thruster_plume_light.rules>]
+		MediaEffects
+		[
+			&<../bs_missile_fx/smoke_faint_15_s80.rules>
+			&<../bs_missile_fx/plume_nuclear_decoy.rules>
+			&<../bs_missile_fx/plume_light_nuclear.rules>
+		]
 	}
 	Targetable
 	{
@@ -115,6 +143,7 @@ Components
 		HitShield = &HitOperational
 		HitOperational
 		{
+			MediaEffectsScale = 0.45
 			MediaEffects
 			[
 				&<./Data/shots/missile_he/particles/missile_he_flash.rules>
@@ -135,6 +164,7 @@ Components
 		HitStructural = &HitOperational
 		HitFriendly
 		{
+			MediaEffectsScale = 0.45
 			MediaEffects
 			[
 				&<./Data/shots/missile_he/particles/missile_he_flash.rules>

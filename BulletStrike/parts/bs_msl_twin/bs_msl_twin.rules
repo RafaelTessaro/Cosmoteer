@@ -3096,6 +3096,12 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 			}
 			BlueprintArcRadius = 10
 			BlueprintArcSpriteSegments = 64
+			CoverageSectorArc
+			{
+				Texture = &/INDICATORS/VerticalGradient
+				VertexColor = [255, 255, 255, 51]
+				QuadCount = 64
+			}
 		}
 		TurretCollider
 		{
@@ -3220,6 +3226,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -3252,6 +3259,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -3284,6 +3292,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -3316,6 +3325,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -3348,6 +3358,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -3380,6 +3391,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -3412,6 +3424,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -3444,6 +3457,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -3476,6 +3490,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -3508,6 +3523,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -3540,6 +3556,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -3572,6 +3589,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -3604,6 +3622,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -3636,6 +3655,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -3668,6 +3688,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -3700,6 +3721,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_he.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -3910,6 +3932,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_cluster.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -3942,6 +3965,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_cluster.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -3974,6 +3998,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_cluster.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4006,6 +4031,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_cluster.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4038,6 +4064,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_cluster.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4070,6 +4097,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_cluster.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4102,6 +4130,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_cluster.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4134,6 +4163,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_cluster.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4166,6 +4196,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_cluster.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4198,6 +4229,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_cluster.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4230,6 +4262,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_cluster.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4262,6 +4295,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_cluster.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4294,6 +4328,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_cluster.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4326,6 +4361,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_cluster.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4358,6 +4394,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_cluster.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4390,6 +4427,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_cluster.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4600,6 +4638,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_limpet.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4632,6 +4671,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_limpet.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4664,6 +4704,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_limpet.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4696,6 +4737,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_limpet.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4728,6 +4770,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_limpet.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4760,6 +4803,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_limpet.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4792,6 +4836,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_limpet.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4824,6 +4869,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_limpet.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4856,6 +4902,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_limpet.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4888,6 +4935,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_limpet.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4920,6 +4968,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_limpet.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4952,6 +5001,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_limpet.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -4984,6 +5034,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_limpet.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -5016,6 +5067,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_limpet.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -5048,6 +5100,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_limpet.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -5080,6 +5133,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_limpet.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -5290,6 +5344,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -5322,6 +5377,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -5354,6 +5410,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -5386,6 +5443,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -5418,6 +5476,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -5450,6 +5509,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -5482,6 +5542,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -5514,6 +5575,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -5546,6 +5608,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -5578,6 +5641,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -5610,6 +5674,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -5642,6 +5707,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -5674,6 +5740,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -5706,6 +5773,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -5738,6 +5806,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -5770,6 +5839,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_napalm.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -5980,6 +6050,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_emp.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -6012,6 +6083,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_emp.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -6044,6 +6116,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_emp.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -6076,6 +6149,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_emp.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -6108,6 +6182,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_emp.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -6140,6 +6215,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_emp.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -6172,6 +6248,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_emp.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -6204,6 +6281,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_emp.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -6236,6 +6314,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_emp.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -6268,6 +6347,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_emp.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -6300,6 +6380,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_emp.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -6332,6 +6413,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_emp.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -6364,6 +6446,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_emp.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -6396,6 +6479,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_emp.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -6428,6 +6512,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_emp.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -6460,6 +6545,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_emp.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds
@@ -6670,6 +6756,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_torpedo.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds = ["./Data/ships/terran/missile_launcher/nuke/sounds/launcher_launch_nuke.wav"]
@@ -6697,6 +6784,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					MediaEffects
 					[
 						&<./Data/ships/terran/missile_launcher/particles/missile_launcher_shoot_flash.rules>
+						&<../../shots/bs_missile_fx/launch_flash_torpedo.rules>
 						: /BASE_SOUNDS/AudioExterior
 						{
 							RandomSounds = ["./Data/ships/terran/missile_launcher/nuke/sounds/launcher_launch_nuke.wav"]
@@ -6773,7 +6861,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					Trigger = PodFired_0
 					Location = [-0.6, -0.85]
 					Rotation = 180d
-					MediaEffects = [&<./Data/ships/terran/chaingun/particles/chaingun_shoot_smoke.rules>]
+					MediaEffects = [&<../../shots/bs_missile_fx/backblast_heavy.rules>]
 				}
 				PodFired_1
 				{
@@ -6787,7 +6875,7 @@ Part : <./Data/ships/terran/base_med_part_terran_overclock.rules>/Part
 					Trigger = PodFired_1
 					Location = [-0.6, 0.85]
 					Rotation = 180d
-					MediaEffects = [&<./Data/ships/terran/chaingun/particles/chaingun_shoot_smoke.rules>]
+					MediaEffects = [&<../../shots/bs_missile_fx/backblast_heavy.rules>]
 				}
 				ReloadProgressBar
 				{

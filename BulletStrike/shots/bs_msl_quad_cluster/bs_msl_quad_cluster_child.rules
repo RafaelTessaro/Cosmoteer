@@ -66,14 +66,14 @@ Components
 		{
 			Texture
 			{
-				File = "./Data/shots/missile_he/missile_he.png"
+				File = "../bs_missile_art/msl_cluster_child.png"
 				MipLevels = max
 			}
-			Size = [1.067, 0.533]
+			Size = [0.8625, 0.4312]
 		}
 		NormalsTexture
 		{
-			File = "./Data/shots/missile_he/missile_he_normals.png"
+			File = "../bs_missile_art/msl_cluster_child_normals.png"
 			MipLevels = max
 		}
 	}
@@ -83,7 +83,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		Offset = [-0.48, 0]
+		Offset = [-0.345, 0]
 		Sprite
 		{
 			Texture
@@ -102,6 +102,13 @@ Components
 			_litAdditiveStrength = 0.05
 			_unlitAdditiveStrength = 0.125
 		}
+	}
+	MediaEffects
+	{
+		Type = MediaEffects
+		Offset = [-0.345, 0]
+		Rotation = 180d
+		MediaEffects = [&<../bs_missile_fx/plume_cluster_child.rules>]
 	}
 	Targetable
 	{
@@ -139,6 +146,7 @@ Components
 					}
 				}
 			]
+			MediaEffectsScale = 0.55
 			MediaEffects
 			[
 				&<./Data/shots/missile_he/particles/missile_he_hit.rules>
@@ -166,6 +174,7 @@ Components
 		HitStructural = &HitOperational
 		HitFriendly
 		{
+			MediaEffectsScale = 0.55
 			MediaEffects
 			[
 				&<./Data/shots/missile_he/particles/missile_he_hit.rules>

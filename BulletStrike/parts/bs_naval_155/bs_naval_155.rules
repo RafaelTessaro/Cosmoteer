@@ -466,6 +466,12 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			}
 			BlueprintArcRadius = 10
 			BlueprintArcSpriteSegments = 64
+			CoverageSectorArc
+			{
+				Texture = &/INDICATORS/VerticalGradient
+				VertexColor = [255, 255, 255, 51]
+				QuadCount = 64
+			}
 		}
 		TurretCollider
 		{
@@ -824,10 +830,11 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Location = [-0.7, 0]
 			MediaEffects
 			[
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck.rules>
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flash.rules>
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flare.rules>
-				&<./Data/ships/terran/cannon_deck/particles/cannon_smoke_deck.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cd_100.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cdf_100.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cdr_100.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cds_100.rules>
+				&<../../shots/bs_cal_fx/bs_cal_rgd_100.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					Sound = "./Data/ships/terran/cannon_deck/sounds/cannon_deck_shot.wav"
@@ -836,8 +843,8 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				}
 				: /BASE_SHAKE
 				{
-					ShakeAmount = 0.1
-					Duration = 0.5
+					ShakeAmount = 0.12
+					Duration = 0.8
 				}
 			]
 		}
@@ -849,10 +856,11 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Location = [-0.7, 0]
 			MediaEffects
 			[
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck.rules>
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flash.rules>
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flare.rules>
-				&<./Data/ships/terran/cannon_deck/particles/cannon_smoke_deck.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cd_100.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cdf_100.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cdr_100.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cds_100.rules>
+				&<../../shots/bs_cal_fx/bs_cal_rgd_100.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					Sound = "./Data/ships/terran/cannon_deck/sounds/cannon_deck_shot.wav"
@@ -861,8 +869,8 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				}
 				: /BASE_SHAKE
 				{
-					ShakeAmount = 0.1
-					Duration = 0.5
+					ShakeAmount = 0.12
+					Duration = 0.8
 				}
 			]
 		}
@@ -874,10 +882,11 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Location = [-0.7, 0]
 			MediaEffects
 			[
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck.rules>
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flash.rules>
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flare.rules>
-				&<./Data/ships/terran/cannon_deck/particles/cannon_smoke_deck.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cd_125.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cdf_125.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cdr_120.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cds_120.rules>
+				&<../../shots/bs_cal_fx/bs_cal_rgd_120.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					Sound = "./Data/ships/terran/cannon_deck/sounds/deck_cannon_overclocked_shot.wav"
@@ -886,8 +895,8 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				}
 				: /BASE_SHAKE
 				{
-					ShakeAmount = 0.1
-					Duration = 0.5
+					ShakeAmount = 0.18
+					Duration = 0.8
 				}
 			]
 		}
@@ -899,10 +908,11 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 			Location = [-0.7, 0]
 			MediaEffects
 			[
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck.rules>
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flash.rules>
-				&<./Data/ships/terran/cannon_deck/particles/cannon_shoot_deck_flare.rules>
-				&<./Data/ships/terran/cannon_deck/particles/cannon_smoke_deck.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cd_125.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cdf_125.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cdr_120.rules>
+				&<../../shots/bs_cal_fx/bs_cal_cds_120.rules>
+				&<../../shots/bs_cal_fx/bs_cal_rgd_120.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					Sound = "./Data/ships/terran/cannon_deck/sounds/deck_cannon_overclocked_shot.wav"
@@ -911,10 +921,42 @@ Part : <./Data/ships/terran/base_large_part_terran_overclock.rules>/Part
 				}
 				: /BASE_SHAKE
 				{
-					ShakeAmount = 0.1
-					Duration = 0.5
+					ShakeAmount = 0.18
+					Duration = 0.8
 				}
 			]
+		}
+		RecoilSmoke1
+		{
+			Type = TriggeredEffects
+			ChainedTo = Emitter1Proxy_N
+			Trigger = Emitter1Proxy_N
+			Location = [-2.95, 0]
+			MediaEffects = [&<../../shots/bs_cal_fx/bs_cal_cds_80_n50_l200_v30_d30.rules>]
+		}
+		RecoilSmoke2
+		{
+			Type = TriggeredEffects
+			ChainedTo = Emitter2Proxy_N
+			Trigger = Emitter2Proxy_N
+			Location = [-2.95, 0]
+			MediaEffects = [&<../../shots/bs_cal_fx/bs_cal_cds_80_n50_l200_v30_d30.rules>]
+		}
+		Overclock_RecoilSmoke1
+		{
+			Type = TriggeredEffects
+			ChainedTo = Emitter1Proxy_OC
+			Trigger = Emitter1Proxy_OC
+			Location = [-2.95, 0]
+			MediaEffects = [&<../../shots/bs_cal_fx/bs_cal_cds_90_n50_l200_v30_d30.rules>]
+		}
+		Overclock_RecoilSmoke2
+		{
+			Type = TriggeredEffects
+			ChainedTo = Emitter2Proxy_OC
+			Trigger = Emitter2Proxy_OC
+			Location = [-2.95, 0]
+			MediaEffects = [&<../../shots/bs_cal_fx/bs_cal_cds_90_n50_l200_v30_d30.rules>]
 		}
 		StunTrigger
 		{

@@ -1,0 +1,47 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Efeito de missil (bsgen/missile_fx.py)
+// Copia integral de ./Data/shots/missile_he/particles/missile_he_thruster_plume.rules (vanilla; igual no 0.30.3 e no SW:ACD, 0.30.4).
+// Feixe do propulsor de Piranha (cluster) (cluster_l): Bucket BulletUpper2 (acima dos tetos, abaixo do corpo BulletUpper3), cores e tamanho da tabela.
+Type = Beam
+Sprite
+{
+	Texture
+	{
+		File = ./Data/ships/terran/thruster_small/particles/thruster_plume.png
+		SampleMode = Linear
+		MipLevels = max
+		UVMode = Clamp
+	}
+	_hotColor = [255, 236, 130, 255]
+	_coldColor = [255, 170, 20, 255]
+	_centerColor = [255, 250, 220, 255]
+	_thicknessOverIntensity = [0.5, 1]
+	_additionalBuffedThickness = 0.25
+	_additionalBuffedIntensity = (&<./Data/ships/terran/engine_room/engine_room.rules>/Part/Components/BuffProvider/BuffAmount)
+	_noiseTexture
+	{
+		File = ./Data/common_effects/particles/noise_gradient.png
+		MipLevels = 1
+		SampleMode = Linear
+		UVMode = Wrap
+	}
+	Shader = ./Data/ships/terran/thruster_small/particles/thruster_plume.shader
+	Size = [2.2, 0.8]
+	TargetBlendMode
+	{
+		SourceRgbFactor = SourceAlpha
+		DestRgbFactor = One
+		RgbOperator = Add
+		SourceAlphaFactor = Zero
+		DestAlphaFactor = One
+		AlphaOperator = Add
+	}
+}
+Bucket = BulletUpper2
+RandomTimeOffset = [0, 1]
+IntensitySmoothSpeed = 10
+RotationSmoothSpeed = 10
+SpeedOverIntensity = 0
+LengthOverIntensity = [0, 1]
+MaxRotationSmoothDelta = 30d
+RotationSmoothSkewMode = true

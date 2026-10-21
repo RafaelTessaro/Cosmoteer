@@ -54,15 +54,38 @@ Components
 		{
 			Texture
 			{
-				File = "./Data/shots/missile_he/missile_he.png"
+				File = "../bs_missile_art/msl_emp_l.png"
 				MipLevels = max
 			}
-			Size = [2, 1]
+			Size = [2.5, 1]
 		}
 		NormalsTexture
 		{
-			File = "./Data/shots/missile_he/missile_he_normals.png"
+			File = "../bs_missile_art/msl_emp_l_normals.png"
 			MipLevels = max
+		}
+	}
+	LightsSprite
+	{
+		Type = AnimatedSprite
+		RenderBucket = BulletUpper4
+		Animation
+		{
+			AtlasSprite
+			{
+				Texture
+				{
+					File = "../bs_missile_art/msl_emp_l_lights.png"
+					MipLevels = max
+					SampleMode = Linear
+				}
+				Size = [2.5, 1]
+				TargetBlendMode = Add
+			}
+			FrameCount = 4
+			FrameSize = [160, 64]
+			FramesPerRow = 4
+			FramesPerSecond = 12
 		}
 	}
 	GlowSprite
@@ -71,7 +94,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		Offset = [-0.9, 0]
+		Offset = [-1.18, 0]
 		Sprite
 		{
 			Texture
@@ -94,9 +117,19 @@ Components
 	MediaEffects
 	{
 		Type = MediaEffects
-		Offset = [-0.9, 0]
+		Offset = [-1.18, 0]
 		Rotation = 180d
-		MediaEffects = [&<./Data/shots/missile_emp/particles/missile_emp_thruster_plume_light.rules>]
+		MediaEffects
+		[
+			&<../bs_missile_fx/smoke_faint_16.rules>
+			&<../bs_missile_fx/plume_emp_l.rules>
+			&<../bs_missile_fx/plume_light_emp.rules>
+		]
+	}
+	Crackle
+	{
+		Type = MediaEffects
+		MediaEffects = [&<./Data/shots/missile_emp/particles/missile_emp_thruster_lightning.rules>]
 	}
 	Targetable
 	{

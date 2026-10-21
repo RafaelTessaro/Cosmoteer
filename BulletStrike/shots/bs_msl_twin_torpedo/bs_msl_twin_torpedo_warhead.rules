@@ -44,15 +44,38 @@ Components
 		{
 			Texture
 			{
-				File = "./Data/shots/missile_he/missile_he.png"
+				File = "../bs_missile_art/msl_torpedo_wh_m.png"
 				MipLevels = max
 			}
-			Size = [2.667, 1.333]
+			Size = [2.25, 1]
 		}
 		NormalsTexture
 		{
-			File = "./Data/shots/missile_he/missile_he_normals.png"
+			File = "../bs_missile_art/msl_torpedo_wh_m_normals.png"
 			MipLevels = max
+		}
+	}
+	LightsSprite
+	{
+		Type = AnimatedSprite
+		RenderBucket = BulletUpper4
+		Animation
+		{
+			AtlasSprite
+			{
+				Texture
+				{
+					File = "../bs_missile_art/msl_torpedo_wh_m_lights.png"
+					MipLevels = max
+					SampleMode = Linear
+				}
+				Size = [2.25, 1]
+				TargetBlendMode = Add
+			}
+			FrameCount = 2
+			FrameSize = [144, 64]
+			FramesPerRow = 2
+			FramesPerSecond = 2
 		}
 	}
 	GlowSprite
@@ -61,7 +84,7 @@ Components
 		RenderBucket = BulletUpper4
 		Z = 0
 		IsLight = true
-		Offset = [-1.2, 0]
+		Offset = [-1.13, 0]
 		Sprite
 		{
 			Texture
@@ -84,9 +107,14 @@ Components
 	MediaEffects
 	{
 		Type = MediaEffects
-		Offset = [-1.2, 0]
+		Offset = [-1.13, 0]
 		Rotation = 180d
-		MediaEffects = [&<./Data/shots/missile_he/particles/missile_he_thruster_plume_light.rules>]
+		MediaEffects
+		[
+			&<../bs_missile_fx/smoke_wake_55.rules>
+			&<../bs_missile_fx/plume_torpedo_wh_m.rules>
+			&<../bs_missile_fx/plume_light_torpedo.rules>
+		]
 	}
 	Targetable
 	{
@@ -123,6 +151,7 @@ Components
 					}
 				}
 			]
+			MediaEffectsScale = 1.3
 			MediaEffects = &../HitOperational/MediaEffects
 		}
 		HitOperational
@@ -164,11 +193,14 @@ Components
 					}
 				}
 			]
+			MediaEffectsScale = 1.3
 			MediaEffects
 			[
 				&<./Data/shots/missile_he/particles/missile_he_hit.rules>
 				&<./Data/shots/missile_he/particles/missile_he_flash.rules>
 				&<./Data/shots/missile_he/particles/missile_he_smoke.rules>
+				&<../bs_missile_fx/ring_torpedo.rules>
+				&<../bs_missile_fx/flash_torpedo.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds

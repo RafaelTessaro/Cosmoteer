@@ -201,10 +201,10 @@ EmitterDef
 			ValueType = Color
 			Value
 			{
-				Rf = 0.45
-				Gf = 0.95
+				Rf = 0.2
+				Gf = 0.92
 				Bf = 1
-				Af = 0.5
+				Af = 0.44
 			}
 			Name = ""
 			Enabled = true
@@ -214,7 +214,7 @@ EmitterDef
 			Type = SetValue
 			DataOut = base_scale
 			ValueType = Float
-			Value = 5
+			Value = 4.5
 			Name = ""
 			Enabled = true
 			UpdateAfterInit = false
