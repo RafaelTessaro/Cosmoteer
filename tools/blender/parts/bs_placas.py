@@ -2,25 +2,32 @@
 
     $PY tools/blender/render_layered.py bs_placas [--quick] [--out DIR]
 
-Spec de arte assets.plates: uma moldura 3D (moldura clara de bisel duplo com campo escuro rebaixado e 2 parafusos)
-renderizada UMA vez; em PIL a silhueta do tipo e colada no campo, pintada na cor do tipo (palette[tipo] band/chip,
-nunca o azul da interface), em baixo relevo (luz de cima-esquerda, como as torres). Usadas por:
-  * paiois (MostradorTipo_<k>, uma por modo do seletor; projeteis = placa fixa), no tamanho do encaixe do teto
-    (1x1 0,42 / 2x2 0,66 / 3x3 0,92 quadro);
-  * tremonha (reserva) 0,42 e placas de modo das fabricas F2/F3/F4 0,8.
-As silhuetas seguem as descricoes dos icones 2.0 (art_assets.ui_icons) e usam as primitivas de
-tools/bsgen/ui_icons.py (Pen, shell, missile, bolt, star, trefoil): o mesmo desenho dos icones do seletor, so que
-em cor de tipo e em relevo. Tamanho minimo de leitura: 27 px (paiol 1x1) -> formas cheias, nada mais fino que ~2 px.
+Spec de arte assets.plates: "one Blender bezel (dark recessed frame, 2 bolts) rendered once; PIL pastes the ui_icons
+silhouette of the kind recoloured to palette[kind] band/chip (not the UI blue) into the bezel".
+
+  * moldura: aro ESCURO de grafite (core_mid) com bisel duplo, campo preto rebaixado e 2 parafusos de aco nos cantos
+    opostos (os outros 2 cantos com um entalhe). Escura de proposito: no encaixe claro do paiol a silhueta colorida
+    salta, sem o anel branco de "adesivo";
+  * silhueta: a MESMA dos botoes do seletor 2.0. As mascaras vem das proprias funcoes de tools/bsgen/ui_icons.py
+    (icon_ammo2 / icon_cell / icon_missile2 / icon_slug): o Pen e trocado por um que devolve as mascaras em vez de
+    pintar o azul da interface, entao a placa do paiol e sempre o botao que o jogador acabou de clicar;
+  * cor: corpo = cor do tipo (palette[tipo]), destaque do icone = 2a cor, e regioes do corpo com cor propria
+    (bobinas de cobre do P.E.M. e do Poraque, minimisseis da submunicao, cauda laranja do slug), helpers.KIND;
+    baixo relevo com a luz de cima-esquerda (como as torres) e sombra curta;
+  * paint_safe(): nenhum pixel fica na chave de pintura do jogo (STYLE.md 9), nem nas bordas do verde nuclear.
+
+Usadas por: paiois (MostradorTipo_<k>, uma por modo do seletor; projeteis = placa fixa) no encaixe do teto (1x1 0,42 /
+2x2 0,66 / 3x3 0,92 quadro), tremonha (reserva) 0,42 e placas de modo das fabricas F2/F3/F4 0,8. Leitura minima:
+27 px (paiol 1x1) -> campo grande (0,60 de 0,75) e as formas cheias dos icones.
 
 Os 12 tipos (ordem do spec): he, ap, sap, ac, frag, plasma, pem, msl_he, msl_cluster, msl_emp, msl_nuke, slug.
 """
 
-import math
 import os
 import tempfile
 
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 
 import bs3d as B
 import models as Mo
@@ -28,7 +35,7 @@ from parts import _bs2_logistica_helpers as LG
 
 PX_PLATE = 48
 SIDE = PX_PLATE / 64.0                # 0,75 quadro
-FIELD = 0.54                          # lado do campo escuro (quadros, de SIDE)
+FIELD = 0.60                          # lado do campo escuro (quadros, de SIDE): 38 px de 48
 SSF = 4                               # superamostragem do simbolo
 
 PART = {
@@ -42,9 +49,12 @@ PART = {
         "placa_<tipo>.png: 48 x 48 px, desenhada pelas regras com Size = o tamanho do encaixe (paiol 1x1 0,42 / 2x2 "
         "0,66 / 3x3 0,92 quadro; tremonha 0,42; fabricas 0,8); camada roof_doodads, sem emissao (o jogo ilumina). "
         "O 'rect' do meta e so o tamanho nativo (0,75 quadro = 48 px); size [1, 1] e nominal.",
-        "Cores: palette[tipo] band/chip do SPEC_2.0 (he ambar, ap branco-azulado, sap laranja, ac carmim + ouro, frag "
-        "verde-agua, plasma ciano, pem azul + cobre, missil HE ambar, submunicao laranja, missil PEM azul, ogiva "
-        "nuclear verde com trevo escuro, slug violeta + ouro).",
+        "Silhuetas = os icones 2.0 do seletor (tools/bsgen/ui_icons.py, art3d/bs_ui_icons2), na cor do tipo: he ambar, "
+        "ap branco-azulado, sap laranja + estrela clara, ac carmim + ouro, frag verde-agua, plasma ciano, pem azul + "
+        "bobinas de cobre, missil HE ambar, submunicao laranja + minimisseis ouro, missil PEM azul + cobre, ogiva "
+        "nuclear verde com o trevo ao lado, slug branco-azulado + aneis EM azuis + cauda laranja (paleta nova do Tupa).",
+        "Moldura escura (grafite) de bisel duplo, campo preto e 2 parafusos (spec: 'dark recessed frame, 2 bolts'). "
+        "Nenhum pixel na chave de pintura (helpers.paint_safe).",
     ],
 }
 
@@ -58,27 +68,27 @@ def _bezel():
     import bpy
     B.reset()
     M = Mo.mats("amber")
-    A, K, KM, S = M["armor"], M["core"], M["core_mid"], M["steel"]
+    K, KM, S = M["core"], M["core_mid"], M["steel"]
     B.camera(SIDE, SIDE, (0, 0))
     bpy.context.scene.cycles.samples = 64
     tags = ("bezel",)
     s = SIDE - 0.03
-    fa, fp = B.shard("frame", B.rpoly(0, 0, s, s, 0, chamfer=0.075), 0.0, 0.06, A, slope=0.022, groove=0.014,
-                     panel_h=0.016, tags=tags)
-    hole = B.rpoly(0, 0, FIELD + 0.02, FIELD + 0.02, 0, chamfer=0.05)
+    # aro escuro de grafite com bisel duplo (o chanfro de fora pega a luz: contorno fino claro em volta)
+    fa, fp = B.shard("frame", B.rpoly(0, 0, s, s, 0, chamfer=0.07), 0.0, 0.05, KM, slope=0.018, groove=0.010,
+                     panel_h=0.012, tags=tags)
+    hole = B.rpoly(0, 0, FIELD + 0.012, FIELD + 0.012, 0, chamfer=0.05)
     for t in (fa, fp):
         if t is not None:
-            B.cut(t, [B.loft(f"hole{t.name}", hole, hole, 0.012, 0.5, K, bevel=0.0)])
-    field = B.rpoly(0, 0, FIELD + 0.03, FIELD + 0.03, 0, chamfer=0.05)
-    B.loft("field", field, field, 0.0, 0.016, B.mat_metal("lg_plate_field", (0.012, 0.013, 0.016), rough=0.55,
-                                                           metal=0.3), bevel=0.0, tags=tags)
+            B.cut(t, [B.loft(f"hole{t.name}", hole, hole, 0.010, 0.5, K, bevel=0.0)])
+    field = B.rpoly(0, 0, FIELD + 0.02, FIELD + 0.02, 0, chamfer=0.05)
+    B.loft("field", field, field, 0.0, 0.012, B.mat_metal("lg_plate_field", (0.008, 0.009, 0.011), rough=0.6,
+                                                           metal=0.2), bevel=0.0, tags=tags)
     for k, (sx, sy) in enumerate(((-1, 1), (1, -1))):
-        c = (s / 2 - 0.052)
-        B.cyl(f"bolt{k}", sx * c, sy * c, 0.078, 0.022, 0.018, KM, axis="Z", verts=10, bevel=0.005, tags=tags)
-        B.box(f"boltx{k}", sx * c, sy * c, 0.026, 0.006, 0.086, 0.090, S, bevel=0.0, tags=tags)
-    # 2 entalhes na moldura (cantos sem parafuso): linha de painel curta
+        c = (s / 2 - 0.040)
+        B.cyl(f"bolt{k}", sx * c, sy * c, 0.066, 0.017, 0.014, S, axis="Z", verts=10, bevel=0.004, tags=tags)
+    # 2 entalhes nos cantos sem parafuso (linha de painel curta)
     if fp is not None:
-        B.cut(fp, [B.rbox(f"nick{k}", sx * (s / 2 - 0.05), sy * (s / 2 - 0.05), 0.010, 0.06, 0.07, 0.5, K,
+        B.cut(fp, [B.rbox(f"nick{k}", sx * (s / 2 - 0.04), sy * (s / 2 - 0.04), 0.008, 0.05, 0.05, 0.5, K,
                           rot=-sx * sy * 45, bevel=0.0) for k, (sx, sy) in enumerate(((1, 1), (-1, -1)))])
     B.show_only(["bezel"])
     tmp = tempfile.mkdtemp(prefix="bs_placas_")
@@ -91,122 +101,71 @@ def _bezel():
     return img
 
 
-# ============================================================================ silhuetas (Pen dos icones 2.0)
-def _pen():
+# ============================================================================ silhuetas (os icones 2.0)
+ICON_FN = {
+    "he": lambda U: U.icon_ammo2("he"), "ap": lambda U: U.icon_ammo2("ap"), "sap": lambda U: U.icon_ammo2("sap"),
+    "ac": lambda U: U.icon_ammo2("ac"), "frag": lambda U: U.icon_ammo2("frag"),
+    "plasma": lambda U: U.icon_cell("plasma"), "pem": lambda U: U.icon_cell("pem"),
+    "msl_he": lambda U: U.icon_missile2("he"), "msl_cluster": lambda U: U.icon_missile2("cluster"),
+    "msl_emp": lambda U: U.icon_missile2("emp"), "msl_nuke": lambda U: U.icon_missile2("nuclear"),
+    "slug": lambda U: U.icon_slug(),
+}
+
+
+def icon_pen(kind):
+    """Roda a funcao do icone 2.0 do tipo com um Pen que guarda as mascaras (corpo, destaque) em vez de pintar o azul
+    da interface. Devolve (ui_icons, pen)."""
     from bsgen import ui_icons as U
-    return U, U.Pen()
+
+    class _Capture(U.Pen):
+        def render(self, acc_color=None):
+            return self
+
+    orig = U.Pen
+    U.Pen = _Capture
+    try:
+        p = ICON_FN[kind](U)
+    finally:
+        U.Pen = orig
+    p.at()
+    return U, p
 
 
-def _capsule(p, cx, top, bottom, w, layer="body"):
-    r = w / 2
-    pts = []
-    for i in range(13):
-        a = math.pi + math.pi * i / 12
-        pts.append((cx + r * math.cos(a), top + r + r * math.sin(a)))
-    for i in range(13):
-        a = math.pi * i / 12
-        pts.append((cx + r * math.cos(a), bottom - r + r * math.sin(a)))
-    p.poly(pts, layer)
+def _region(p, rects):
+    """Mascara L (mesmo tamanho das do Pen) dos retangulos dados em coordenadas do icone (0..96, y para baixo)."""
+    m = Image.new("L", p.m["body"].size, 0)
+    d = ImageDraw.Draw(m)
+    for x0, y0, x1, y1 in rects:
+        d.polygon(p._xf([(x0, y0), (x1, y0), (x1, y1), (x0, y1)]), fill=255)
+    return m
+
+
+def layers(kind):
+    """[(mascara L, cor)] do tipo, de baixo para cima: corpo, regioes do corpo com cor propria, destaque."""
+    _, p = icon_pen(kind)
+    col = LG.KIND[kind]
+    body = np.asarray(p.m["body"], np.float32)
+    acc = np.asarray(p.m["acc"], np.float32)
+    out = []
+    rest = body.copy()
+    parts = []
+    for _kind, rects, c in col.get("parts", []):
+        reg = np.asarray(_region(p, rects), np.float32) / 255.0
+        part = body * reg
+        rest = rest * (1 - reg)
+        parts.append((part, c))
+    out.append((rest, col["body"]))
+    out += parts
+    if col.get("acc") is not None and acc.max() > 0:
+        out.append((acc, col["acc"]))
+    elif acc.max() > 0:                               # destaque sem cor propria: cor do corpo
+        out.append((acc, col["body"]))
+    return [(Image.fromarray(np.clip(m, 0, 255).astype(np.uint8)), c) for m, c in out]
 
 
 def silhouette(kind):
-    """Mascaras (corpo, destaque) do tipo, Image 'L' em 96 x 96 x SS (as do Pen)."""
-    U, p = _pen()
-    if kind == "he":
-        U.shell(p, 48, 10, 86, 32, tip=0.42, sharp=0.9)
-        p.gap(30, 60, 66, 62.8)                              # fresta da luva
-    elif kind == "ap":
-        cx = 48
-        p.poly([(cx, 6), (cx + 6, 26), (cx + 6, 50), (cx - 6, 50), (cx - 6, 26)])
-        p.poly([(cx - 13, 46), (cx + 13, 46), (cx + 15, 53), (cx - 15, 53)])
-        p.rect(cx - 14, 53, cx + 14, 84)
-        p.rect(cx - 16, 84, cx + 16, 90)
-        p.gap(cx - 17, 53, cx + 17, 55.6)
-        p.gap(cx - 17, 68, cx + 17, 70.4)
-        p.gap(cx - 17, 81.2, cx + 17, 83.4)
-    elif kind == "sap":
-        U.shell(p, 42, 16, 86, 30, tip=0.30, sharp=0.15)     # ponta rombuda
-        p.gap(24, 60, 60, 62.6)
-        U.star(p, 68, 30, 6.5, 15, n=7, rot=8)
-    elif kind == "ac":
-        cx = 48
-        U.shell(p, cx, 8, 86, 26, tip=0.42, sharp=1.1)
-        for s in (-1, 1):                                    # canards (frente) e aletas (cauda)
-            p.poly([(cx + s * 12, 34), (cx + s * 22, 42), (cx + s * 22, 46), (cx + s * 12, 44)])
-            p.poly([(cx + s * 13, 64), (cx + s * 24, 76), (cx + s * 24, 84), (cx + s * 13, 82)])
-        p.rect(cx - 13.5, 50, cx + 13.5, 57, "acc")          # faixa dourada
-        p.gap(cx - 14, 49, cx + 14, 50.2)
-    elif kind == "frag":
-        cx = 48
-        U.shell(p, cx, 46, 88, 30, tip=0.36, sharp=0.6)
-        p.gap(30, 70, 66, 72.4)
-        for i, ang in enumerate((-60, -40, -20, 0, 20, 40, 60)):   # leque de 7 tracos para a frente
-            a = math.radians(ang)
-            r0, r1 = 14, 31 if i % 2 == 0 else 26
-            x0, y0 = cx + math.sin(a) * r0, 46 - math.cos(a) * r0
-            x1, y1 = cx + math.sin(a) * r1, 46 - math.cos(a) * r1
-            nx, ny = math.cos(a) * 2.6, math.sin(a) * 2.6
-            p.poly([(x0 - nx, y0 - ny), (x0 + nx, y0 + ny), (x1 + nx * 0.6, y1 + ny * 0.6), (x1 - nx * 0.6, y1 - ny * 0.6)],
-                   "acc")
-    elif kind == "plasma":
-        _capsule(p, 48, 8, 88, 36)
-        p.gap(26, 22, 70, 24.4)
-        p.gap(26, 72, 70, 74.4)
-        p.rect(38, 30, 58, 66, "acc")                        # janela do nucleo
-        p.gap(36, 28, 60, 30.6)
-        p.gap(36, 65.6, 60, 68)
-    elif kind == "pem":
-        _capsule(p, 38, 8, 88, 32)
-        for y in (26, 44, 62):                               # 3 aneis de bobina (cobre)
-            p.rect(21, y, 55, y + 8, "acc")
-            p.gap(20, y - 2, 56, y - 0.4)
-        U.bolt(p, 58, 14, 1.0, "body")
-    elif kind == "msl_he":
-        U.missile(p, 48, 6, 90, 22)
-        for y in (38, 52):
-            p.gap(34, y, 62, y + 2.4)
-    elif kind == "msl_cluster":
-        U.missile(p, 48, 58, 92, 20, fin=0.8, nose=0.05)
-        for sd in (-1, 1):
-            p.poly([(48 + sd * 10, 60), (48 + sd * 4, 60), (48 + sd * 14, 50), (48 + sd * 18, 53)])
-        for ang, r in ((-50, 25), (-17, 30), (17, 30), (50, 25), (-34, 45), (0, 47), (34, 45)):
-            p.at(48 + r * math.sin(math.radians(ang)), 56 - r * math.cos(math.radians(ang)), ang)
-            p.poly([(0, -10), (5, 6), (0, 3), (-5, 6)], "acc")
-            p.at()
-    elif kind == "msl_emp":
-        U.missile(p, 40, 8, 90, 20)
-        for y in (40, 50, 60):                               # bobinas
-            p.gap(28, y, 52, y + 2.2)
-        U.bolt(p, 52, 18, 1.15)
-    elif kind == "msl_nuke":
-        w = 30
-        left, right = U.ogive(48, 8, 40, w, sharp=0.15)
-        p.poly(left + [(48 - w / 2, 80), (48 + w / 2, 80)] + right[::-1])
-        for s in (-1, 1):
-            p.poly([(48 + s * w / 2, 62), (48 + s * (w / 2 + 8), 74), (48 + s * (w / 2 + 8), 88),
-                    (48 + s * w / 2, 82)])
-        p.poly([(40, 80), (56, 80), (58, 90), (38, 90)])
-        # trevo ESCURO recortado na ogiva (cunhas transparentes)
-        for k in range(3):
-            a0 = math.radians(-90 + k * 120 - 30)
-            a1 = math.radians(-90 + k * 120 + 30)
-            r, cx, cy = 11.5, 48, 46
-            pts = [(cx + r * 0.30 * math.cos(a0), cy + r * 0.30 * math.sin(a0))]
-            pts += [(cx + r * math.cos(a0 + (a1 - a0) * i / 10), cy + r * math.sin(a0 + (a1 - a0) * i / 10))
-                    for i in range(11)]
-            pts.append((cx + r * 0.30 * math.cos(a1), cy + r * 0.30 * math.sin(a1)))
-            p.poly(pts, "body", 0)
-            p.poly(pts, "acc", 0)
-        p.circle(48, 46, 2.2, "body", 0)
-    elif kind == "slug":
-        cx = 48
-        p.poly([(cx, 4), (cx + 7, 18), (cx + 7, 86), (cx - 7, 86), (cx - 7, 18)])
-        for s in (-1, 1):                                    # 3 aletas da cauda
-            p.poly([(cx + s * 7, 66), (cx + s * 18, 80), (cx + s * 18, 90), (cx + s * 7, 86)])
-        for y in (26, 40, 54):                               # aneis da armadura (ouro)
-            p.rect(cx - 13, y, cx + 13, y + 6, "acc")
-    else:
-        raise ValueError(kind)
+    """(corpo, destaque) do icone 2.0 do tipo (mascaras L do Pen), para conferencias."""
+    _, p = icon_pen(kind)
     return p.m["body"], p.m["acc"]
 
 
@@ -230,26 +189,22 @@ def _relief(mask, color, light=0.42):
 
 def symbol(kind, size):
     """Simbolo colorido em relevo (RGBA size x size) do tipo."""
-    body, acc = silhouette(kind)
+    lay = layers(kind)
     big = size * SSF
-    # o Pen desenha em 96 x SS; a area util (FIT 0,78) e recortada pela caixa das mascaras
-    both = Image.fromarray(np.maximum(np.asarray(body), np.asarray(acc)))
-    bb = both.getbbox()
+    union = np.zeros_like(np.asarray(lay[0][0], np.float32))
+    for m, _ in lay:
+        union = np.maximum(union, np.asarray(m, np.float32))
+    bb = Image.fromarray(union.astype(np.uint8)).getbbox()
     side = max(bb[2] - bb[0], bb[3] - bb[1])
     cx, cy = (bb[0] + bb[2]) / 2, (bb[1] + bb[3]) / 2
     box = (int(cx - side / 2), int(cy - side / 2), int(cx + side / 2), int(cy + side / 2))
-    body = body.crop(box).resize((big, big), Image.LANCZOS)
-    acc = acc.crop(box).resize((big, big), Image.LANCZOS)
-    col = LG.KIND[kind]
-    rgb_b, a_b = _relief(body, col["body"])
     out = np.zeros((big, big, 4), np.float32)
-    out[..., :3] = rgb_b
-    out[..., 3] = a_b * 255
-    if col["acc"] is not None:
-        rgb_a, a_a = _relief(acc, col["acc"])
-        k = a_a[..., None]
-        out[..., :3] = out[..., :3] * (1 - k) + rgb_a * k
-        out[..., 3] = np.maximum(out[..., 3], a_a * 255)
+    for m, c in lay:
+        mm = m.crop(box).resize((big, big), Image.LANCZOS)
+        rgb, a = _relief(mm, c)
+        k = a[..., None]
+        out[..., :3] = out[..., :3] * (1 - k) + rgb * k
+        out[..., 3] = np.maximum(out[..., 3], a * 255)
     im = Image.fromarray(np.clip(out, 0, 255).astype(np.uint8), "RGBA")
     # sombra curta (relevo): mascara escura deslocada para baixo-direita
     shadow = Image.new("RGBA", im.size, (0, 0, 0, 0))
@@ -264,8 +219,9 @@ def symbol(kind, size):
 
 def plate(P, layer, px, variant="he", **kw):
     img = _bezel().copy()
-    fpx = int(round(FIELD * 64))                              # 32 px de campo
-    sym = symbol(variant, fpx - 2)
+    fpx = int(round(FIELD * 64))                              # 38 px de campo
+    sym = symbol(variant, fpx - 3)
     o = (PX_PLATE - sym.width) // 2
     img.alpha_composite(sym, (o, o))
+    img, _ = LG.paint_safe(img)
     return img

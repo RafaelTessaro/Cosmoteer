@@ -57,6 +57,13 @@ PART = {
         "fileira da tripulacao, fora do anel; ex.: Carcara 2x2 -> Location [1, 1.5]); fabricas e paiois: centro da peca.",
         "brilho_*: aditivo opaco sobre preto (como os PNGs de luz vanilla), ciano puro com o canal vermelho 0 "
         "(canal mais fraco <= 25, spec) e pico baixo (~ 120).",
+        "brilho_* fica ESCONDIDO com o teto ligado (lights_add e desenhado abaixo dos tetos): com o teto ligado so os "
+        "cartucho_* (roof_doodads) aparecem, e e o suficiente (o cassete ja tem o tom ciano do teletransporte). Se "
+        "quiser o rastro tambem com o teto ligado, use o MESMO brilho_* num Graphics em roof_lights_fancy (como as "
+        "fabricas vanilla, factory_he.rules: luz acima do teto), com o mesmo Location/Size.",
+        "Paiois: o FX no centro da peca cruza a placa e o medidor (1x1) ou a placa e os digitos (2x2), todos em "
+        "roof_doodads (ordem indefinida na mesma camada). Dura 0,6 s; aceitavel, ou ponha o Location do FX do paiol "
+        "1x1 em [0.32, 0.5] (centro da placa) com Size 0.8.",
     ],
 }
 
@@ -205,11 +212,11 @@ def _frame_glow(k):
 
 
 def cassettes_out(P, layer, px, frame=1, **kw):
-    return _frame_cassettes(frame)
+    return LG.paint_safe(_frame_cassettes(frame))[0]     # o tom ciano sobre as tampas nao vira "verde de pintura"
 
 
 def cassettes_in(P, layer, px, frame=1, **kw):
-    return _frame_cassettes(N + 1 - frame)
+    return LG.paint_safe(_frame_cassettes(N + 1 - frame))[0]
 
 
 def glow_out(P, layer, px, frame=1, **kw):

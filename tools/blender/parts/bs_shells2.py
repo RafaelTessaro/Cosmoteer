@@ -151,7 +151,8 @@ def _mats(M):
         # (difuso; o brilho vem do atlas) e o colar laranja pintado atras do penetrador
         "railblue": _spec(B.mat_metal("s2_railblue", (0.018, 0.075, 0.40), rough=0.35, metal=0.4), 0.3),
         "tipblue": _spec(B.mat_metal("s2_tipblue", (0.30, 0.37, 0.48), rough=0.32, metal=0.5), 0.3),
-        "railorange": _spec(B.mat_paint("s2_railorange", (0.42, 0.125, 0.012), rough=0.36, metal=0.3, wear=0.0,
+        # laranja-OURO da Tupa refinada (parts/bs_rail.py ORANGE_P; matiz ~36 graus, longe do cobre da PEM)
+        "railorange": _spec(B.mat_paint("s2_railorange2", (0.60, 0.25, 0.020), rough=0.36, metal=0.3, wear=0.0,
                                         grime=0.0, scale=6), 0.3),
         "black": M["black"],
     }

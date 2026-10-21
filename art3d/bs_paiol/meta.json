@@ -94,7 +94,9 @@
     "Paiol 1x1: as 4 familias usam o mesmo piso, paredes, medidor e blueprint; so o teto (chip da familia) e o icone mudam: roof_<familia>_1x1.png / icon_<familia>_1x1.png.",
     "gauge_1x1_1..5.png: ResourceSprites em roof_doodads no rect [0.68, 0.12, 0.2, 0.76] (Round Up, HasZeroResourceSprite = false: o medidor vazio e o teto, que ja traz os segmentos apagados).",
     "placa: placa_<tipo>.png (art3d/bs_placas) no rect 'plate' (roof_doodads), ToggledComponents por modo do seletor (MostradorTipo_<k>); projeteis = placa fixa (placa_slug.png).",
-    "digitos (opcional, switch paiol_counter): 4 ValueSprites com digito0..9.png (24 x 40) nos rects de 'digits'; os segmentos apagados ja estao pintados na janela do teto."
+    "digitos (opcional, switch paiol_counter): 4 ValueSprites com digito0..9.png (24 x 40) nos rects de 'digits'; os segmentos apagados ja estao pintados na janela do teto.",
+    "FX da Fita (bs_fita_fx cartucho_sai/entra, roof_doodads 1x1 no centro da maquina): no paiol 1x1 o FX cruza a placa e o medidor e no 2x2 a placa e os digitos, todos em roof_doodads (ordem indefinida na mesma camada). Aceitavel (0,6 s por envio), ou ponha o Location do FX do paiol no centro do quadro livre (1x1: [0.32, 0.5] com Size 0.8; 2x2/3x3: o centro da peca ja cai entre placa, digitos e escotilhas).",
+    "gauge rect [0.68, 0.12, 0.2, 0.76] = 12.80 x 48.64 px no jogo; a textura e o arredondamento disso (o jogo reamostra um pouco: os vaos de 1 px podem sair macios)."
    ],
    "ids": {
     "cartuchos": "rafaeltessaro.bs_paiol_cartuchos_1x1",
@@ -156,8 +158,8 @@
      40
     ],
     "projeteis": [
-     150,
-     105,
+     64,
+     128,
      255
     ]
    },
@@ -345,7 +347,9 @@
     "Paiol 2x2: as 4 familias usam o mesmo piso, paredes, medidor e blueprint; so o teto (chip da familia) e o icone mudam: roof_<familia>_2x2.png / icon_<familia>_2x2.png.",
     "gauge_2x2_1..8.png: ResourceSprites em roof_doodads no rect [1.58, 0.16, 0.26, 1.68] (Round Up, HasZeroResourceSprite = false: o medidor vazio e o teto, que ja traz os segmentos apagados).",
     "placa: placa_<tipo>.png (art3d/bs_placas) no rect 'plate' (roof_doodads), ToggledComponents por modo do seletor (MostradorTipo_<k>); projeteis = placa fixa (placa_slug.png).",
-    "digitos (opcional, switch paiol_counter): 4 ValueSprites com digito0..9.png (24 x 40) nos rects de 'digits'; os segmentos apagados ja estao pintados na janela do teto."
+    "digitos (opcional, switch paiol_counter): 4 ValueSprites com digito0..9.png (24 x 40) nos rects de 'digits'; os segmentos apagados ja estao pintados na janela do teto.",
+    "FX da Fita (bs_fita_fx cartucho_sai/entra, roof_doodads 1x1 no centro da maquina): no paiol 1x1 o FX cruza a placa e o medidor e no 2x2 a placa e os digitos, todos em roof_doodads (ordem indefinida na mesma camada). Aceitavel (0,6 s por envio), ou ponha o Location do FX do paiol no centro do quadro livre (1x1: [0.32, 0.5] com Size 0.8; 2x2/3x3: o centro da peca ja cai entre placa, digitos e escotilhas).",
+    "gauge rect [1.58, 0.16, 0.26, 1.68] = 16.64 x 107.52 px no jogo; a textura e o arredondamento disso (o jogo reamostra um pouco: os vaos de 1 px podem sair macios)."
    ],
    "ids": {
     "cartuchos": "rafaeltessaro.bs_paiol_cartuchos_2x2",
@@ -407,8 +411,8 @@
      40
     ],
     "projeteis": [
-     150,
-     105,
+     64,
+     128,
      255
     ]
    },
@@ -652,7 +656,9 @@
     "Paiol 3x3: as 4 familias usam o mesmo piso, paredes, medidor e blueprint; so o teto (chip da familia) e o icone mudam: roof_<familia>_3x3.png / icon_<familia>_3x3.png.",
     "gauge_3x3_1..10.png: ResourceSprites em roof_doodads no rect [2.46, 0.2, 0.34, 2.6] (Round Up, HasZeroResourceSprite = false: o medidor vazio e o teto, que ja traz os segmentos apagados).",
     "placa: placa_<tipo>.png (art3d/bs_placas) no rect 'plate' (roof_doodads), ToggledComponents por modo do seletor (MostradorTipo_<k>); projeteis = placa fixa (placa_slug.png).",
-    "digitos (opcional, switch paiol_counter): 4 ValueSprites com digito0..9.png (24 x 40) nos rects de 'digits'; os segmentos apagados ja estao pintados na janela do teto."
+    "digitos (opcional, switch paiol_counter): 4 ValueSprites com digito0..9.png (24 x 40) nos rects de 'digits'; os segmentos apagados ja estao pintados na janela do teto.",
+    "FX da Fita (bs_fita_fx cartucho_sai/entra, roof_doodads 1x1 no centro da maquina): no paiol 1x1 o FX cruza a placa e o medidor e no 2x2 a placa e os digitos, todos em roof_doodads (ordem indefinida na mesma camada). Aceitavel (0,6 s por envio), ou ponha o Location do FX do paiol no centro do quadro livre (1x1: [0.32, 0.5] com Size 0.8; 2x2/3x3: o centro da peca ja cai entre placa, digitos e escotilhas).",
+    "gauge rect [2.46, 0.2, 0.34, 2.6] = 21.76 x 166.40 px no jogo; a textura e o arredondamento disso (o jogo reamostra um pouco: os vaos de 1 px podem sair macios)."
    ],
    "ids": {
     "cartuchos": "rafaeltessaro.bs_paiol_cartuchos_3x3",
@@ -714,8 +720,8 @@
      40
     ],
     "projeteis": [
-     150,
-     105,
+     64,
+     128,
      255
     ]
    },
@@ -880,5 +886,9 @@
   "walls_1x1.png",
   "walls_2x2.png",
   "walls_3x3.png"
+ ],
+ "notes": [
+  "Pasta COMPARTILHADA (extensao da logistica ao esquema layered do spec): meta.json = {shared: true, id: rafaeltessaro.bs_paiol_comum, parts: {1x1|2x2|3x3: <meta layered normal>}, files: [uniao]}. O 'id' de cada sub-meta (rafaeltessaro.bs_paiol_<n>) e so o nome do conjunto: os ids REAIS das 12 pecas estao em parts.<n>.ids.<familia> (rafaeltessaro.bs_paiol_<familia>_<n>). Para o WP10 (check_art3d) e o bsgen/layered.py.",
+  "Spec: art3d_owner_map chama a pasta de 'bs_paiol_comum'; a arte esta em art3d/bs_paiol (art_dir do spec) e e publicada em parts/bs_paiol_comum/ (regras: '../bs_paiol_comum/<arquivo>')."
  ]
 }

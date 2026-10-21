@@ -13,14 +13,20 @@ quadros do spec e do kit de teste):
   * BLINDAGEM BRANCA FIXA (placas claras de bisel duplo; nao e pintura) sobre um nucleo de GRAFITE (gunmetal);
   * energia AZUL ELETRICO PROFUNDO (45, 115, 255) com o nucleo BRANCO-AZULADO (205, 228, 255) na carga cheia,
     separado do ciano + cobre da familia PEM (aqui NUNCA cobre);
-  * detalhes pequenos LARANJA (tinta: tampas das capsulas, molas, insertos, cabecas de parafuso, trava do paiol);
-  * carregador: coluna de CAPSULAS azuis acesas no meio (o paiol, visto por uma janela no teto), molas laranja dos
-    dois lados, placas brancas nas laterais, a trava laranja embaixo;
-  * cano: corpo estreito (o carregador e mais largo, como na referencia), trilhos brancos nas bordas, o canal aberto
-    no meio e 3 CINTAS EM segmentadas (uma por quadro) cruzando o canal; a do meio com a garra lateral (bloco branco
-    + inserto laranja);
-  * ponta: cabeca em forma de escudo, o canal AZUL aberto na frente com o clarao na garganta, as grandes cunhas
-    brancas dos lados e a fenda estreita do nucleo atras.
+  * detalhes pequenos LARANJA-OURO (tinta: tampas das capsulas, molas, insertos, cabecas de parafuso, trava do
+    paiol; matiz ~35-40 graus, longe do cobre da PEM, matiz 26);
+  * carregador: coluna de CAPSULAS azuis acesas no meio (o paiol, visto pela sua janela numa moldura grossa e
+    escura), molas laranja-ouro gordas dos dois lados na mesma altura, placas brancas em cunha nas laterais, a
+    trava laranja embaixo; acima, a fenda estreita de alimentacao;
+  * cano: corpo estreito (o carregador e mais largo, como na referencia), trilhos brancos estreitos nas bordas, o
+    canal aberto no meio e 3 TAMBORES EM compactos de gunmetal escuro (um por quadro) cruzando o canal, com as
+    costuras azuis e insertos laranja; garra lateral no do meio e meias-garras com laranja nas emendas;
+  * ponta: cabeca em forma de escudo, o canal AZUL aberto na frente com o clarao na garganta, as cunhas brancas
+    (face de cima clara + faceta lateral sombreada, afinando para a frente) e a fenda estreita do nucleo atras.
+Refino r2 (critica da 1a versao azul): valores mais escuros (o gunmetal da referencia: o branco, o azul e o laranja
+carregam a leitura), tambores escuros no lugar das cintas claras (liam como escada), molas que nao lembram as bobinas
+de cobre da PEM, o paiol como ponto focal do carregador, canal azul profundo mesmo apagado e desgaste leve (lascas)
+nas placas brancas.
 O brilho "sempre aceso" da referencia virou as luzes do jogo: apagado em repouso (lentes escuras), a onda de carga
 (trilhos1..9 + carga1..8 no cano, carga1..6 na ponta, luz_culatra1..2) acende o canal em azul e a carga cheia
 traz o nucleo branco-azulado e o clarao da boca. Teto: o verde (pintura da nave) fica nos cantos e faixas FORA
@@ -49,7 +55,7 @@ ORANGE = (1.0, 0.42, 0.035)          # LED laranja de estado (fraco), puxado par
 # critica ref-r1: o laranja (166, 99, 45; matiz 27 graus) caia no cobre da familia PEM (matiz 26). A referencia e
 # laranja-OURO (matiz ~37): a tinta e a mola foram para o ouro mais claro (NUNCA cobre)
 ORANGE_P = (0.60, 0.25, 0.020)       # tinta laranja-ouro (~215, 145, 40 com a luz da cena; matiz ~36 graus)
-SPRING_C = (0.80, 0.44, 0.030)       # mola: laranja-ouro claro (brilho ~235, 185, 50 em cima; matiz ~40 graus)
+SPRING_C = (0.82, 0.40, 0.028)       # mola: laranja-ouro claro (brilho ~235, 185, 50 em cima; matiz ~40 graus)
 LENS_B = (0.004, 0.010, 0.050)       # lente azul apagada (STYLE 11.5)
 GRAPH_D = (0.020, 0.021, 0.025)      # grafite escuro (estrutura sob as placas)
 # canal em repouso: AZUL PROFUNDO (critica ref-r1: o canal apagado lia como fenda cinza/preta; a identidade da
@@ -117,9 +123,12 @@ _NOTE_MAG = ("projeteis1..6 (doodads_low [0.6,2.8,1.8,1.0], ResourceSprites do S
              "para a frente (o lado do elevador) pela placa seguidora; aparecem pela janela do teto. Nivel 0 = "
              "nenhum sprite (o poco vazio do piso).")
 _NOTE_PALETTE = ("Paleta nova (referencia do usuario, substitui palette.rail violeta/ouro): azul [45,115,255], azul "
-                 "claro [100,175,255], nucleo branco-azulado [205,228,255], laranja [230,135,40] so em detalhes "
-                 "pintados e LEDs fracos de estado; NUNCA cobre. light_blob do projetil (roof_lights_fancy): "
-                 "VertexColor sugerido [0.10, 0.32, 1.0] (pouco vermelho e verde: nao lava o casco branco).")
+                 "claro [100,175,255], nucleo branco-azulado [205,228,255], laranja-OURO [215,145,40] (matiz ~36 "
+                 "graus; r2: o laranja [230,135,40] da 1a versao azul caia no cobre da PEM) so em detalhes pintados, "
+                 "molas [235,185,50] e LEDs fracos de estado; NUNCA cobre. light_blob do projetil "
+                 "(roof_lights_fancy): VertexColor sugerido [0.10, 0.32, 1.0] (pouco vermelho e verde: nao lava o "
+                 "casco branco). Repassar a quem cuida: SPEC_2.0 palette.rail e light_blob_vertexcolor_float ainda "
+                 "violeta/ouro; parts/bs_factory_slug.py e _bs2_fabricas_helpers.py copiam ORANGE_P antigo.")
 _NOTE_WAKE = ("DESCARGA (critica r2: o climax nao pode murchar): carga1..8 + trilhos (canos), carga1..6 (ponta) e "
               "luz_culatra NAO apagam todos no ProjectileStartTrigger. Cada cano SEGURA a carga cheia (trilhos9 + "
               "carga8) ate a PONTA do dardo entrar nele e entao descarrega (trilhos1, carga escondida): o canal escuro "
@@ -169,10 +178,11 @@ PARTS = {
         "blueprint_layers": ["weapon", "roof"],
         "notes": [_NOTE_PALETTE, _NOTE_TOGGLE, _NOTE_SLUG, _NOTE_MAG, _NOTE_WAKE,
                   "consola: o mesmo sprite nos 2 postos da tripulacao (rects [0.1,1.1] e [1.9,1.1], crew_pos).",
-                  "roof.png: 2 janelas TRANSPARENTES - a fenda da culatra (x 1.0-2.0, y 0.1-0.9 da peca: a "
-                  "abertura/carga/fechamento da culatra) e a JANELA ALTA (x 1.1-1.9, y 1.04-3.76): embaixo a coluna "
-                  "de capsulas (nivel do paiol), acima o elevador e a bandeja por onde o dardo sobe na carga "
-                  "(culatra_carrega). O verde fica so nos cantos, fora da blindagem.",
+                  "roof.png: 3 janelas TRANSPARENTES - a fenda da culatra (x 1.0-2.0, y 0.1-0.9 da peca: a "
+                  "abertura/carga/fechamento da culatra), a FENDA DE ALIMENTACAO estreita (x 1.34-1.66, y 1.02-2.0: "
+                  "o dardo subindo na carga, culatra_carrega) e a JANELA DO PAIOL (x 1.1-1.9, y 2.775-3.76: a "
+                  "coluna de capsulas = nivel do paiol, numa moldura grossa e escura, o ponto focal). O verde fica so "
+                  "nos cantos, fora da blindagem.",
                   "luz_culatra1..2 (lights_add [0,0,3,1]): so a costura das folhas, as lentes das folhas e os emissores "
                   "da camara acendem (mascarado: nada e somado sobre a blindagem); 2 = nucleo branco-azulado."],
     },
@@ -192,10 +202,12 @@ PARTS = {
                  "lights": {"carga": [5, 0.8]}},
         "blueprint_layers": ["trilhos", "roof"],
         "notes": [_NOTE_PALETTE, _NOTE_WAKE,
-                  "roof.png: canal aberto x 1.10-1.90 em todo o comprimento, cruzado por 3 CINTAS EM (y 0.5, 1.5 e 2.5 "
-                  "da peca; referencia do usuario: aneis segmentados a cada 1 quadro) que escondem o dardo por um "
-                  "instante ('dentro do cano'). Cada cinta tem 3 janelas TRANSPARENTES no anel do meio: "
-                  "o nucleo da carga e as bobinas dos trilhos1..9 acendem por elas.",
+                  "roof.png: canal aberto x 1.10-1.90 em todo o comprimento, cruzado por 3 TAMBORES EM (y 0.5, 1.5 e "
+                  "2.5 da peca; referencia do usuario: tambores segmentados a cada 1 quadro; x 1.0-2.0) que escondem "
+                  "o dardo por um instante ('dentro do cano'). Cada tambor tem 2 COSTURAS TRANSPARENTES entre as "
+                  "bandas (y = tambor +- 0.055, x 1.1-1.9): a carga e as bobinas dos trilhos1..9 acendem por elas. "
+                  "Meias-garras com inserto laranja nas pontas dos trilhos brancos (emendadas formam uma garra "
+                  "inteira cortada pela fresta da emenda).",
                   "carga1..8: plano aditivo de largura identica em todos os canos (as emendas casam); mais forte nas 3 "
                   "bobinas (y 0.5, 1.5, 2.5 da peca)."],
     },
@@ -332,8 +344,8 @@ def lit_mat(name, flat, lit, mid, dark, rough=0.40, metal=0.25, spec=0.35, grime
         cn.inputs["Detail"].default_value = 3
         L.new(geo.outputs["Position"], cn.inputs["Vector"])
         cf = N.new("ShaderNodeMapRange")
-        cf.inputs[1].default_value = 0.60
-        cf.inputs[2].default_value = 0.66
+        cf.inputs[1].default_value = 0.575
+        cf.inputs[2].default_value = 0.625
         cf.inputs[3].default_value = 0.0
         cf.inputs[4].default_value = chips
         cf.clamp = True
@@ -388,11 +400,11 @@ def mats(M):
         "edge": lit_mat("rl_edge_l", **EDGE_V, rough=0.34, metal=0.12, spec=0.4, grime=0.03, scale=4),
         # desgaste leve (lascas) nas placas brancas: mais forte no bisel (a borda), fraco no painel
         "white": lit_mat("rl_white_l2", **WHITE_V, rough=0.36, metal=0.08, spec=0.30, grime=0.07, scale=3.5,
-                         chips=0.22, chip_scale=17.0),
+                         chips=0.30, chip_scale=12.0, chip_tint=(0.58, 0.53, 0.45)),
         "white_e": lit_mat("rl_white_e2", **WHITE_E, rough=0.34, metal=0.08, spec=0.30, grime=0.05, scale=3.5,
-                           chips=0.45, chip_scale=13.0),
+                           chips=0.55, chip_scale=10.0, chip_tint=(0.55, 0.50, 0.42)),
         "white_s": lit_mat("rl_white_s", **WHITE_S, rough=0.38, metal=0.08, spec=0.25, grime=0.06, scale=3.5,
-                           chips=0.30, chip_scale=15.0),
+                           chips=0.40, chip_scale=11.0, chip_tint=(0.58, 0.53, 0.45)),
         "gap": _spec(B.mat_metal("rl_gap", (0.003, 0.003, 0.004), rough=0.9, metal=0.0), 0.05),
         "trough": _spec(B.mat_metal("rl_trough2", TROUGH, rough=0.40, metal=0.35), 0.35),
         "lane": _spec(B.mat_metal("rl_lane", LANE_B, rough=0.20, metal=0.0), 0.6),
@@ -1088,7 +1100,7 @@ def loader_floor(M, T="floor"):
             B.box(f"portb{sx}{k}", px_, py_, w_ * 0.6, h_ * 0.6, 0.0, 0.025, X["black"], bevel=0.0, tags=tags)
 
 
-def capsule(name, cx, cy, X, tags, s=0.78, z=0.075):
+def capsule(name, cx, cy, X, tags, s=0.34, z=0.075):
     """Capsula de contencao deitada (eixo X, a referencia): luva de vidro azul aceso (azul medio, ~60, 130, 230:
     critica ref-r1, o paiol nao pode ser o ponto mais claro da arma em repouso nem passar do orcamento de
     emissivo), o filete azul claro no eixo (os 2 dardos dentro), 2 cintas escuras, tampas LARANJA e pontas de aco."""
@@ -1097,7 +1109,7 @@ def capsule(name, cx, cy, X, tags, s=0.78, z=0.075):
     B.cyl(name + "_g", cx, cy, z, r, L, blue(s, f"rl_capg_{int(round(s * 100)):03d}"), axis="X", verts=12,
           bevel=0.0, tags=tags)
     B.box(name + "_c", cx, cy, L - 0.14, 0.014, z + r - 0.006, z + r + 0.004,
-          hot(BLUE_HI, 0.60, (0.20, 0.26, 0.36), "capcore"), bevel=0.0, tags=tags)
+          hot(BLUE_HI, 0.42, (0.20, 0.26, 0.36), "capcore"), bevel=0.0, tags=tags)
     for i, dx in enumerate((-0.13, 0.13)):
         B.cyl(f"{name}_b{i}", cx + dx, cy, z, r * 1.08, 0.028, X["graph_d"], axis="X", verts=12, bevel=0.0, tags=tags)
     for sx in (-1, 1):

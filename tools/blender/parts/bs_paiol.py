@@ -11,14 +11,20 @@ Arquivos por tamanho <n> = 1x1 | 2x2 | 3x3 (nomes do spec):
   floor_<n>.png                  piso: estantes de cassetes neutros no perimetro + corredor central livre com a
                                  plataforma de teletransporte (tambem serve para o modo tripulacao: sala andavel)
   walls_<n>.png                  moldura fechada (vanilla)
-  roof_<fam>_<n>.png (+ normals) tampa blindada SELADA pintada (verde = pintura), janela do medidor, encaixe da
-                                 placa, janela dos digitos (2x2/3x3) e o chip da familia (faixa de 3 px na cor
-                                 palette.family_chip, sem emissao) na borda de baixo da tampa; travas de vedacao,
-                                 paineis de alivio (2x2/3x3) e costuras. Os segmentos APAGADOS do medidor e dos
+  roof_<fam>_<n>.png (+ normals) tampa blindada SELADA: aro de blindagem media com um plato escuro por dentro e
+                                 UMA PLACA PINTADA POR QUADRO (verde = pintura; vao escuro entre elas, o ritmo dos
+                                 tetos das fabricas), carcaca clara do medidor, encaixe da placa, janela dos digitos
+                                 (2x2/3x3), escotilhas de alivio de blindagem media sobre recesso escuro (disco de
+                                 ruptura sextavado num poco preto / grelha de venezianas, cada uma com uma fenda de LED
+                                 ambar) e, no 3x3, a baia de ventilacao com 4 luzes; o chip da familia (faixa de 3 px na
+                                 cor palette.family_chip, sem emissao; projeteis = azul com pontas laranja) fica no
+                                 plato escuro da borda de baixo; travas de vedacao no aro. Nenhum corte atravessa as
+                                 placas pintadas (STYLE 9, "triangulo preto"). Os segmentos APAGADOS do medidor e dos
                                  digitos ja vem pintados nas janelas (post roof_post): o medidor vazio e o teto.
   gauge_<n>_<k>.png              roof_doodads, ResourceSprites (Round Up, HasZeroResourceSprite false), k = 1..N
                                  (N = 5 / 8 / 10): segmentos de baixo para cima com 1 px de vao e 2 px de margem,
-                                 cor do nivel f = k / N: f <= 0,5 low -> high, f > 0,5 high -> full
+                                 cor do nivel f = k / N: f <= 0,5 low -> high, f > 0,5 high -> full (mistura em HSV;
+                                 todo pixel fora da chave de pintura, helpers.paint_safe)
   icon_<fam>_<n>.png             EditorIcon (64 px por quadro): teto pintado de cinza + medidor cheio + a placa padrao
   blueprints_<n>.png             um por tamanho
   digito0..9.png                 EXTRA (switch paiol_counter): 24 x 40 px, segmentos ambar acesos so (os apagados
@@ -50,9 +56,19 @@ SS_PIL = 4
 DIGIT_PX = (24, 40)
 AMBER_DIGIT = (255, 170, 40)          # palette.boiuna_amber.led (o ambar dos LEDs da familia)
 UNLIT_SEG = (34, 38, 45)              # celula do medidor apagada (vidro escuro)
-UNLIT_DIGIT = (50, 43, 34)            # segmento de digito apagado, fraco
+UNLIT_DIGIT = (38, 34, 29)            # segmento de digito apagado, bem fraco (o "8888" fantasma nao poluir a 1x)
 FREE_PAD = {"1x1": 0.17, "2x2": 0.30, "3x3": 0.42}   # raio da plataforma de teletransporte no corredor
 RACK = {"1x1": 0.19, "2x2": 0.25, "3x3": 0.30}       # profundidade das estantes do perimetro
+
+
+FOLDER_NOTES = [
+    "Pasta COMPARTILHADA (extensao da logistica ao esquema layered do spec): meta.json = {shared: true, id: "
+    "rafaeltessaro.bs_paiol_comum, parts: {1x1|2x2|3x3: <meta layered normal>}, files: [uniao]}. O 'id' de cada "
+    "sub-meta (rafaeltessaro.bs_paiol_<n>) e so o nome do conjunto: os ids REAIS das 12 pecas estao em "
+    "parts.<n>.ids.<familia> (rafaeltessaro.bs_paiol_<familia>_<n>). Para o WP10 (check_art3d) e o bsgen/layered.py.",
+    "Spec: art3d_owner_map chama a pasta de 'bs_paiol_comum'; a arte esta em art3d/bs_paiol (art_dir do spec) e "
+    "e publicada em parts/bs_paiol_comum/ (regras: '../bs_paiol_comum/<arquivo>').",
+]
 
 
 def digit_rects(n):
@@ -89,7 +105,7 @@ def _part(n):
     plates = {f: [f"placa_{k}.png" for k in LG.FAMILY_KINDS[f]] for f in FAMS}
     return {
         "id": f"rafaeltessaro.bs_paiol_{n}", "kind": "layered", "size": [W, W], "accent": "amber",
-        "folder": "bs_paiol", "sub": n, "folder_id": "rafaeltessaro.bs_paiol_comum",
+        "folder": "bs_paiol", "sub": n, "folder_id": "rafaeltessaro.bs_paiol_comum", "folder_notes": FOLDER_NOTES,
         "walls": "closed", "walls_file": f"walls_{n}.png", "blueprints_file": f"blueprints_{n}.png",
         "layers": layers,
         "icon": {"file": "icon_{v}_" + n + ".png", "per_variant": "roof", "ppt": 64,
@@ -113,6 +129,12 @@ def _part(n):
             "seletor (MostradorTipo_<k>); projeteis = placa fixa (placa_slug.png).",
             "digitos (opcional, switch paiol_counter): 4 ValueSprites com digito0..9.png (24 x 40) nos rects de "
             "'digits'; os segmentos apagados ja estao pintados na janela do teto.",
+            "FX da Fita (bs_fita_fx cartucho_sai/entra, roof_doodads 1x1 no centro da maquina): no paiol 1x1 o FX "
+            "cruza a placa e o medidor e no 2x2 a placa e os digitos, todos em roof_doodads (ordem indefinida na mesma "
+            "camada). Aceitavel (0,6 s por envio), ou ponha o Location do FX do paiol no centro do quadro livre "
+            "(1x1: [0.32, 0.5] com Size 0.8; 2x2/3x3: o centro da peca ja cai entre placa, digitos e escotilhas).",
+            f"gauge rect {L['gauge_rect']} = {L['gauge_rect'][2] * 64:.2f} x {L['gauge_rect'][3] * 64:.2f} px no jogo; "
+            "a textura e o arredondamento disso (o jogo reamostra um pouco: os vaos de 1 px podem sair macios).",
         ],
     }
 
@@ -132,18 +154,164 @@ def _rect_poly(n, rx, ry, rw, rh, chamfer=0.0, grow=0.0):
     return B.rpoly(cx, cy, rw + 2 * grow, rh + 2 * grow, 0, chamfer=chamfer)
 
 
-def _family_mat(fam):
-    c = LG.lin(LG.FAMILY_CHIP[fam])
-    m = B.mat_metal(f"lg_chip_{fam}", c, rough=0.55, metal=0.15)
+def _family_mat(fam, tip=False):
+    c = LG.lin(LG.FAMILY_CHIP_TIP[fam] if tip else LG.FAMILY_CHIP[fam])
+    m = B.mat_metal(f"lg_chip_{fam}{'_tip' if tip else ''}", c, rough=0.55, metal=0.15)
     m.node_tree.nodes["Principled BSDF"].inputs["Specular IOR Level"].default_value = 0.25
     return m
 
 
 # ============================================================================ teto
-Z_RIM, Z_LID = 0.05, 0.075            # aro da tampa / topo do painel elevado (+panel_h)
+# alturas da tampa: aro de blindagem media (0 -> Z_RIM) com o PLATO escuro (K) por dentro (-> Z_PLAT), placas
+# pintadas por quadro em cima do plato (-> ZT) e as carcacas (medidor, encaixe, digitos, escotilhas) por cima delas
+Z_RIM = 0.05
+Z_PLAT = Z_RIM + 0.012
+Z_TILE = 0.085
+ZT = Z_TILE + 0.014                   # topo do painel interno das placas pintadas
+TILE_GAP = 0.044                      # vao escuro entre as placas pintadas de quadros vizinhos (~3 px)
+# elementos de alivio da tampa (2x2/3x3), coordenadas da peca (x, y para baixo): (tipo, cx, cy, w, h)
+#   "disco": escotilha blindada de bisel duplo sobre um recesso escuro, com o disco de ruptura SEXTAVADO afundado num
+#            poco preto e uma fenda de LED ambar; "grelha": a mesma escotilha com a grelha de ventilacao (venezianas
+#            num recesso preto) e a fenda de LED; "baia": baia de ventilacao (moldura, venezianas, 4 luzes ambar)
+RELIEF = {
+    "1x1": [],
+    "2x2": [("disco", 1.26, 0.45, 0.42, 0.62), ("grelha", 1.26, 1.04, 0.42, 0.44)],
+    "3x3": [("disco", 1.89, 0.57, 0.78, 0.78), ("grelha", 1.89, 1.43, 0.78, 0.78), ("baia", 0.75, 1.72, 1.10, 0.52)],
+}
+
+
+def _crect(n, x0, y0, x1, y1, c=0.0, **corners):
+    """Retangulo da PECA (x0, y0) - (x1, y1) (y para baixo) -> poligono do modelo (CCW), chanfro c em todos os cantos
+    ou por canto (tl, tr, br, bl = cima-esquerda, ...)."""
+    W = int(n[0])
+    cc = {k: corners.get(k, c) for k in ("tl", "tr", "br", "bl")}
+    X0, X1, Y0, Y1 = x0 - W / 2, x1 - W / 2, W / 2 - y1, W / 2 - y0
+    pts = [(X0 + cc["bl"], Y0), (X1 - cc["br"], Y0), (X1, Y0 + cc["br"]), (X1, Y1 - cc["tr"]), (X1 - cc["tr"], Y1),
+           (X0 + cc["tl"], Y1), (X0, Y1 - cc["tl"]), (X0, Y0 + cc["bl"])]
+    out = []
+    for q in pts:
+        if not out or abs(q[0] - out[-1][0]) > 1e-9 or abs(q[1] - out[-1][1]) > 1e-9:
+            out.append(q)
+    if abs(out[0][0] - out[-1][0]) < 1e-9 and abs(out[0][1] - out[-1][1]) < 1e-9:
+        out.pop()
+    return out
+
+
+def _hexpoly(cx, cy, r, a0=90.0):
+    return [(cx + r * math.cos(math.radians(a0 + 60 * k)), cy + r * math.sin(math.radians(a0 + 60 * k)))
+            for k in range(6)]
+
+
+def _tiles(n):
+    """Placas pintadas: a area livre da tampa (fora do medidor e da faixa do chip) partida nos limites dos quadros com
+    um vao escuro (o ritmo de uma placa por quadro dos tetos das fabricas). [(x0, y0, x1, y1, cantos)] da peca."""
+    W = int(n[0])
+    gx = LAYOUT[n]["gauge_rect"][0]
+    lc = 0.10 + 0.03 * W                              # chanfro da tampa
+    X0, X1, Y0, Y1 = 0.10, gx - 0.05 - 0.035, 0.10, W - 0.17
+    xs = [X0] + [k for k in range(1, W) if X0 + 0.2 < k < X1 - 0.2] + [X1]
+    ys = [Y0] + [k for k in range(1, W) if Y0 + 0.2 < k < Y1 - 0.2] + [Y1]
+    out = []
+    for i in range(len(xs) - 1):
+        for j in range(len(ys) - 1):
+            a = xs[i] + (TILE_GAP / 2 if i > 0 else 0)
+            b = xs[i + 1] - (TILE_GAP / 2 if i < len(xs) - 2 else 0)
+            c = ys[j] + (TILE_GAP / 2 if j > 0 else 0)
+            d = ys[j + 1] - (TILE_GAP / 2 if j < len(ys) - 2 else 0)
+            corners = {"tl": 0.05, "tr": 0.05, "br": 0.05, "bl": 0.05}
+            if i == 0 and j == 0:
+                corners["tl"] = lc - 0.03
+            if i == 0 and j == len(ys) - 2:
+                corners["bl"] = lc - 0.06
+            out.append((a, c, b, d, corners))
+    return out
+
+
+def _hatch(name, n, kind, cx, cy, w, h, M, X, tags):
+    """Escotilha de alivio blindada (bisel duplo, blindagem MEDIA) sobre um recesso escuro, com o disco de ruptura
+    sextavado afundado ("disco") ou a grelha de ventilacao ("grelha"), e uma fenda de LED ambar num rebaixo preto."""
+    AM, K, KM, S = M["armor_mid"], M["core"], M["core_mid"], M["steel"]
+    m = min(w, h)
+    c = 0.20 * m
+    mx, my = _c(n, cx, cy)
+    # recesso escuro em volta (le como o vao fundo onde a escotilha assenta)
+    B.loft(f"{name}_rec", _crect(n, cx - w / 2 - 0.035, cy - h / 2 - 0.035, cx + w / 2 + 0.035, cy + h / 2 + 0.035,
+                                 c + 0.02), _crect(n, cx - w / 2 - 0.035, cy - h / 2 - 0.035, cx + w / 2 + 0.035,
+                                                   cy + h / 2 + 0.035, c + 0.02), ZT - 0.006, ZT + 0.008, K,
+           bevel=0.0, tags=tags)
+    ha, hp = B.shard(f"{name}_h", _crect(n, cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2, c), ZT + 0.004,
+                     ZT + 0.040, AM, slope=0.02, groove=0.014, panel_h=0.014, tags=tags)
+    zt = ZT + 0.054
+    yo = 0.10 * h                                     # o miolo sobe um pouco; a fenda do LED fica embaixo
+    if kind == "disco":
+        r = 0.22 * m
+        hole = _hexpoly(mx, my + yo, r)
+        for t in (ha, hp):
+            if t is not None:
+                B.cut(t, [B.loft(f"{name}_hc{t.name}", hole, hole, ZT + 0.010, 0.6, K, bevel=0.0)])
+        B.loft(f"{name}_hbed", hole, hole, ZT + 0.010, ZT + 0.014, M["black"], bevel=0.0, tags=tags)
+        B.plate(f"{name}_disc", _hexpoly(mx, my + yo, r * 0.74), ZT + 0.014, ZT + 0.030, S, slope=0.008,
+                bevel=0.003, tags=tags)
+        for k in range(3):                            # riscos de ruptura em Y
+            a = math.radians(90 + 120 * k)
+            L = r * 0.56
+            B.rbox(f"{name}_sc{k}", mx + math.cos(a) * L / 2, my + yo + math.sin(a) * L / 2, L, 0.012,
+                   ZT + 0.029, ZT + 0.033, M["black"], rot=math.degrees(a), bevel=0.0, tags=tags)
+        B.cyl(f"{name}_cap", mx, my + yo, ZT + 0.034, r * 0.17, 0.010, KM, axis="Z", verts=6, bevel=0.002, tags=tags)
+    else:                                             # grelha: venezianas num recesso preto
+        gw, gh = w * 0.56, h * 0.44
+        hole = B.rpoly(mx, my + yo, gw, gh, 0, chamfer=0.02)
+        for t in (ha, hp):
+            if t is not None:
+                B.cut(t, [B.loft(f"{name}_gc{t.name}", hole, hole, ZT + 0.010, 0.6, K, bevel=0.0)])
+        B.loft(f"{name}_gbed", hole, hole, ZT + 0.010, ZT + 0.014, M["black"], bevel=0.0, tags=tags)
+        nl = 4 if h > 0.6 else 3
+        for k in range(nl):
+            yy = my + yo + gh / 2 - gh * (k + 0.5) / nl
+            B.box(f"{name}_lv{k}", mx, yy, gw - 0.03, gh / nl * 0.42, ZT + 0.014, ZT + 0.032, KM, bevel=0.004,
+                  tags=tags)
+    # fenda do LED (rebaixo preto vazado + lente ambar) embaixo do miolo
+    LG.ledslot(f"{name}_led", mx, my - h * 0.36 + 0.02, w * 0.36, 0.044, ZT + 0.026, M, tags, [ha, hp],
+               lens=M["glow_dim"], lens_frac=0.55)
+    for k, (sx, sy) in enumerate(((-1, 1), (1, -1))):  # 2 parafusos nos chanfros
+        d = c * 0.62
+        B.cyl(f"{name}_b{k}", mx + sx * (w / 2 - d), my + sy * (h / 2 - d), zt + 0.002, 0.015, 0.012, S, axis="Z",
+              verts=8, bevel=0.003, tags=tags)
+
+
+def _bay(name, n, cx, cy, w, h, M, X, tags):
+    """Baia de ventilacao (familia: recesso escuro, venezianas, fileira de luzes ambar) numa moldura media."""
+    AM, K, KM, S = M["armor_mid"], M["core"], M["core_mid"], M["steel"]
+    mx, my = _c(n, cx, cy)
+    fa, fp = B.shard(f"{name}_f", _crect(n, cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2, 0.06), ZT - 0.006,
+                     ZT + 0.030, AM, slope=0.018, groove=0.012, panel_h=0.012, tags=tags)
+    gw, gh = w - 0.16, h - 0.22
+    gy = my + 0.035
+    hole = B.rpoly(mx, gy, gw, gh, 0, chamfer=0.025)
+    for t in (fa, fp):
+        if t is not None:
+            B.cut(t, [B.loft(f"{name}_c{t.name}", hole, hole, ZT - 0.004, 0.6, K, bevel=0.0)])
+    B.loft(f"{name}_bed", hole, hole, ZT - 0.004, ZT + 0.004, M["black"], bevel=0.0, tags=tags)
+    nl = 5
+    for k in range(nl):
+        yy = gy + gh / 2 - gh * (k + 0.5) / nl
+        B.box(f"{name}_lv{k}", mx, yy, gw - 0.03, gh / nl * 0.46, ZT + 0.004, ZT + 0.024, KM, bevel=0.004, tags=tags)
+    # fileira de 4 luzes ambar num rebaixo preto embaixo da grelha
+    ly = my - h / 2 + 0.065
+    LG.ledslot(f"{name}_led", mx, ly, gw * 0.62, 0.042, ZT + 0.014, M, tags, [fa, fp], lens=None)
+    for k in range(4):
+        B.box(f"{name}_pip{k}", mx + (k - 1.5) * gw * 0.62 / 4, ly, gw * 0.62 / 4 * 0.5, 0.022, ZT + 0.022,
+              ZT + 0.030, M["glow_dim"], bevel=0.0, tags=tags)
+    for j, (sx, sy) in enumerate(((-1, -1), (1, -1), (1, 1), (-1, 1))):
+        B.cyl(f"{name}_b{j}", mx + sx * (w / 2 - 0.045), my + sy * (h / 2 - 0.045), ZT + 0.044, 0.014, 0.012, S,
+              axis="Z", verts=8, bevel=0.003, tags=tags)
 
 
 def _roof(M, T, n, fam):
+    """Tampa blindada SELADA: aro de blindagem media + plato escuro, uma placa PINTADA por quadro (vao escuro entre
+    elas), carcaca clara do medidor, encaixe da placa, janela dos digitos (2x2/3x3), escotilhas de alivio e baia de
+    ventilacao (2x2/3x3) e o chip da familia no plato da borda de baixo. Nenhum corte atravessa as placas pintadas
+    (o 'triangulo preto' da STYLE 9): janelas e furos so cortam as proprias carcacas."""
     tags = (T,)
     X = LG.mats(M)
     A, AM, K, KM, S = M["armor"], M["armor_mid"], M["core"], M["core_mid"], M["steel"]
@@ -151,83 +319,79 @@ def _roof(M, T, n, fam):
     W = int(n[0])
     L = LAYOUT[n]
     B.box("deck_under", 0, 0, W, W, -0.05, 0.02, K, bevel=0.0, tags=tags)
-    # tampa SELADA: uma placa so (aro chanfrado + painel elevado, bisel duplo), costuras nas emendas dos quadros
-    lid = B.rpoly(0, 0, W - 0.05, W - 0.05, 0, chamfer=0.10 + 0.03 * W)
-    # aro da tampa SEM pintura (blindagem escura) e painel pintado: le como tampa blindada em qualquer pintura
-    la, lp = B.shard("lid", lid, 0.0, Z_RIM, AM, slope=0.03, groove=0.065, panel_h=0.025, panel_mat=green, tags=tags)
-    # parafusos do aro (a cada ~0,3 quadro), fora das travas
-    rim = W / 2 - 0.025 - 0.055
+    lc = 0.10 + 0.03 * W
+    lid = B.rpoly(0, 0, W - 0.05, W - 0.05, 0, chamfer=lc)
+    # aro de blindagem media (sem pintura) com o plato escuro por dentro: o vao das placas pintadas e escuro
+    la, lp = B.shard("lid", lid, 0.0, Z_RIM, AM, slope=0.03, groove=0.03, panel_h=0.012, panel_mat=K, tags=tags)
+    # parafusos do aro (a cada ~0,3 quadro) no topo do aro (cima e esquerda; os outros lados tem as travas)
+    rim = W / 2 - 0.07
     nb = max(2, int(round((W - 0.4) / 0.3)))
     for k in range(nb):
         t = -W / 2 + 0.2 + (W - 0.4) * k / (nb - 1)
         for j, (bx, by) in enumerate(((t, -rim), (rim, t))):
-            B.cyl(f"rimb{k}_{j}", bx, by, Z_RIM + 0.004, 0.013, 0.010, S, axis="Z", verts=8, bevel=0.003, tags=tags)
-    ztop = Z_RIM + 0.025
-    seams = []
-    for k in range(1, W):
-        x, _ = _c(n, k, 0)
-        seams.append(B.box(f"seamx{k}", x, 0, 0.016, W - 0.3, ztop - 0.016, 0.5, K, bevel=0.0))
-        _, y = _c(n, 0, k)
-        seams.append(B.box(f"seamy{k}", 0, y, W - 0.3, 0.016, ztop - 0.016, 0.5, K, bevel=0.0))
-    if lp is not None and seams:
-        B.cut(lp, seams)
+            B.cyl(f"rimb{k}_{j}", bx, by, Z_RIM + 0.005, 0.012, 0.010, S, axis="Z", verts=8, bevel=0.003, tags=tags)
+    # placas pintadas (uma por quadro), bisel duplo como o convés (Mo.hull_roof)
+    for i, (x0, y0, x1, y1, cc) in enumerate(_tiles(n)):
+        B.shard(f"tile{i}", _crect(n, x0, y0, x1, y1, **cc), Z_PLAT - 0.004, Z_TILE, green, slope=0.02,
+                groove=0.04, panel_h=0.014, tags=tags)
 
     # ---------------------------------------------------------------- medidor: carcaca clara + janela escura
     gx, gy, gw, gh = L["gauge_rect"]
-    house = _rect_poly(n, gx, gy, gw, gh, chamfer=0.035, grow=0.045)
-    ha, hp = B.shard("g_house", house, ztop - 0.01, ztop + 0.05, A, slope=0.018, groove=0.012, panel_h=0.014,
+    house = _rect_poly(n, gx, gy, gw, gh, chamfer=0.035, grow=0.05)
+    ha, hp = B.shard("g_house", house, Z_PLAT - 0.004, ZT + 0.02, A, slope=0.018, groove=0.012, panel_h=0.014,
                      tags=tags)
     win = _rect_poly(n, gx, gy, gw, gh)
-    for t in (ha, hp, la, lp):
+    for t in (ha, hp):
         if t is not None:
-            B.cut(t, [B.loft(f"g_win{t.name}", win, win, Z_RIM - 0.02, 0.6, K, bevel=0.0)])
-    B.loft("g_bed", win, win, Z_RIM - 0.02, Z_RIM - 0.012, X["glass"], bevel=0.0, tags=tags)
-    # parafusos da carcaca (em cima e embaixo)
-    for k, yy in enumerate((gy - 0.024, gy + gh + 0.024)):
+            B.cut(t, [B.loft(f"g_win{t.name}", win, win, Z_PLAT - 0.002, 0.6, K, bevel=0.0)])
+    B.loft("g_bed", win, win, Z_PLAT - 0.002, Z_PLAT + 0.006, X["glass"], bevel=0.0, tags=tags)
+    for k, yy in enumerate((gy - 0.026, gy + gh + 0.026)):
         bx, by = _c(n, gx + gw / 2, yy)
-        B.cyl(f"g_bolt{k}", bx, by, ztop + 0.068, 0.016, 0.014, S, axis="Z", verts=10, bevel=0.004, tags=tags)
+        B.cyl(f"g_bolt{k}", bx, by, ZT + 0.036, 0.015, 0.012, S, axis="Z", verts=10, bevel=0.004, tags=tags)
 
-    # ---------------------------------------------------------------- encaixe da placa (rebaixo escuro com labio)
+    # ---------------------------------------------------------------- encaixe da placa (rebaixo preto com labio)
     pr = plate_rect(n)
-    sock = _rect_poly(n, *pr, chamfer=0.05, grow=0.05)
-    sa, sp = B.shard("sock", sock, ztop - 0.01, ztop + 0.035, AM, slope=0.016, groove=0.010, panel_h=0.012,
-                     tags=tags)
+    sock = _rect_poly(n, *pr, chamfer=0.05, grow=0.055)
+    sa, sp = B.shard("sock", sock, ZT - 0.006, ZT + 0.03, AM, slope=0.016, groove=0.010, panel_h=0.012, tags=tags)
     hole = _rect_poly(n, *pr, chamfer=0.04, grow=0.006)
-    for t in (sa, sp, la, lp):
+    for t in (sa, sp):
         if t is not None:
-            B.cut(t, [B.loft(f"s_hole{t.name}", hole, hole, Z_RIM - 0.015, 0.6, K, bevel=0.0)])
-    B.loft("s_bed", hole, hole, Z_RIM - 0.015, Z_RIM - 0.008, M["black"], bevel=0.0, tags=tags)
-    # 4 garras pequenas segurando a placa (cantos do encaixe)
+            B.cut(t, [B.loft(f"s_hole{t.name}", hole, hole, ZT - 0.004, 0.6, K, bevel=0.0)])
+    B.loft("s_bed", hole, hole, ZT - 0.004, ZT + 0.002, M["black"], bevel=0.0, tags=tags)
     for k, (sx, sy) in enumerate(((-1, -1), (1, -1), (1, 1), (-1, 1))):
         cx, cy = _c(n, pr[0] + pr[2] / 2 + sx * (pr[2] / 2 + 0.03), pr[1] + pr[3] / 2 + sy * (pr[3] / 2 + 0.03))
-        B.rbox(f"s_clip{k}", cx, cy, 0.05, 0.05, ztop + 0.03, ztop + 0.05, S, rot=45, bevel=0.004, tags=tags)
+        B.rbox(f"s_clip{k}", cx, cy, 0.05, 0.05, ZT + 0.03, ZT + 0.048, S, rot=45, bevel=0.004, tags=tags)
 
     # ---------------------------------------------------------------- janela dos digitos (2x2 / 3x3)
     dr = digit_rects(n)
     if dr:
         x0, x1 = dr[0][0] - 0.02, dr[-1][0] + dr[-1][2] + 0.02
         y0, y1 = dr[0][1] - 0.02, dr[0][1] + dr[0][3] + 0.02
-        dh = _rect_poly(n, x0, y0, x1 - x0, y1 - y0, chamfer=0.03, grow=0.04)
-        da, dp = B.shard("d_house", dh, ztop - 0.01, ztop + 0.04, A, slope=0.016, groove=0.010, panel_h=0.012,
+        dh = _rect_poly(n, x0, y0, x1 - x0, y1 - y0, chamfer=0.03, grow=0.045)
+        da, dp = B.shard("d_house", dh, ZT - 0.006, ZT + 0.026, A, slope=0.016, groove=0.010, panel_h=0.012,
                          tags=tags)
         dw = _rect_poly(n, x0, y0, x1 - x0, y1 - y0, chamfer=0.015)
-        for t in (da, dp, la, lp):
+        for t in (da, dp):
             if t is not None:
-                B.cut(t, [B.loft(f"d_win{t.name}", dw, dw, Z_RIM - 0.02, 0.6, K, bevel=0.0)])
-        B.loft("d_bed", dw, dw, Z_RIM - 0.02, Z_RIM - 0.012, X["glass"], bevel=0.0, tags=tags)
+                B.cut(t, [B.loft(f"d_win{t.name}", dw, dw, ZT - 0.004, 0.6, K, bevel=0.0)])
+        B.loft("d_bed", dw, dw, ZT - 0.004, ZT + 0.002, X["glass"], bevel=0.0, tags=tags)
 
     # ---------------------------------------------------------------- chip da familia (faixa de 3 px, sem emissao)
+    # no plato escuro da borda de baixo, embaixo das placas pintadas (a faixa le sobre o escuro em qualquer pintura)
     cx0 = 0.14
-    cx1 = (gx - 0.10) if W == 1 else (gx - 0.12)
-    cy = W - 0.12
+    cx1 = gx - 0.10
+    cy = W - 0.118
     ch = 3.2 / 64
-    chan = _rect_poly(n, cx0, cy - ch / 2, cx1 - cx0, ch, grow=0.012)
-    for t in (la, lp):
-        if t is not None:
-            B.cut(t, [B.loft(f"chip_c{t.name}", chan, chan, Z_RIM - 0.03, 0.6, K, bevel=0.0)])
-    B.loft("chip_bed", chan, chan, Z_RIM - 0.03, Z_RIM - 0.024, M["black"], bevel=0.0, tags=tags)
+    bed = _rect_poly(n, cx0, cy - ch / 2, cx1 - cx0, ch, grow=0.012)
+    B.loft("chip_bed", bed, bed, Z_PLAT - 0.002, Z_PLAT + 0.003, M["black"], bevel=0.0, tags=tags)
     strip = _rect_poly(n, cx0, cy - ch / 2, cx1 - cx0, ch)
-    B.loft("chip", strip, strip, Z_RIM - 0.024, Z_RIM + 0.004, _family_mat(fam), bevel=0.003, tags=tags)
+    B.loft("chip", strip, strip, Z_PLAT + 0.002, Z_PLAT + 0.016, _family_mat(fam), bevel=0.003, tags=tags)
+    if fam in LG.FAMILY_CHIP_TIP:                     # projeteis: pontas laranja (azul + laranja do Tupa)
+        tl = 0.075
+        for k, xa in enumerate((cx0, cx1 - tl)):
+            tip = _rect_poly(n, xa, cy - ch / 2, tl, ch, grow=0.002)
+            B.loft(f"chip_tip{k}", tip, tip, Z_PLAT + 0.003, Z_PLAT + 0.018, _family_mat(fam, tip=True), bevel=0.003,
+                   tags=tags)
 
     # ---------------------------------------------------------------- travas de vedacao no aro (cima e esquerda)
     dogs = {"1x1": [(0.20, 0.035, 0), (0.45, 0.035, 0), (0.035, 0.80, 1)],
@@ -237,48 +401,15 @@ def _roof(M, T, n, fam):
     for k, (x, y, vert) in enumerate(dogs):
         mx, my = _c(n, x, y)
         sx, sy = (0.06, 0.13) if vert else (0.13, 0.06)
-        d = B.box(f"dog{k}", mx, my, sx, sy, Z_RIM - 0.01, Z_RIM + 0.035, S, bevel=0.008, tags=tags)
+        B.box(f"dog{k}", mx, my, sx, sy, Z_RIM - 0.01, Z_RIM + 0.035, S, bevel=0.008, tags=tags)
         B.cyl(f"dogb{k}", mx, my, Z_RIM + 0.04, 0.014, 0.012, AM, axis="Z", verts=8, bevel=0.003, tags=tags)
 
-    # ---------------------------------------------------------------- paineis de alivio (2x2/3x3) e respiro
-    if W >= 2:
-        blow = {"2x2": [(1.06, 0.18, 0.40, 0.62), (1.06, 0.88, 0.40, 0.36)],
-                "3x3": [(1.50, 0.16, 0.80, 0.80), (1.50, 1.04, 0.80, 0.80), (0.20, 1.44, 1.10, 0.56)]}[n]
-        for k, (x, y, w, h) in enumerate(blow):
-            poly = _rect_poly(n, x, y, w, h, chamfer=0.05)
-            big = w > 0.6 and h > 0.6
-            ba, bp = B.shard(f"blow{k}", poly, ztop - 0.012, ztop + 0.03, A if big else AM, slope=0.018,
-                             groove=0.014, panel_h=0.012, tags=tags)
-            mx, my = _c(n, x + w / 2, y + h / 2)
-            zb = ztop + 0.006                # fundo das ranhuras: abaixo do topo da base (corte >= panel_h + 0.02)
-            if big:                          # painel de alivio: contorno de ruptura riscado + disco de ruptura no meio
-                iw, ih, g = w - 0.20, h - 0.20, 0.016
-                grooves = [(mx, my + ih / 2, iw + g, g), (mx, my - ih / 2, iw + g, g), (mx - iw / 2, my, g, ih + g),
-                           (mx + iw / 2, my, g, ih + g)]
-                for t in (ba, bp):
-                    if t is not None:
-                        B.cut(t, [B.box(f"blg{k}{i}{t.name}", gx_, gy_, sx_, sy_, zb, 0.6, K, bevel=0.0)
-                                  for i, (gx_, gy_, sx_, sy_) in enumerate(grooves)])
-                        B.cut(t, [B.cyl(f"bld{k}{t.name}", mx, my, (zb + 0.6) / 2, 0.105, 0.6 - zb, K, axis="Z",
-                                        verts=24, bevel=0.0)])
-                for i, (gx_, gy_, sx_, sy_) in enumerate(grooves):
-                    B.box(f"blgb{k}{i}", gx_, gy_, sx_, sy_, zb, zb + 0.004, M["black"], bevel=0.0, tags=tags)
-                B.cyl(f"bldb{k}", mx, my, zb + 0.002, 0.105, 0.004, M["black"], axis="Z", verts=24, bevel=0.0,
-                      tags=tags)
-                B.torus(f"bldr{k}", mx, my, zb + 0.012, 0.078, 0.011, S, tags=tags)
-                B.cyl(f"bldh{k}", mx, my, zb + 0.012, 0.035, 0.016, AM, axis="Z", verts=12, bevel=0.004, tags=tags)
-            else:                            # respiro: 3 venezianas vazadas com leito preto
-                for i in range(3):
-                    yy = my + (i - 1) * h * 0.22
-                    for t in (ba, bp):
-                        if t is not None:
-                            B.cut(t, [B.box(f"blv{k}{i}{t.name}", mx, yy, w - 0.14, 0.03, ztop - 0.03, 0.6, K,
-                                            bevel=0.0)])
-                    B.box(f"blvb{k}{i}", mx, yy, w - 0.14, 0.03, ztop + 0.001, ztop + 0.005, M["black"], bevel=0.0,
-                          tags=tags)
-            for j, (sx, sy) in enumerate(((-1, -1), (1, -1), (1, 1), (-1, 1))):
-                B.cyl(f"blb{k}{j}", mx + sx * (w / 2 - 0.05), my + sy * (h / 2 - 0.05), ztop + 0.046, 0.015, 0.012,
-                      S, axis="Z", verts=8, bevel=0.003, tags=tags)
+    # ---------------------------------------------------------------- escotilhas de alivio e baia de ventilacao
+    for k, (kind, cx, cy, w, h) in enumerate(RELIEF[n]):
+        if kind == "baia":
+            _bay(f"bay{k}", n, cx, cy, w, h, M, X, tags)
+        else:
+            _hatch(f"hatch{k}", n, kind, cx, cy, w, h, M, X, tags)
 
 
 def roof_post(P, layer, path, variant=None, **kw):
@@ -382,43 +513,55 @@ def _segments(gw, gh, N):
     return out
 
 
-def _lerp(a, b, t):
-    return tuple(a[i] + (b[i] - a[i]) * t for i in range(3))
+def _lerp_hsv(a, b, t):
+    """Mistura em HSV (matiz, saturacao e valor lineares): o meio do caminho ambar -> verde fica um lima saturado, nao
+    o oliva/chartreuse lamacento da mistura em RGB."""
+    import colorsys
+    ha, sa, va = colorsys.rgb_to_hsv(*(c / 255.0 for c in a))
+    hb, sb, vb = colorsys.rgb_to_hsv(*(c / 255.0 for c in b))
+    r, g, bb = colorsys.hsv_to_rgb(ha + (hb - ha) * t, sa + (sb - sa) * t, va + (vb - va) * t)
+    return (r * 255, g * 255, bb * 255)
 
 
 def gauge_color(f):
+    """Cor do nivel f = k / N (spec: f <= 0,5 low -> high, f > 0,5 high -> full), fora da chave de pintura."""
     G = LG.GAUGE
     if f <= 0.5:
-        return _lerp(G["low"], G["high"], f / 0.5)
-    return _lerp(G["high"], G["full"], (f - 0.5) / 0.5)
+        c = _lerp_hsv(G["low"], G["high"], f / 0.5)
+    else:
+        c = _lerp_hsv(G["high"], G["full"], (f - 0.5) / 0.5)
+    return LG.safe_rgb(c)
 
 
 def gauge(P, layer, px, level=1, **kw):
+    """Segmentos acesos 1..level (de baixo para cima) na cor do nivel: corpo do LED, reflexo de 1 px em cima e 1 px
+    mais escuro embaixo (todas as cores derivadas passam por safe_rgb), brilho fraco nos vaos (blur PRE-multiplicado:
+    a cor do brilho e a dos LEDs) e paint_safe() no fim: nenhum pixel na chave de pintura."""
     n = P["sub"]
     gx, gy, gw, gh = LAYOUT[n]["gauge_rect"]
     N = LAYOUT[n]["levels"]
     w, h = px
     S4 = SS_PIL
     col = gauge_color(level / N)
+    core = col
+    hi = LG.safe_rgb(tuple(c + (255 - c) * 0.45 for c in col))
+    lo = LG.safe_rgb(tuple(c * 0.80 for c in col))
     big = Image.new("RGBA", (w * S4, h * S4), (0, 0, 0, 0))
     dr = ImageDraw.Draw(big)
     for i, (x0, y0, x1, y1) in enumerate(_segments(gw, gh, N)):
         if i >= level:
             break
         X0, Y0, X1, Y1 = x0 * S4, y0 * S4, x1 * S4, y1 * S4
-        dr.rectangle([X0, Y0, X1 - 1, Y1 - 1], fill=tuple(int(c * 0.66) for c in col) + (255,))
-        # nucleo (LED aceso, sem estourar para branco) e reflexo fino em cima
-        core = tuple(int(min(255, c * 0.92 + (255 - c) * 0.12)) for c in col)
-        dr.rectangle([X0 + S4, Y0 + S4, X1 - 1 - S4, Y1 - 1 - S4], fill=core + (255,))
-        dr.rectangle([X0 + S4, Y0 + S4, X1 - 1 - S4, Y0 + 2 * S4 - 1],
-                     fill=tuple(int(min(255, c + (255 - c) * 0.45)) for c in col) + (255,))
+        dr.rectangle([X0, Y0, X1 - 1, Y1 - 1], fill=core + (255,))
+        dr.rectangle([X0, Y1 - S4, X1 - 1, Y1 - 1], fill=lo + (255,))
+        dr.rectangle([X0 + S4, Y0, X1 - 1 - S4, Y0 + S4 - 1], fill=hi + (255,))
     seg = big.resize((w, h), Image.LANCZOS)
-    # brilho fraco nos vaos (luz dos LEDs no vidro), alfa baixo
-    glow = seg.filter(ImageFilter.GaussianBlur(1.1))
+    glow = LG.premul_blur(seg, 1.1)
     ga = np.asarray(glow, dtype=np.float32).copy()
     ga[..., 3] *= 0.45
     out = Image.fromarray(ga.astype(np.uint8), "RGBA")
     out.alpha_composite(seg)
+    out, _ = LG.paint_safe(out)
     return out
 
 

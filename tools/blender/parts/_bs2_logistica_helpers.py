@@ -3,9 +3,15 @@
 So o grupo da logistica usa este modulo (parts/bs_fita.py, bs_fita_fx.py, bs_placas.py, bs_paiol.py). Nada aqui muda
 o kit comum (bs3d.py, models.py); os materiais novos tem nomes proprios (o cache do bs3d e por nome, STYLE.md 9).
 
-Paleta (SPEC_2.0 art_assets.palette, sRGB 0-255): family_chip, gauge, cores por tipo das placas. Os verdes que vao
-no TETO (luz da fita no teto, medidor cheio) mantem |r - b| >= 64: o shader de pintura do jogo pinta tudo que e
-"verde com r ~ b" (STYLE.md 9); o verde do medidor cheio (110, 230, 90) do spec vira (104, 232, 30).
+Paleta (SPEC_2.0 art_assets.palette, sRGB 0-255): family_chip, gauge, cores por tipo das placas.
+
+Verdes e pintura: so a camada "roofs" usa o shader de teto com pintura por chave de cor (ENABLE_ROOF_PAINT_COLOR_KEYED);
+"roof_doodads" (medidor, placas, digitos, FX, luz da fita no teto) usa ../common/roof_uncolored_lit.shader (vanilla
+terran.rules), que NAO pinta nada. Mesmo assim todo verde desta arte fica fora da chave de pintura (STYLE.md 9:
+verde dominante com |r - b| < 64): se alguem mudar a camada, ou copiar a arte para um teto, nada vira pintura. O
+paint_safe() abaixo garante isso PIXEL A PIXEL depois de cada sprite (bordas, halos e relevos incluidos), e o
+check_logistica.py confere. Por isso o verde do medidor cheio nao e o (110, 230, 90) do ProgressBar (|r - b| = 20) e
+sim GAUGE["full"] = (88, 240, 14): o mesmo papel (cheio = verde), um pouco mais amarelado.
 """
 
 import math
@@ -13,23 +19,38 @@ import math
 import bs3d as B
 
 # ============================================================================ paleta (sRGB 0-255)
+# projeteis: AZUL eletrico + pontas LARANJA (paleta nova do Tupa, referencia do usuario; USER_NOTES: "paleta azul em
+# vez de violeta; slug da Tupa acompanha a cor"). Diferente do ciano das celulas (hue 225 contra 191 graus) e com as
+# pontas laranja (FAMILY_CHIP_TIP) que nenhuma outra familia tem.
 FAMILY_CHIP = {"cartuchos": (255, 190, 60), "celulas": (60, 220, 255), "misseis": (255, 120, 40),
-               "projeteis": (150, 105, 255)}
-GAUGE = {"low": (255, 70, 30), "high": (255, 200, 40), "full": (104, 232, 30)}   # full: |r - b| >= 64 (pintura)
-# cor de cada tipo nas placas (palette[kind].band / chip; nunca o azul da interface)
+               "projeteis": (64, 128, 255)}
+FAMILY_CHIP_TIP = {"projeteis": (255, 140, 40)}
+# medidor: low -> high -> full interpolados em HSV (a saturacao se mantem no meio; sem o oliva da mistura RGB).
+# full: verde fora da chave de pintura (r - b = 74 >= 64), todas as cores derivadas passam por safe_rgb()
+GAUGE = {"low": (255, 70, 30), "high": (255, 200, 40), "full": (88, 240, 14)}
+# cor de cada tipo nas placas (palette[kind] band/chip; nunca o azul da interface). As silhuetas sao as dos icones
+# 2.0 do seletor (tools/bsgen/ui_icons.py, art3d/bs_ui_icons2): "body" = corpo do icone, "acc" = a mascara de destaque
+# do icone, "parts" = regioes do corpo com outra cor (bobinas de cobre, minimisseis, cauda), em coordenadas do icone
+# (0..96, y para baixo), recortadas pela mascara do corpo
+COPPER = (214, 122, 58)               # bobinas da familia P.E.M. (palette.pem.copper clareado: le no campo escuro)
+SPARK = (205, 236, 255)               # raio do P.E.M. (o "spark" dos icones)
 KIND = {
     "he": {"body": (255, 190, 60), "acc": None},
     "ap": {"body": (215, 230, 255), "acc": None},
-    "sap": {"body": (255, 140, 50), "acc": (255, 236, 200)},
-    "ac": {"body": (230, 40, 80), "acc": (255, 200, 80)},
-    "frag": {"body": (120, 210, 200), "acc": (225, 255, 250)},
-    "plasma": {"body": (60, 220, 255), "acc": (220, 250, 255)},
-    "pem": {"body": (60, 200, 255), "acc": (226, 140, 72)},          # bobinas de cobre na celula PEM
+    "sap": {"body": (255, 128, 44), "acc": (255, 238, 190)},       # laranja mais vermelho que o HE + estrela clara
+    "ac": {"body": (230, 40, 80), "acc": (255, 200, 80)},          # carmim + faixa de ouro
+    "frag": {"body": (120, 210, 200), "acc": (215, 250, 244)},
+    "plasma": {"body": (60, 220, 255), "acc": (225, 250, 255)},
+    "pem": {"body": (50, 175, 255), "acc": SPARK,                  # capsula azul, 3 bobinas de COBRE, raio claro
+            "parts": [("rects", [(0, 26, 96, 39.5), (0, 43, 96, 56.5), (0, 60, 96, 73.5)], COPPER)]},
     "msl_he": {"body": (255, 170, 50), "acc": None},
-    "msl_cluster": {"body": (255, 120, 40), "acc": (255, 214, 120)},
-    "msl_emp": {"body": (80, 150, 255), "acc": (205, 236, 255)},
-    "msl_nuke": {"body": (120, 236, 40), "acc": (20, 22, 26)},       # trevo escuro sobre o verde (sem amarelo)
-    "slug": {"body": (150, 105, 255), "acc": (255, 214, 120)},       # aneis de armadura dourados
+    "msl_cluster": {"body": (255, 120, 40), "acc": None,           # portador laranja, minimisseis ouro claro
+                    "parts": [("rects", [(0, 0, 96, 51.5), (0, 0, 29.5, 57), (66.5, 0, 96, 57)], (255, 214, 120))]},
+    "msl_emp": {"body": (80, 150, 255), "acc": SPARK,              # Poraque: bobinas de cobre (STYLE 8.4)
+                "parts": [("rects", [(0, 39.5, 96, 46.5), (0, 49.5, 96, 56.5), (0, 59.5, 96, 66.5)], COPPER)]},
+    "msl_nuke": {"body": (110, 232, 30), "acc": (200, 255, 120)},  # corpo verde + trevo verde-claro AO LADO (icone)
+    "slug": {"body": (205, 228, 255), "acc": (64, 128, 255),       # haste branco-azulada, aneis EM AZUIS e a cauda
+             "parts": [("rects", [(0, 69.5, 96, 96)], (255, 140, 40))]},   # LARANJA (paleta nova do Tupa)
 }
 KIND_ORDER = ["he", "ap", "sap", "ac", "frag", "plasma", "pem", "msl_he", "msl_cluster", "msl_emp", "msl_nuke",
               "slug"]
@@ -116,6 +137,71 @@ def ledslot(name, cx, cy, sx, sy, z_bed, M, tags, targets, lens=None, lens_frac=
     if lens is not None:
         B.box(name + "_lens", cx, cy, sx * lens_frac, sy * lens_frac, z_bed + 0.008, z_bed + 0.018, lens, bevel=0.0,
               tags=tags)
+
+
+def safe_rgb(c):
+    """Cor (r, g, b) 0-255 fora da chave de pintura (STYLE.md 9): se o verde passa do vermelho e do azul com
+    |r - b| < 64, afasta r de b (verdes claros de verdade: b desce, r sobe), puxa o azul (menta -> ciano) ou tira o
+    excesso de verde (cinzas esverdeados e verdes escuros ficam neutros). Cores nao verdes passam iguais."""
+    r, g, b = (float(v) for v in c[:3])
+    if g <= max(r, b) or abs(r - b) >= 64:
+        return tuple(int(round(v)) for v in (r, g, b))
+    if b >= r:                                        # menta/ciano: vira ciano (o azul alcanca o verde)
+        b = g
+    elif g >= 96 and g - max(r, b) > 8:               # verde claro de verdade: r - b >= 64
+        b = max(0.0, min(b, r - 64))
+        r = max(r, b + 64)
+    else:                                             # cinza esverdeado / verde escuro (sombra, borda): neutro
+        g = max(r, b)
+    return tuple(int(round(min(255.0, max(0.0, v)))) for v in (r, g, b))
+
+
+def paint_safe(img):
+    """safe_rgb() por pixel (Image RGBA -> Image RGBA, mesma alfa): nenhum pixel com alfa > 0 fica com o verde acima
+    do vermelho e do azul e |r - b| < 64 (a chave de pintura do jogo e o 'verde' das conferencias). Devolve (imagem,
+    pixels mudados)."""
+    import numpy as np
+    from PIL import Image
+    a = np.asarray(img.convert("RGBA")).astype(np.float32).copy()
+    r, g, b, al = a[..., 0].copy(), a[..., 1].copy(), a[..., 2].copy(), a[..., 3]
+    mx = np.maximum(r, b)
+    bad = (al > 0) & (g > mx) & (np.abs(r - b) < 64)
+    n = int(bad.sum())
+    if n:
+        cyan = bad & (b >= r)
+        a[..., 2] = np.where(cyan, g, a[..., 2])
+        lite = bad & (b < r) & (g >= 96) & (g - mx > 8)
+        nb = np.clip(np.minimum(b, r - 64), 0, 255)
+        a[..., 2] = np.where(lite, nb, a[..., 2])
+        a[..., 0] = np.where(lite, np.maximum(r, nb + 64), a[..., 0])
+        flat = bad & (b < r) & ~lite
+        a[..., 1] = np.where(flat, mx, a[..., 1])
+    return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGBA"), n
+
+
+def paint_safe_file(path):
+    """paint_safe() num PNG gravado (pos-processo das camadas roof_doodads). Devolve os pixels mudados."""
+    from PIL import Image
+    img, n = paint_safe(Image.open(path))
+    if n:
+        img.save(path)
+    return n
+
+
+def premul_blur(img, radius):
+    """GaussianBlur com alfa PRE-multiplicado (o blur comum do PIL mistura o RGB com o preto dos pixels
+    transparentes e escurece/desvia a cor das bordas): a cor do halo e a media das cores de verdade."""
+    import numpy as np
+    from PIL import Image, ImageFilter
+    a = np.asarray(img.convert("RGBA")).astype(np.float32) / 255.0
+    pm = np.dstack([a[..., :3] * a[..., 3:4], a[..., 3:4]])
+    chans = [np.asarray(Image.fromarray((pm[..., i] * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(radius)),
+                        np.float32) / 255.0 for i in range(4)]
+    al = chans[3]
+    rgb = np.dstack(chans[:3]) / np.maximum(al[..., None], 1e-6)
+    out = np.dstack([np.clip(rgb, 0, 1), al[..., None]])
+    out[al < 1e-6] = 0
+    return Image.fromarray((out * 255).astype(np.uint8), "RGBA")
 
 
 def rot4(pts, k):

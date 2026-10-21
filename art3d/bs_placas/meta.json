@@ -52,7 +52,8 @@
  "walls": null,
  "notes": [
   "placa_<tipo>.png: 48 x 48 px, desenhada pelas regras com Size = o tamanho do encaixe (paiol 1x1 0,42 / 2x2 0,66 / 3x3 0,92 quadro; tremonha 0,42; fabricas 0,8); camada roof_doodads, sem emissao (o jogo ilumina). O 'rect' do meta e so o tamanho nativo (0,75 quadro = 48 px); size [1, 1] e nominal.",
-  "Cores: palette[tipo] band/chip do SPEC_2.0 (he ambar, ap branco-azulado, sap laranja, ac carmim + ouro, frag verde-agua, plasma ciano, pem azul + cobre, missil HE ambar, submunicao laranja, missil PEM azul, ogiva nuclear verde com trevo escuro, slug violeta + ouro)."
+  "Silhuetas = os icones 2.0 do seletor (tools/bsgen/ui_icons.py, art3d/bs_ui_icons2), na cor do tipo: he ambar, ap branco-azulado, sap laranja + estrela clara, ac carmim + ouro, frag verde-agua, plasma ciano, pem azul + bobinas de cobre, missil HE ambar, submunicao laranja + minimisseis ouro, missil PEM azul + cobre, ogiva nuclear verde com o trevo ao lado, slug branco-azulado + aneis EM azuis + cauda laranja (paleta nova do Tupa).",
+  "Moldura escura (grafite) de bisel duplo, campo preto e 2 parafusos (spec: 'dark recessed frame, 2 bolts'). Nenhum pixel na chave de pintura (helpers.paint_safe)."
  ],
  "files": [
   "placa_ac.png",

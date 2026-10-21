@@ -36,16 +36,18 @@ def lin(c):
 
 
 # art_assets.palette (chip/band) do SPEC 2.0; PEM com o azul mais fundo do glow (o ciano do plasma e quase o mesmo
-# matiz: a celula PEM le pelo cobre + azul), slug no azul da Tupa nova (USER_NOTES: referencia da railgun)
+# matiz: a celula PEM le pelo cobre + azul), slug no azul da Tupa nova (USER_NOTES: referencia da railgun).
+# SAP: laranja AVERMELHADO (matiz ~18, entre o tracer 255,135,50 e o hull 255,64,8 do spec), longe do ambar da HE
+# (~40) e do carmim da AC (~347): com o laranja do palette.sap (matiz ~25) HE e SAP liam como a mesma caixa a 1x.
 CHIP = {
-    "he": (255, 190, 60), "ap": (215, 230, 255), "sap": (255, 140, 50), "ac": (230, 40, 80), "gold": (255, 200, 80),
+    "he": (255, 190, 60), "ap": (215, 230, 255), "sap": (255, 98, 28), "ac": (230, 40, 80), "gold": (255, 200, 80),
     "frag": (120, 210, 200), "plasma": (60, 220, 255), "pem": (40, 150, 255), "slug": (45, 115, 255),
     "slug_hi": (110, 175, 255), "orange": (230, 135, 40), "nuke": (90, 255, 40),
 }
 # LEDs (forca ~1 na vista Standard sai ~ a cor; saturados para nao virar branco)
 LED = {
-    "he": (1.0, 0.42, 0.04), "ap": (0.50, 0.72, 1.0), "sap": (1.0, 0.20, 0.025), "ac": (1.0, 0.02, 0.08),
-    "frag": (0.10, 0.90, 0.42), "plasma": (0.08, 0.72, 1.0), "pem": (0.03, 0.30, 1.0), "slug": (0.026, 0.171, 1.0),
+    "he": (1.0, 0.42, 0.04), "ap": (0.50, 0.72, 1.0), "sap": (1.0, 0.115, 0.012), "ac": (1.0, 0.02, 0.08),
+    "frag": (0.05, 0.78, 0.60), "plasma": (0.08, 0.72, 1.0), "pem": (0.03, 0.30, 1.0), "slug": (0.026, 0.171, 1.0),
     "slug_hi": (0.13, 0.43, 1.0), "nuke": (0.32, 1.0, 0.0), "msl_he": (1.0, 0.42, 0.04), "msl_cluster": (1.0, 0.78, 0.11),
     "msl_emp": (0.06, 0.45, 1.0), "white": (1.0, 0.92, 0.75), "nuke_core": (0.12, 1.0, 0.06),
 }
@@ -94,7 +96,10 @@ def paint(kind, emit=0.12, k=0.82):
     sombra (como Mo.band_mat)."""
     c = lin(CHIP[kind])
     k = min(k, PAINT_K.get(kind, k))
-    m = B.mat_metal(f"it2_paint_{kind}", tuple(v * k for v in c), rough=0.55, metal=0.0)
+    # o cache de materiais do bs3d e por NOME: cada (emissao, k) diferente precisa de um nome proprio
+    base = (emit, k) == (0.12, min(0.82, PAINT_K.get(kind, 0.82)))
+    tag = "" if base else f"_{int(round(emit * 100)):02d}{int(round(k * 100)):02d}"
+    m = B.mat_metal(f"it2_paint_{kind}{tag}", tuple(v * k for v in c), rough=0.55, metal=0.0)
     b = m.node_tree.nodes["Principled BSDF"]
     b.inputs["Specular IOR Level"].default_value = 0.15
     b.inputs["Emission Color"].default_value = (*c, 1)
@@ -168,8 +173,11 @@ def fin_y(name, poly, z0, z1, mat, tags):
 
 
 # ============================================================================ municoes do nivel S (miniatura)
-# comprimentos do nariz em raios (ogiva, ponta) e raio final da ogiva, por municao
-NOSE = {"he": (1.55, 0.62, 0.46), "ap": (2.5, 0.95, 0.24), "sap": (1.05, 0.55, 0.72), "ac": (2.1, 0.45, 0.44),
+# comprimentos do nariz em raios (ogiva, ponta) e raio final da ogiva, por municao. A forma da ponta e a deixa de
+# SILHUETA de cada tipo a 1x (a cor sozinha nao basta): HE = ogivas escuras pontudas com a do meio adiantada (seta);
+# AP = AGULHAS finas e compridas (pente de espinhos); SAP = TAMPAS quadradas largas de aco claro com o aro preto (3
+# blocos claros rombudos alinhados); AC = 2 gordas com canards de ouro; FRAG = curtas com a espoleta chata.
+NOSE = {"he": (1.55, 0.62, 0.46), "ap": (1.85, 2.70, 0.30), "sap": (0.50, 1.05, 0.90), "ac": (2.1, 0.45, 0.44),
         "frag": (0.95, 0.30, 0.64)}
 
 
@@ -178,8 +186,8 @@ def round_s(pre, X, tags, ammo, x, zc, r, y0, y1, band=True, led_s=0.0):
 
     he  : luva de composito claro, faixa ambar, ogiva grafite media e espoleta de aco de ponta chata com o anel
           escuro do sensor;
-    ap  : ogiva LONGA com capuz escuro e anel gelo, penetrador de triaco claro comprido;
-    sap : ogiva curta com capuz ROMBUDO largo de grafite e colar de aco (crimp);
+    ap  : ogiva com capuz escuro e anel gelo e a AGULHA de triaco clara bem comprida (penetrador fino);
+    sap : ogiva curtissima, aro PRETO e a TAMPA quadrada larga de aco claro (ponta chata, quina chanfrada);
     ac  : guiada: faixa carmim entre dois aneis de ouro, canards de ouro no nariz e anel de ouro com o buscador
           escuro na ponta;
     frag: luva de fragmentos SEGMENTADA (aneis claros com sulcos pretos), faixa verde-agua e espoleta de
@@ -223,14 +231,16 @@ def round_s(pre, X, tags, ammo, x, zc, r, y0, y1, band=True, led_s=0.0):
     rf = rfk * r
     og = ogive_to(r, yo, yt0, rf, n=8)
     if ammo == "ap":
-        k = len(og) // 2
+        k = int(len(og) * 0.62)
         lathe_y(pre + "_og", og[:k + 1], m["comp_d"], tags, x=x, zc=zc)
-        ring_y(pre + "_ice", og[k][1] - 0.007, og[k][1] + 0.007, og[k][0] * 1.07, paint("ap", 0.10, 0.9), tags, x=x,
+        ring_y(pre + "_ice", og[k][1] - 0.007, og[k][1] + 0.007, og[k][0] * 1.08, paint("ap", 0.10, 0.9), tags, x=x,
                zc=zc)
         lathe_y(pre + "_cap", og[k:], m["graph"], tags, x=x, zc=zc)
+        # agulha: haste fina e longa (1 px a 1x) que passa bem da boca
         rt = og[-1][0]
-        lathe_y(pre + "_pen", [(rt * 0.95, yt0 - 0.004), (rt * 0.85, yt0 + 0.45 * lt * r), (rt * 0.40, y1 - 0.08 * r),
-                               (0.0, y1)], m["steel"], tags, x=x, zc=zc)
+        L = y1 - yt0
+        lathe_y(pre + "_pen", [(rt * 1.05, yt0 - 0.006), (rt * 0.92, yt0 + 0.25 * L), (rt * 0.72, yt0 + 0.70 * L),
+                               (rt * 0.40, y1 - 0.12 * L), (0.0, y1)], m["steel"], tags, x=x, zc=zc)
         return yo
     lathe_y(pre + "_og", og, m["ogive"], tags, x=x, zc=zc)
     if ammo == "he":
@@ -239,8 +249,10 @@ def round_s(pre, X, tags, ammo, x, zc, r, y0, y1, band=True, led_s=0.0):
                 tags, x=x, zc=zc)
         ring_y(pre + "_sens", yt0 + 0.45 * lt * r, yt0 + 0.70 * lt * r, rf * 0.97, m["black"], tags, x=x, zc=zc)
     elif ammo == "sap":
-        ring_y(pre + "_crimp", yt0 - 0.012, yt0 + 0.010, rf * 1.08, m["steel"], tags, x=x, zc=zc, ch=0.003)
-        lathe_y(pre + "_cap", dome(yt0 + 0.008, y1, rf, p=3.0, n=6), m["graph"], tags, x=x, zc=zc)
+        # aro preto (o "colar" do capuz) + tampa quadrada de aco claro: ponta chata com quina chanfrada
+        ring_y(pre + "_capk", yt0 - 0.006, yt0 + 0.020, rf * 1.02, m["black"], tags, x=x, zc=zc)
+        lathe_y(pre + "_cap", [(rf * 0.94, yt0 + 0.018), (rf * 0.94, y1 - 0.014), (rf * 0.80, y1 - 0.002),
+                               (rf * 0.62, y1)], m["steel"], tags, x=x, zc=zc)
     elif ammo == "frag":
         ring_y(pre + "_fz", yt0 - 0.006, y1 - 0.012, rf * 1.04, m["steel"], tags, x=x, zc=zc, ch=0.004)
         lathe_y(pre + "_lens", dome(y1 - 0.016, y1, rf * 0.74, p=3.0, n=4), m["lens"], tags, x=x, zc=zc)
@@ -261,9 +273,11 @@ def round_s(pre, X, tags, ammo, x, zc, r, y0, y1, band=True, led_s=0.0):
 
 # ============================================================================ carregadores (familia cartuchos)
 # Unidade: ~0.60 x 0.94, frente = +Y, altura maxima ~0.27. Exoesqueleto (STYLE 1.1): bandeja de nucleo escuro por
-# baixo de tudo; placa traseira clara de bisel duplo (pega embutida + 2 pastilhas da cor); um VAO escuro transversal
+# baixo de tudo; placa traseira clara de bisel duplo com cantos OCTOGONAIS (chanfro MAG_CH, STYLE 1.2), a pega
+# embutida e uma FENDA transversal recortada ate o leito preto com 3 pastilhas da cor (STYLE 1.6: nada de cor direto
+# na blindagem branca; a fenda tambem e a ranhura que quebra a placa, STYLE 1.8); um VAO escuro transversal em divisa
 # com a fenda de LED da cor da municao; duas bochechas claras em cunha nas laterais; e as granadas do nivel S deitadas
-# na bandeja com os narizes passando da boca (a do meio adiantada: a ponta vira uma seta).
+# na bandeja com os narizes passando da boca.
 MAG_HW = 0.30                      # meia largura das cascas
 MAG_Y0, MAG_Y1 = -0.445, 0.30      # costas / frente da bandeja
 PLATE_Y1 = -0.245                  # fim da placa traseira nas laterais (a borda da frente e uma divisa)
@@ -271,12 +285,13 @@ CHEV = 0.065                       # avanco da divisa no meio (a fenda de LED vi
 GAP = 0.072                        # largura do vao do LED (em y)
 PLATE_Z = 0.245                    # altura da placa traseira (antes do painel)
 TRAY_Z = 0.10                      # topo da bandeja (as granadas apoiam aqui)
+MAG_CH = 0.085                     # chanfro dos cantos de tras (placa e bandeja: octogono, nao "para-choque")
 MAG_ROUNDS = {   # n, raio, passo, base, ponta, avanco da do meio
     "he": (3, 0.064, 0.142, -0.13, 0.425, 0.035),
-    "ap": (3, 0.058, 0.140, -0.13, 0.465, 0.0),
-    "sap": (3, 0.066, 0.144, -0.13, 0.405, 0.03),
+    "ap": (3, 0.056, 0.140, -0.20, 0.470, 0.0),
+    "sap": (3, 0.066, 0.144, -0.13, 0.452, 0.0),
     "ac": (2, 0.068, 0.222, -0.13, 0.445, 0.0),
-    "frag": (3, 0.070, 0.146, -0.13, 0.375, 0.0),
+    "frag": (3, 0.072, 0.146, -0.13, 0.340, 0.0),
 }
 MAG_H = PLATE_Z + 0.022            # altura total (camada de cima da pilha apoia aqui)
 
@@ -290,8 +305,10 @@ def magazine(M, Xm, tags, ammo, led_s=1.0, round_led=0.0):
     K, A, S = Xm["core"], Xm["armor"], Xm["steel"]
     hw = MAG_HW
     # ---- bandeja de nucleo escuro (moldura escura em volta das cascas; frente em cunha baixa)
-    core = [(-hw + 0.04, MAG_Y0), (hw - 0.04, MAG_Y0), (hw + 0.012, MAG_Y0 + 0.05), (hw + 0.012, 0.21),
-            (hw - 0.06, MAG_Y1), (-hw + 0.06, MAG_Y1), (-hw - 0.012, 0.21), (-hw - 0.012, MAG_Y0 + 0.05)]
+    ch = MAG_CH
+    core = [(-hw + ch - 0.008, MAG_Y0), (hw - ch + 0.008, MAG_Y0), (hw + 0.012, MAG_Y0 + ch - 0.004),
+            (hw + 0.012, 0.21), (hw - 0.06, MAG_Y1), (-hw + 0.06, MAG_Y1), (-hw - 0.012, 0.21),
+            (-hw - 0.012, MAG_Y0 + ch - 0.004)]
     B.plate("mg_core", core, 0.0, TRAY_Z, K, slope=0.012, tags=tags)
     # ---- granadas do nivel S
     n, r, pitch, y0, y1, lead = MAG_ROUNDS[ammo]
@@ -327,28 +344,30 @@ def magazine(M, Xm, tags, ammo, led_s=1.0, round_led=0.0):
                hw - 0.07, 0.030, TRAY_Z + 0.03, TRAY_Z + 0.042, led(ammo, led_s) if led_s > 0 else paint(ammo),
                rot=-sd * ang, bevel=0.0, tags=tags)
     # ---- placa traseira (casca clara de bisel duplo) com a borda da frente em divisa
-    blk = [(-hw + 0.05, MAG_Y0 + 0.005), (hw - 0.05, MAG_Y0 + 0.005), (hw, MAG_Y0 + 0.055), (hw, PLATE_Y1),
-           (0.0, PLATE_Y1 + CHEV), (-hw, PLATE_Y1), (-hw, MAG_Y0 + 0.055)]
+    blk = [(-hw + ch, MAG_Y0 + 0.005), (hw - ch, MAG_Y0 + 0.005), (hw, MAG_Y0 + ch + 0.005), (hw, PLATE_Y1),
+           (0.0, PLATE_Y1 + CHEV), (-hw, PLATE_Y1), (-hw, MAG_Y0 + ch + 0.005)]
     ba, bp = B.shard("mg_blk", blk, 0.0, PLATE_Z, A, slope=0.03, groove=0.015, panel_h=0.022, tags=tags)
     targets = [t for t in (ba, bp) if t is not None]
     # pega embutida nas costas (entalhe escuro com a barra de aco)
     for t in targets:
-        B.cut(t, [B.box(f"mg_grip{t.name}", 0, MAG_Y0 - 0.02, 0.22, 0.13, TRAY_Z + 0.03, 0.6, K, bevel=0.0)])
+        B.cut(t, [B.box(f"mg_grip{t.name}", 0, MAG_Y0 - 0.02, 0.22, 0.11, TRAY_Z + 0.03, 0.6, K, bevel=0.0)])
     B.box("mg_gripbar", 0, MAG_Y0 + 0.02, 0.20, 0.026, PLATE_Z - 0.06, PLATE_Z - 0.03, S, bevel=0.006, tags=tags)
-    # 2 pastilhas da cor nos cantos (rebaixo preto + tinta): a cor tambem le com a pilha em camadas
-    for s in (-1, 1):
-        cy = (MAG_Y0 + PLATE_Y1) / 2 + 0.02
-        for t in targets:
-            B.cut(t, [B.box(f"mg_chipc{s}{t.name}", s * 0.19, cy, 0.075, 0.075, PLATE_Z - 0.012, 0.6, K, bevel=0.0)])
-        B.box(f"mg_chipb{s}", s * 0.19, cy, 0.075, 0.075, PLATE_Z - 0.022, PLATE_Z - 0.011, Xm["black"], bevel=0.0,
-              tags=tags)
-        B.box(f"mg_chip{s}", s * 0.19, cy, 0.05, 0.05, PLATE_Z - 0.012, PLATE_Z + 0.002, paint(ammo, 0.16),
-              bevel=0.004, tags=tags)
+    # fenda transversal recortada FUNDO na placa (leito preto) com 3 pastilhas da cor: a cor tambem le com a pilha em
+    # camadas, sem tinta sobre a blindagem branca (o rebaixo raso das 2 pastilhas antigas saia so com 1 px cinza)
+    cy = (MAG_Y0 + PLATE_Y1) / 2 + 0.027
+    sw, sh = 0.30, 0.078
+    zs = PLATE_Z - 0.05                                   # fundo da fenda (raso: a luz de cima ainda chega)
+    for t in targets:
+        B.cut(t, [B.box(f"mg_slotc{t.name}", 0, cy, sw, sh, zs, 0.6, K, bevel=0.0)])
+    B.box("mg_slotb", 0, cy, sw, sh, zs - 0.012, zs + 0.002, Xm["black"], bevel=0.0, tags=tags)
+    for i, px in enumerate((-0.092, 0.0, 0.092)):
+        B.box(f"mg_pip{i}", px, cy, 0.066, 0.036, zs, zs + 0.022, led(ammo, 0.55 * led_s) if led_s > 0 else
+              paint(ammo), bevel=0.0, tags=tags)
     if ammo == "ac":
         # estojo premium: tampas de canto de OURO nos 4 cantos (le a 1x mesmo na pilha)
         for s in (-1, 1):
-            c = [(s * (hw - 0.09), MAG_Y0 + 0.005), (s * (hw - 0.05), MAG_Y0 + 0.005), (s * hw, MAG_Y0 + 0.055),
-                 (s * hw, MAG_Y0 + 0.115), (s * (hw - 0.09), MAG_Y0 + 0.115)]
+            c = [(s * (hw - ch - 0.035), MAG_Y0 + 0.005), (s * (hw - ch), MAG_Y0 + 0.005), (s * hw, MAG_Y0 + ch + 0.005),
+                 (s * hw, MAG_Y0 + ch + 0.06), (s * (hw - ch - 0.035), MAG_Y0 + ch + 0.06)]
             c = c if s < 0 else list(reversed(c))
             B.plate(f"mg_gcb{s}", c, 0.0, PLATE_Z + 0.035, Xm["gold"], slope=0.014, tags=tags)
             f = [(s * (hw - 0.075), 0.15), (s * hw, 0.15), (s * hw, 0.19), (s * (hw - 0.05), 0.265),
@@ -358,20 +377,22 @@ def magazine(M, Xm, tags, ammo, led_s=1.0, round_led=0.0):
 
 
 # pilha dos carregadores (unit_scale 0.5): 1 no centro, 2 lado a lado, 3 e 4 em duas fileiras de costas uma para a
-# outra (as placas traseiras no meio, os narizes nas bordas), 5 e 6 com a camada de cima deitada sobre as placas
+# outra (as placas traseiras no meio, os narizes nas bordas), 5 e 6 com a camada de cima CRUZADA (girada 90 graus,
+# costas no meio e narizes para fora), como tijolos amarrados: as 2 camadas leem como camadas, nao como 3 fileiras
 MAG_SCALE = 0.50
 _CX, _RY = 0.168, 0.243
+_XT = 0.224                        # camada de cima cruzada: costas quase encostadas no meio
 _HT = MAG_H * MAG_SCALE
 MAG_LAYOUT = {
     1: [(0, 0, 0)],
     2: [(-_CX, 0, 0), (_CX, 0, 0)],
     3: [(-_CX, _RY, 0), (_CX, _RY, 0), (0, -_RY, 0)],
     4: [(-_CX, _RY, 0), (_CX, _RY, 0), (-_CX, -_RY, 0), (_CX, -_RY, 0)],
-    5: [(-_CX, _RY, 0), (_CX, _RY, 0), (-_CX, -_RY, 0), (_CX, -_RY, 0), (0, 0, _HT)],
-    6: [(-_CX, _RY, 0), (_CX, _RY, 0), (-_CX, -_RY, 0), (_CX, -_RY, 0), (-_CX, 0, _HT), (_CX, 0, _HT)],
+    5: [(-_CX, _RY, 0), (_CX, _RY, 0), (-_CX, -_RY, 0), (_CX, -_RY, 0), (0.005, 0, _HT)],
+    6: [(-_CX, _RY, 0), (_CX, _RY, 0), (-_CX, -_RY, 0), (_CX, -_RY, 0), (-_XT, 0, _HT), (_XT, 0, _HT)],
 }
-# 0,1 = fileira da frente; 2,3 = fileira de tras girada 180 (placas no meio); 4,5 = camada de cima
-MAG_ROT = [0, 1.5, 180, 181.5, -1.0, 1.0]
+# 0,1 = fileira da frente; 2,3 = fileira de tras girada 180 (placas no meio); 4,5 = camada de cima cruzada
+MAG_ROT = [0, 1.5, 180, 181.5, 90, -90]
 # a pilha de 3 tem so 1 unidade atras (indice 2: girada 180) e a de 5 tem 1 na camada de cima (indice 4)
 
 
@@ -470,31 +491,37 @@ def cell_part(pid, kind, stack, accent):
 
 
 # ============================================================================ cargas de missil (familia misseis)
-# Unidade deitada ao longo de +Y (~0.26 x 0.92): o missil 2.0 do tipo em miniatura (a mesma tinta de faixa do missil em
-# voo e dos narizes nos lancadores: Mo.band_mat) num BERCO (trenó escuro por baixo + 2 garras claras dos lados).
-# Pilha de 10 (SPEC 2.0 render_kinds.resource.stack_layout_7_10.missile_charges): fileira de 5 com passo 0.14 e a
-# 2a camada de 5 desencontrada por cima. O modelo e feito ao longo de Y, entao o giro da pilha e ~0 (o spec da 90
-# para um modelo ao longo de X: o resultado e o mesmo).
+# Unidade deitada ao longo de +Y: o missil 2.0 do tipo em miniatura (a mesma tinta de faixa do missil em voo e dos
+# narizes nos lancadores: Mo.band_mat) num BERCO de prateleira: treno de NUCLEO ESCURO mais largo que o corpo (a
+# moldura escura em volta da carga, como a bandeja dos carregadores) com 2 trilhos claros de bisel duplo por fora do
+# corpo. O treno tem a mesma largura nos 3 tipos (MSL_SLOT_HW) e quase o passo da pilha: a fileira de 5 vira uma
+# prateleira continua de 5 berços (frestas escuras entre eles) e cada carga tem fundo escuro no casco branco.
+# Leitura a 1x (forma E cor): HE (Jararaca) = flecha FINA e longa, faixa ambar de 3 px, anel ambar do buscador e
+# frestas pretas entre as luvas em divisa; Piranha = corpo GORDO e CURTO com o nariz grande de 4 PETALAS AMARELAS
+# (fresta preta no eixo); Poraque = corpo escuro com bobinas de cobre e laminas claras (ja distinto).
+# Pilha de 10 (desvio consciente do SPEC render_kinds.resource.stack_layout_7_10, que enche da esquerda e empilha
+# a 2a camada no mesmo y): 1..5 CENTRADAS numa fileira; 6..10 = fileira de 5 + a 2a camada desencontrada meio passo e
+# RECUADA em y (os narizes das duas camadas aparecem: 10 faixas a 1x, nao um pente). Giro 0: prateleira alinhada.
 MSL_SCALE = 0.50
-MSL_LAYOUT = {int(k): [tuple(p) for p in v] for k, v in {
-    1: [[-0.28, 0.0, 0.0]],
-    2: [[-0.28, 0.0, 0.0], [-0.14, 0.0, 0.0]],
-    3: [[-0.28, 0.0, 0.0], [-0.14, 0.0, 0.0], [0.0, 0.0, 0.0]],
-    4: [[-0.28, 0.0, 0.0], [-0.14, 0.0, 0.0], [0.0, 0.0, 0.0], [0.14, 0.0, 0.0]],
-    5: [[-0.28, 0.0, 0.0], [-0.14, 0.0, 0.0], [0.0, 0.0, 0.0], [0.14, 0.0, 0.0], [0.28, 0.0, 0.0]],
-    6: [[-0.28, 0.0, 0.0], [-0.14, 0.0, 0.0], [0.0, 0.0, 0.0], [0.14, 0.0, 0.0], [0.28, 0.0, 0.0],
-        [-0.21, 0.0, 0.14]],
-    7: [[-0.28, 0.0, 0.0], [-0.14, 0.0, 0.0], [0.0, 0.0, 0.0], [0.14, 0.0, 0.0], [0.28, 0.0, 0.0],
-        [-0.21, 0.0, 0.14], [-0.07, 0.0, 0.14]],
-    8: [[-0.28, 0.0, 0.0], [-0.14, 0.0, 0.0], [0.0, 0.0, 0.0], [0.14, 0.0, 0.0], [0.28, 0.0, 0.0],
-        [-0.21, 0.0, 0.14], [-0.07, 0.0, 0.14], [0.07, 0.0, 0.14]],
-    9: [[-0.28, 0.0, 0.0], [-0.14, 0.0, 0.0], [0.0, 0.0, 0.0], [0.14, 0.0, 0.0], [0.28, 0.0, 0.0],
-        [-0.21, 0.0, 0.14], [-0.07, 0.0, 0.14], [0.07, 0.0, 0.14], [0.21, 0.0, 0.14]],
-    10: [[-0.28, 0.0, 0.0], [-0.14, 0.0, 0.0], [0.0, 0.0, 0.0], [0.14, 0.0, 0.0], [0.28, 0.0, 0.0],
-         [-0.21, 0.0, 0.14], [-0.07, 0.0, 0.14], [0.07, 0.0, 0.14], [0.21, 0.0, 0.14], [0.35, 0.0, 0.14]],
-}.items()}
-MSL_ROT = [0, 2, -2, 1, -1, 0]       # spec stack_rot (90, 92, 88, 91, 89, ...) menos os 90 do modelo ao longo de X
-MSL_ZC = 0.085                       # altura do eixo (o berco fica por baixo)
+MSL_PITCH = 0.14                     # passo da fileira (quadros)
+MSL_SLOT_HW = 0.134                  # meia largura do treno (unidades do modelo; x MSL_SCALE = 4,3 px)
+MSL_L2 = (0.09, 0.075)               # recuo em y da 2a camada (quadros, cada camada sai metade) e altura dela
+
+
+def _msl_layout():
+    out = {}
+    for k in range(1, 6):
+        out[k] = [(round((i - (k - 1) / 2) * MSL_PITCH, 4), 0.0, 0.0) for i in range(k)]
+    dy, z2 = MSL_L2
+    row1 = [(round(-0.315 + MSL_PITCH * i, 4), dy, 0.0) for i in range(5)]
+    for k in range(6, 11):
+        out[k] = row1 + [(round(-0.245 + MSL_PITCH * j, 4), -dy, z2) for j in range(k - 5)]
+    return out
+
+
+MSL_LAYOUT = _msl_layout()
+MSL_ROT = [0, 0, 0, 0, 0, 0]         # prateleira: berços alinhados (o spec dava 90 +-2 para um modelo ao longo de X)
+MSL_ZC = 0.085                       # altura do eixo (o treno fica por baixo)
 BAND = {"msl_he": "he", "msl_cluster": "cluster", "msl_emp": "emp"}
 
 
@@ -510,15 +537,35 @@ def sleeve_y(name, y0, y1, r, mat, tags, zc, dv=None, front=True, rear=True):
     return rot_y(Mo.chevron_sleeve(name, y0, y1, r, mat, tags, dv=dv, front=front, rear=rear, zc=zc))
 
 
-def _cradle(Xm, tags, y0, y1, hw, yokes, zc, r):
-    """Berco: treno escuro por baixo do missil e garras claras dos dois lados (le como 'no berco' a 1x)."""
-    B.box("cr_sled", 0, (y0 + y1) / 2, 0.075, y1 - y0, 0.0, zc - r * 0.55, Xm["core_mid"], bevel=0.006, tags=tags)
-    for i, yy in enumerate(yokes):
-        for s in (-1, 1):
-            poly = [(s * (r * 0.70), yy - 0.032), (s * hw, yy - 0.022), (s * hw, yy + 0.022), (s * (r * 0.70), yy + 0.032)]
-            if s < 0:
-                poly = list(reversed(poly))
-            B.plate(f"cr_y{i}{s}", poly, 0.0, zc + r * 0.25, Xm["armor"], slope=0.008, tags=tags)
+def _sym(name, poly, fn):
+    """Chama fn(nome, poligono) para o lado +x (poly) e para o espelho -x."""
+    out = []
+    for s in (-1, 1):
+        p = poly if s > 0 else Mo.mirror(poly)
+        out.append(fn(f"{name}{s}", p))
+    return out
+
+
+def _cradle(Xm, tags, y0, y1, rails, zc):
+    """Berco de prateleira: treno de nucleo escuro (MSL_SLOT_HW, cantos chanfrados e a frente em divisa rasa) com uma
+    canaleta mais escura no eixo, e os trilhos claros de bisel duplo (B.shard) por fora do corpo.
+    rails = [(x_dentro, x_fora, ya, yb)] do lado +x (espelhados); as pontas dos trilhos sao cunhas."""
+    hw, c = MSL_SLOT_HW, 0.03
+    sled = [(-hw + c, y0), (hw - c, y0), (hw, y0 + c), (hw, y1 - 0.045), (0.05, y1), (-0.05, y1), (-hw, y1 - 0.045),
+            (-hw, y0 + c)]
+    B.plate("cr_sled", sled, 0.0, 0.032, Xm["core"], slope=0.010, tags=tags)
+    B.box("cr_keel", 0, (y0 + y1) / 2, 0.05, (y1 - y0) - 0.08, 0.026, 0.040, Xm["black"], bevel=0.0, tags=tags)
+    for i, (xi, xo, ya, yb) in enumerate(rails):
+        e = min(0.03, (yb - ya) / 4)
+        poly = [(xi, ya), (xo, ya + e), (xo, yb - e), (xi, yb)]
+        _sym(f"cr_rail{i}", poly, lambda n, p: B.shard(n, p, 0.0, zc + 0.012, Xm["armor"], slope=0.007, groove=0.004,
+                                                       panel_h=0.006, tags=tags))
+
+
+def _fins(name, mat, tags, zc, root_x, span, y_root0, y_tip0, y_tip1, y_root1, z=(0.012, 0.010)):
+    """Par de aletas planas em flecha (vista de cima)."""
+    poly = [(root_x, y_root0), (span, y_tip0), (span, y_tip1), (root_x, y_root1)]
+    _sym(name, poly, lambda n, p: fin_y(n, p, zc - z[0], zc + z[1], mat, tags))
 
 
 def charge(M, Xm, tags, kind, led_s=1.0):
@@ -527,72 +574,67 @@ def charge(M, Xm, tags, kind, led_s=1.0):
     nose = Xm["nose"]
     band = Mo.band_mat(BAND[kind])
     if kind == "msl_he":
-        # Jararaca: flecha fina, luvas em divisa claras com frestas escuras, faixa ambar, ogiva clara e o domo escuro
-        # do buscador com o anel ambar; 2 aletas em flecha na cauda
-        r = 0.058
-        _cradle(Xm, tags, -0.30, 0.20, 0.098, (-0.17, 0.10), zc, r)
-        ring_y("ms_noz", -0.455, -0.415, r * 0.78, KM, tags, zc=zc, ch=0.006)
-        ring_y("ms_tail", -0.42, -0.25, r * 0.96, A, tags, zc=zc, ch=0.006)
-        # 3 luvas claras em divisa com as frestas largas mostrando o nucleo de GRAFITE (as "escamas" da Jararaca 2.0)
-        for i, (ya, yb) in enumerate(((-0.25, -0.14), (-0.115, -0.005), (0.02, 0.105))):
+        # Jararaca: flecha FINA (3 px) e longa; 3 luvas claras em divisa com frestas PRETAS largas, faixa AMBAR de
+        # 3 px, ogiva clara com o ANEL AMBAR do buscador e o domo escuro; 2 aletas em flecha atras dos trilhos
+        r = 0.050
+        _cradle(Xm, tags, -0.37, 0.30, [(0.080, 0.118, -0.31, 0.11)], zc)
+        ring_y("ms_noz", -0.455, -0.415, r * 0.80, KM, tags, zc=zc, ch=0.006)
+        ring_y("ms_tail", -0.42, -0.27, r * 0.96, A, tags, zc=zc, ch=0.006)
+        ring_y("ms_core", -0.28, 0.12, r * 0.90, K, tags, zc=zc)
+        for i, (ya, yb) in enumerate(((-0.265, -0.16), (-0.12, -0.015), (0.025, 0.10))):
             sleeve_y(f"ms_sl{i}", ya, yb, r, nose, tags, zc, dv=r * 0.9)
-        ring_y("ms_core", -0.26, 0.12, r * 0.93, Xm["graph"], tags, zc=zc)
-        ring_y("ms_band", 0.125, 0.17, r * 1.03, band, tags, zc=zc, ch=0.004)
-        og = ogive_to(r, 0.17, 0.385, r * 0.44, n=8)
+        ring_y("ms_band", 0.105, 0.19, r * 1.08, band, tags, zc=zc, ch=0.004)
+        og = ogive_to(r, 0.19, 0.375, r * 0.50, n=8)
         lathe_y("ms_og", og, nose, tags, zc=zc)
-        ring_y("ms_skr", 0.383, 0.392, r * 0.47, Xm["steel"], tags, zc=zc)
-        lathe_y("ms_sk", dome(0.39, 0.445, r * 0.44, p=1.6, n=5), Xm["lensm"], tags, zc=zc)
-        for s in (-1, 1):
-            fin = [(s * r * 0.6, -0.30), (s * 0.125, -0.38), (s * 0.125, -0.425), (s * r * 0.6, -0.41)]
-            if s < 0:
-                fin = list(reversed(fin))
-            fin_y(f"ms_fin{s}", fin, zc - 0.012, zc + 0.010, A, tags)
+        ring_y("ms_skr", 0.368, 0.402, r * 0.62, band, tags, zc=zc, ch=0.004)
+        lathe_y("ms_sk", dome(0.400, 0.445, r * 0.46, p=1.6, n=5), Xm["lensm"], tags, zc=zc)
+        _fins("ms_fin", A, tags, zc, r * 0.6, 0.120, -0.30, -0.375, -0.425, -0.41)
         # LED ambar num rebaixo da luva de tras
         zt = zc + r * COS8
-        B.box("ms_ledk", 0, -0.205, 0.034, 0.05, zt - 0.006, zt + 0.004, Xm["black"], bevel=0.0, tags=tags)
-        B.box("ms_led", 0, -0.205, 0.020, 0.034, zt - 0.003, zt + 0.006, led("msl_he", 1.0 * led_s), bevel=0.0,
+        B.box("ms_ledk", 0, -0.215, 0.032, 0.05, zt - 0.006, zt + 0.004, Xm["black"], bevel=0.0, tags=tags)
+        B.box("ms_led", 0, -0.215, 0.018, 0.034, zt - 0.003, zt + 0.006, led("msl_he", 1.0 * led_s), bevel=0.0,
               tags=tags)
     elif kind == "msl_cluster":
-        # Piranha: portador GORDO com 2 baias escuras (narizes dos minimisseis a mostra), faixa amarela e o nariz em 4
-        # PETALAS (fresta escura no eixo) com a ponta amarela
-        r = 0.082
-        _cradle(Xm, tags, -0.30, 0.16, 0.122, (-0.20, 0.08), zc + 0.01, r)
-        zc = zc + 0.01
-        ring_y("ms_noz", -0.455, -0.415, r * 0.66, KM, tags, zc=zc, ch=0.006)
-        ring_y("ms_tail", -0.42, -0.31, r * 0.80, A, tags, zc=zc, ch=0.008)
-        body = ring_y("ms_body", -0.31, 0.12, r, nose, tags, zc=zc, ch=0.008)
+        # Piranha: portador GORDO (6 px) e CURTO; 2 baias escuras com os narizes amarelos dos minimisseis, aro escuro
+        # da articulacao e o nariz GRANDE em 4 PETALAS AMARELAS (fresta preta no eixo e entalhes nos lados); cauda
+        # estreita entre os trilhos
+        r = 0.094
+        zc = zc + 0.012
+        _cradle(Xm, tags, -0.385, 0.13, [(0.072, 0.118, -0.365, -0.21)], zc)
+        ring_y("ms_noz", -0.395, -0.355, r * 0.55, KM, tags, zc=zc, ch=0.006)
+        ring_y("ms_tail", -0.36, -0.22, r * 0.66, A, tags, zc=zc, ch=0.008)
+        ring_y("ms_tailk", -0.30, -0.285, r * 0.69, K, tags, zc=zc)
+        body = ring_y("ms_body", -0.225, 0.075, r, nose, tags, zc=zc, ch=0.010)
         zt = zc + r * COS8
-        cuts = []
-        for i, yy in enumerate((-0.19, -0.035)):
-            cuts.append(B.box(f"ms_bay{i}", 0, yy, 0.09, 0.105, zt - 0.03, zt + 0.3, K, bevel=0.0))
-        B.cut(body, cuts)
-        for i, yy in enumerate((-0.19, -0.035)):
-            B.box(f"ms_bayb{i}", 0, yy, 0.09, 0.105, zt - 0.036, zt - 0.026, Xm["black"], bevel=0.0, tags=tags)
-            for j, xx in enumerate((-0.022, 0.022)):
-                lathe_y(f"ms_mini{i}{j}", [(0.014, yy - 0.03), (0.014, yy + 0.01), (0.0, yy + 0.04)], nose, tags,
-                        x=xx, zc=zt - 0.03 + 0.008, verts=6, a0=0.0)
-        ring_y("ms_band", 0.12, 0.17, r * 1.03, band, tags, zc=zc, ch=0.004)
-        ring_y("ms_hinge", 0.17, 0.19, r * 0.98, KM, tags, zc=zc)
-        og = ogive_to(r * 0.97, 0.19, 0.40, r * 0.30, n=8)
-        nob = lathe_y("ms_og", og, nose, tags, zc=zc)
+        bays = (-0.150, -0.035)
+        B.cut(body, [B.box(f"ms_bay{i}", 0, yy, 0.105, 0.088, zt - 0.03, zt + 0.3, K, bevel=0.0)
+                     for i, yy in enumerate(bays)])
+        for i, yy in enumerate(bays):
+            B.box(f"ms_bayb{i}", 0, yy, 0.105, 0.088, zt - 0.036, zt - 0.026, Xm["black"], bevel=0.0, tags=tags)
+            for j, xx in enumerate((-0.026, 0.026)):
+                lathe_y(f"ms_mini{i}{j}", [(0.016, yy - 0.032), (0.016, yy + 0.004)], nose, tags, x=xx,
+                        zc=zt - 0.03 + 0.008, verts=6, a0=0.0)
+                lathe_y(f"ms_minin{i}{j}", [(0.016, yy + 0.004), (0.010, yy + 0.024), (0.0, yy + 0.036)], band,
+                        tags, x=xx, zc=zt - 0.03 + 0.008, verts=6, a0=0.0)
+        ring_y("ms_hinge", 0.075, 0.100, r * 0.97, K, tags, zc=zc)
+        og = ogive_to(r * 0.98, 0.100, 0.320, r * 0.24, n=8)
+        nob = lathe_y("ms_og", og, band, tags, zc=zc)
         # fresta de cima das petalas (no eixo) + as frestas dos lados (entalhes no contorno)
-        B.cut(nob, [B.box("ms_slit", 0, 0.30, 0.020, 0.24, zc + r * 0.35, zc + 0.5, K, bevel=0.0),
-                    B.box("ms_slitl", -r, 0.30, 0.04, 0.22, zc - 0.012, zc + 0.012, K, bevel=0.0),
-                    B.box("ms_slitr", r, 0.30, 0.04, 0.22, zc - 0.012, zc + 0.012, K, bevel=0.0)])
-        B.box("ms_slitk", 0, 0.29, 0.020, 0.20, zc, zc + r * 0.4, Xm["black"], bevel=0.0, tags=tags)
-        B.box("ms_slitled", 0, 0.29, 0.008, 0.16, zc + r * 0.38, zc + r * 0.45, led("msl_cluster", 0.6 * led_s),
+        # (a fresta fica PRETA: a 1x ela e o que separa as petalas; o LED amarelo fica so no pe dela, no aro)
+        B.cut(nob, [B.box("ms_slit", 0, 0.235, 0.032, 0.20, zc + r * 0.22, zc + 0.5, K, bevel=0.0),
+                    B.box("ms_slitl", -r, 0.24, 0.05, 0.16, zc - 0.014, zc + 0.014, K, bevel=0.0),
+                    B.box("ms_slitr", r, 0.24, 0.05, 0.16, zc - 0.014, zc + 0.014, K, bevel=0.0)])
+        B.box("ms_slitk", 0, 0.225, 0.032, 0.18, zc, zc + r * 0.26, Xm["black"], bevel=0.0, tags=tags)
+        zh = zc + r * 0.97 * COS8
+        B.box("ms_hledk", 0, 0.0875, 0.044, 0.026, zh - 0.006, zh + 0.003, Xm["black"], bevel=0.0, tags=tags)
+        B.box("ms_hled", 0, 0.0875, 0.028, 0.014, zh - 0.003, zh + 0.005, led("msl_cluster", 0.8 * led_s),
               bevel=0.0, tags=tags)
-        lathe_y("ms_tip", [(r * 0.30, 0.398), (r * 0.22, 0.42), (0.0, 0.445)], band, tags, zc=zc)
-        for s in (-1, 1):
-            fin = [(s * r * 0.7, -0.33), (s * 0.122, -0.39), (s * 0.122, -0.43), (s * r * 0.7, -0.42)]
-            if s < 0:
-                fin = list(reversed(fin))
-            fin_y(f"ms_fin{s}", fin, zc - 0.012, zc + 0.010, A, tags)
+        lathe_y("ms_tip", [(r * 0.24, 0.318), (r * 0.16, 0.335), (0.0, 0.350)], Xm["dark"], tags, zc=zc)
     else:
         # Poraque (PEM): corpo ESCURO com 3 bobinas de COBRE e frestas azuis, 2 laminas longas e varridas claras dos
-        # lados, faixa azul e o nariz escuro com o olho azul
+        # lados, faixa azul e o nariz escuro com o olho azul; trilhos claros so na frente (entre as laminas e a faixa)
         r = 0.060
-        _cradle(Xm, tags, -0.30, 0.20, 0.098, (-0.24, 0.12), zc, r)
+        _cradle(Xm, tags, -0.37, 0.24, [(0.084, 0.118, -0.03, 0.15)], zc)
         ring_y("ms_noz", -0.455, -0.415, r * 0.80, KM, tags, zc=zc, ch=0.006)
         ring_y("ms_body", -0.42, 0.13, r, Xm["dark"], tags, zc=zc, ch=0.006)
         for i, yy in enumerate((-0.20, -0.07, 0.06)):
@@ -608,11 +650,7 @@ def charge(M, Xm, tags, kind, led_s=1.0):
         og = ogive_to(r, 0.175, 0.40, r * 0.42, n=8)
         lathe_y("ms_og", og, Xm["dark"], tags, zc=zc)
         lathe_y("ms_eye", dome(0.395, 0.445, r * 0.42, p=1.8, n=5), led("msl_emp", 0.9 * led_s), tags, zc=zc)
-        for s in (-1, 1):
-            fin = [(s * r * 0.6, -0.05), (s * 0.12, -0.33), (s * 0.12, -0.41), (s * r * 0.6, -0.30)]
-            if s < 0:
-                fin = list(reversed(fin))
-            fin_y(f"ms_fin{s}", fin, zc - 0.010, zc + 0.008, A, tags)
+        _fins("ms_fin", A, tags, zc, r * 0.6, 0.12, -0.05, -0.33, -0.41, -0.30, z=(0.010, 0.008))
 
 
 def charge_part(pid, kind, accent):
