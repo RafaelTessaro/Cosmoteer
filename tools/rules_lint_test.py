@@ -439,6 +439,95 @@ class ModTests(Base):
         self.assertTrue(any('StringsFolder' in e for e in self.errors(out)), out)
 
 
+class SchemaCheckTests(unittest.TestCase):
+    """schema_check.SAME_TYPE: a field proven in HitOperational is accepted in the hit groups the game
+    itself aliases to it (missile_he l.125, bullet_deck l.152, ion_beam_overclock l.64), and nowhere else."""
+
+    CORPUS = {
+        'shots/msl/msl.rules': '''
+            Components
+            {
+                Hit
+                {
+                    Type = SimpleHit
+                    HitOperational { MediaEffectsScale = 1; MediaEffects [] }
+                }
+                Pen
+                {
+                    Type = PenetratingHit
+                    HitOperational { MediaEffectsScale = 1; MediaEffects [] }
+                    FinishedPenetratingOperational { ReduceEffectsByPenetration = true }
+                }
+                Other
+                {
+                    Type = Sprite
+                    Inner { Size = 1 }
+                }
+            }
+        ''',
+        'shots/beam/beam.rules': '''
+            HitOperational { MediaEffectsScale = 1 }
+            HitNothing { MediaEffects [] }
+        ''',
+    }
+    MOD = {
+        'shots/a/a.rules': '''
+            Components
+            {
+                Hit
+                {
+                    Type = SimpleHit
+                    HitShield { MediaEffectsScale = 0.5 }
+                    HitFriendly { MediaEffectsScale = 0.5; MediaEffectScale = 0.5 }
+                }
+                Pen
+                {
+                    Type = PenetratingHit
+                    FinishedPenetratingOperational { MediaEffectsScale = 0.5; MediaEffects [] }
+                }
+                Other
+                {
+                    Type = Sprite
+                    Inner { MediaEffectsScale = 0.5 }
+                }
+            }
+        ''',
+        'shots/b/b.rules': '''
+            HitNothing { MediaEffectsScale = 0.5 }
+            HitAttenuator { MediaEffectsScale = 0.5 }
+        ''',
+    }
+
+    def test_same_type_hit_groups(self):
+        import schema_check as SC
+        tmp = tempfile.mkdtemp(prefix='schema_check_test_')
+        try:
+            write_tree(os.path.join(tmp, 'Data'), self.CORPUS)
+            write_tree(os.path.join(tmp, 'mod'), self.MOD)
+            out = io.StringIO()
+            argv = sys.argv
+            sys.argv = ['schema_check.py', '--mod', os.path.join(tmp, 'mod'), '--vanilla', os.path.join(tmp, 'Data'),
+                        '--cache', os.path.join(tmp, 'cache')]
+            try:
+                with contextlib.redirect_stdout(out), self.assertRaises(SystemExit):
+                    SC.main()
+            finally:
+                sys.argv = argv
+            text = out.getvalue()
+            lines = [l for l in text.splitlines() if ': ' in l and not l.startswith('schema_check:')]
+            # aceitos pelo alias (mesmo tipo HitRules no jogo)
+            self.assertFalse(any("'MediaEffectsScale'" in l and 'hitshield' in l for l in lines), text)
+            self.assertFalse(any("'MediaEffectsScale'" in l and 'hitfriendly' in l for l in lines), text)
+            self.assertFalse(any('finishedpenetratingoperational' in l for l in lines), text)
+            self.assertFalse(any('R:hitnothing' in l for l in lines), text)
+            # erros reais continuam aparecendo: erro de digitacao, contexto sem alias, grupo de outro tipo
+            self.assertTrue(any("'MediaEffectScale'" in l and 'hitfriendly' in l for l in lines), text)
+            self.assertTrue(any("'MediaEffectsScale'" in l and 'N:Sprite/inner' in l for l in lines), text)
+            self.assertEqual(SC.known_fields({}, 'N:SimpleHit/hitshield'), None)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+
 REAL = os.environ.get('COSMOTEER_DATA') or RL.DEFAULT_VANILLA
 
 

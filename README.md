@@ -15,6 +15,9 @@ granadas explodindo, flak enchendo o céu e salvas de mísseis saindo em sequên
   todas com **overclock** no estilo do jogo base.
 - **Seletor de munição:** Padrão, Perfurante, Perfurante-Explosiva e P.E.M., além de **células de plasma** e
   **projéteis nucleares**.
+- **Efeitos que crescem com o calibre:** do traçante fino de 7,62 mm à granada de 406 mm e ao projétil nuclear, cada
+  arma tem clarão, impacto e tremor do seu tamanho. Os mísseis têm **arte 3D própria por tipo**, escapamento na cor
+  do tipo e explosão do tamanho do lançador. Veja [Efeitos visuais](#efeitos-visuais).
 - Versão do jogo: **0.30.4** (estável) e **0.30.5** (RC).
 - Compatível com **Star Wars: A Cosmos Divided** (SW:ACD).
 - Textos do jogo em **português (pt-BR)** e **inglês**.
@@ -30,6 +33,7 @@ granadas explodindo, flak enchendo o céu e salvas de mísseis saindo em sequên
 - [Munição e logística](#munição-e-logística)
 - [Overclock](#overclock)
 - [Mísseis de convés](#mísseis-de-convés)
+- [Efeitos visuais](#efeitos-visuais)
 - [Limites por nave](#limites-por-nave)
 - [Carreira e Construir e Batalhar](#carreira-e-construir-e-batalhar)
 - [Compatibilidade com Star Wars: A Cosmos Divided](#compatibilidade-com-star-wars-a-cosmos-divided)
@@ -59,6 +63,18 @@ Fábricas (por dentro, trabalhando, e com o teto pintado) e a munição que cada
 Ícones dos seletores de munição e de míssil:
 
 ![Ícones da interface](docs/preview/3d/icones_interface.png)
+
+Projéteis e efeitos, antes e depois desta versão (mísseis com arte própria, granadas por calibre e a rajada das
+defesas):
+
+![Efeitos antes e depois](docs/preview/3d/vfx_antes_depois.png)
+
+A escada de calibres na escala do jogo (do 7,62 mm ao nuclear; comprimentos e larguras dos traçantes iguais aos
+do jogo) e os 7 tipos de míssil em voo:
+
+![Granadas por calibre](docs/preview/3d/granadas_calibre.png)
+
+![Mísseis em voo](docs/preview/3d/misseis_em_voo.png)
 
 ## Armas por fase
 
@@ -102,8 +118,12 @@ automaticamente a partir dos dados do mod.
 Outros detalhes:
 
 - **Defesa multi-alvo:** Tatu, Tamanduá e Pororoca usam flak de explosão aérea que danifica **todos** os mísseis,
-  minas, granadas, disparos laser e tiros iônicos (inclusive os do SW:ACD) dentro da explosão. Em compensação,
-  gastam muita munição. Feixes (como o do prisma iônico) não podem ser abatidos, igual ao jogo base.
+  minas, granadas, disparos laser e tiros iônicos (inclusive os do SW:ACD) dentro da explosão. Cada rajada leva uma
+  **segunda carga, separada e mais forte, só contra lasers e tiros iônicos** (Tatu 2.000 em 4 m, Tamanduá 3.000 em
+  6 m, Pororoca 8.000 em 9 m), porque os turbolasers do SW:ACD têm muita vida; o dano contra mísseis não mudou. A
+  torre procura primeiro mísseis e minas, mira com tolerância de 3° a 4° e não volta ao centro entre um alvo e
+  outro; a Pororoca gira a 120°/s. Em compensação, gastam muita munição. Feixes contínuos (como o do prisma iônico e
+  os feixes do SW:ACD) não são projéteis e não podem ser abatidos, igual ao jogo base.
   **Só defendem:** não têm o modo Atacar, não aceitam alvo nem controle direto e a explosão não causa dano em naves
   nem em escudos. A rajada passa por cima das nossas outras torres e a torre atira mesmo com outra torre nossa na
   frente.
@@ -314,6 +334,31 @@ Cada tipo aparece no seletor do lançador e é liberado por uma tech na Carreira
 Números completos (recarga, ciclo, DPS, paiol, techs) em [docs/ARMAS.md](docs/ARMAS.md#mísseis-de-convés) e o
 projeto inteiro em [docs/MISSEIS_PROJETO.md](docs/MISSEIS_PROJETO.md).
 
+## Efeitos visuais
+
+Tudo aqui é **só visual**: nenhum número de dano, alcance, cadência ou munição muda. A tabela completa (escala de
+cada efeito por arma e por míssil) fica em [docs/ARMAS.md](docs/ARMAS.md#efeitos-visuais).
+
+- **Por calibre:** o tamanho do tiro em voo, do clarão de boca, do impacto e do tremor de tela segue o calibre:
+  7,62 < 12,7 < 20 < 30 < 76 < 155 < 406 < nuclear. Metralhadoras e autocanhões disparam traçantes na cor da
+  munição; do 76 mm para cima o tiro é uma **granada 3D** com faixa na cor da munição e traçante na base; o
+  Mapinguari e a Boiúna deixam esteira de fumaça; o projétil nuclear da Boiúna tem faixas verdes pulsando e o trevo
+  de radiação girando, e explode com um anel verde e um brilho que fica alguns segundos. Os canhões grandes soltam
+  fumaça pela culatra e a flak das defesas ficou mais limpa (menos estilhaços, rajadas mais juntas).
+- **Mísseis:** cada tipo tem arte 3D própria (3 tamanhos, um por lançador, mais ogivas, iscas, os filhotes da Piranha
+  e a carga do Carrapato), luzes piscando e um **feixe de escapamento na cor do tipo** (A.E. âmbar, napalm laranja,
+  Piranha amarela, Carrapato vermelho, P.E.M. azul, Boto branco, Iara verde). A explosão escala com o lançador
+  (micromíssil da Tocandira menor, Mula maior). O Iara tem casco escuro, faixas verdes, fogo verde e o trevo de
+  radiação, e explode com um cogumelo nuclear maior que o da Boiúna (anel verde e o mesmo tremor forte); a carga do
+  Carrapato mostra uma contagem regressiva de 2,5 s antes de explodir.
+- **Plasma:** sobre casco branco, o raio da Boitatá e do Curupira aparece como uma lança (ponta branca, corpo ciano e
+  contorno escuro), sem virar névoa clara.
+- **Setor de alcance:** todas as armas e os lançadores mostram o setor de alcance na tela, como as armas do jogo.
+
+Se algo parecer errado, pesado (FPS) ou der erro ao carregar, dá para comparar com o visual antigo: um build com
+`BS_FX_EXT=0` desliga os efeitos por calibre, a arte e os efeitos dos mísseis e o anel nuclear, e mantém as mudanças
+das defesas, o setor de alcance e o plasma (veja [docs/COMO_TESTAR.md](docs/COMO_TESTAR.md#comparar-com-o-visual-antigo-ab)).
+
 ## Limites por nave
 
 Para não ficar roubado, algumas peças têm limite por nave (o editor mostra o limite e não deixa passar dele):
@@ -339,7 +384,10 @@ Para não ficar roubado, algumas peças têm limite por nave (o editor mostra o 
 - O Bullet Strike **não substitui nenhum arquivo** do jogo nem do SW:ACD: só **adiciona** peças, recursos, techs e
   textos.
 - Todos os IDs têm prefixo próprio (`rafaeltessaro.bs_*`, `BS*`), então não há colisão de nomes.
-- As defesas miram também os tiros iônicos (`ion_shot`) e os disparos laser (turbolasers) do SW:ACD.
+- As defesas miram também os tiros iônicos (`ion_shot`) e os disparos laser (turbolasers) do SW:ACD, com uma carga
+  separada e mais forte só contra eles (veja "Outros detalhes" em [Armas por fase](#armas-por-fase)).
+  Os feixes contínuos do SW:ACD (Estrela da Morte, Super lasers, feixes *Siege*/*Artillery*) não podem ser abatidos
+  por nenhuma defesa, nem pelas do jogo: é limite do jogo.
 - O limite de armas nucleares usa o mesmo método em duas etapas do SW:ACD, então os dois mods convivem.
 - Os mísseis usam a categoria de alvo `missile`, então os pontos de defesa e as flak do jogo e do SW:ACD os derrubam;
   o seletor de míssil é próprio e não mexe no do jogo nem no do SW:ACD.
@@ -376,6 +424,9 @@ O roteiro completo, item por item, está em **[docs/COMO_TESTAR.md](docs/COMO_TE
    - [ ] O **overclock** das armas e das fábricas liga e gera calor (precisa de termodutos e radiadores).
    - [ ] Cigarra, Furacão e Boitatá **aceleram** enquanto atiram.
    - [ ] Tatu, Tamanduá e Pororoca derrubam mísseis e projéteis sozinhos (só têm defesa); o Saci, no modo Defender.
+     Com o SW:ACD, elas também derrubam os raios laser e iônicos (teste G1 do roteiro).
+   - [ ] Os efeitos crescem com o calibre e cada míssil tem a sua arte e o escapamento na cor do tipo (partes M, N e
+     O do roteiro).
    - [ ] As fábricas produzem carregadores, células de plasma e projéteis nucleares, e só animam produzindo.
    - [ ] O limite nuclear recusa uma 3ª arma nuclear (2 Mulas + 1 Boiúna), mas aceita 1 Mula + 1 Boiúna.
 
@@ -419,7 +470,14 @@ python3 tools/schema_check.py --mod BulletStrike --vanilla <pasta Data do Cosmot
 
 - Precisa de Python 3 com **Pillow** e **numpy** (`pip install pillow numpy`).
 - A pasta `Data` fica em `steamapps\common\Cosmoteer\Data`.
-- Efeitos e textos ficam em `tools/bs_data.py` e `tools/bs_strings.py`.
+- Efeitos e textos ficam em `tools/bs_data.py` e `tools/bs_strings.py`. Os efeitos por calibre saem de
+  `tools/spec/bullet_strike_vfx.json` (`tools/bsgen/caliber_fx.py`) e os dos mísseis de
+  `tools/spec/bullet_strike_missile_fx.json` (`tools/bsgen/missile_fx.py`); os dois usam o kit comum
+  `tools/bsgen/fxkit.py` e cópias de texto de arquivos de partículas do jogo (`tools/vanilla_fx/`, só com tamanho,
+  quantidade e posição ajustados).
+- **Visual antigo para comparar (A/B):** `BS_FX_EXT=0 python3 tools/build_mod.py --out <outra pasta>/BulletStrike`
+  gera o mod sem os módulos de efeito opcionais (calibre, mísseis, kit nuclear); as mudanças das defesas, o setor de
+  alcance e o plasma continuam. Com `--out`, o build nunca mexe na pasta `BulletStrike/` do repositório.
 - A arte é 3D: os modelos ficam em `tools/blender/parts/`, os renders prontos em `art3d/<peça>/` (PNGs + `meta.json`)
   e o contrato de estilo em `tools/blender/STYLE.md`. Para renderizar de novo é preciso o Blender (`bpy`); o build
   do mod só copia os renders prontos. `python3 tools/check_art3d.py todos` confere tamanhos, quadros e pilhas de
@@ -433,12 +491,16 @@ python3 tools/schema_check.py --mod BulletStrike --vanilla <pasta Data do Cosmot
 | `tools/spec/bullet_strike_missiles.json` | Projeto e números dos lança-mísseis (com as variantes de mecânica para teste) |
 | `tools/build_mod.py` | Gera o mod inteiro |
 | `tools/bsgen/` | Geradores das peças, projéteis, fábricas, recursos e lança-mísseis |
+| `tools/bsgen/caliber_fx.py` | Efeitos por calibre (projétil em voo, boca, culatra, impacto, tremor), lidos de `tools/spec/bullet_strike_vfx.json` |
+| `tools/bsgen/missile_fx.py` | Arte, escapamento e impactos dos mísseis, lidos de `tools/spec/bullet_strike_missile_fx.json` |
+| `tools/bsgen/fxkit.py` | Kit comum de efeitos (anel e brilho nucleares, trevo de radiação, sprites dos projéteis 3D) |
+| `tools/vanilla_fx/` | Cópias de texto de partículas do jogo base usadas como ponto de partida dos efeitos por calibre |
 | `tools/rules_lint.py` | Validador de arquivos `.rules` (referências, caminhos, imagens, textos) |
 | `tools/schema_check.py` | Compara os campos usados pelo mod com os do jogo base |
 | `tools/make_docs.py` | Gera `docs/ARMAS.md` |
 | `tools/make_gallery.py` | Gera as galerias de `docs/preview/3d/` |
 | `tools/blender/` | Modelos 3D, renderizador e contrato de estilo (`STYLE.md`) |
-| `art3d/` | Renders 3D de cada peça e munição, usados pelo build |
+| `art3d/` | Renders 3D de cada peça e munição (e dos projéteis: `bs_missiles`, `bs_shells`), usados pelo build |
 | `docs/ARMAS.md` | Tabelas de armas, mísseis, munições, fábricas e logística (gerado) |
 | `docs/MISSEIS_PROJETO.md` | Projeto completo dos lança-mísseis (números, testes, planos B) |
 | `docs/preview/3d/` | Logo, galerias e prévias da arte |
@@ -447,4 +509,6 @@ python3 tools/schema_check.py --mod BulletStrike --vanilla <pasta Data do Cosmot
 
 - Ideia e direção: **Rafael Tessaro**.
 - Arte 3D, regras e ferramentas feitas com ajuda do Claude (Anthropic).
-- Efeitos sonoros e partículas reaproveitam os do Cosmoteer por referência (nada do jogo é copiado para o mod).
+- Efeitos sonoros, imagens de partículas e a maior parte dos efeitos reaproveitam os do Cosmoteer por referência.
+  Alguns arquivos de partículas do jogo são copiados como texto (`tools/vanilla_fx/` e os efeitos dos mísseis), só
+  com tamanho, quantidade e posição ajustados; nenhuma imagem nem som do jogo é copiado para o mod.

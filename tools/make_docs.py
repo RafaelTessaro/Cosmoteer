@@ -295,6 +295,140 @@ def _factories_section():
     return out + [""]
 
 
+CAT_PT = {"missile": "mísseis", "mine": "minas", "bullet": "projéteis", "laser": "lasers", "ion_shot": "tiros iônicos"}
+
+
+def _defense_section():
+    """Defesas: as duas cargas da rajada (projeteis / lasers e ions do SW:ACD), giro e angulo de disparo da torre.
+    Numeros do spec (anti_projectile, rotate_speed_deg_s, fire_threshold_deg, random_offset_radius_m)."""
+    from bsgen import common as C
+    def _e(lst):
+        names = [CAT_PT[c] for c in lst]
+        return ", ".join(names[:-1]) + " e " + names[-1] if len(names) > 1 else names[0]
+    prio = _e(C.PD_PRIORITY_TARGETS)
+    sec = _e(C.PD_SECONDARY_TARGETS)
+    out = ["## Defesas (Tatu, Tamanduá e Pororoca)", "",
+           "> Cada rajada leva **duas cargas separadas**: uma contra mísseis, minas e projéteis, e outra, mais forte e "
+           "maior, "
+           "só contra os disparos laser e os tiros iônicos (os turbolasers e canhões iônicos do SW:ACD têm muita "
+           "vida). A torre procura primeiro " + prio + "; " + sec + " ficam numa segunda lista de alvos. A torre "
+           "não volta ao centro entre um alvo e outro. Feixes contínuos (o prisma iônico do jogo, os feixes do SW:ACD) "
+           "não são projéteis e não podem ser abatidos.", "",
+           "| Defesa | Codinome | Contra mísseis, minas e projéteis | Contra lasers e tiros iônicos | Por segundo "
+           "(projéteis / lasers) | Giro da torre | Atira a menos de | Espalhamento da rajada |",
+           "|---|---|---|---|---|---|---|---|"]
+    for g in D.DEFENSES:
+        w = g["spec"]
+        ap = w["anti_projectile"]
+        c = w["computed"]
+        ro = w["random_offset_radius_m"]
+        out.append(f"| **{g['name_pt']}** | {g['codename']} | {fmt(ap['damage_vs_shots'])} em {fmt2(ap['blast_radius_m'])} m | "
+                   f"{fmt(ap['damage_vs_lasers'])} em {fmt2(ap['blast_radius_vs_lasers_m'])} m | "
+                   f"{fmt(round(c['anti_shot_pool_per_s']))} / {fmt(round(c['anti_laser_pool_per_s']))} | "
+                   f"{w['rotate_speed_deg_s']}°/s | {fmt2(w['fire_threshold_deg'])}° do alvo | "
+                   f"{fmt2(ro[0])} a {fmt2(ro[1])} m |")
+    return out + [""]
+
+
+# ----------------------------------------------------------------------------- efeitos visuais
+LOOK_PT = {"tracer": "traçante", "shell": "granada 3D", "nuke_shell": "granada nuclear 3D"}
+MSL_COLOR_PT = {"he": "âmbar", "napalm": "laranja", "cluster": "amarelo", "limpet": "vermelho", "emp": "azul",
+                "torpedo": "branco-azulado", "nuclear": "verde"}
+MSL_TYPE_PT = {"he": "Jararaca / Muriçoca (A.E.)", "napalm": "Taturana / Taturana-mirim (napalm)",
+               "cluster": "Piranha (submunições)", "limpet": "Carrapato (grudento)", "emp": "Poraquê (P.E.M.)",
+               "torpedo": "Boto (torpedo com iscas)", "nuclear": "Iara (torpedo nuclear)"}
+SMOKE_PT = {"grey": "cinza", "wake": "esteira branca", "faint": "fraca", "oily": "oleosa", "nuke": "nuclear"}
+MSL_EXTRA_PT = {"he": "-",
+                "napalm": "fogo no escapamento; gotas de napalm e estilhaços térmicos no impacto",
+                "cluster": "clarão amarelo e estilhaços quando abre; filhotes só com um feixe curto, sem fumaça",
+                "limpet": "clarão vermelho ao grudar; a carga mostra uma contagem regressiva de 2,5 s (10 quadros) "
+                          "e explode com outro clarão vermelho",
+                "emp": "faíscas elétricas no escapamento",
+                "torpedo": "anel e clarão brancos no impacto; baforada e destroços na separação da ogiva; sopro x1,4 "
+                           "no lançamento",
+                "nuclear": "fogo verde, trevo de radiação girando; no impacto, anel verde, brilho residual e o tremor "
+                           "da Boiúna (0,5 por 1,5 s); abatido, "
+                           "vaza verde com um anel pequeno; baforada e destroços na separação da ogiva; sopro x1,4 e "
+                           "tremor no lançamento"}
+
+
+def _visual_section():
+    """Efeitos visuais por calibre (tools/spec/bullet_strike_vfx.json, bsgen/caliber_fx.py) e dos misseis
+    (tools/spec/bullet_strike_missile_fx.json, bsgen/missile_fx.py). Le as tabelas que o gerador usa."""
+    import json
+    spec_dir = os.path.join(HERE, "spec")
+    vfx_p = os.path.join(spec_dir, "bullet_strike_vfx.json")
+    mfx_p = os.path.join(spec_dir, "bullet_strike_missile_fx.json")
+    if not (os.path.exists(vfx_p) and os.path.exists(mfx_p)):
+        return []
+    vfx = json.load(open(vfx_p, encoding="utf-8"))
+    mfx = json.load(open(mfx_p, encoding="utf-8"))
+    out = ["## Efeitos visuais", "",
+           "> Só visual: nenhum número de dano, alcance ou cadência muda. O tamanho de tudo segue o calibre: "
+           "7,62 < 12,7 < 20 < 30 < 76 < 155 < 406 < nuclear. Escalas em relação ao efeito do jogo base que cada "
+           "arma usa (1 = tamanho do jogo). Gerado de `tools/spec/bullet_strike_vfx.json` (`tools/bsgen/caliber_fx.py`) "
+           "e `tools/spec/bullet_strike_missile_fx.json` (`tools/bsgen/missile_fx.py`). Um build com `BS_FX_EXT=0` "
+           "volta ao visual antigo (as mudanças das defesas continuam).", "",
+           "### Por calibre", "",
+           "| Arma | Codinome | Calibre | Em voo (tiles) | Clarão de boca (OC) | Fumaça na culatra | Impacto no casco | "
+           "Tremor (disparo / impacto) |",
+           "|---|---|---|---|---|---|---|---|"]
+    names = {g["short"]: g for g in D.GUNS + D.DEFENSES}
+    for short in vfx["order"]:
+        w = vfx["weapons"][short]
+        g = names.get(short)
+        pr, mz, im = w["projectile"], w["muzzle"], w["impact"]
+        mm = w["mm"]
+        cal = (fmt2(mm) + " mm") if short != "bs_nuke_howitzer" else f"{fmt2(mm)} mm (visual)"
+        if pr is None:
+            fly = "- (explode no ar)"
+        elif pr["look"] == "tracer":
+            fly = f"traçante {fmt2(pr['streak'][0])} x {fmt2(pr['streak'][1])}"
+        else:
+            fly = (f"{LOOK_PT[pr['look']]} {fmt2(pr['body'][0])} x {fmt2(pr['body'][1])} + traçante "
+                   f"{fmt2(pr['tracer'][0])}")
+            if pr.get("smoke_trail"):
+                fly += " + esteira de fumaça"
+        n_sc = mz["N"][0][1]
+        mzt = f"x{fmt2(n_sc)}" + (f" ({'x' + fmt2(mz['OC'][0][1])})" if mz.get("OC") else "")
+        breech = "sim" if any(len(e) > 2 and e[2].get("at") == "breech" for e in mz["N"]) else "-"
+        if im.get("burst"):
+            n0, n1 = im["shrapnel_n"]
+            hit = f"rajada x{fmt2(im['burst'][1])}, {n0} a {n1} estilhaços"
+        else:
+            first = next(iter(im["hull"].values()))
+            hit = f"x{fmt2(first[1])}"
+        # tremor com todas as casas (0,015 do Furacao; fmt2 arredondava para 0,01)
+        shk = lambda s: f"{s[0]:g}".replace(".", ",") if s and s[0] else "-"  # noqa: E731
+        out.append(f"| {g['name_pt'] if g else short} | **{w['codename']}** | {cal} | {fly} | {mzt} | {breech} | {hit} | "
+                   f"{shk(mz.get('shake'))} / {shk(im.get('shake'))} |")
+    out += ["", "Boitatá e Curupira têm efeitos próprios de plasma (`tools/bsgen/plasma_fx.py`); sobre casco branco o "
+            "raio aparece como uma lança com contorno escuro, sem névoa clara.", "",
+            "### Mísseis", "",
+            "> Cada tipo tem arte 3D própria (`art3d/bs_missiles`, 22 desenhos: 3 tamanhos por fase, ogivas, iscas, "
+            "filhotes e a carga do Carrapato), luzes piscando e um feixe de escapamento na cor do tipo. Fases: "
+            "s = Tocandira, m = Caipora, l = Mula-sem-Cabeça. Fumaça em partículas por segundo; impacto = escala da "
+            "explosão do jogo base.", "",
+            "| Míssil | Escapamento | Fumaça (s / m / l) | Impacto (s / m / l) | Extras |", "|---|---|---|---|---|"]
+    hms = mfx["hit_media_scale"]
+    hkey = mfx["hit_scale_key"]["main"]
+    for typ in ("he", "napalm", "cluster", "limpet", "emp", "torpedo", "nuclear"):
+        smk, imp = [], []
+        for t in ("s", "m", "l"):
+            it = mfx["items"].get(f"{typ}_{t}")
+            if it is None:
+                smk.append("-")
+                imp.append("-")
+                continue
+            sm = it["exhaust"].get("smoke")
+            smk.append(f"{SMOKE_PT[sm[0]]} {sm[1]}" if sm else "sem fumaça")
+            sc = hms.get(hkey[typ], {}).get(t)
+            imp.append(f"x{fmt2(sc)}" if sc is not None else "-")
+        out.append(f"| {MSL_TYPE_PT[typ]} | feixe {MSL_COLOR_PT[typ]} | {' / '.join(smk)} | {' / '.join(imp)} | "
+                   f"{MSL_EXTRA_PT[typ]} |")
+    return out + [""]
+
+
 def main():
     lines = ["# Bullet Strike: armas, munições e fábricas", "",
              "> Gerado automaticamente por `tools/make_docs.py` a partir de `tools/spec/bullet_strike_spec.json` e "
@@ -312,8 +446,10 @@ def main():
             w = g["spec"]
             if g in D.DEFENSES:
                 ap = w["anti_projectile"]
-                # so defesa: nenhum dano em nave, so a explosao contra projeteis
-                dps = f"só defesa: {fmt(round(ap['damage_vs_shots'] * w['fire_rate_shots_per_s']))}/s contra projéteis"
+                # so defesa: nenhum dano em nave, so a explosao contra projeteis; a carga separada contra os lasers
+                # e tiros ionicos do SW:ACD (defense_design C8) vem de damage_vs_lasers
+                dps = (f"só defesa: {fmt(round(ap['damage_vs_shots'] * w['fire_rate_shots_per_s']))}/s contra projéteis"
+                       f" e {fmt(round(ap['damage_vs_lasers'] * w['fire_rate_shots_per_s']))}/s contra laser")
                 ammo = "Carregador Padrão" if g["ammo"]["res"] != "bullet" else AMMO["bullet"]
             else:
                 dps = fmt(round(w["computed"].get("dps_hull_std", 0)))
@@ -323,6 +459,7 @@ def main():
             lines.append(f"| **{g['name_pt']}** | {g.get('codename', '')} | {w['size'][0]}x{w['size'][1]} | {w['crew']} | "
                          f"{w['range_m']} m | {dps} | {ammo} | {oc} |")
         lines.append("")
+    lines += _defense_section()
     if D.LAUNCHERS:
         lines += _missile_section()
     lines += _resources_section()
@@ -343,7 +480,8 @@ def main():
     for a in ("std", "ap", "aphe", "emp"):
         lines.append(f"| **{AMMO_NAMES[a][1]}** | {RES_NAME[res_of[a]]} | {AMMO_DESC[a][1]} |")
     lines.append("")
-    path = os.path.join(HERE, "..", "docs", "ARMAS.md")
+    lines += _visual_section()
+    path =os.path.join(HERE, "..", "docs", "ARMAS.md")
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as fh:
         fh.write("\n".join(lines))

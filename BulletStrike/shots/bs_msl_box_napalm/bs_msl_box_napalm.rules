@@ -124,7 +124,7 @@ Components
 			&<../bs_missile_fx/fire_napalm_60_s60.rules>
 			&<../bs_missile_fx/smoke_oily_15_s60.rules>
 			&<../bs_missile_fx/plume_napalm_s.rules>
-			&<../bs_missile_fx/plume_light_napalm.rules>
+			&<../bs_missile_fx/plume_light_napalm_s60.rules>
 		]
 	}
 	Targetable

@@ -105,7 +105,7 @@ Components
 				SampleMode = Linear
 			}
 			Size = [3.6, 1.76]
-			VertexColor = [124, 255, 107]
+			VertexColor = [0, 255, 0]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"
 			_z = 1
@@ -124,7 +124,7 @@ Components
 		[
 			&<../bs_missile_fx/smoke_faint_15_s80.rules>
 			&<../bs_missile_fx/plume_nuclear_decoy.rules>
-			&<../bs_missile_fx/plume_light_nuclear.rules>
+			&<../bs_missile_fx/plume_light_nuclear_s80.rules>
 		]
 	}
 	Targetable

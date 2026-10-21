@@ -750,7 +750,8 @@ def _missile_shot_spec(L, mtype, var):
          "launcher": L["id"], "tier": L["tier"], "params": mtype.get("payload_params", {}),
          "spec_files": list(var["files"]), "children": [], "extras": []}
     if mtype["id"] == "nuclear":
-        # cogumelo da Boiuna: mesmo tremor / volume do obuseiro nuclear
+        # Iara: tremor / volume do obuseiro nuclear de antes dos efeitos por calibre (0,35 / 0,5 s); com
+        # bsgen/missile_fx a ogiva troca o tremor pelo da Boiuna de hoje (0,5 / 1,5 s, tabela de calibres)
         s.update({"shake": 0.35, "volume": 1.0, "max_conc": 4})
     _PAYLOAD_SPECS.get(mtype["id"], lambda *_: None)(s, L, mtype, var)
     s["alpha"], s["eff"] = _missile_alpha_eff(s)

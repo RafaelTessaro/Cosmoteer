@@ -1,0 +1,42 @@
+// Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py).
+// Efeito de missil (bsgen/missile_fx.py)
+// Copia integral de ./Data/shots/missile_he/particles/missile_he_thruster_plume_light.rules (vanilla; igual no 0.30.3 e no SW:ACD, 0.30.4).
+// Luz do propulsor no casco (cluster, fase com fx_size 0.8): cores do tipo (canal dominante, para nao virar nevoa branca sobre casco claro) e Size x0.8.
+Type = Beam
+Sprite
+{
+	Texture
+	{
+		File = ./Data/ships/terran/thruster_small/particles/thruster_plume_light.png
+		SampleMode = Linear
+		MipLevels = max
+		UVMode = Clamp
+	}
+	Shader = ./Data/ships/terran/thruster_small/particles/thruster_plume_light.shader
+	_z = 0.3
+	_litReflectiveStrength = 24
+	_litAdditiveStrength = 0 //0.8
+	_unlitAdditiveStrength = 0 //1
+	_nrmlStrengthLimit = 1
+	_hotColor = [255, 190, 0, 255]
+	_coldColor =  [255, 120, 0, 255]
+	_pivot = 1/3
+	Size = [4.8, 2.4]
+	_lightLength = 1.25
+	TargetBlendMode
+	{
+		SourceRgbFactor = InverseDestColor
+		DestRgbFactor = One
+		RgbOperator = Add
+		SourceAlphaFactor = Zero
+		DestAlphaFactor = One
+		AlphaOperator = Add
+	}
+}
+Bucket = Upper4
+RandomTimeOffset = [0, 1]
+IntensitySmoothSpeed = 10
+RotationSmoothSpeed = 10
+SpeedOverIntensity = 0
+MaxRotationSmoothDelta = 30d
+RotationSmoothSkewMode = true

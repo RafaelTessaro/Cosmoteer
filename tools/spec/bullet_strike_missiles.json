@@ -11,7 +11,7 @@
   "NVL/NSM/NSW/NGEN/GAPS": "design research notes (vanilla launcher / special mechanics / SW:ACD / our generator / gaps); not in the repository"
  },
  "constraints": [
-  "Cosmoteer 0.30.4 + 0.30.5 RC4: vanilla component types present in 0.30.3 and RC4 only; literals everywhere; no DefaultWeaponCoverage / MatchWeaponCoverage / CoverageSectorArc / UseContiguity / AllowVertexContiguity / structural-retention globals / APPLIED_HEAT_PER_MISSILE; HealthFactor, never ScaleHealth.",
+  "Cosmoteer 0.30.4 + 0.30.5 RC4: vanilla component types present in 0.30.3 and RC4 only; literals everywhere; no DefaultWeaponCoverage / MatchWeaponCoverage / CoverageLine / AllowCustomCoverageEditing / UseContiguity / AllowVertexContiguity / structural-retention globals / APPLIED_HEAT_PER_MISSILE; HealthFactor, never ScaleHealth. CoverageSectorArc is kept on purpose on all three launchers and every weapon TurretWeapon (0.30.4 range sector; docs/MISSEIS_PROJETO.md).",
   "Deck turrets only: ProhibitedBy [tall] + tall ring, no ProhibitAbove, TurretCollider { IsHigh = true; ChainedTo = Turret }, pod on roof_doodads, cell overlays on roof_turrets; every missile/child/decoy/charge Hit has FriendlyShipLowCollisions = false, FriendlyShipHighCollisions = false and SourcePartCollisionDelay.",
   "Crew only, no power: no battery storage, TypeCategories without uses_power; IsOperational = [PowerToggle (on/off), PartCrew, ScorchedToggle (+ OC reset)].",
   "Internal stock refilled by crew: one magazine per resource family + ResourceConsumer (Weapon_Supply), outside the toggled blocks.",

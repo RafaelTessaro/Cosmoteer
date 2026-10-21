@@ -13,7 +13,8 @@ Tiro, porrada e bomba, com o motor e os números do projeto A. Três lançadores
 
 ## 2. Restrições respeitadas
 
-- Cosmoteer 0.30.4 + 0.30.5 RC4: só tipos de componente do jogo base presentes no 0.30.3 e no RC4; valores literais em toda parte; nada de `DefaultWeaponCoverage` / `MatchWeaponCoverage` / `CoverageSectorArc` / `UseContiguity` / `AllowVertexContiguity` / globais de retenção estrutural / `APPLIED_HEAT_PER_MISSILE`; `HealthFactor`, nunca `ScaleHealth`.
+- Cosmoteer 0.30.4 + 0.30.5 RC4: só tipos de componente do jogo base presentes no 0.30.3 e no RC4; valores literais em toda parte; nada de `DefaultWeaponCoverage` / `MatchWeaponCoverage` / `CoverageLine` / `AllowCustomCoverageEditing` / `UseContiguity` / `AllowVertexContiguity` / globais de retenção estrutural / `APPLIED_HEAT_PER_MISSILE`; `HealthFactor`, nunca `ScaleHealth`.
+- **`CoverageSectorArc` fica de propósito** (antes estava nesta lista de proibidos). No 0.30.3 e no 0.30.4, uma `TurretWeapon` sem `CoverageSectorArc` não desenha o setor de alcance na tela; o lançador de mísseis do jogo base no 0.30.3 (`missile_launcher_he.rules` l.135) e as torres do SW:ACD (feito para o 0.30.4) usam o bloco. Por isso os três lançadores e as 15 armas (incluindo as 3 defesas) levam `CoverageSectorArc { Texture = &/INDICATORS/VerticalGradient; VertexColor = [255, 255, 255, 51]; QuadCount = 64 }` (o Saci também `AlwaysShowCoverage = true`), gerado de `COVERAGE_SECTOR_ARC` em `tools/bsgen/common.py`. Os outros campos de cobertura (`CoverageLine`, `DefaultWeaponCoverage*`, `AllowCustomCoverageEditing`) continuam fora.
 - Só torres de convés: `ProhibitedBy [tall]` + anel `tall`, sem `ProhibitAbove`, `TurretCollider { IsHigh = true; ChainedTo = Turret }`, casulo em `roof_doodads`, sobreposições das células em `roof_turrets`; todo `Hit` de míssil, filho, isca e carga tem `FriendlyShipLowCollisions = false`, `FriendlyShipHighCollisions = false` e `SourcePartCollisionDelay`.
 - Só tripulação, sem energia: sem armazenamento de bateria, `TypeCategories` sem `uses_power`; `IsOperational` = [`PowerToggle` (liga/desliga), `PartCrew`, `ScorchedToggle` (+ reset do overclock)].
 - Estoque interno reabastecido pela tripulação: um paiol por família de recurso + `ResourceConsumer` (`Weapon_Supply`), fora dos blocos alternados.
@@ -283,13 +284,13 @@ ScorchedEffects_Rack_he / DestroyedEffects_Rack_he { ... FactorHitEffectsWith = 
 
 ## 5. Tipos de míssil
 
-**Núcleo comum.** Núcleo de míssil seguro para o convés (todo míssil, filho, isca e carga): `Hit { Type = SimpleHit (carga: PenetratingHit); FriendlyShipLowCollisions = false; FriendlyShipHighCollisions = false; SourcePartCollisionDelay = 1.5 / (&/Simulation/PhysicsUpdatesPerSecond) }`; `TargetHoming { TurnVelocity; Delay; VelocityCompensation = 60% }` SEM `AvoidanceRaycastDistance` (`AvoidsFriendlies` no padrão, teste T07); `SameShipRetarget`; `Acceleration` + `NegativeAcceleration [-90, 0]` em [0, .75] com `Direction = FrameOfReferenceVelocity`; `DeathByLifetime`; `Targetable { TargetCategory = "missile"; OnDeath = &../Hit/HitFriendly }` (abatido = apaga, sem dano em área); explosões SEM `Friendlies = true`; todo número escalável escrito como `{ BaseValue = X; EffectScaleExponent = 1 }`; sprite `missile_he.png` do jogo base escalado (`RenderBucket` BulletUpper3) + brilho na cor do tipo (BulletUpper4) + `missile_he_thruster_plume_light` (Upper4); nunca as partículas de propulsor dos buckets Lower (ficariam escondidas sob o nosso teto).
+**Núcleo comum.** Núcleo de míssil seguro para o convés (todo míssil, filho, isca e carga): `Hit { Type = SimpleHit (carga: PenetratingHit); FriendlyShipLowCollisions = false; FriendlyShipHighCollisions = false; SourcePartCollisionDelay = 1.5 / (&/Simulation/PhysicsUpdatesPerSecond) }`; `TargetHoming { TurnVelocity; Delay; VelocityCompensation = 60% }` SEM `AvoidanceRaycastDistance` (`AvoidsFriendlies` no padrão, teste T07); `SameShipRetarget`; `Acceleration` + `NegativeAcceleration [-90, 0]` em [0, .75] com `Direction = FrameOfReferenceVelocity`; `DeathByLifetime`; `Targetable { TargetCategory = "missile"; OnDeath = &../Hit/HitFriendly }` (abatido = apaga, sem dano em área); explosões SEM `Friendlies = true`; todo número escalável escrito como `{ BaseValue = X; EffectScaleExponent = 1 }`; visual na seção 15: arte 3D própria por tipo e fase (`RenderBucket` BulletUpper3, com normais) + luzes (BulletUpper4) + feixe de escapamento na cor do tipo (BulletUpper2) + fumaça (BulletUpper1); sem a arte, volta o sprite `missile_he.png` do jogo base escalado; nunca as partículas de propulsor dos buckets Lower (ficariam escondidas sob o nosso teto).
 
 | # | Codinome | Míssil (en / pt-BR) | Munição | Lançadores | Brilho |
 |---|---|---|---|---|---|
 | 0 | Jararaca | High-Explosive Missile / Míssil Alto-Explosivo | `missile_part_he` | Tocandira, Caipora, Mula-sem-Cabeça | #FFB000 âmbar |
 | 1 | Piranha | Cluster Missile (Transformer) / Míssil de Submunições | `missile_part_he` | Caipora, Mula-sem-Cabeça | #FFE45C amarelo, nariz segmentado em pétalas |
-| 2 | Carrapato | Limpet Missile / Míssil Grudento | `missile_part_he` | Caipora, Mula-sem-Cabeça | #FF3B30 vermelho, carga piscando |
+| 2 | Carrapato | Limpet Missile / Míssil Grudento | `missile_part_he` | Caipora, Mula-sem-Cabeça | #FF3B30 vermelho, carga com contagem regressiva |
 | 3 | Taturana | Napalm Missile / Míssil de Napalm | `missile_part_thermal` | Tocandira, Caipora, Mula-sem-Cabeça | #FF6A1A laranja |
 | 4 | Poraquê | EMP Missile / Míssil P.E.M. | `missile_part_emp` | Caipora, Mula-sem-Cabeça | #4FC3FF azul, anel de bobina |
 | 5 | Boto | Decoy Torpedo / Torpedo com Iscas | `missile_part_he` | Caipora, Mula-sem-Cabeça | #F4F7FF nariz branco |
@@ -330,7 +331,7 @@ ScorchedEffects_Rack_he / DestroyedEffects_Rack_he { ... FactorHitEffectsWith = 
 
 *Por que o nome:* o carrapato: morde, se agarra, e você só percebe tarde demais.
 
-- **Mecânica.** Míssil `SimpleHit`: `HitOperational` / `HitStructural` = `{ Offset = [-0.4, 0]; HitEffects [ Damage d; SpawnBullets { Bullet = &~/CHARGE; Count = 1; Distance = 0; Spread = [0d, 0d]; InheritVelocity = false }; Impulse 20 ]; MediaEffects [clangor + clarão vermelho] }`; `HitShield` = só um `ExplosiveDamage` pequeno (não gruda numa bolha). CHARGE = a receita do buzz droid do SW em tipos do jogo base (SW `buzzdroid.rules`:37-44 ímã + :78-81 rastejar): `CirclePhysics .25 Density 1`; `Speed 12`; `Magnet ProximityAcceleration { Range = 8; Acceleration = 30; naves, inimigos }`; `Hit { Type = PenetratingHit; Penetration = 1000; PenetrationSpeed = 0.05; ShieldCollisions = { Shields = false; }; opções de convés; grupos Penetrating*/FinishedPenetrating* vazios }`; `Fuse = DeathByLifetime { Lifetime = 2.5; OnDeath = BLAST { ExplosiveDamage X r; CrewKillChance = 50% } }`; SEM `Targetable` (regra literal do usuário: abatido no voo = perdido; grudado = VAI explodir; também evita que o ponto de defesa da vítima atire no próprio casco, D-B4); `AnimatedSprite` vermelho piscando (BulletUpper3) + luz; numa salva, faróis vermelhos encadeados.
+- **Mecânica.** Míssil `SimpleHit`: `HitOperational` / `HitStructural` = `{ Offset = [-0.4, 0]; HitEffects [ Damage d; SpawnBullets { Bullet = &~/CHARGE; Count = 1; Distance = 0; Spread = [0d, 0d]; InheritVelocity = false }; Impulse 20 ]; MediaEffects [clangor + clarão vermelho] }`; `HitShield` = só um `ExplosiveDamage` pequeno (não gruda numa bolha). CHARGE = a receita do buzz droid do SW em tipos do jogo base (SW `buzzdroid.rules`:37-44 ímã + :78-81 rastejar): `CirclePhysics .25 Density 1`; `Speed 12`; `Magnet ProximityAcceleration { Range = 8; Acceleration = 30; naves, inimigos }`; `Hit { Type = PenetratingHit; Penetration = 1000; PenetrationSpeed = 0.05; ShieldCollisions = { Shields = false; }; opções de convés; grupos Penetrating*/FinishedPenetrating* vazios }`; `Fuse = DeathByLifetime { Lifetime = 2.5; OnDeath = BLAST { ExplosiveDamage X r; CrewKillChance = 50% } }`; SEM `Targetable` (regra literal do usuário: abatido no voo = perdido; grudado = VAI explodir; também evita que o ponto de defesa da vítima atire no próprio casco, D-B4); corpo 3D da carga (BulletUpper3) + contagem regressiva vermelha em `AnimatedSprite` de 10 quadros a 4 quadros/s com `WrapMode = Clamp` (2,5 s, para no último quadro; sem a arte, volta a piscada vermelha em laço) + luz; numa salva, faróis vermelhos encadeados (seção 15).
 - **Especial.** Abatido no voo = perdido; acerta o casco = gruda e explode 2,5 s depois (`CrewKillChance` 50% castiga a tripulação que corre para consertar). O mesmo DPS sustentado do A.E., com outra sensação: uma contagem regressiva de faróis vermelhos.
 - **Contra-jogada.** Derrubá-lo no voo (mesmo HP do A.E.); escudos (não gruda, só um estouro de 43%); blindagem de sacrifício come a carga; afastar a tripulação do farol.
 - **Plano B (sem mudar números).** Mesma espoleta, explosão e raio em todos os passos: F1 tirar o ímã (broca pura); F2 status de peça próprio `rafaeltessaro.bs_limpet` (modelo `disruptor_drain`: `Layer = Part`; `ApplyNewInstance`; `TickInterval = 2.5`; `TickingEffects Damage`; `ParentMediaEffectsToShip`) aplicado por `StatusApplication { StatusDuration = 2.6 }` - só se o T14b provar o registro de status por mod + primeiro tick no `TickInterval` nas duas versões; F3 carga com `Speed` 0 e `Hit FrameOfReference = HitObject`; F4 último recurso: a mesma explosão no impacto. Variante isolada só do SW, `bs_msl_<l>_limpet_rep.rules`, com `Repeating { Count 1; InitialDelay 2.5; RequireHitPart true }` atrás de uma opção de build, conferida com `schema_check --extra SW` (nunca no caminho padrão). Variante opcional 'desarmável': `Targetable` 500/600 'missile' (desligada: o ponto de defesa travaria no próprio casco).
@@ -391,7 +392,7 @@ ScorchedEffects_Rack_he / DestroyedEffects_Rack_he { ... FactorHitEffectsWith = 
 
 *Por que o nome:* a sereia do rio: bonita, lenta, e quem a encontra não volta.
 
-- **Mecânica.** A mesma cadeia e o mesmo arquivo de isca compartilhado do Boto de fim de jogo; `HitOperational` da ogiva = [ `ExplosiveDamage` 120.000 r9 (`ExpandDuration .8`; `ExpandStartRadius 2`; `ExpandLoss 100%`; `ImpulsePerNDamage 10`; `NDamage 1000`; filtro só operacional); `ExplosiveDamage` 40.000 r7 só estrutural ] (literais, SEM `Friendlies`); `MediaEffects` = o cogumelo da Boiúna (partículas de `BS/shots/bs_shot_nuke_howitzer_nuclear`). No lançador: o `Autoloader_nuclear` NÃO tem o `BuffRemap` de overclock, nem calor de overclock, nem descarte (o overclock nunca encurta uma recarga nuclear - regra da Boiúna).
+- **Mecânica.** A mesma cadeia e o mesmo arquivo de isca compartilhado do Boto de fim de jogo; `HitOperational` da ogiva = [ `ExplosiveDamage` 120.000 r9 (`ExpandDuration .8`; `ExpandStartRadius 2`; `ExpandLoss 100%`; `ImpulsePerNDamage 10`; `NDamage 1000`; filtro só operacional); `ExplosiveDamage` 40.000 r7 só estrutural ] (literais, SEM `Friendlies`); `MediaEffects` = o cogumelo nuclear do jogo base (`missile_nuke_flash_light` / `flash` / `shockwave` / `hit`) com `MediaEffectsScale` 1,3 (a Boiúna, r8, usa 1,15; 1,15 x 9/8 = 1,3 deixa o anel verde logo fora do raio r9, na mesma proporção), mais o anel verde e o brilho residual do kit comum (`shots/bs_nuke_fx`, seção 15) e o tremor de tela da Boiúna (0,5 por 1,5 s, lido de `weapons.bs_nuke_howitzer.impact.shake` em `tools/spec/bullet_strike_vfx.json`). No lançador: o `Autoloader_nuclear` NÃO tem o `BuffRemap` de overclock, nem calor de overclock, nem descarte (o overclock nunca encurta uma recarga nuclear - regra da Boiúna).
 - **Especial.** O 'nuclear' do SW: só na Mula, em `bs_limit_nuke` com a Boiúna, nunca acelerado pelo overclock. Sozinho morre para a flak de área, então precisa ser MASCARADO: lance o par de Iara primeiro e dispare uma salva pesada de mísseis A.E. 1-3 s depois, para os dois chegarem juntos.
 - **Contra-jogada.** Qualquer flak de área sozinha (Tamanduá, Pororoca, flak do jogo base), dois pontos de defesa do jogo base; escudos comem a carga inteira na bolha; é lento (7,8 s até 600 m) e visível.
 - **Plano B (sem mudar números).** O mesmo plano B das iscas do Boto. Se os `CategoryLimits` falharem no 0.30.5 RC: distribuir sem limites, como a Boiúna/Mapinguari (custo, 8 peças nucleares e a recarga de 20 s ainda seguram).
@@ -963,3 +964,67 @@ Estágios do gerador (`BUILD_LAUNCHERS` / `BUILD_PAYLOADS` em `tools/bs_data.py`
   - Construir e Batalhar: a tech sempre oferecida `rafaeltessaro.bs_bb_bs_msl_box_ammo` (5.000) libera as `missile_part_he` / `missile_part_thermal` da Tocandira.
   - Limite cosmético documentado (T21, STYLE.md 8): uma salva parcial `DryFlush` ou o resto de uma salva interrompida depois de voltar ao modo começa pela última célula.
 - `tools/bs_data.py` aborta o build se o tamanho da salva, a duração da salva, o ciclo, o alfa ou o estoque de cook-off gerados divergirem dos números `computed` deste spec.
+
+## 15. Visual dos mísseis (arte própria, escapamento e impactos)
+
+Tudo nesta seção é **só visual** (regra R4 do plano de efeitos): nenhum dano, raio, HP, velocidade, alcance, recarga ou munição muda. Gerado por `tools/bsgen/missile_fx.py` a partir de `tools/spec/bullet_strike_missile_fx.json` (cópia da tabela de arte + configuração de lançamento e impacto) e de `art3d/bs_missiles/meta.json`; os arquivos de efeito vão para `shots/bs_missile_fx/` e as imagens para `shots/bs_missile_art/`. Um build com `BS_FX_EXT=0` volta ao visual da seção 5 (sprite `missile_he.png` + brilho), mantendo o resto.
+
+**Camadas, de baixo para cima:** fumaça `BulletUpper1` (partículas com `IsFancy = true`, como a fumaça do jogo base) -> feixe de escapamento e fogo `BulletUpper2` -> corpo `BulletUpper3` -> luzes e brilho `BulletUpper4`. Os impactos ficam nos buckets do jogo base.
+
+### 15.1 Arte (sprites)
+
+- 22 desenhos renderizados no Blender (`tools/blender/parts/bs_missiles.py`, contrato em `tools/blender/STYLE.md` 8.4): um por tipo e fase (`<tipo>_s` Tocandira, `_m` Caipora, `_l` Mula), mais `cluster_child` (filhote da Piranha), `limpet_charge` (carga do Carrapato), `torpedo_wh_m` / `torpedo_wh_l` (ogiva do Boto), `torpedo_decoy`, `nuclear_wh_l` (ogiva do Iara) e `nuclear_decoy`.
+- Cada desenho tem a imagem difusa iluminada pelo jogo com mapa de normais (o míssil gira em voo, a luz é simétrica em volta do eixo) e uma folha de luzes aditiva (`AnimatedSprite`) que pisca: 2 a 4 quadros na maioria, 4 quadros a 12/s no Poraquê; o filhote da Piranha não tem luzes (sprite fixo, mais barato).
+- Tamanhos em tiles: micromíssil 1 x 0,4; Caipora 1,75 x 0,6 a 0,75 (Boto 2,75 x 1); Mula 2,5 x 0,9 a 1 (Boto 3,25 x 1,25; Iara 3,75 x 1,5); filhote 0,75 x 0,4; carga 1 x 1 (x0,9 na Caipora, x1,25 na Mula).
+- Sem a arte (pasta sem `meta.json`, ou `BS_MISSILE_ART_DIR` apontando para uma pasta vazia), cada míssil volta ao corpo `missile_he.png` do jogo base no tamanho antigo e mantém o escapamento e os impactos novos.
+
+### 15.2 Escapamento
+
+- **Feixe** (`plume_<chave>.rules`): cópia de texto inteira do feixe `missile_he_thruster_plume` do jogo, no `BulletUpper2`, preso no bocal do desenho (`[nozzle, 0]`, girado 180°); só mudam as três cores e o tamanho. Cores por tipo: A.E. âmbar, napalm laranja, Piranha amarelo, Carrapato vermelho, P.E.M. azul, Boto branco-azulado, Iara verde. Mais a luz do propulsor no casco (`plume_light_<tipo>`) recolorida, com um canal dominante para não virar branco sobre casco claro, e do tamanho da fase como a fumaça: 6 × 3 tiles no fim de jogo, × 0,8 no meio de jogo e nas iscas (`plume_light_<tipo>_s80`) e × 0,6 no início (`_s60`).
+- **Fumaça** por segundo (s / m / l): A.E. nenhuma / cinza 25 / cinza 27; napalm oleosa 15 / 28 / 30 + fogo 60 / 100 / 100; Piranha cinza 25 / 35; Carrapato cinza 25 / 35; P.E.M. fraca 12 / 16 + faíscas elétricas; Boto esteira branca 55 / 70; Iara fumaça nuclear 160 + fogo verde 200; iscas fumaça fraca 15; filhotes da Piranha só um feixe curto, sem partícula nenhuma.
+- Cortes por orçamento de partículas (lista `changes` do spec): A.E. da Mula 35 -> 27/s; napalm da Caipora fumaça 40 -> 28/s e fogo 120 -> 100/s; napalm da Mula fumaça 55 -> 30/s e fogo 150 -> 100/s.
+
+### 15.3 Impactos por fase
+
+`MediaEffectsScale` nos blocos de acerto (casco, estrutura, escudo; abatido = no máximo a escala da fase), sobre as explosões do jogo base:
+
+| Tipo | Tocandira (s) | Caipora (m) | Mula (l) | Extras |
+|---|---|---|---|---|
+| A.E. | 0,45 | 0,85 | 1 | - |
+| Napalm | 0,5 | 0,8 | 1,1 | estilhaços térmicos + 8 a 14 gotas de napalm voando para dentro do alvo |
+| Piranha (abertura) | - | 0,7 | 0,9 | clarão amarelo + estilhaços; filhotes 0,5 / 0,55 |
+| Carrapato (gruda) | - | 0,5 | 0,65 | clarão vermelho ao grudar; num escudo 0,6; a carga explode a 0,75 / 1 com outro clarão vermelho |
+| Poraquê | - | 0,8 | 1 | - |
+| Boto | - | 1,3 | 1,6 | anel branco + clarão de luz branca |
+| Iara | - | - | 1,3 | cogumelo do jogo + anel verde (`bs_nuke_ring`, ~10 tiles) + brilho residual de 3 s (`bs_nuke_afterglow`); tremor 0,5 por 1,5 s, o mesmo da Boiúna |
+| Iscas | - | 0,4 | 0,45 | - |
+
+### 15.4 Lançamento, separação e abate
+
+- **Lançamento:** o clarão do jogo base mais um clarão na cor do tipo; Boto e Iara soltam o sopro `cannon_smoke_deck` em escala x1,4 (cópia de texto escalada); o Iara ainda dá um tremor de tela de 0,06.
+- **Separação do Boto e do Iara (1,5 s):** baforada branca (Boto) ou verde (Iara) + 1 a 3 destroços girando (`small_part_explode_debris` do jogo).
+- **Iara abatido:** clarão nuclear do jogo + vazamento verde + anel pequeno (`bs_nuke_ring_small`, 2 -> 6 tiles).
+
+### 15.5 O visual do Iara
+
+Casco escuro com chevrons e faixas verdes que pulsam (4 quadros a 6/s), fogo do propulsor tingido de verde (HSV 120 / 1 / 3,5; o do jogo é laranja), fumaça nuclear, e o trevo de radiação do míssil nuclear do jogo (`radiation.png` grande com luz, 7 tiles girando a 120°/s, + `radiation_small.png` de 0,7 tile girando a 360°/s sobre a ogiva). A luz grande usa verde puro `[0, 255, 0]`: com o verde do contrato (`[90, 255, 60]`) as pás saíam brancas sobre casco claro (achado do kit comum, `tools/bsgen/fxkit.py`). Pelo mesmo motivo a luz do bocal (`GlowSprite`) do estágio 1, da ogiva e das iscas do Iara também é `[0, 255, 0]` (antes `[124, 255, 107]`, que saía branca em casco branco, cinza e escuro), e a do Poraquê é `[0, 90, 255]` (antes `[79, 195, 255]`); tabela `HULL_GLOW` em `tools/bsgen/missile_fx.py`. As iscas do Iara não têm trevo.
+
+### 15.6 A contagem regressiva do Carrapato
+
+A carga grudada troca a piscada do jogo pela própria arte (`limpet_charge`) e por uma folha de 10 quadros a 4 quadros/s com `WrapMode = Clamp`: começa no quadro 0 quando a carga nasce e para no último quadro aos 2,5 s, exatamente quando a espoleta (`DeathByLifetime 2.5`) explode. Plano B (T-M4 do roteiro de testes): tirar o campo `wrap` do item `limpet_charge` em `art3d/bs_missiles/meta.json` (volta a piscada em laço) ou testar sem a arte.
+
+### 15.7 Orçamento de partículas (vivas em regime)
+
+| Cenário | Orçamento | Gerado |
+|---|---|---|
+| Mula A.E., 48 mísseis em 6,3 s (até 30 no ar) | ~800 | ~810 |
+| Mula A.E., impactos da mesma salva | ~300-400 | ~220 |
+| Caipora napalm, 16 mísseis | ~1.000 | ~982 |
+| Par de Iara (estágio 1 / ogivas + 12 iscas) | ~700 | ~180 / ~342 |
+| Filhotes da Piranha (até 96) | 0 | 0 |
+
+Tudo abaixo de um único míssil A.E. do jogo base (800 de fogo + 60 de fumaça por segundo). Se o FPS cair no teste T-M6, o plano B é tirar a fumaça (`IsFancy`) e cortar a emissão pela metade.
+
+### 15.8 Testes no jogo
+
+Os itens T-M1 a T-M8 de `docs/COMO_TESTAR.md` (parte M) conferem: o feixe aparece por cima do nosso casco e por baixo do corpo (T-M1), `MediaEffectsScale` escala de verdade as explosões (T-M2), a fumaça e o fogo de cada tipo (T-M3), a contagem do Carrapato começa no quadro 0 e para (T-M4), as luzes e o trevo do Iara aparecem (T-M5), o FPS com uma salva de 48 A.E. + 16 napalm (T-M6), a escala ao lado dos mísseis do SW:ACD (T-M7) e os detalhes de cada tipo (T-M8). Cada item diz o plano B.

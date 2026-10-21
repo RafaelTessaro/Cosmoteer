@@ -18,6 +18,7 @@ Arquivos gerados (shots/bs_missile_fx/):
   plume_<chave>        feixe do propulsor: COPIA INTEGRAL do missile_he_thruster_plume.rules vanilla (Beam), Bucket
                        BulletUpper2 (acima dos tetos, abaixo do corpo BulletUpper3), cores e tamanho da tabela;
   plume_light_<tipo>   luz do propulsor no casco: copia integral do missile_he_thruster_plume_light.rules, recolorida;
+                       nas linhas com fx_size < 1 (fases s e m, iscas) plume_light_<tipo>_s60 / _s80, Size x fx_size;
   smoke_<estilo>_<n>   fumaca: copia integral do missile_he_thruster_smoke.rules (nuke: missile_nuke_thruster_smoke),
                        Bucket BulletUpper1, n particulas/s, vida / valor / alfa / tamanho do estilo;
   fire_<estilo>_<n>    fogo do propulsor: copia integral do missile_thermal_thruster_fire.rules (nuke:
@@ -62,6 +63,18 @@ _UNSET = object()
 META = _UNSET               # meta.json da arte (dict | None), lido no annotate (ou no copy_art)
 
 HIT_BLOCKS = ("HitOperational", "HitStructural", "HitShield", "HitFriendly")
+
+# Cor do GlowSprite do bocal (IsLight, fancy_light, _litReflectiveStrength 24) por tipo, no lugar da glow_color do
+# bs_data: com [124, 255, 107] (Iara) ou [79, 195, 255] (P.E.M.) os tres canais saturam no casco e a luz sai BRANCA
+# em casco branco, cinza e escuro (modelo de luz do WP2; a mesma falha que a granada da Boiuna ja corrigiu). Um canal
+# so fica colorido: verde puro na Iara (fxkit.NUKE_GREEN_HULL, a mesma cor do trevo grande e da luz do propulsor) e
+# azul quase puro no P.E.M. (no casco claro fica ciano, nunca branco). Os outros tipos ficam com a cor de hoje.
+HULL_GLOW = {"nuclear": FX.NUKE_GREEN_HULL, "emp": [0, 90, 255]}
+
+# Tremor do impacto da ogiva da Iara = o da granada da Boiuna (weapons.bs_nuke_howitzer.impact.shake na tabela de
+# calibres): a Iara (r9) nao pode tremer menos que a Boiuna (r8). Lido do json, sem importar caliber_fx.
+CAL_SPEC_PATH = os.path.join(ROOT, "tools", "spec", "bullet_strike_vfx.json")
+SHAKE_BASE = "/BASE_SHAKE"
 
 
 # ----------------------------------------------------------------------------- arte (meta.json)
@@ -190,6 +203,18 @@ def fire_name(typ, ex):
     return f"fire_{typ}_{_int(ex['fire_eps'])}" + _size_tag(ex.get("fx_size", 1.0))
 
 
+# filhotes da Piranha: shots.build_missile_part chama visual_components com plume=False (desempenho), entao nunca
+# levam luz do propulsor; nao gerar o arquivo deles (ficaria sem uso)
+NO_PLUME_LIGHT = {"cluster_child"}
+
+
+def plume_light_name(typ, ex):
+    """Luz do propulsor no casco por tipo e por tamanho da fase (fx_size: s 0,6 / m 0,8 / l 1), como o feixe e a
+    fumaca: o mesmo 6x3 no micromissil da Tocandira (1 x 0,375) e no da Mula deixava a luz do micro do tamanho da do
+    missil grande. fx_size 1 = o nome de antes (plume_light_<tipo>)."""
+    return f"plume_light_{typ}" + _size_tag(ex.get("fx_size", 1.0))
+
+
 def _size_tag(size):
     return "" if abs(size - 1.0) < 1e-9 else f"_s{_int(round(size * 100))}"
 
@@ -223,7 +248,8 @@ def visual_components(s, glow=True, plume=True):
     """Seam S2: componentes de voo do missil (substituem os de shots._missile_visuals).
       corpo: arte propria (fxkit.art_sprite_components: Sprite iluminado + normais, atlas de luzes aditivo) ou o
         corpo vanilla de hoje no tamanho de hoje;
-      brilho: o GlowSprite de hoje (shots._glow_sprite), no bocal da arte quando ha arte;
+      brilho: o GlowSprite de hoje (shots._glow_sprite), no bocal da arte quando ha arte; Iara e P.E.M. com a cor de
+        um canal so (HULL_GLOW), para nao virar luz branca no casco;
       escapamento: MediaEffects no bocal, Rotation 180d (missile_he.rules l.96-108): fogo + fumaca + feixe + luz.
         plume=False (submunicao da Piranha, por desempenho): so o feixe pequeno, e nem ele com performance_strip;
       P.E.M.: o crepitar vanilla num segundo MediaEffects (MediaEffects3 do missile_emp.rules l.121-128);
@@ -247,7 +273,7 @@ def visual_components(s, glow=True, plume=True):
         nozzle = s["plume_offset"]
         length = s["sprite_wh"][0]
     if glow:
-        g = SH._glow_sprite(s["sprite_wh"][0], s["glow_color"], s["glow_size"])
+        g = SH._glow_sprite(s["sprite_wh"][0], HULL_GLOW.get(typ, s["glow_color"]), s["glow_size"])
         if art:
             g["Offset"] = [nozzle, 0]
         comps["GlowSprite"] = g
@@ -259,7 +285,7 @@ def visual_components(s, glow=True, plume=True):
     if ex.get("beam_size") and (plume or glow):
         media.append(_media(f"plume_{key}"))
     if plume and ex.get("beam_size"):
-        media.append(_media(f"plume_light_{typ}"))
+        media.append(_media(plume_light_name(typ, ex)))
     if media:
         comps["MediaEffects"] = {"Type": "MediaEffects", "Offset": [nozzle, 0], "Rotation": "180d",
                                  "MediaEffects": media}
@@ -325,6 +351,27 @@ def _decorate_hit(hit, op_scale, shield_scale, friendly_scale, impact, shot_down
             hit[k] = _set_scale(v, op_scale)
 
 
+def _cal_nuke_shake():
+    """(ShakeAmount, Duration) do impacto da Boiuna na tabela de calibres."""
+    with open(CAL_SPEC_PATH, encoding="utf-8") as fh:
+        amt, dur = json.load(fh)["weapons"]["bs_nuke_howitzer"]["impact"]["shake"][:2]
+    return amt, dur
+
+
+def _nuke_shake(hit):
+    """Troca o /BASE_SHAKE do HitOperational da ogiva da Iara (0,35 / 0,5 s de shots._missile_media) pelo tremor da
+    Boiuna. O HitShield usa &../HitOperational/MediaEffects e o HitStructural = &HitOperational: herdam a troca."""
+    op = next((v for k, v in hit.items() if _base(k) == "HitOperational" and isinstance(v, dict)), None)
+    lst = op.get("MediaEffects") if op else None
+    if not isinstance(lst, list):
+        raise ValueError("missile_fx: ogiva da Iara sem lista MediaEffects no HitOperational")
+    idx = [i for i, e in enumerate(lst) if getattr(e, "base", None) == SHAKE_BASE]
+    if len(idx) != 1:
+        raise ValueError(f"missile_fx: ogiva da Iara com {len(idx)} tremor(es) {SHAKE_BASE} no HitOperational")
+    amt, dur = _cal_nuke_shake()
+    lst[idx[0]] = type(lst[idx[0]])(SHAKE_BASE, {"ShakeAmount": amt, "Duration": dur})
+
+
 def _insert_after(d, after, items):
     """Copia de d com os pares de items logo depois da chave after (ordem do arquivo)."""
     out = {}
@@ -362,6 +409,8 @@ def decorate(s, top):
     hit = comps.get("Hit")
     if isinstance(hit, dict):
         _decorate_hit(hit, scale, shield, min(1.0, scale), impact, shot_down)
+        if typ == "nuclear" and role == "warhead":
+            _nuke_shake(hit)
     # Piranha: abertura do cardume (BURST na raiz, usado pelos tres gatilhos)
     if role == "main" and isinstance(top.get("BURST"), dict):
         _add_media(top["BURST"], T.get("burst", []))
@@ -474,14 +523,24 @@ def plume_text(key):
                               f"tetos, abaixo do corpo BulletUpper3), cores e tamanho da tabela.", edits)
 
 
-def plume_light_text(typ):
+def plume_light_text(typ, size=1.0):
+    """size = fx_size da fase: so o Size [6, 3] escala; _lightLength fica 1.25, como no jogo base (a luz do
+    propulsor da tripulacao, Size [9/10, 6/10], e a do propulsor pequeno, [9, 6], usam os dois 1.25)."""
     hot, cold = TYPES[typ]["plume_light"]
 
     def edits(t, rel):
         t = _sub(t, "_hotColor = [255, 145, 28, 255]", f"_hotColor = {_col(hot)}", rel)
-        return _sub(t, "_coldColor =  [247, 29, 0, 255]", f"_coldColor =  {_col(cold)}", rel)
-    return _vendored("plume_light", f"Luz do propulsor no casco ({typ}): so as cores mudam (canal dominante, para nao "
-                                    f"virar nevoa branca sobre casco claro).", edits)
+        t = _sub(t, "_coldColor =  [247, 29, 0, 255]", f"_coldColor =  {_col(cold)}", rel)
+        if _size_tag(size):
+            t = _sub(t, "\tSize = [6, 3]\n", f"\tSize = [{_num(6 * size)}, {_num(3 * size)}]\n", rel)
+        return t
+    if _size_tag(size):
+        note = (f"Luz do propulsor no casco ({typ}, fase com fx_size {_num(size)}): cores do tipo (canal dominante, "
+                f"para nao virar nevoa branca sobre casco claro) e Size x{_num(size)}.")
+    else:
+        note = (f"Luz do propulsor no casco ({typ}): so as cores mudam (canal dominante, para nao virar nevoa branca "
+                f"sobre casco claro).")
+    return _vendored("plume_light", note, edits)
 
 
 def smoke_text(style, eps, size):
@@ -613,7 +672,7 @@ def misc_texts():
 def all_files():
     """{nome sem extensao: texto} de tudo o que vai para shots/bs_missile_fx/."""
     files = {}
-    smokes, fires, kinds = set(), set(), set()
+    smokes, fires, kinds, lights = set(), set(), set(), set()
     for key, it in ITEMS.items():
         ex = it.get("exhaust")
         if not ex:
@@ -624,9 +683,13 @@ def all_files():
             smokes.add((smoke_name(ex), ex["smoke"][0], ex["smoke"][1], ex.get("fx_size", 1.0)))
         if ex.get("fire_eps"):
             fires.add((fire_name(it["type"], ex), it["type"], ex["fire_eps"], ex.get("fx_size", 1.0)))
+        if ex.get("beam_size") and key not in NO_PLUME_LIGHT and _size_tag(ex.get("fx_size", 1.0)):
+            lights.add((plume_light_name(it["type"], ex), it["type"], ex["fx_size"]))
     for typ in sorted(kinds | set(TYPES)):
         files[f"plume_light_{typ}"] = plume_light_text(typ)
         files[f"launch_flash_{typ}"] = launch_flash_text(typ)
+    for name, typ, size in sorted(lights):
+        files[name] = plume_light_text(typ, size)
     for name, style, eps, size in sorted(smokes):
         files[name] = smoke_text(style, eps, size)
     for name, typ, eps, size in sorted(fires):

@@ -139,7 +139,7 @@ Components
 				SampleMode = Linear
 			}
 			Size = [6, 2.93]
-			VertexColor = [124, 255, 107]
+			VertexColor = [0, 255, 0]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"
 			_z = 1

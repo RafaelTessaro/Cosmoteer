@@ -82,7 +82,6 @@ Components
 			[
 				&<./Data/shots/bullet_deck/particles/bullet_flash_deck.rules>
 				&<./Data/shots/bullet_deck/particles/bullet_hit_deck_sparks.rules>
-				&<./Data/shots/missile_nuke/particles/missile_nuke_shockwave.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds

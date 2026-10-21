@@ -93,7 +93,9 @@ sai clarão e som, e o tiro chega no alvo dentro do alcance.
   Perfurante-Explosiva, branco-azulado na Perfurante, azul no P.E.M.; o plasma é ciano. Tambor, Trovão, Mapinguari
   e Boiúna disparam granadas com rastro de fogo na cor da munição (verde na Boiúna). O jogo não fica lento com
   várias Cigarras atirando (as armas rápidas não têm rastro de partículas). O tamanho de cada tiro agora segue o
-  calibre: confira na parte [N](#n-efeitos-por-calibre-t-cal-1-a-t-cal-6).
+  calibre: confira na parte [N](#n-efeitos-por-calibre-t-cal-1-a-t-cal-6). O traçante do 7,62 mm (Marimbondo e
+  Cigarra) é o mais fino de todos, mas ainda tem que dar para ver de longe; se sumir, anote: aí eu engrosso o
+  risco.
 - [ ] **B19** **Fogo amigo:** duas Marimbondo/Mangangá/Curupira e uma Tamanduá lado a lado, alvo ao longo da
   fileira: nenhum acerto nem clarão de flak nas torres vizinhas, e as torres atiram mesmo com outra torre nossa na
   frente. Se uma torre logo embaixo do cano de outra ainda levar dano, anote qual arma atirou. A Tamanduá só
@@ -225,19 +227,20 @@ da instalação). Os nomes das armas do SW aparecem em inglês no editor.
 
 - 5 barcaças-alvo iguais (mesma placa de blindagem, reator, tripulação e munição cheia com **Reabastecer todos os
   recursos**), uma defesa em cada:
-  - **A1:** 1 Tatu · **A2:** 1 Tamanduá · **A3:** 1 Pororoca
-  - **A4:** 1 Matriz flak do jogo (controle: **tem** que atirar nos raios)
-  - **A5:** 1 Sistema de ponto de defesa do jogo (controle: **não** pode atirar nos raios)
+  - **Alvo 1:** 1 Tatu · **Alvo 2:** 1 Tamanduá · **Alvo 3:** 1 Pororoca
+  - **Alvo 4:** 1 Matriz flak do jogo (controle: **tem** que atirar nos raios)
+  - **Alvo 5:** 1 Sistema de ponto de defesa do jogo (controle: **não** pode atirar nos raios)
 - **Naves salvas com a versão do primeiro teste (antes da 9874a40):** antes de começar, ponha o modo de tiro de cada
   Tatu, Tamanduá e Pororoca em **Disparar à vontade** (veja G3). Se ficou gravado "Disparar no alvo", a defesa nunca
   atira, e o teste não vale.
 - Nave inimiga do SW a uns 300 m, **um tipo de arma por rodada**:
-  - **B1:** 2× *Medium Turbolaser* (raio verde, 196 m/s, 1.000 de vida)
-  - **B2:** 1× *Heavy Turbolaser* (80 m/s, 4.000 de vida)
-  - **B3:** *Dual Laser Cannon* (repetidor, 350 m/s, 210 de vida)
-  - **B4:** *Lançador de míssil e mina* do jogo com mísseis A.E. (para ver se nada piorou)
-  - **B5** (só contra Tamanduá e Pororoca): *Dual 70TT Superheavy Turbolaser* (o Siege 12×12, que dispara raios de
-    concussão pesados de 20.000 de vida)
+  - **Ataque 1:** 2× *Medium Turbolaser* (raio vermelho por padrão; a cor muda no botão da peça; 140 m/s, 2.000 de
+    vida)
+  - **Ataque 2:** 1× *Heavy Turbolaser* (80 m/s, 4.000 de vida)
+  - **Ataque 3:** *Dual Laser Cannon* (repetidor, 350 m/s, 210 de vida)
+  - **Ataque 4:** *Lançador de míssil e mina* do jogo com mísseis A.E. (para ver se nada piorou)
+  - **Ataque 5** (só contra Tamanduá e Pororoca): *Dual 70TT Superheavy Turbolaser* (o Siege 12×12, que dispara
+    raios de concussão pesados de 20.000 de vida)
 - Use armas que disparam **raios** (tiros soltos). Os **feixes contínuos** do SW (Estrela da Morte, os "Super"
   lasers, os feixes *Siege*/*Artillery Turbolaser Beam*, SPHA-T) **nunca** podem ser abatidos, por nenhuma defesa: é
   limite do jogo, não é falha.
@@ -264,13 +267,13 @@ da instalação). Os nomes das armas do SW aparecem em inglês no editor.
 - Começa a atirar até ~1 s depois que o primeiro raio entra no alcance.
 - Raios destruídos:
 
-  | Defesa | B1 (médio) | B2 (pesado) | B3 (repetidor) | B5 (concussão) | B4 (mísseis A.E.) |
+  | Defesa | Ataque 1 (médio) | Ataque 2 (pesado) | Ataque 3 (repetidor) | Ataque 5 (concussão) | Ataque 4 (mísseis A.E.) |
   |---|---|---|---|---|---|
   | Tatu | ≥ 80 % | ≥ 80 % (2 rajadas por raio) | derruba alguns | não testa | ≥ 95 % |
   | Tamanduá | ≥ 95 % | ≥ 95 % | anote | ≥ 80 % | ≥ 95 % |
   | Pororoca | ≥ 70 % | ≥ 95 % | anote | ≥ 90 % | ≥ 95 % |
 
-- A4 (Matriz flak) atira no B1; A5 (ponto de defesa) ignora o B1.
+- Alvo 4 (Matriz flak) atira no Ataque 1; Alvo 5 (ponto de defesa) ignora o Ataque 1.
 - O Tatu gasta no máximo 1 unidade de munição do jogo por raio médio destruído.
 
 **Se ainda falhar**
@@ -278,8 +281,8 @@ da instalação). Os nomes das armas do SW aparecem em inglês no editor.
 | O que você vê | Causa provável | O que eu faço |
 |---|---|---|
 | Gira para os raios e o Part Debugger mostra alvo, mas não atira | condição de disparo (ângulo) | te mando uma versão de teste com tolerância de 10°, depois de 30° (o valor da Matriz flak), sem mudar mais nada |
-| Não gira para os raios, mas gira para os mísseis do B4, e a Matriz flak (A4) atira nos raios | escolha de alvo da nossa torre | aproximo a torre da Matriz flak, um passo por vez: (1) volta a nota de poder de fogo; (2) uma lista de alvos só; (3) aceita alvo do jogador; (4) tira "atirar com a visada bloqueada" |
-| Nem a Matriz flak (A4) atira nos raios do SW | limite do jogo ou do SW | troco por um projeto que não depende de alvo: granada com espoleta de proximidade contra laser/íon, ou um campo de estilhaços como a nuvem do overclock da Pororoca |
+| Não gira para os raios, mas gira para os mísseis do Ataque 4, e a Matriz flak (Alvo 4) atira nos raios | escolha de alvo da nossa torre | aproximo a torre da Matriz flak, um passo por vez: (1) volta a nota de poder de fogo; (2) uma lista de alvos só; (3) aceita alvo do jogador; (4) tira "atirar com a visada bloqueada" |
+| Nem a Matriz flak (Alvo 4) atira nos raios do SW | limite do jogo ou do SW | troco por um projeto que não depende de alvo: granada com espoleta de proximidade contra laser/íon, ou um campo de estilhaços como a nuvem do overclock da Pororoca |
 | Não atira nem em Disparar automaticamente | montagem | confira munição, tripulação e se a peça está danificada ou queimada |
 | Não dá para saber se a torre tem alvo (sem Part Debugger) | falta informação | rode a rodada de novo com a [versão de diagnóstico](#4-dicas); se a luz acende e ela não atira, é a 1ª linha; se não acende, é a 2ª |
 
@@ -381,7 +384,7 @@ carregou (o resto dos efeitos continua): anote.
 | Carrapato (grudento) | jato vermelho, fumaça cinza | clarão vermelho ao grudar; carga com contagem de LEDs; clarão vermelho ao explodir |
 | Poraquê (P.E.M.) | jato azul, fumaça fraca e faíscas elétricas azuis | 0,8× / 1× |
 | Boto (torpedo) | jato branco-azulado e esteira de fumaça branca | 1,3× / 1,6×, com anel branco e clarão branco |
-| Iara (nuclear) | jato verde, fogo verde, fumaça nuclear | explosão nuclear do jogo 1,1×, anel verde e brilho verde que fica uns 3 s |
+| Iara (nuclear) | jato verde, fogo verde, fumaça nuclear | explosão nuclear do jogo 1,3× (maior que a da Boiúna), anel verde até ~10 tiles, tremor forte como o da Boiúna e brilho verde que fica uns 3 s |
 
 - [ ] **T-M1** **Jato por cima do convés e por baixo do corpo.** Dispare salvas de cada lançador por cima do nosso
   convés (com o teto ligado) e olhe o míssil saindo.
@@ -412,7 +415,9 @@ carregou (o resto dos efeitos continua): anote.
   escuro.
   - **Passa se:** os LEDs e as faixas acesas brilham por cima do corpo iluminado (sem quadrados escuros). No Iara, o
     trevo pequeno gira por cima da ogiva e a luz grande em forma de trevo gira no casco por baixo dele, **verde**
-    (não branca) inclusive sobre casco branco. As iscas do Iara não têm trevo (de propósito, veja O8).
+    (não branca) inclusive sobre casco branco. A luz do bocal do Iara (e das iscas dele) também é verde, e a do
+    Poraquê é azul: nenhuma pode virar uma mancha branca no casco. As iscas do Iara não têm trevo (de propósito,
+    veja O8).
   - **Se falhar:** luzes sumindo ou quadrados escuros: anote o tipo. Trevo branco sobre casco branco: eu baixo a
     força da luz.
 - [ ] **T-M6** **Desempenho com salva grande.** Uma Mula com 48 Jararacas e uma Caipora com 16 Taturanas disparando
@@ -486,7 +491,8 @@ a tela de leve).
     Perfurante-Explosiva, azul no P.E.M.). Padrão e P.E.M. usam a granada explosiva (nariz com espoleta, cinta de
     cobre); Perfurante e Perfurante-Explosiva, a perfurante (ogiva longa com capuz escuro). Na Boiúna: granada cinza
     com 2 faixas verdes piscando, um trevo pequeno girando por cima e, no casco, uma luz verde grande em forma de
-    trevo girando por baixo (verde, não branca, inclusive sobre casco branco). No impacto: o cogumelo nuclear do
+    trevo girando por baixo (verde, não branca, inclusive sobre casco branco). O brilho em volta da granada também
+    é verde: o trevo não pode sumir dentro de uma mancha branca no casco. No impacto: o cogumelo nuclear do
     jogo, um anel verde que abre até ~9 tiles e um brilho verde fraco que fica uns 3 s (sobre casco branco, no
     máximo um verde-menta fraco; o anel fica quase branco sobre casco branco, isso é normal). Abatida no ar: clarão
     nuclear e um anel verde pequeno. Mapinguari e Boiúna deixam uma esteira de fumaça que **fica parada no espaço**
@@ -517,9 +523,8 @@ a tela de leve).
 Aqui não tem certo ou errado: para cada item, diga **aprovo** ou o que prefere. Tudo isso é só visual (não muda
 dano nem nada do jogo), exceto a opção dos canos em sequência do O5.
 
-- [ ] **O1** **Acerto no escudo sem fumaça.** O tiro que bate no escudo agora mostra só clarão e faíscas (e, do
-  76 mm para cima, um anel de distorção), sem fumaça nem destroços, que só fazem sentido no casco. Antes era igual ao
-  acerto no casco.
+- [ ] **O1** **Acerto no escudo sem fumaça.** O tiro que bate no escudo agora mostra só clarão e faíscas, sem
+  fumaça nem destroços, que só fazem sentido no casco. Antes era igual ao acerto no casco.
 - [ ] **O2** **Menos estilhaços na flak.** Tatu e Tamanduá soltam 30 a 40 estilhaços por rajada (antes 150 a 200) e
   a Pororoca 100 a 120; as rajadas também ficaram mais juntas. Pesa muito menos no jogo, mas fica mais "leve".
   Aprova ou quer mais?
@@ -593,7 +598,7 @@ Para cada item que falhou, me mande:
 4. Se o jogo travou: as primeiras linhas do erro (acima de `--- End of inner exception stack trace ---`).
 
 Para o **G1**, mande as anotações de cada rodada (a, b, c), o que o Part Debugger mostrou e o resultado das
-barcaças de controle (A4 e A5). Para a parte **O**, basta dizer "aprovo" ou o que prefere em cada item.
+barcaças de controle (Alvo 4 e Alvo 5). Para a parte **O**, basta dizer "aprovo" ou o que prefere em cada item.
 
 Vários itens dos mísseis têm um **plano B** pronto no gerador, que muda o mecanismo sem mudar os números; então,
 se algo de H falhar, eu já tenho por onde corrigir rápido. O mesmo vale para as partes M e N: cada teste já diz

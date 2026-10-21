@@ -232,7 +232,7 @@ Components
 				MipLevels = max
 				SampleMode = Linear
 			}
-			Size = [2.2, 0.14]
+			Size = [2.2, 0.18]
 			VertexColor = [255, 170, 60]
 			TargetBlendMode = Add
 		}

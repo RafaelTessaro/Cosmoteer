@@ -179,6 +179,7 @@ Components
 				}
 			]
 			MediaEffects = &../HitOperational/MediaEffects
+			MediaEffectsScale = 1.4
 		}
 	}
 	Sprite
@@ -280,7 +281,7 @@ Components
 				SampleMode = Linear
 			}
 			Size = [30, 15]
-			VertexColor = [120, 255, 60]
+			VertexColor = [0, 255, 0]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"
 			_z = 1

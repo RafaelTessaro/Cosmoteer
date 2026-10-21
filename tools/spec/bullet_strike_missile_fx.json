@@ -1,6 +1,6 @@
 {
  "version": 1,
- "note": "Efeitos dos misseis do Bullet Strike (bsgen/missile_fx.py). items = copia de vfx_design/missiles/missile_art_table.json (chaves = itens de art3d/bs_missiles/meta.json), mais exhaust.fx_size (fator do tamanho da fumaca/fogo vanilla); as mudancas de numero estao em changes. Cores em bytes [R, G, B, A]; tamanhos em tiles.",
+ "note": "Efeitos dos misseis do Bullet Strike (bsgen/missile_fx.py). items = copia de vfx_design/missiles/missile_art_table.json (chaves = itens de art3d/bs_missiles/meta.json), mais exhaust.fx_size (fator do tamanho da fumaca/fogo vanilla e da luz do propulsor no casco); as mudancas de numero estao em changes. Cores em bytes [R, G, B, A]; tamanhos em tiles.",
  "px_per_tile": 64,
  "items": {
   "he_s": {
@@ -59,7 +59,7 @@
       255
      ]
     ],
-    "plume_light": "bs_missile_fx/plume_light_he.rules",
+    "plume_light": "bs_missile_fx/plume_light_he_s60.rules",
     "smoke": null,
     "fire_eps": null,
     "fx_size": 0.6
@@ -121,7 +121,7 @@
       255
      ]
     ],
-    "plume_light": "bs_missile_fx/plume_light_napalm.rules",
+    "plume_light": "bs_missile_fx/plume_light_napalm_s60.rules",
     "smoke": [
      "oily",
      15
@@ -186,7 +186,7 @@
       255
      ]
     ],
-    "plume_light": "bs_missile_fx/plume_light_he.rules",
+    "plume_light": "bs_missile_fx/plume_light_he_s80.rules",
     "smoke": [
      "grey",
      25
@@ -251,7 +251,7 @@
       255
      ]
     ],
-    "plume_light": "bs_missile_fx/plume_light_cluster.rules",
+    "plume_light": "bs_missile_fx/plume_light_cluster_s80.rules",
     "smoke": [
      "grey",
      25
@@ -316,7 +316,7 @@
       255
      ]
     ],
-    "plume_light": "bs_missile_fx/plume_light_limpet.rules",
+    "plume_light": "bs_missile_fx/plume_light_limpet_s80.rules",
     "smoke": [
      "grey",
      25
@@ -381,7 +381,7 @@
       255
      ]
     ],
-    "plume_light": "bs_missile_fx/plume_light_napalm.rules",
+    "plume_light": "bs_missile_fx/plume_light_napalm_s80.rules",
     "smoke": [
      "oily",
      28
@@ -446,7 +446,7 @@
       255
      ]
     ],
-    "plume_light": "bs_missile_fx/plume_light_emp.rules",
+    "plume_light": "bs_missile_fx/plume_light_emp_s80.rules",
     "smoke": [
      "faint",
      12
@@ -1249,7 +1249,7 @@
       255
      ]
     ],
-    "plume_light": "bs_missile_fx/plume_light_torpedo.rules",
+    "plume_light": "bs_missile_fx/plume_light_torpedo_s80.rules",
     "smoke": [
      "faint",
      15
@@ -1379,7 +1379,7 @@
       255
      ]
     ],
-    "plume_light": "bs_missile_fx/plume_light_nuclear.rules",
+    "plume_light": "bs_missile_fx/plume_light_nuclear_s80.rules",
     "smoke": [
      "faint",
      15
@@ -1425,7 +1425,7 @@
    "l": 1.6
   },
   "nuclear": {
-   "l": 1.1
+   "l": 1.3
   },
   "decoy_pop": {
    "m": 0.4,
@@ -1895,6 +1895,13 @@
   }
  },
  "changes": [
+  {
+   "item": "hit_media_scale.nuclear",
+   "field": "l",
+   "design": 1.1,
+   "now": 1.3,
+   "why": "a Iara (r9) tem que parecer um nuclear maior que a granada da Boiuna (r8, 1.15): 1.15 x 9/8 = 1.3 mantem o anel verde logo fora do raio da explosao, como na Boiuna; tremor 0.5 / 1.5 s igual ao da Boiuna (missile_fx.decorate)"
+  },
   {
    "item": "napalm_m",
    "field": "exhaust.smoke",

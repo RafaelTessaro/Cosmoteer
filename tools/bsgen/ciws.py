@@ -281,10 +281,13 @@ def build_ciws(c, beam_path, beam_oc_path):
     comp[C.comment("---- graficos ----")] = None
     deck_graphics(comp, c, geo, [f"Emitter{i + 1}Trigger" for i in range(nb)], recoil_interval=0.03)
     if dbg:
-        # build de diagnostico: luz extra do teto (lights.png, a mesma da peca) ligada pela propria torre. Toggles
-        # = [Turret] em MultiToggle: chaingun.rules 0.30.3 l.473, manipulator_beam_emitter.rules 0.30.3 l.175
+        # build de diagnostico: luz extra do teto (lights.png, a mesma da peca) ligada pela propria torre. A arma
+        # entra como toggle so dentro de um MultiToggle (Toggles = [Turret], Mode = Any), como no jogo base:
+        # chaingun.rules 0.30.3 l.470-474 (EitherWeaponIsTargeting), manipulator_beam_emitter.rules 0.30.3 l.175.
+        # Arma direto em OperationalToggle nao tem precedente no 0.30.3 nem no SW:ACD (0.30.4): nao usar.
+        comp["DebugTargetToggle"] = {"Type": "MultiToggle", "Toggles": ["Turret"], "Mode": "Any"}
         comp["DebugTargetLight"] = {
-            "Type": "Graphics", "Location": center, "OperationalToggle": "Turret",
+            "Type": "Graphics", "Location": center, "OperationalToggle": "DebugTargetToggle",
             "OperationalLighting": {"Layer": Q("lights_add"),
                                     "DamageLevels": [{"File": Q("lights.png"), "Size": [w, h]}]}}
 

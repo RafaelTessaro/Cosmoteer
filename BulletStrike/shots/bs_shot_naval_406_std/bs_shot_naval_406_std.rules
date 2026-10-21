@@ -67,7 +67,6 @@ Components
 			[
 				&<./Data/shots/bullet_deck/particles/bullet_flash_deck.rules>
 				&<./Data/shots/bullet_deck/particles/bullet_hit_deck_sparks.rules>
-				&<./Data/shots/missile_nuke/particles/missile_nuke_shockwave.rules>
 				&<./Data/shots/missile_he/particles/missile_he_hit.rules>
 				&<./Data/shots/missile_he/particles/missile_he_flash.rules>
 				: /BASE_SOUNDS/AudioExterior
@@ -249,7 +248,6 @@ Components
 				&<./Data/shots/missile_he/particles/missile_he_flash.rules>
 				&<./Data/shots/missile_he/particles/missile_he_smoke.rules>
 				&<./Data/common_effects/particles/explosions/big_part_explode_debris.rules>
-				&<./Data/shots/missile_nuke/particles/missile_nuke_shockwave.rules>
 				: /BASE_SOUNDS/AudioExterior
 				{
 					RandomSounds

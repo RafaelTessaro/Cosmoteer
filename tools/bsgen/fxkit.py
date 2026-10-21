@@ -389,7 +389,8 @@ FANCY_LIGHT = f"{D}/common_effects/fancy_light.shader"
 # zero em ~0,92): quadro de 18 tiles = borda a ~7,7 tiles, o raio da explosao (Boiuna 8, Iara 9). Crescimento
 # LINEAR (Lerp na vida, como o vanilla) de 2 a 18 tiles em 0,8 s = acompanha a frente de dano da Iara
 # (ExplosiveDamage ExpandStartRadius 2 / ExpandDuration 0,8, tambem linear). O tamanho passa por
-# ScaleToWorldSpace: o MediaEffectsScale do bloco de impacto multiplica o anel (Boiuna 1,15 = borda a ~8,8 tiles).
+# ScaleToWorldSpace: o MediaEffectsScale do bloco de impacto multiplica o anel (Boiuna 1,15 = borda a ~8,8 tiles;
+# Iara 1,3 = ~10 tiles, a mesma folga sobre o raio 9).
 # Brilho residual: luz particle_light (LightQuadRenderer) de 14 tiles que acende em ~0,6 s e apaga em 3 s: o casco
 # em volta do impacto fica verde depois que o clarao vanilla (missile_nuke_flash_light, 0,5 s) some.
 # Intensidade (licao do plasma, X3: luz forte sobre casco branco vira nevoa clara): particle_light.shader devolve

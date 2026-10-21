@@ -121,7 +121,7 @@ Components
 		[
 			&<../bs_missile_fx/smoke_grey_25_s80.rules>
 			&<../bs_missile_fx/plume_he_m.rules>
-			&<../bs_missile_fx/plume_light_he.rules>
+			&<../bs_missile_fx/plume_light_he_s80.rules>
 		]
 	}
 	Targetable

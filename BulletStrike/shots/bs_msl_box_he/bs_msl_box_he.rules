@@ -117,7 +117,7 @@ Components
 		Type = MediaEffects
 		Offset = [-0.47, 0]
 		Rotation = 180d
-		MediaEffects = [&<../bs_missile_fx/plume_he_s.rules>, &<../bs_missile_fx/plume_light_he.rules>]
+		MediaEffects = [&<../bs_missile_fx/plume_he_s.rules>, &<../bs_missile_fx/plume_light_he_s60.rules>]
 	}
 	Targetable
 	{

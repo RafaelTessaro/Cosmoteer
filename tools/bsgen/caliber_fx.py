@@ -732,6 +732,9 @@ def _shell_components(s, v, trail_ref):
         x, wh = lay["head"]
         comps["HeadSprite"] = _blob("BulletUpper2", wh, WHITE_HOT, x)
     x, wh = lay["glow"]
+    # nuclear: ammo_colors.nuclear.glow = [0, 255, 0] no spec (= fxkit.NUKE_GREEN_HULL). O brilho de 30x15 fica em
+    # cima do trevo; com o verde do design [120, 255, 60] e forca 24 os tres canais estouravam e o casco virava uma
+    # mancha branca em volta do trevo (modelo WP2/light_model.py); com um canal so fica verde nos tres cascos
     comps["GlowSprite"] = _glow(wh, col["glow"], x, pr.get("glow_z", 0), 0.125)
     if nuke:
         big, small = pr["spin_big"], pr["spin_small"]
@@ -892,8 +895,13 @@ def _decorate_explosive(s, top, v):
     op = hit["HitOperational"]
     op["MediaEffects"] = _media(refs, op.get("MediaEffects"), shake)
     op["MediaEffectsScale"] = _mes(hmes)
-    # HitShield explicito da Boiuna (dano proprio) ja usa &../HitOperational/MediaEffects: mesma midia. Sem
-    # MediaEffectsScale nele: no SimpleHit o campo so aparece no HitOperational (corpus vanilla + SW:ACD); fica x1.
+    # HitShield explicito da Boiuna (dano proprio) ja usa &../HitOperational/MediaEffects: mesma midia, e agora a
+    # mesma escala (1,15; OC 1,4), senao o acerto no escudo tocava o cogumelo x1. HitShield e HitOperational de um
+    # SimpleHit sao o mesmo tipo de bloco (missile_he.rules l.125 "HitShield = &HitOperational"; schema_check
+    # SAME_TYPE), e o HitShield da ogiva da Iara (SimpleHit) ja leva MediaEffectsScale no mesmo build (missile_fx).
+    sh = hit.get("HitShield")
+    if isinstance(sh, dict):
+        sh["MediaEffectsScale"] = _mes(hmes)
     if imp.get("shot_down"):
         tg = comps.get("Targetable")
         if isinstance(tg, dict) and isinstance(tg.get("OnDeath"), dict):

@@ -1,7 +1,7 @@
 {
  "version": 1,
  "px_per_tile": 64,
- "note": "Efeitos por calibre do Bullet Strike, lidos por tools/bsgen/caliber_fx.py (copia da tabela aprovada vfx_design/caliber/caliber_vfx_table.json + extensoes do gerador). muzzle = [fonte, escala, opcoes] por cano/disparo (copias escaladas por Renderer.BaseSize em shots/bs_cal_fx/); impact = [preset, MediaEffectsScale]; tamanhos em quadros (1 quadro = 1 m = 64 px). Linhas com mm = null (plasma) sao puladas. Campos 'now' = como era antes desta tabela (so documentacao).",
+ "note": "Efeitos por calibre do Bullet Strike, lidos por tools/bsgen/caliber_fx.py (copia da tabela aprovada vfx_design/caliber/caliber_vfx_table.json + extensoes do gerador). muzzle = [fonte, escala, opcoes] por cano/disparo (copias escaladas por Renderer.BaseSize em shots/bs_cal_fx/); impact = [preset, MediaEffectsScale]; tamanhos em quadros (1 quadro = 1 m = 64 px). Linhas com mm = null (plasma) sao puladas. Campos 'now' = como era antes desta tabela (so documentacao). Tracante 7,62 mm (bs_lmg, bs_minigun): risco 0,18 de largura (o design dizia 0,14; os mocks aprovados desenhavam os riscos 2,2x mais largos que o Size do jogo, ~0,31, e o 0,14 no jogo ficava um fio; 0,18 segue c^0,6 a partir do 12,7 mm e fica abaixo dos 0,22 dele).",
  "laws": {
   "body_width": "c^0.6",
   "cannon_flame": "sqrt(c/155) x cannon_shoot_deck",
@@ -131,9 +131,9 @@
     200
    ],
    "glow": [
-    120,
+    0,
     255,
-    60
+    0
    ],
    "band": [
     120,
@@ -300,8 +300,7 @@
    "missile_he/particles/missile_he_hit",
    "missile_he/particles/missile_he_flash",
    "missile_he/particles/missile_he_smoke",
-   "../common_effects/particles/explosions/big_part_explode_debris",
-   "missile_nuke/particles/missile_nuke_shockwave"
+   "../common_effects/particles/explosions/big_part_explode_debris"
   ],
   "EMP_FAST": [
    "disruptor_bolt/particles/disruptor_bolt_hit_orb",
@@ -328,13 +327,11 @@
   ],
   "SH_L": [
    "bullet_large/particles/bullet_flash_large",
-   "bullet_large/particles/bullet_hit_large_sparks",
-   "missile_nuke/particles/missile_nuke_shockwave"
+   "bullet_large/particles/bullet_hit_large_sparks"
   ],
   "SH_D": [
    "bullet_deck/particles/bullet_flash_deck",
-   "bullet_deck/particles/bullet_hit_deck_sparks",
-   "missile_nuke/particles/missile_nuke_shockwave"
+   "bullet_deck/particles/bullet_hit_deck_sparks"
   ],
   "SH_HE": [
    "missile_he/particles/missile_he_hit",
@@ -378,7 +375,7 @@
     "look": "tracer",
     "streak": [
      2.2,
-     0.14
+     0.18
     ],
     "core": [
      0.75,
@@ -472,7 +469,7 @@
     "look": "tracer",
     "streak": [
      2.6,
-     0.14
+     0.18
     ],
     "core": [
      0.85,
@@ -1995,5 +1992,5 @@
    "note": "classe visual ~155 mm; o caliber_fx PULA esta arma"
   }
  },
- "x2": "Revisao da escada (X2): na escala real o tiro do Tambor 76 mm parecia mais fraco que os tracantes de 20/30 mm e o Trovao 155 mm so empatava com o 30 mm. Regra: cada linha de canhao (76, 155, 406, nuclear) >= 1,2x o maior peso visual das linhas de calibre menor (ladder.py do WP3, painel 1x). head = clarao branco-quente na base do tracante."
+ "x2": "Revisao da escada (X2): na escala real o tiro do Tambor 76 mm parecia mais fraco que os tracantes de 20/30 mm e o Trovao 155 mm so empatava com o 30 mm. Regra: cada linha de canhao (76, 155, 406, nuclear) >= 1,2x o maior peso visual das linhas de calibre menor (ladder.py do WP3, painel 1x). head = clarao branco-quente na base do tracante. A escada publicada (docs/preview/3d/granadas_calibre.png) desenha os riscos com a largura do jogo (sheet.DRAW_W = 1); a regra continua valendo nessa medida."
 }

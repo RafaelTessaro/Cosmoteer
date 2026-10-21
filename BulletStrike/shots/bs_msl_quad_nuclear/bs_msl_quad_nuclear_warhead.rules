@@ -94,7 +94,7 @@ Components
 				SampleMode = Linear
 			}
 			Size = [6, 2.93]
-			VertexColor = [124, 255, 107]
+			VertexColor = [0, 255, 0]
 			TargetBlendMode = Add
 			Shader = "./Data/common_effects/fancy_light.shader"
 			_z = 1
@@ -200,7 +200,7 @@ Components
 					}
 				}
 			]
-			MediaEffectsScale = 1.1
+			MediaEffectsScale = 1.3
 			MediaEffects = &../HitOperational/MediaEffects
 		}
 		HitOperational
@@ -244,7 +244,7 @@ Components
 					}
 				}
 			]
-			MediaEffectsScale = 1.1
+			MediaEffectsScale = 1.3
 			MediaEffects
 			[
 				&<./Data/shots/missile_nuke/particles/missile_nuke_flash_light.rules>
@@ -262,8 +262,8 @@ Components
 				}
 				: /BASE_SHAKE
 				{
-					ShakeAmount = 0.35
-					Duration = 0.5
+					ShakeAmount = 0.5
+					Duration = 1.5
 				}
 			]
 		}

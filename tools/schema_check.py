@@ -26,6 +26,44 @@ ENUM_FIELDS = {"mode", "modificationmode", "targettype", "direction", "layer", "
                "animationstarttime", "renderbucket", "buffmode", "type", "rarity", "healthtype"}
 ID_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
+# Grupos de acerto que o JOGO mostra serem do mesmo tipo (Cosmoteer.Bullets.Hits.HitRules): o proprio jogo atribui
+# um ao outro por referencia, entao um campo provado num deles vale nos outros. Sem isto o corpus acusa, por exemplo,
+# MediaEffectsScale no HitShield de um SimpleHit so porque o jogo nunca escreveu o HitShield por extenso.
+# Contexto do mod -> contextos do corpus cujos campos tambem valem (precedente vanilla 0.30.x em cada linha).
+SAME_TYPE = {
+    # missile_he.rules l.125: "HitShield = &HitOperational" (SimpleHit)
+    "N:SimpleHit/hitshield": ("N:SimpleHit/hitoperational",),
+    # missile_he.rules l.117 "OnDeath = &../Hit/HitFriendly" e mine.rules l.78 "OnDeath = &~/Components/Hit/HitOperational":
+    # HitFriendly e HitOperational cabem no mesmo campo OnDeath
+    "N:SimpleHit/hitfriendly": ("N:SimpleHit/hitoperational",),
+    # bullet_railgun.rules l.61: "HitCrew = &HitOperational"
+    "N:PenetratingHit/hitcrew": ("N:PenetratingHit/hitoperational",),
+    # disruptor_bolt_overclock.rules l.46: "PenetratingOperational : ^/0/HitOperational"
+    "N:PenetratingHit/penetratingoperational": ("N:PenetratingHit/hitoperational",),
+    # bullet_deck.rules l.147: "PenetratingStructural : &HitStructural"
+    "N:PenetratingHit/penetratingstructural": ("N:PenetratingHit/hitstructural",),
+    # bullet_deck.rules l.152: "FinishedPenetratingOperational = &PenetratingOperational" (+ a linha acima)
+    "N:PenetratingHit/finishedpenetratingoperational": ("N:PenetratingHit/penetratingoperational",
+                                                        "N:PenetratingHit/hitoperational"),
+    # bullet_deck.rules l.153: "FinishedPenetratingStructural = &PenetratingStructural"
+    "N:PenetratingHit/finishedpenetratingstructural": ("N:PenetratingHit/penetratingstructural",
+                                                       "N:PenetratingHit/hitstructural"),
+    # raiz de arquivo de feixe (Beam): ion_beam.rules l.161 "HitShield = &HitOperational";
+    # ion_beam_overclock.rules l.62-64 "HitShield/HitCrew/HitNothing = &HitOperational"
+    "R:hitshield": ("R:hitoperational",),
+    "R:hitcrew": ("R:hitoperational",),
+    "R:hitnothing": ("R:hitoperational",),
+}
+
+
+def known_fields(corpus, sig):
+    """Campos que o corpus aceita no contexto sig: os dele mais os dos contextos do mesmo tipo (SAME_TYPE).
+    None quando nem o contexto nem os equivalentes aparecem no corpus."""
+    sets = [corpus[s] for s in (sig,) + SAME_TYPE.get(sig, ()) if s in corpus]
+    if not sets:
+        return None
+    return set().union(*sets)
+
 
 def iter_nodes(node):
     yield node
@@ -150,7 +188,7 @@ def main():
                 print(f"{rel}:{n.line}: Type '{sig[2:]}' nunca usado pelo jogo")
                 problems += 1
                 continue
-            known = corpus.get(sig)
+            known = known_fields(corpus, sig)
             if known is None:
                 if sig.startswith("N:"):
                     print(f"{rel}:{n.line}: grupo '{n.name}' ({sig}) nunca aparece nesse contexto no jogo")

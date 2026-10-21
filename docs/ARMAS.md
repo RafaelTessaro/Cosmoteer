@@ -10,7 +10,7 @@
 | **Metralhadora Leve de Convés** | Marimbondo | 1x1 | 1 | 220 m | 260 | Munição avulsa (jogo base) | - |
 | **Metralhadora Pesada de Convés** | Mangangá | 1x2 | 1 | 240 m | 540 | Munição avulsa (jogo base) | - |
 | **Canhão Automático de Convés 20 mm** | Carcará | 2x2 | 1 | 250 m | 1.000 | Munição avulsa (jogo base) | - |
-| **Flak Leve de Convés** | Tatu | 2x2 | 1 | 180 m | só defesa: 3.000/s contra projéteis | Munição avulsa (jogo base) | - |
+| **Flak Leve de Convés** | Tatu | 2x2 | 1 | 180 m | só defesa: 3.000/s contra projéteis e 6.000/s contra laser | Munição avulsa (jogo base) | - |
 
 ## Meio de jogo
 
@@ -20,7 +20,7 @@
 | **Minigun de Convés** | Cigarra | 2x3 | 2 | 300 m | 2.040 | Carregadores (Padrão/Perfurante/Perf.-Explosiva/P.E.M.) | Bafo de Dragão |
 | **Canhão Naval Automático 76 mm** | Tambor | 3x4 | 3 | 340 m | 3.750 | Carregadores (Padrão/Perfurante/Perf.-Explosiva/P.E.M.) | Salva Rápida |
 | **Gatling de Plasma** | Boitatá | 2x3 | 2 | 320 m | 1.600 | Células de plasma | Sobrecarga |
-| **CIWS de Convés** | Tamanduá | 3x3 | 2 | 250 m | só defesa: 10.000/s contra projéteis | Carregador Padrão | Barragem |
+| **CIWS de Convés** | Tamanduá | 3x3 | 2 | 250 m | só defesa: 10.000/s contra projéteis e 15.000/s contra laser | Carregador Padrão | Barragem |
 
 ## Fim de jogo
 
@@ -31,7 +31,17 @@
 | **Canhão de Plasma Pesado** | Curupira | 4x5 | 4 | 550 m | 5.400 | Células de plasma | Erupção Solar |
 | **Obuseiro Nuclear de Convés** | Boiúna | 5x6 | 6 | 600 m | 8.000 | Projéteis nucleares | Fat Boy (carga reforçada) |
 | **Torre Naval Tripla 406 mm** | Mapinguari | 6x7 | 10 | 600 m | 16.000 | Carregadores (Padrão/Perfurante/Perf.-Explosiva/P.E.M.) | Bordada Total |
-| **Bateria Flak Pesada** | Pororoca | 4x4 | 4 | 320 m | só defesa: 12.000/s contra projéteis | Carregador Padrão | Muralha de Flak |
+| **Bateria Flak Pesada** | Pororoca | 4x4 | 4 | 320 m | só defesa: 12.000/s contra projéteis e 24.000/s contra laser | Carregador Padrão | Muralha de Flak |
+
+## Defesas (Tatu, Tamanduá e Pororoca)
+
+> Cada rajada leva **duas cargas separadas**: uma contra mísseis, minas e projéteis, e outra, mais forte e maior, só contra os disparos laser e os tiros iônicos (os turbolasers e canhões iônicos do SW:ACD têm muita vida). A torre procura primeiro mísseis e minas; projéteis, lasers e tiros iônicos ficam numa segunda lista de alvos. A torre não volta ao centro entre um alvo e outro. Feixes contínuos (o prisma iônico do jogo, os feixes do SW:ACD) não são projéteis e não podem ser abatidos.
+
+| Defesa | Codinome | Contra mísseis, minas e projéteis | Contra lasers e tiros iônicos | Por segundo (projéteis / lasers) | Giro da torre | Atira a menos de | Espalhamento da rajada |
+|---|---|---|---|---|---|---|---|
+| **Flak Leve de Convés** | Tatu | 1.000 em 3 m | 2.000 em 4 m | 3.000 / 6.000 | 240°/s | 4° do alvo | 0,5 a 2 m |
+| **CIWS de Convés** | Tamanduá | 2.000 em 4,5 m | 3.000 em 6 m | 10.000 / 15.000 | 240°/s | 4° do alvo | 0,5 a 2,5 m |
+| **Bateria Flak Pesada** | Pororoca | 4.000 em 7 m | 8.000 em 9 m | 12.000 / 24.000 | 120°/s | 3° do alvo | 1 a 4 m |
 
 ## Mísseis de convés
 
@@ -187,3 +197,41 @@ Ao trocar de munição, cada modo continua com o próprio depósito na arma (Per
 | **Perfurante** | Carregador Perfurante | Penetradores endurecidos que atravessam blindagem (a blindagem resiste só 60% do normal) e destroem o que está atrás, com metade do dano em cada peça depois da primeira. Fracos contra escudos. |
 | **Perfurante-Explosiva** | Carregador Perfurante | Atravessa uma ou duas placas de blindagem e então detona DENTRO do casco inimigo. |
 | **P.E.M.** | Carregador P.E.M. | Cada acerto drena a energia de escudos e peças energizadas. Menos dano ao casco, mas ótima contra naves que dependem de energia e escudos. |
+
+## Efeitos visuais
+
+> Só visual: nenhum número de dano, alcance ou cadência muda. O tamanho de tudo segue o calibre: 7,62 < 12,7 < 20 < 30 < 76 < 155 < 406 < nuclear. Escalas em relação ao efeito do jogo base que cada arma usa (1 = tamanho do jogo). Gerado de `tools/spec/bullet_strike_vfx.json` (`tools/bsgen/caliber_fx.py`) e `tools/spec/bullet_strike_missile_fx.json` (`tools/bsgen/missile_fx.py`). Um build com `BS_FX_EXT=0` volta ao visual antigo (as mudanças das defesas continuam).
+
+### Por calibre
+
+| Arma | Codinome | Calibre | Em voo (tiles) | Clarão de boca (OC) | Fumaça na culatra | Impacto no casco | Tremor (disparo / impacto) |
+|---|---|---|---|---|---|---|---|
+| Metralhadora Leve de Convés | **Marimbondo** | 7,62 mm | traçante 2,2 x 0,18 | x0,42 | - | x0,6 | - / - |
+| Minigun de Convés | **Cigarra** | 7,62 mm | traçante 2,6 x 0,18 | x0,5 (x0,6) | - | x0,6 | - / - |
+| Metralhadora Pesada de Convés | **Mangangá** | 12,7 mm | traçante 3 x 0,22 | x0,6 | - | x0,75 | - / - |
+| Metralhadora Pesada Quádrupla | **Saci** | 12,7 mm | traçante 3,4 x 0,22 | x0,6 (x0,75) | - | x0,75 | - / - |
+| Canhão Automático de Convés 20 mm | **Carcará** | 20 mm | traçante 3,6 x 0,3 | x0,85 | - | x0,8 | 0,01 / - |
+| Canhão Rotativo Pesado 30 mm | **Furacão** | 30 mm | traçante 4 x 0,36 | x1,15 (x1,45) | - | x1 | 0,015 / - |
+| Canhão Naval Automático 76 mm | **Tambor** | 76 mm | granada 3D 0,72 x 0,26 + traçante 5,5 | x0,65 (x0,8) | sim | x0,9 | 0,05 / 0,05 |
+| Canhão Naval Duplo 155 mm | **Trovão** | 155 mm | granada 3D 1,15 x 0,4 + traçante 6 | x1 (x1,25) | sim | x1 | 0,12 / 0,15 |
+| Torre Naval Tripla 406 mm | **Mapinguari** | 406 mm | granada 3D 2,05 x 0,72 + traçante 6,5 + esteira de fumaça | x1,6 (x2) | sim | x1,5 | 0,12 / 0,25 |
+| Obuseiro Nuclear de Convés | **Boiúna** | 420 mm (visual) | granada nuclear 3D 2,2 x 0,86 + traçante 5 + esteira de fumaça | x1,65 | sim | x1,15 | 0,3 / 0,5 |
+| Flak Leve de Convés | **Tatu** | 40 mm | - (explode no ar) | x0,6 | - | rajada x0,6, 30 a 40 estilhaços | - / - |
+| CIWS de Convés | **Tamanduá** | 35 mm | - (explode no ar) | x0,7 (x0,85) | - | rajada x0,7, 30 a 40 estilhaços | - / - |
+| Bateria Flak Pesada | **Pororoca** | 57 mm | - (explode no ar) | x1,1 (x1,3) | - | rajada x1,3, 100 a 120 estilhaços | - / 0,03 |
+
+Boitatá e Curupira têm efeitos próprios de plasma (`tools/bsgen/plasma_fx.py`); sobre casco branco o raio aparece como uma lança com contorno escuro, sem névoa clara.
+
+### Mísseis
+
+> Cada tipo tem arte 3D própria (`art3d/bs_missiles`, 22 desenhos: 3 tamanhos por fase, ogivas, iscas, filhotes e a carga do Carrapato), luzes piscando e um feixe de escapamento na cor do tipo. Fases: s = Tocandira, m = Caipora, l = Mula-sem-Cabeça. Fumaça em partículas por segundo; impacto = escala da explosão do jogo base.
+
+| Míssil | Escapamento | Fumaça (s / m / l) | Impacto (s / m / l) | Extras |
+|---|---|---|---|---|
+| Jararaca / Muriçoca (A.E.) | feixe âmbar | sem fumaça / cinza 25 / cinza 27 | x0,45 / x0,85 / x1 | - |
+| Taturana / Taturana-mirim (napalm) | feixe laranja | oleosa 15 / oleosa 28 / oleosa 30 | x0,5 / x0,8 / x1,1 | fogo no escapamento; gotas de napalm e estilhaços térmicos no impacto |
+| Piranha (submunições) | feixe amarelo | - / cinza 25 / cinza 35 | - / x0,7 / x0,9 | clarão amarelo e estilhaços quando abre; filhotes só com um feixe curto, sem fumaça |
+| Carrapato (grudento) | feixe vermelho | - / cinza 25 / cinza 35 | - / x0,5 / x0,65 | clarão vermelho ao grudar; a carga mostra uma contagem regressiva de 2,5 s (10 quadros) e explode com outro clarão vermelho |
+| Poraquê (P.E.M.) | feixe azul | - / fraca 12 / fraca 16 | - / x0,8 / x1 | faíscas elétricas no escapamento |
+| Boto (torpedo com iscas) | feixe branco-azulado | - / esteira branca 55 / esteira branca 70 | - / x1,3 / x1,6 | anel e clarão brancos no impacto; baforada e destroços na separação da ogiva; sopro x1,4 no lançamento |
+| Iara (torpedo nuclear) | feixe verde | - / - / nuclear 160 | - / - / x1,3 | fogo verde, trevo de radiação girando; no impacto, anel verde, brilho residual e o tremor da Boiúna (0,5 por 1,5 s); abatido, vaza verde com um anel pequeno; baforada e destroços na separação da ogiva; sopro x1,4 e tremor no lançamento |

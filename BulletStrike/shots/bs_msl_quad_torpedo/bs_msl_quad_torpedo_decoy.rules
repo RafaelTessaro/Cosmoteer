@@ -124,7 +124,7 @@ Components
 		[
 			&<../bs_missile_fx/smoke_faint_15_s80.rules>
 			&<../bs_missile_fx/plume_torpedo_decoy.rules>
-			&<../bs_missile_fx/plume_light_torpedo.rules>
+			&<../bs_missile_fx/plume_light_torpedo_s80.rules>
 		]
 	}
 	Targetable
