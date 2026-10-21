@@ -1,0 +1,625 @@
+{
+ "version": 1,
+ "kind": "shells",
+ "id": "rafaeltessaro.bs_shells2",
+ "px_per_tile": 128,
+ "items": {
+  "he_s": {
+   "size": [
+    2.0,
+    0.7
+   ],
+   "px": [
+    256,
+    90
+   ],
+   "file": "bs_shell_he_s.png",
+   "normals": "bs_shell_he_s_normals.png",
+   "lights": {
+    "file": "bs_shell_he_s_lights.png",
+    "frames": 2,
+    "frame_px": [
+     256,
+     90
+    ],
+    "per_row": 2,
+    "fps": 4,
+    "wrap": null
+   },
+   "mask": "bs_shell_band_he_s.png",
+   "nozzle": [
+    -0.97,
+    0
+   ],
+   "anchors": {}
+  },
+  "ap_s": {
+   "size": [
+    2.0,
+    0.7
+   ],
+   "px": [
+    256,
+    90
+   ],
+   "file": "bs_shell_ap_s.png",
+   "normals": "bs_shell_ap_s_normals.png",
+   "lights": {
+    "file": "bs_shell_ap_s_lights.png",
+    "frames": 2,
+    "frame_px": [
+     256,
+     90
+    ],
+    "per_row": 2,
+    "fps": 4,
+    "wrap": null
+   },
+   "mask": "bs_shell_band_ap_s.png",
+   "nozzle": [
+    -0.97,
+    0
+   ],
+   "anchors": {}
+  },
+  "sap_s": {
+   "size": [
+    2.0,
+    0.7
+   ],
+   "px": [
+    256,
+    90
+   ],
+   "file": "bs_shell_sap_s.png",
+   "normals": "bs_shell_sap_s_normals.png",
+   "lights": {
+    "file": "bs_shell_sap_s_lights.png",
+    "frames": 2,
+    "frame_px": [
+     256,
+     90
+    ],
+    "per_row": 2,
+    "fps": 4,
+    "wrap": null
+   },
+   "mask": "bs_shell_band_sap_s.png",
+   "nozzle": [
+    -0.97,
+    0
+   ],
+   "anchors": {}
+  },
+  "ac_s": {
+   "size": [
+    2.0,
+    0.8
+   ],
+   "px": [
+    256,
+    102
+   ],
+   "file": "bs_shell_ac_s.png",
+   "normals": "bs_shell_ac_s_normals.png",
+   "lights": {
+    "file": "bs_shell_ac_s_lights.png",
+    "frames": 2,
+    "frame_px": [
+     256,
+     102
+    ],
+    "per_row": 2,
+    "fps": 4,
+    "wrap": null
+   },
+   "mask": "bs_shell_band_ac_s.png",
+   "nozzle": [
+    -0.97,
+    0
+   ],
+   "anchors": {
+    "seeker": [
+     0.9,
+     0.0
+    ]
+   }
+  },
+  "he_m": {
+   "size": [
+    2.0,
+    0.7
+   ],
+   "px": [
+    256,
+    90
+   ],
+   "file": "bs_shell_he_m.png",
+   "normals": "bs_shell_he_m_normals.png",
+   "lights": {
+    "file": "bs_shell_he_m_lights.png",
+    "frames": 2,
+    "frame_px": [
+     256,
+     90
+    ],
+    "per_row": 2,
+    "fps": 4,
+    "wrap": null
+   },
+   "mask": "bs_shell_band_he_m.png",
+   "nozzle": [
+    -0.97,
+    0
+   ],
+   "anchors": {}
+  },
+  "ap_m": {
+   "size": [
+    2.0,
+    0.7
+   ],
+   "px": [
+    256,
+    90
+   ],
+   "file": "bs_shell_ap_m.png",
+   "normals": "bs_shell_ap_m_normals.png",
+   "lights": {
+    "file": "bs_shell_ap_m_lights.png",
+    "frames": 2,
+    "frame_px": [
+     256,
+     90
+    ],
+    "per_row": 2,
+    "fps": 4,
+    "wrap": null
+   },
+   "mask": "bs_shell_band_ap_m.png",
+   "nozzle": [
+    -0.97,
+    0
+   ],
+   "anchors": {}
+  },
+  "sap_m": {
+   "size": [
+    2.0,
+    0.7
+   ],
+   "px": [
+    256,
+    90
+   ],
+   "file": "bs_shell_sap_m.png",
+   "normals": "bs_shell_sap_m_normals.png",
+   "lights": {
+    "file": "bs_shell_sap_m_lights.png",
+    "frames": 2,
+    "frame_px": [
+     256,
+     90
+    ],
+    "per_row": 2,
+    "fps": 4,
+    "wrap": null
+   },
+   "mask": "bs_shell_band_sap_m.png",
+   "nozzle": [
+    -0.97,
+    0
+   ],
+   "anchors": {}
+  },
+  "ac_m": {
+   "size": [
+    2.0,
+    0.8
+   ],
+   "px": [
+    256,
+    102
+   ],
+   "file": "bs_shell_ac_m.png",
+   "normals": "bs_shell_ac_m_normals.png",
+   "lights": {
+    "file": "bs_shell_ac_m_lights.png",
+    "frames": 2,
+    "frame_px": [
+     256,
+     102
+    ],
+    "per_row": 2,
+    "fps": 4,
+    "wrap": null
+   },
+   "mask": "bs_shell_band_ac_m.png",
+   "nozzle": [
+    -0.97,
+    0
+   ],
+   "anchors": {
+    "seeker": [
+     0.9,
+     0.0
+    ]
+   }
+  },
+  "he_l": {
+   "size": [
+    2.0,
+    0.7
+   ],
+   "px": [
+    256,
+    90
+   ],
+   "file": "bs_shell_he_l.png",
+   "normals": "bs_shell_he_l_normals.png",
+   "lights": {
+    "file": "bs_shell_he_l_lights.png",
+    "frames": 4,
+    "frame_px": [
+     256,
+     90
+    ],
+    "per_row": 4,
+    "fps": 6,
+    "wrap": null
+   },
+   "mask": "bs_shell_band_he_l.png",
+   "nozzle": [
+    -0.97,
+    0
+   ],
+   "anchors": {}
+  },
+  "ap_l": {
+   "size": [
+    2.0,
+    0.7
+   ],
+   "px": [
+    256,
+    90
+   ],
+   "file": "bs_shell_ap_l.png",
+   "normals": "bs_shell_ap_l_normals.png",
+   "lights": {
+    "file": "bs_shell_ap_l_lights.png",
+    "frames": 4,
+    "frame_px": [
+     256,
+     90
+    ],
+    "per_row": 4,
+    "fps": 6,
+    "wrap": null
+   },
+   "mask": "bs_shell_band_ap_l.png",
+   "nozzle": [
+    -0.97,
+    0
+   ],
+   "anchors": {}
+  },
+  "sap_l": {
+   "size": [
+    2.0,
+    0.7
+   ],
+   "px": [
+    256,
+    90
+   ],
+   "file": "bs_shell_sap_l.png",
+   "normals": "bs_shell_sap_l_normals.png",
+   "lights": {
+    "file": "bs_shell_sap_l_lights.png",
+    "frames": 4,
+    "frame_px": [
+     256,
+     90
+    ],
+    "per_row": 4,
+    "fps": 6,
+    "wrap": null
+   },
+   "mask": "bs_shell_band_sap_l.png",
+   "nozzle": [
+    -0.97,
+    0
+   ],
+   "anchors": {}
+  },
+  "ac_l": {
+   "size": [
+    2.0,
+    0.8
+   ],
+   "px": [
+    256,
+    102
+   ],
+   "file": "bs_shell_ac_l.png",
+   "normals": "bs_shell_ac_l_normals.png",
+   "lights": {
+    "file": "bs_shell_ac_l_lights.png",
+    "frames": 4,
+    "frame_px": [
+     256,
+     102
+    ],
+    "per_row": 4,
+    "fps": 6,
+    "wrap": null
+   },
+   "mask": "bs_shell_band_ac_l.png",
+   "nozzle": [
+    -0.97,
+    0
+   ],
+   "anchors": {
+    "seeker": [
+     0.9,
+     0.0
+    ]
+   }
+  },
+  "he_h": {
+   "size": [
+    2.0,
+    0.78
+   ],
+   "px": [
+    256,
+    100
+   ],
+   "file": "bs_shell_he_h.png",
+   "normals": "bs_shell_he_h_normals.png",
+   "lights": {
+    "file": "bs_shell_he_h_lights.png",
+    "frames": 4,
+    "frame_px": [
+     256,
+     100
+    ],
+    "per_row": 4,
+    "fps": 6,
+    "wrap": null
+   },
+   "mask": "bs_shell_band_he_h.png",
+   "nozzle": [
+    -0.97,
+    0
+   ],
+   "anchors": {}
+  },
+  "ac_h": {
+   "size": [
+    2.0,
+    0.89
+   ],
+   "px": [
+    256,
+    114
+   ],
+   "file": "bs_shell_ac_h.png",
+   "normals": "bs_shell_ac_h_normals.png",
+   "lights": {
+    "file": "bs_shell_ac_h_lights.png",
+    "frames": 4,
+    "frame_px": [
+     256,
+     114
+    ],
+    "per_row": 4,
+    "fps": 6,
+    "wrap": null
+   },
+   "mask": "bs_shell_band_ac_h.png",
+   "nozzle": [
+    -0.97,
+    0
+   ],
+   "anchors": {
+    "seeker": [
+     0.9,
+     0.0
+    ]
+   }
+  },
+  "pem_s": {
+   "size": [
+    2.0,
+    0.8
+   ],
+   "px": [
+    256,
+    102
+   ],
+   "file": "bs_shell_pem_s.png",
+   "normals": "bs_shell_pem_s_normals.png",
+   "lights": {
+    "file": "bs_shell_pem_s_lights.png",
+    "frames": 2,
+    "frame_px": [
+     256,
+     102
+    ],
+    "per_row": 2,
+    "fps": 6,
+    "wrap": null
+   },
+   "mask": null,
+   "nozzle": [
+    -0.97,
+    0
+   ],
+   "anchors": {}
+  },
+  "pem_m": {
+   "size": [
+    2.0,
+    0.75
+   ],
+   "px": [
+    256,
+    96
+   ],
+   "file": "bs_shell_pem_m.png",
+   "normals": "bs_shell_pem_m_normals.png",
+   "lights": {
+    "file": "bs_shell_pem_m_lights.png",
+    "frames": 4,
+    "frame_px": [
+     256,
+     96
+    ],
+    "per_row": 4,
+    "fps": 10,
+    "wrap": null
+   },
+   "mask": null,
+   "nozzle": [
+    -0.97,
+    0
+   ],
+   "anchors": {}
+  },
+  "pem_l": {
+   "size": [
+    2.0,
+    0.7
+   ],
+   "px": [
+    256,
+    90
+   ],
+   "file": "bs_shell_pem_l.png",
+   "normals": "bs_shell_pem_l_normals.png",
+   "lights": {
+    "file": "bs_shell_pem_l_lights.png",
+    "frames": 4,
+    "frame_px": [
+     256,
+     90
+    ],
+    "per_row": 4,
+    "fps": 12,
+    "wrap": null
+   },
+   "mask": null,
+   "nozzle": [
+    -0.97,
+    0
+   ],
+   "anchors": {}
+  },
+  "slug": {
+   "size": [
+    3.0,
+    0.8
+   ],
+   "px": [
+    384,
+    102
+   ],
+   "file": "bs_shell_slug.png",
+   "normals": "bs_shell_slug_normals.png",
+   "lights": {
+    "file": "bs_shell_slug_lights.png",
+    "frames": 4,
+    "frame_px": [
+     384,
+     102
+    ],
+    "per_row": 4,
+    "fps": 12,
+    "wrap": null
+   },
+   "mask": null,
+   "nozzle": [
+    -1.47,
+    0
+   ],
+   "anchors": {
+    "tip": [
+     1.45,
+     0.0
+    ]
+   }
+  }
+ },
+ "files": [
+  "bs_shell_ac_h.png",
+  "bs_shell_ac_h_lights.png",
+  "bs_shell_ac_h_normals.png",
+  "bs_shell_ac_l.png",
+  "bs_shell_ac_l_lights.png",
+  "bs_shell_ac_l_normals.png",
+  "bs_shell_ac_m.png",
+  "bs_shell_ac_m_lights.png",
+  "bs_shell_ac_m_normals.png",
+  "bs_shell_ac_s.png",
+  "bs_shell_ac_s_lights.png",
+  "bs_shell_ac_s_normals.png",
+  "bs_shell_ap_l.png",
+  "bs_shell_ap_l_lights.png",
+  "bs_shell_ap_l_normals.png",
+  "bs_shell_ap_m.png",
+  "bs_shell_ap_m_lights.png",
+  "bs_shell_ap_m_normals.png",
+  "bs_shell_ap_s.png",
+  "bs_shell_ap_s_lights.png",
+  "bs_shell_ap_s_normals.png",
+  "bs_shell_band_ac_h.png",
+  "bs_shell_band_ac_l.png",
+  "bs_shell_band_ac_m.png",
+  "bs_shell_band_ac_s.png",
+  "bs_shell_band_ap_l.png",
+  "bs_shell_band_ap_m.png",
+  "bs_shell_band_ap_s.png",
+  "bs_shell_band_he_h.png",
+  "bs_shell_band_he_l.png",
+  "bs_shell_band_he_m.png",
+  "bs_shell_band_he_s.png",
+  "bs_shell_band_sap_l.png",
+  "bs_shell_band_sap_m.png",
+  "bs_shell_band_sap_s.png",
+  "bs_shell_he_h.png",
+  "bs_shell_he_h_lights.png",
+  "bs_shell_he_h_normals.png",
+  "bs_shell_he_l.png",
+  "bs_shell_he_l_lights.png",
+  "bs_shell_he_l_normals.png",
+  "bs_shell_he_m.png",
+  "bs_shell_he_m_lights.png",
+  "bs_shell_he_m_normals.png",
+  "bs_shell_he_s.png",
+  "bs_shell_he_s_lights.png",
+  "bs_shell_he_s_normals.png",
+  "bs_shell_pem_l.png",
+  "bs_shell_pem_l_lights.png",
+  "bs_shell_pem_l_normals.png",
+  "bs_shell_pem_m.png",
+  "bs_shell_pem_m_lights.png",
+  "bs_shell_pem_m_normals.png",
+  "bs_shell_pem_s.png",
+  "bs_shell_pem_s_lights.png",
+  "bs_shell_pem_s_normals.png",
+  "bs_shell_sap_l.png",
+  "bs_shell_sap_l_lights.png",
+  "bs_shell_sap_l_normals.png",
+  "bs_shell_sap_m.png",
+  "bs_shell_sap_m_lights.png",
+  "bs_shell_sap_m_normals.png",
+  "bs_shell_sap_s.png",
+  "bs_shell_sap_s_lights.png",
+  "bs_shell_sap_s_normals.png",
+  "bs_shell_slug.png",
+  "bs_shell_slug_lights.png",
+  "bs_shell_slug_normals.png"
+ ]
+}
