@@ -410,6 +410,26 @@ def _roof(M, T, n, fam):
             _bay(f"bay{k}", n, cx, cy, w, h, M, X, tags)
         else:
             _hatch(f"hatch{k}", n, kind, cx, cy, w, h, M, X, tags)
+    _hatch_well(n, K, tags)
+
+
+def _hatch_well(n, K, tags):
+    """Poco escuro CONTINUO atras da coluna de escotilhas (2x2 / 3x3): os recessos chanfrados de cada escotilha
+    deixavam cunhas de 1-2 px da placa pintada entre os cantos (branco no casco branco). Um retangulo escuro da borda
+    de cima da escotilha de cima ate a de baixo (cantos de baixo com o chanfro do recesso) fecha o vao com o mesmo
+    escuro dos outros vaos entre paineis da tampa. Cantos de cima retos: emendam no vao escuro do aro / entre placas."""
+    hs = [r for r in RELIEF[n] if r[0] != "baia"]
+    if len(hs) < 2:
+        return
+    hs = sorted(hs, key=lambda r: r[2])
+    cx, w = hs[0][1], max(r[3] for r in hs)
+    if any(abs(r[1] - cx) > 1e-6 for r in hs):
+        return
+    top = hs[0][2] - hs[0][4] / 2 - 0.035
+    bot = hs[-1][2] + hs[-1][4] / 2 + 0.035
+    cb = 0.20 * min(hs[-1][3], hs[-1][4]) + 0.02       # chanfro do recesso da escotilha de baixo
+    poly = _crect(n, cx - w / 2 - 0.035, top, cx + w / 2 + 0.035, bot, 0.0, bl=cb, br=cb)
+    B.loft("hatch_well", poly, poly, ZT - 0.006, ZT + 0.006, K, bevel=0.0, tags=tags)
 
 
 def roof_post(P, layer, path, variant=None, **kw):
@@ -523,38 +543,65 @@ def _lerp_hsv(a, b, t):
     return (r * 255, g * 255, bb * 255)
 
 
+GAUGE_VMAX = 0.89                     # teto do VALOR (HSV) do corpo dos segmentos: ~227 (le como vidro aceso, nao como
+#                                       bloco de interface chapado; o reflexo de 1 px em cima pode passar disso)
+
+
 def gauge_color(f):
-    """Cor do nivel f = k / N (spec: f <= 0,5 low -> high, f > 0,5 high -> full), fora da chave de pintura."""
+    """Cor do nivel f = k / N (spec: f <= 0,5 low -> high, f > 0,5 high -> full), fora da chave de pintura, com o valor
+    limitado a GAUGE_VMAX (o lima de f ~ 0,6 e o verde cheio deixam de ser blocos chapados no casco branco)."""
+    import colorsys
     G = LG.GAUGE
     if f <= 0.5:
         c = _lerp_hsv(G["low"], G["high"], f / 0.5)
     else:
         c = _lerp_hsv(G["high"], G["full"], (f - 0.5) / 0.5)
+    h, s, v = colorsys.rgb_to_hsv(*(x / 255.0 for x in c))
+    c = tuple(x * 255 for x in colorsys.hsv_to_rgb(h, s, min(v, GAUGE_VMAX)))
     return LG.safe_rgb(c)
 
 
+def zero_rgb_under_alpha0(img):
+    """RGB = 0 onde alfa = 0 (sem franja de cor 'suja' no filtro bilinear do jogo)."""
+    a = np.asarray(img.convert("RGBA")).copy()
+    a[a[..., 3] == 0] = 0
+    return Image.fromarray(a, "RGBA")
+
+
+def _seg_shade(rw, rh, S4):
+    """Fator de luz (rh x rw, 0..~1,05) de UM segmento aceso a S4x: vidro aceso por tras, nao bloco chapado. Queda
+    vertical (mais claro em cima, ~0,78 embaixo), bisel interno de 1 px nas laterais (esquerda 0,86, direita 0,80) e
+    1 px mais escuro embaixo (0,70). O reflexo de cima e desenhado a parte."""
+    t = (np.arange(rh, dtype=np.float32) + 0.5) / max(1, rh)
+    f = (1.04 - 0.26 * t)[:, None] * np.ones((1, rw), np.float32)
+    f[:, :S4] *= 0.86
+    f[:, rw - S4:] *= 0.80
+    f[rh - S4:, :] = np.minimum(f[rh - S4:, :], 0.70)
+    return f
+
+
 def gauge(P, layer, px, level=1, **kw):
-    """Segmentos acesos 1..level (de baixo para cima) na cor do nivel: corpo do LED, reflexo de 1 px em cima e 1 px
-    mais escuro embaixo (todas as cores derivadas passam por safe_rgb), brilho fraco nos vaos (blur PRE-multiplicado:
-    a cor do brilho e a dos LEDs) e paint_safe() no fim: nenhum pixel na chave de pintura."""
+    """Segmentos acesos 1..level (de baixo para cima) na cor do nivel (valor <= GAUGE_VMAX): cada segmento com queda
+    vertical de luz, bisel interno nas laterais, 1 px mais escuro embaixo e o reflexo de 1 px em cima (vidro aceso),
+    brilho fraco nos vaos (blur PRE-multiplicado: a cor do brilho e a dos LEDs) e paint_safe() no fim: nenhum pixel
+    na chave de pintura; RGB = 0 sob alfa 0."""
     n = P["sub"]
     gx, gy, gw, gh = LAYOUT[n]["gauge_rect"]
     N = LAYOUT[n]["levels"]
     w, h = px
     S4 = SS_PIL
-    col = gauge_color(level / N)
-    core = col
-    hi = LG.safe_rgb(tuple(c + (255 - c) * 0.45 for c in col))
-    lo = LG.safe_rgb(tuple(c * 0.80 for c in col))
-    big = Image.new("RGBA", (w * S4, h * S4), (0, 0, 0, 0))
-    dr = ImageDraw.Draw(big)
+    col = np.array(gauge_color(level / N), np.float32)
+    hi = np.array(LG.safe_rgb(tuple(c + (255 - c) * 0.40 for c in col)), np.float32)
+    arr = np.zeros((h * S4, w * S4, 4), np.float32)
     for i, (x0, y0, x1, y1) in enumerate(_segments(gw, gh, N)):
         if i >= level:
             break
-        X0, Y0, X1, Y1 = x0 * S4, y0 * S4, x1 * S4, y1 * S4
-        dr.rectangle([X0, Y0, X1 - 1, Y1 - 1], fill=core + (255,))
-        dr.rectangle([X0, Y1 - S4, X1 - 1, Y1 - 1], fill=lo + (255,))
-        dr.rectangle([X0 + S4, Y0, X1 - 1 - S4, Y0 + S4 - 1], fill=hi + (255,))
+        X0, Y0, X1, Y1 = (int(round(v * S4)) for v in (x0, y0, x1, y1))
+        f = _seg_shade(X1 - X0, Y1 - Y0, S4)
+        arr[Y0:Y1, X0:X1, :3] = col[None, None, :] * f[..., None]
+        arr[Y0:Y0 + S4, X0 + S4:X1 - S4, :3] = hi[None, None, :]          # reflexo do vidro (1 px)
+        arr[Y0:Y1, X0:X1, 3] = 255
+    big = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), "RGBA")
     seg = big.resize((w, h), Image.LANCZOS)
     glow = LG.premul_blur(seg, 1.1)
     ga = np.asarray(glow, dtype=np.float32).copy()
@@ -562,7 +609,7 @@ def gauge(P, layer, px, level=1, **kw):
     out = Image.fromarray(ga.astype(np.uint8), "RGBA")
     out.alpha_composite(seg)
     out, _ = LG.paint_safe(out)
-    return out
+    return zero_rgb_under_alpha0(out)
 
 
 def digit(P, layer, px, variant="0", **kw):
@@ -584,7 +631,7 @@ def digit(P, layer, px, variant="0", **kw):
     ga[..., 3] *= 0.5
     out = Image.fromarray(ga.astype(np.uint8), "RGBA")
     out.alpha_composite(seg)
-    return out
+    return zero_rgb_under_alpha0(out)
 
 
 # ============================================================================ icone
