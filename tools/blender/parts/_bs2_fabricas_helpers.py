@@ -62,7 +62,8 @@ CHIP = {
     "msl_cluster": (255, 232, 80), "msl_emp": (40, 150, 255), "nuke": (90, 255, 40), "slug": (150, 105, 255),
     "rail_gold": (255, 200, 90), "pem_cu": (200, 110, 50),
 }
-VIOLET = (0.30, 0.135, 1.0)          # mesmo violeta do Tupa (parts/bs_rail.py VIOLET)
+VIOLET = (0.30, 0.135, 1.0)          # violeta do Tupa 1a versao (parts/bs_rail.py VIOLET)
+RAIL_BLUE = (0.026, 0.171, 1.0)      # azul eletrico da Tupa nova (parts/bs_rail.py BLUE; USER_NOTES: referencia)
 SULFUR = (0.62, 0.46, 0.035)         # enxofre (amarelo fosco em monte facetado: nao le como LED ambar)
 IRON = (0.33, 0.30, 0.28)            # ferro bruto (lingote fosco)
 URANIUM = (0.10, 0.20, 0.07)         # uranio bruto (pedra escura esverdeada)
@@ -357,6 +358,11 @@ def _mag(M, Xm, tags, kind, n=3, lit=True, cast=0.0):
                       led(kind, 1.2 if kind != "ap" else 0.9), bevel=0.0, tags=tags)
     else:
         B.box("mg_band", 0, -0.0825, 0.23, 0.022, 0.076, 0.084, M["steel"], bevel=0.0, tags=tags)
+    if kind == "ac":
+        # tampas de canto em ouro (estojo premium da Alta Capacidade)
+        for qx in (-1, 1):
+            for qy, yy in ((1, 0.062), (-1, -0.098)):
+                B.box(f"mg_gc{qx}{qy}", qx * 0.128, yy, 0.05, 0.04, 0.0, 0.118, Xm["gold"], bevel=0.006, tags=tags)
 
 
 def mini_mag(name, x, y, z, M, Xm, tags, kind="he", s=1.0, rz=0.0, lit=True, cast=0.0):
@@ -444,43 +450,51 @@ def mini_missile(name, x, y, z, M, Xm, tags, kind="msl_he", s=1.0, rz=0.0, part=
 
 
 def _warhead(M, Xm, tags, stage=3, lit=True, glow_k=1.0):
-    """Ogiva nuclear 2.0 deitada ao longo de Y (nariz +Y): corpo gordo claro em 3 camadas, faixa verde, trevo de 3
-    cunhas escuras embutido (permitido no recurso nuclear, STYLE 7), sem divisas e sem amarelo.
-    stage: 1 = so a carcaca aberta (miolo escuro a mostra), 2 = com o nucleo verde, 3 = fechada e pintada."""
+    """Ogiva nuclear 2.0 deitada ao longo de Y (nariz +Y), no desenho do recurso bs_msl_nuke: corpo claro alongado,
+    nariz arredondado com o disco verde e o trevo escuro de 3 cunhas, 2 faixas verdes, janela escura com o nucleo
+    verde aceso no meio, base com aneis. Sem divisas e sem amarelo (o trevo e permitido no recurso nuclear, STYLE 7).
+    stage: 1 = carcaca aberta (miolo escuro a mostra), 2 = com o nucleo verde, 3 = fechada."""
     K, KM, A, S = M["core"], M["core_mid"], M["armor"], M["steel"]
-    R = 0.11
-    B.cyl("wh_base", 0, -0.13, R * 0.86, R * 0.86, 0.05, KM, axis="Y", verts=12, bevel=0.004, tags=tags)
-    B.cyl("wh_body", 0, -0.03, R * 0.86, R, 0.15, A, axis="Y", verts=12, bevel=0.006, tags=tags)
-    if stage >= 3:
-        B.cyl("wh_nose", 0, 0.105, R * 0.86, R, 0.12, A, axis="Y", verts=12, bevel=0.006, tags=tags, r2=R * 0.35)
-        B.cyl("wh_tip", 0, 0.172, R * 0.86, R * 0.36, 0.02, KM, axis="Y", verts=12, bevel=0.0, tags=tags,
-              r2=R * 0.2)
-        B.cyl("wh_band", 0, 0.04, R * 0.86, R * 1.02, 0.03, chip_mat("nuke", 0.2), axis="Y", verts=12, bevel=0.0,
+    R = 0.085
+    zc = R
+    green = glow((0.32, 1.0, 0.0), 0.75, "nuled")
+    B.cyl("wh_base", 0, -0.165, zc, R * 0.92, 0.04, KM, axis="Y", verts=12, bevel=0.004, tags=tags)
+    for k, yy in enumerate((-0.19, -0.14)):
+        B.cyl(f"wh_ring{k}", 0, yy, zc, R * 1.0, 0.012, S, axis="Y", verts=12, bevel=0.0, tags=tags)
+    body = B.cyl("wh_body", 0, -0.02, zc, R, 0.24, A, axis="Y", verts=12, bevel=0.006, tags=tags)
+    # janela escura do nucleo (vazada no topo do corpo) com as faixas verdes acima e abaixo
+    B.cut(body, [B.box("wh_wc", 0, -0.03, 0.10, 0.12, zc + R * 0.55, zc + 0.3, K, bevel=0.0)])
+    B.box("wh_wbed", 0, -0.03, 0.10, 0.12, zc + R * 0.50, zc + R * 0.58, M["black"], bevel=0.0, tags=tags)
+    if stage >= 2:
+        B.box("wh_core", 0, -0.03, 0.04, 0.09, zc + R * 0.58, zc + R * 0.64,
+              glow((0.30, 1.0, 0.12), 1.0 * glow_k, "nucore") if lit else KM, bevel=0.0, tags=tags)
+        for k in range(4):
+            B.box(f"wh_coil{k}", 0, -0.065 + k * 0.023, 0.06, 0.008, zc + R * 0.64, zc + R * 0.67, KM, bevel=0.0,
+                  tags=tags)
+    for k, yy in enumerate((-0.105, 0.045)):
+        B.cyl(f"wh_band{k}", 0, yy, zc, R * 1.02, 0.024, chip_mat("nuke", 0.25), axis="Y", verts=12, bevel=0.0,
               tags=tags)
-        # trevo: 3 cunhas escuras num disco claro no topo do corpo
-        zt = R * 0.86 + R * 0.95
-        B.cyl("wh_tdisk", 0, -0.035, zt - 0.006, 0.058, 0.012, Xm["nose"], axis="Z", verts=16, bevel=0.0, tags=tags)
+    if stage >= 3:
+        B.cyl("wh_nose", 0, 0.16, zc, R, 0.10, A, axis="Y", verts=12, bevel=0.006, tags=tags, r2=R * 0.55)
+        B.cyl("wh_tip", 0, 0.222, zc, R * 0.55, 0.025, A, axis="Y", verts=12, bevel=0.004, tags=tags, r2=R * 0.15)
+        zt = zc + R * 0.92
+        B.cyl("wh_tdisk", 0, 0.155, zt, 0.046, 0.012, chip_mat("nuke", 0.25), axis="Z", verts=16, bevel=0.0,
+              tags=tags)
         for k in range(3):
             a = 90 + 120 * k
-            pts = [(0.0, 0.0)] + [(math.cos(math.radians(a + d)) * 0.05, math.sin(math.radians(a + d)) * 0.05)
+            pts = [(0.0, 0.0)] + [(math.cos(math.radians(a + d)) * 0.040, math.sin(math.radians(a + d)) * 0.040)
                                   for d in (-30, -15, 0, 15, 30)]
-            pts = [(px * 0.95 + math.cos(math.radians(a)) * 0.008, py * 0.95 + math.sin(math.radians(a)) * 0.008)
+            pts = [(px * 0.95 + math.cos(math.radians(a)) * 0.007, py * 0.95 + math.sin(math.radians(a)) * 0.007)
                    for px, py in pts]
-            B.loft(f"wh_tw{k}", shift(pts, 0, -0.035), shift(pts, 0, -0.035), zt, zt + 0.006, K, bevel=0.0, tags=tags)
-        B.cyl("wh_thub", 0, -0.035, zt + 0.003, 0.010, 0.008, K, axis="Z", verts=10, bevel=0.0, tags=tags)
+            B.loft(f"wh_tw{k}", shift(pts, 0, 0.155), shift(pts, 0, 0.155), zt + 0.006, zt + 0.011, K, bevel=0.0,
+                   tags=tags)
     else:
-        # carcaca aberta: anel do corpo e o miolo escuro com o poco do nucleo
-        op = B.cyl("wh_open", 0, 0.08, R * 0.86, R, 0.07, A, axis="Y", verts=12, bevel=0.004, tags=tags)
-        B.cut(op, [B.cyl("wh_oc", 0, 0.08, R * 0.86, R * 0.72, 0.2, K, axis="Y",
-                                                     verts=12, bevel=0.0)])
-        B.cyl("wh_pit", 0, 0.06, R * 0.86, R * 0.74, 0.04, K, axis="Y", verts=12, bevel=0.0, tags=tags)
-        if stage == 2:
-            B.cyl("wh_core", 0, 0.09, R * 0.86 + 0.01, 0.045, 0.05, glow((0.32, 1.0, 0.0), 1.0 * glow_k, "nucore")
-                  if lit else KM, axis="Z", verts=12, bevel=0.0, tags=tags)
+        # carcaca aberta: o anel da boca e o poco escuro (a tampa entra depois)
+        op = B.cyl("wh_open", 0, 0.13, zc, R, 0.05, A, axis="Y", verts=12, bevel=0.004, tags=tags)
+        B.cut(op, [B.cyl("wh_oc", 0, 0.13, zc, R * 0.70, 0.2, K, axis="Y", verts=12, bevel=0.0)])
+        B.cyl("wh_pit", 0, 0.11, zc, R * 0.72, 0.03, K, axis="Y", verts=12, bevel=0.0, tags=tags)
     if lit:
-        for i in range(3):
-            B.box(f"wh_led{i}", -0.03 + i * 0.03, -0.13, 0.016, 0.016, R * 0.86 * 2 - 0.002, R * 0.86 * 2 + 0.004,
-                  glow((0.32, 1.0, 0.0), 0.75, "nuled"), bevel=0.0, tags=tags)
+        B.box("wh_led", 0, -0.165, 0.04, 0.014, zc + R * 0.9, zc + R * 0.96, green, bevel=0.0, tags=tags)
 
 
 def mini_warhead(name, x, y, z, M, Xm, tags, s=1.0, rz=0.0, stage=3, lit=True, glow_k=1.0):
@@ -490,24 +504,33 @@ def mini_warhead(name, x, y, z, M, Xm, tags, s=1.0, rz=0.0, stage=3, lit=True, g
 
 
 def _slug(M, Xm, tags, collars=4, heat=0.0, lit=True, rod_only=False):
-    """Projetil da railgun deitado ao longo de Y (ponta +Y): haste de tungstenio clara, aletas curtas na cauda,
-    colares EM violeta (collars = quantos ja foram cravados) e ponta ouro-branca. heat = 0..1 brasa da haste."""
+    """Projetil da railgun deitado ao longo de Y (ponta +Y), no desenho da Tupa nova (bs_shells2 'slug' e o recurso
+    bs_slug_rail): haste de tungstenio, aletas curtas na cauda, colares EM azul anodizado com o filete de LED azul
+    (collars = quantos ja foram cravados), colar laranja atras do penetrador e ponta de metal claro azulado.
+    heat = 0..1 brasa da haste (forno)."""
     K, KM, S = M["core"], M["core_mid"], M["steel"]
     r = 0.022
-    hot = glow((1.0, 0.36, 0.06), 0.4 + 1.1 * heat, "rodhot") if heat > 0.05 else None
-    B.cyl("sg_rod", 0, 0.0, r, r, 0.40, hot or Xm["tungsten"], axis="Y", verts=8, bevel=0.0, tags=tags)
+    # brasa: vermelho-laranja fraco esfriando -> laranja-ouro forte no forno (forca e cor sobem com o calor)
+    hc = (1.0, 0.16 + 0.34 * heat, 0.02 + 0.10 * heat)
+    hot = glow(hc, 0.18 + 1.25 * heat ** 1.3, f"rodhot{int(heat * 20):02d}") if heat > 0.05 else None
+    rod_m = B.mat_metal("f2_rod", (0.30, 0.31, 0.34), rough=0.3, metal=0.9)
+    B.cyl("sg_rod", 0, 0.0, r, r, 0.40, hot or rod_m, axis="Y", verts=8, bevel=0.0, tags=tags)
     if rod_only:
         return
-    B.cyl("sg_tip", 0, 0.225, r, r, 0.05, Xm["gold"], axis="Y", verts=8, bevel=0.0, tags=tags, r2=0.003)
+    tipm = B.mat_metal("f2_tipblue", (0.30, 0.37, 0.48), rough=0.32, metal=0.5)
+    B.cyl("sg_tip", 0, 0.225, r, r, 0.05, tipm, axis="Y", verts=8, bevel=0.0, tags=tags, r2=0.003)
+    orange = B.mat_paint("f2_railorange", (0.42, 0.125, 0.012), rough=0.36, metal=0.3, wear=0.0, grime=0.0, scale=6)
+    B.cyl("sg_oc", 0, 0.185, r, r * 1.35, 0.016, orange, axis="Y", verts=8, bevel=0.0, tags=tags)
     for sx in (-1, 1):
         poly = [(sx * r * 0.7, -0.20), (sx * r * 2.6, -0.21), (sx * r * 2.6, -0.17), (sx * r * 0.7, -0.13)]
         poly = poly if sx > 0 else list(reversed(poly))
         B.loft(f"sg_fin{sx}", poly, poly, r * 0.6, r * 1.3, KM, bevel=0.0, tags=tags)
+    blue = B.mat_metal("f2_railblue", (0.018, 0.075, 0.40), rough=0.35, metal=0.4)
     for k in range(min(collars, 4)):
         yy = -0.10 + k * 0.075
-        B.cyl(f"sg_col{k}", 0, yy, r, r * 1.6, 0.018, Xm["graphite"], axis="Y", verts=8, bevel=0.0, tags=tags)
+        B.cyl(f"sg_col{k}", 0, yy, r, r * 1.6, 0.02, blue, axis="Y", verts=8, bevel=0.0, tags=tags)
         if lit:
-            B.box(f"sg_cl{k}", 0, yy, 0.02, 0.010, r * 2.55, r * 2.65, glow(VIOLET, 0.9, "slugcol"), bevel=0.0,
+            B.box(f"sg_cl{k}", 0, yy, 0.02, 0.008, r * 2.55, r * 2.65, glow(RAIL_BLUE, 0.9, "slugcol_b"), bevel=0.0,
                   tags=tags)
 
 
@@ -588,13 +611,12 @@ def floor_grid(M, W, H, machine, pads, T="floor", chips=None, copper=(), rail_ro
         B.cut(lip, [B.loft(f"padlip_h{nm}", inner, inner, 0.02, 0.3, K, bevel=0.0)])
         B.loft(f"padwell_{nm}", inner, inner, 0.03, 0.04, K, bevel=0.0, tags=tags)
         if (i, j) in copper:
-            # grade de cobre (o insumo cobre fica sobre ela)
+            # grade de cobre escurecido (o insumo cobre fica sobre ela; nao pode competir com as pilhas)
+            cu = B.mat_metal("f2_copper_dk", (0.42, 0.19, 0.08), rough=0.45, metal=0.9)
             for k in range(7):
-                B.box(f"cug_{nm}{k}", cx - 0.27 + k * 0.09, cy, 0.022, 0.62, 0.04, 0.05, Xm["copper"], bevel=0.0,
-                      tags=tags)
+                B.box(f"cug_{nm}{k}", cx - 0.27 + k * 0.09, cy, 0.016, 0.62, 0.04, 0.048, cu, bevel=0.0, tags=tags)
             for k in range(2):
-                B.box(f"cuh_{nm}{k}", cx, cy - 0.15 + k * 0.30, 0.62, 0.02, 0.04, 0.052, Xm["copper"], bevel=0.0,
-                      tags=tags)
+                B.box(f"cuh_{nm}{k}", cx, cy - 0.15 + k * 0.30, 0.62, 0.016, 0.04, 0.05, cu, bevel=0.0, tags=tags)
         else:
             B.box(f"padgv_{nm}", cx, cy, 0.012, 0.58, 0.04, 0.046, KM, bevel=0.0, tags=tags)
             B.box(f"padgh_{nm}", cx, cy, 0.58, 0.012, 0.04, 0.046, KM, bevel=0.0, tags=tags)
@@ -604,7 +626,7 @@ def floor_grid(M, W, H, machine, pads, T="floor", chips=None, copper=(), rail_ro
                 poly = [(ox, oy), (ox - qx * 0.16, oy), (ox - qx * 0.16, oy - qy * 0.045),
                         (ox - qx * 0.045, oy - qy * 0.045), (ox - qx * 0.045, oy - qy * 0.16), (ox, oy - qy * 0.16)]
                 B.plate(f"padbr_{nm}{qx}{qy}", poly if qx * qy > 0 else list(reversed(poly)), 0.04, 0.058,
-                        Xm["copper"] if (i, j) in copper else AM, slope=0.008, bevel=0.004, tags=tags)
+                        AM, slope=0.008, bevel=0.004, tags=tags)
         pts = [(cx + 0.39 * dx, cy + 0.39 * dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))
                if (dx, dy) != side and not (chips and (i, j) in chips and (dx, dy) == (0, -1))]
         B.bolts(f"pbolt_{nm}", pts, 0.066, 0.014, S, tags=tags)

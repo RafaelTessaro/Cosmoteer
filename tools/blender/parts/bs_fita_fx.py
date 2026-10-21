@@ -52,6 +52,9 @@ PART = {
         "cartucho_* em roof_doodads (OperationalRoofDoodad), brilho_* em lights_add (OperationalLighting), "
         "AnimationInterval 0,075 (8 quadros = 0,6 s = o Timer SaindoRecente / EntrandoRecente).",
         "Em envio continuo a animacao roda em laco: o quadro 8 emenda no quadro 1.",
+        "ARMAS / LANCADORES: roof_doodads fica ABAIXO da cabeca da torre (roof_turrets), entao no centro da peca os "
+        "cassetes somem embaixo da torre. Nas pecas com torre ponha o Graphics do FX no centro da fileira de TRAS (a "
+        "fileira da tripulacao, fora do anel; ex.: Carcara 2x2 -> Location [1, 1.5]); fabricas e paiois: centro da peca.",
         "brilho_*: aditivo opaco sobre preto (como os PNGs de luz vanilla), ciano puro com o canal vermelho 0 "
         "(canal mais fraco <= 25, spec) e pico baixo (~ 120).",
     ],
@@ -62,16 +65,17 @@ _CACHE = {}
 
 # ============================================================================ cassete renderizado (uma vez)
 def _cassette_sprite():
-    """Cassete visto de cima (eixo longo vertical), renderizado a 64 x HI px por quadro; tela 0,40 x 0,40."""
+    """Cassete visto de cima (eixo longo vertical, 0,35 x 0,17 quadro), renderizado a 64 x HI px por quadro; tela
+    0,46 x 0,46."""
     if "spr" in _CACHE:
         return _CACHE["spr"]
     B.reset()
     M = Mo.mats("amber")
     X = LG.mats(M)
-    side = 0.40
+    side = 0.46
     B.camera(side, side, (0, 0), px=64 * HI)
     bpy_samples(48)
-    LG.cassette("cass", 0, 0, 0.0, M, X, ("cass",))
+    LG.cassette("cass", 0, 0, 0.0, M, X, ("cass",), s=1.15)
     B.show_only(["cass"])
     tmp = tempfile.mkdtemp(prefix="bs_fita_fx_")
     px = int(round(side * 64 * HI))
@@ -99,7 +103,7 @@ def _state(k):
     """Estado do quadro k (1..8) da SAIDA: deslocamento x (quadros), escala, alfa, esmagamento (largura), tom ciano,
     linhas de varredura e linha do teletransporte."""
     t = (k - 1) / (N - 1)
-    off = 0.085 + 0.285 * _smooth(t / 0.78)
+    off = 0.095 + 0.27 * _smooth(t / 0.78)
     scale = 0.80 + 0.20 * _smooth(t / 0.30)
     lift = _smooth(t / 0.35)                      # sombra cresce enquanto o cassete sobe
     tele = _smooth((t - 0.50) / 0.50)             # 0 -> 1 no teletransporte
@@ -130,6 +134,12 @@ def _frame_cassettes(k):
         im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGBA")
         cx = W / 2 + sx * st["off"] * 64 * HI
         cy_ = W / 2
+        # contorno de energia ciano (assinatura do teletransporte: o cassete nunca se confunde com o teto da maquina)
+        al = im.split()[-1].filter(ImageFilter.MaxFilter(2 * (HI // 2) + 1)).filter(ImageFilter.GaussianBlur(1.3 * HI))
+        ga = np.asarray(al, dtype=np.float32) * (0.50 + 0.35 * tele) * min(1.0, st["alpha"] + 0.2)
+        glow = Image.fromarray(np.dstack([np.full(ga.shape, 70, np.uint8), np.full(ga.shape, 205, np.uint8),
+                                          np.full(ga.shape, 255, np.uint8), ga.clip(0, 255).astype(np.uint8)]), "RGBA")
+        out.alpha_composite(glow, (int(round(cx - im.width / 2)), int(round(cy_ - im.height / 2))))
         # sombra (o cassete sobe da maquina): escura, deslocada para baixo-direita, borrada
         if st["lift"] > 0.05 and st["tele"] < 0.9:
             sh = Image.new("RGBA", im.size, (0, 0, 0, 0))
@@ -154,6 +164,19 @@ def _frame_cassettes(k):
                                             np.full((W, W), 255, np.uint8), la.astype(np.uint8)]), "RGBA")
             out.alpha_composite(ln.filter(ImageFilter.GaussianBlur(0.6 * HI)))
             out.alpha_composite(ln)
+    if st["t"] < 0.32:                            # anel ciano no centro: o "portal" de onde os cassetes sobem
+        u = st["t"] / 0.32
+        yy, xx = np.mgrid[0:W, 0:W].astype(np.float32) / (64 * HI) - 0.5
+        r = np.sqrt(xx ** 2 + (yy * 1.0) ** 2)
+        R = 0.10 + 0.22 * u
+        ring = np.exp(-((r - R) / 0.018) ** 2) * (1 - u) * 0.85
+        ra = (ring * 255).clip(0, 255).astype(np.uint8)
+        rim = Image.fromarray(np.dstack([np.full(ra.shape, 110, np.uint8), np.full(ra.shape, 225, np.uint8),
+                                         np.full(ra.shape, 255, np.uint8), ra]), "RGBA")
+        base = Image.new("RGBA", (W, W), (0, 0, 0, 0))
+        base.alpha_composite(rim)
+        base.alpha_composite(out)
+        out = base
     return out.resize((64, 64), Image.LANCZOS)
 
 

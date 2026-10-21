@@ -1,0 +1,74 @@
+{
+ "version": 1,
+ "kind": "ui_icons",
+ "size": [
+  96,
+  96
+ ],
+ "renderer": "tools/bsgen/ui_icons.py (2.0)",
+ "files": {
+  "gui/ammo_he.png": "ammo_he.png",
+  "gui/ammo_ap.png": "ammo_ap.png",
+  "gui/ammo_sap.png": "ammo_sap.png",
+  "gui/ammo_ac.png": "ammo_ac.png",
+  "gui/ammo_frag.png": "ammo_frag.png",
+  "gui/cell_plasma.png": "cell_plasma.png",
+  "gui/cell_pem.png": "cell_pem.png",
+  "gui/missile_he.png": "missile_he.png",
+  "gui/missile_cluster.png": "missile_cluster.png",
+  "gui/missile_emp.png": "missile_emp.png",
+  "gui/missile_nuclear.png": "missile_nuclear.png",
+  "gui/slug_rail.png": "slug_rail.png",
+  "gui/group_bullet_strike.png": "group_bullet_strike.png"
+ },
+ "drop_1x": [
+  "gui/ammo_std.png",
+  "gui/ammo_aphe.png",
+  "gui/ammo_emp.png",
+  "gui/missile_limpet.png",
+  "gui/missile_napalm.png",
+  "gui/missile_torpedo.png"
+ ],
+ "accents": {
+  "fire": [
+   255,
+   146,
+   40
+  ],
+  "spark": [
+   205,
+   236,
+   255
+  ],
+  "nuke": [
+   10,
+   212,
+   98
+  ],
+  "gold": [
+   255,
+   200,
+   80
+  ],
+  "teal": [
+   120,
+   230,
+   210
+  ],
+  "cyan": [
+   60,
+   225,
+   255
+  ],
+  "violet": [
+   170,
+   130,
+   255
+  ],
+  "rail": [
+   185,
+   225,
+   255
+  ]
+ }
+}

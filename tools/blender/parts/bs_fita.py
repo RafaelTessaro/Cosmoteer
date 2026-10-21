@@ -42,7 +42,7 @@ PART = {
         {"name": "roof", "fn": "fita_roof", "game_layer": "roofs", "file": "roof.png", "normals": True,
          "despill": True, "samples": 64},
         {"name": "luz_teto", "fn": "fita_roof_leds", "game_layer": "roof_doodads", "file": "luz_grudada_teto.png",
-         "emission_only": True, "blend": "alpha", "halo_px": 1.6, "gain": 0.9, "islands": True},
+         "emission_only": True, "blend": "alpha", "halo_px": 2.0, "gain": 1.0, "islands": True},
     ],
     "icon": {"size": [32, 32], "layers": ["floor", "roof", "luz_teto"]},
     "blueprint_layers": ["roof"],
@@ -102,9 +102,9 @@ def fita_roof(M, T="roof", **kw):
         bridge = LG.rot4([(-0.052, 0.36), (0.052, 0.36), (0.052, 0.478), (-0.052, 0.478)], k)
         B.loft(f"claw_br{k}", bridge, bridge, Z_DECK - 0.01, Z_DECK + 0.045, KM, bevel=0.004, tags=tags)
         lx, ly = LG.rot4([(0.0, LENS_R)], k)[0]
-        lens = B.rpoly(lx, ly, 0.054, 0.054, 0, chamfer=0.012)
+        lens = B.rpoly(lx, ly, 0.066, 0.066, 0, chamfer=0.014)
         B.loft(f"lens_bed{k}", lens, lens, Z_DECK + 0.045, Z_DECK + 0.050, M["black"], bevel=0.0, tags=tags)
-        inner = B.rpoly(lx, ly, 0.036, 0.036, 0, chamfer=0.008)
+        inner = B.rpoly(lx, ly, 0.046, 0.046, 0, chamfer=0.010)
         B.loft(f"lens{k}", inner, inner, Z_DECK + 0.050, Z_DECK + 0.058, X["lens_off"], bevel=0.0, tags=tags)
 
     # ---------------------------------------------------------------- tampa blindada com o simbolo da fita
@@ -140,7 +140,7 @@ def fita_roof_leds(M, T="luz_teto", **kw):
     X = LG.mats(M)
     for k in range(4):
         lx, ly = LG.rot4([(0.0, LENS_R)], k)[0]
-        inner = B.rpoly(lx, ly, 0.036, 0.036, 0, chamfer=0.008)
+        inner = B.rpoly(lx, ly, 0.046, 0.046, 0, chamfer=0.010)
         B.loft(f"lens_on{k}", inner, inner, Z_DECK + 0.050, Z_DECK + 0.058, X["link"], bevel=0.0, tags=(T,))
 
 

@@ -1,0 +1,154 @@
+{
+ "version": 1,
+ "kind": "layered",
+ "id": "rafaeltessaro.bs_fita_fx",
+ "size": [
+  1,
+  1
+ ],
+ "layers": {
+  "cartucho_sai": {
+   "game_layer": "roof_doodads",
+   "rect": [
+    0,
+    0,
+    1,
+    1
+   ],
+   "files": [
+    "cartucho_sai1.png",
+    "cartucho_sai2.png",
+    "cartucho_sai3.png",
+    "cartucho_sai4.png",
+    "cartucho_sai5.png",
+    "cartucho_sai6.png",
+    "cartucho_sai7.png",
+    "cartucho_sai8.png"
+   ],
+   "normals": null,
+   "frames": 8,
+   "interval": 0.075,
+   "opaque": false,
+   "emission_only": false,
+   "islands": true
+  },
+  "cartucho_entra": {
+   "game_layer": "roof_doodads",
+   "rect": [
+    0,
+    0,
+    1,
+    1
+   ],
+   "files": [
+    "cartucho_entra1.png",
+    "cartucho_entra2.png",
+    "cartucho_entra3.png",
+    "cartucho_entra4.png",
+    "cartucho_entra5.png",
+    "cartucho_entra6.png",
+    "cartucho_entra7.png",
+    "cartucho_entra8.png"
+   ],
+   "normals": null,
+   "frames": 8,
+   "interval": 0.075,
+   "opaque": false,
+   "emission_only": false,
+   "islands": true
+  },
+  "brilho_sai": {
+   "game_layer": "lights_add",
+   "rect": [
+    0,
+    0,
+    1,
+    1
+   ],
+   "files": [
+    "brilho_sai1.png",
+    "brilho_sai2.png",
+    "brilho_sai3.png",
+    "brilho_sai4.png",
+    "brilho_sai5.png",
+    "brilho_sai6.png",
+    "brilho_sai7.png",
+    "brilho_sai8.png"
+   ],
+   "normals": null,
+   "frames": 8,
+   "interval": 0.075,
+   "blend": "add",
+   "opaque": false,
+   "emission_only": false,
+   "islands": true
+  },
+  "brilho_entra": {
+   "game_layer": "lights_add",
+   "rect": [
+    0,
+    0,
+    1,
+    1
+   ],
+   "files": [
+    "brilho_entra1.png",
+    "brilho_entra2.png",
+    "brilho_entra3.png",
+    "brilho_entra4.png",
+    "brilho_entra5.png",
+    "brilho_entra6.png",
+    "brilho_entra7.png",
+    "brilho_entra8.png"
+   ],
+   "normals": null,
+   "frames": 8,
+   "interval": 0.075,
+   "blend": "add",
+   "opaque": false,
+   "emission_only": false,
+   "islands": true
+  }
+ },
+ "walls": null,
+ "notes": [
+  "Um conjunto so para todas as maquinas e tipos: Graphics com Location = centro da maquina e Size [1, 1]; cartucho_* em roof_doodads (OperationalRoofDoodad), brilho_* em lights_add (OperationalLighting), AnimationInterval 0,075 (8 quadros = 0,6 s = o Timer SaindoRecente / EntrandoRecente).",
+  "Em envio continuo a animacao roda em laco: o quadro 8 emenda no quadro 1.",
+  "ARMAS / LANCADORES: roof_doodads fica ABAIXO da cabeca da torre (roof_turrets), entao no centro da peca os cassetes somem embaixo da torre. Nas pecas com torre ponha o Graphics do FX no centro da fileira de TRAS (a fileira da tripulacao, fora do anel; ex.: Carcara 2x2 -> Location [1, 1.5]); fabricas e paiois: centro da peca.",
+  "brilho_*: aditivo opaco sobre preto (como os PNGs de luz vanilla), ciano puro com o canal vermelho 0 (canal mais fraco <= 25, spec) e pico baixo (~ 120)."
+ ],
+ "files": [
+  "brilho_entra1.png",
+  "brilho_entra2.png",
+  "brilho_entra3.png",
+  "brilho_entra4.png",
+  "brilho_entra5.png",
+  "brilho_entra6.png",
+  "brilho_entra7.png",
+  "brilho_entra8.png",
+  "brilho_sai1.png",
+  "brilho_sai2.png",
+  "brilho_sai3.png",
+  "brilho_sai4.png",
+  "brilho_sai5.png",
+  "brilho_sai6.png",
+  "brilho_sai7.png",
+  "brilho_sai8.png",
+  "cartucho_entra1.png",
+  "cartucho_entra2.png",
+  "cartucho_entra3.png",
+  "cartucho_entra4.png",
+  "cartucho_entra5.png",
+  "cartucho_entra6.png",
+  "cartucho_entra7.png",
+  "cartucho_entra8.png",
+  "cartucho_sai1.png",
+  "cartucho_sai2.png",
+  "cartucho_sai3.png",
+  "cartucho_sai4.png",
+  "cartucho_sai5.png",
+  "cartucho_sai6.png",
+  "cartucho_sai7.png",
+  "cartucho_sai8.png"
+ ]
+}

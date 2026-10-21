@@ -4,7 +4,7 @@
  "kind": "resource",
  "stack": 4,
  "overlay_glow": true,
- "nugget_scale": 0.41,
+ "nugget_scale": 0.5,
  "files": [
   "icon.png",
   "nugget.png",

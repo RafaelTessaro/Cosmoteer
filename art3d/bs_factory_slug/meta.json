@@ -1,0 +1,122 @@
+{
+ "version": 1,
+ "id": "rafaeltessaro.bs_factory_slug",
+ "kind": "factory",
+ "size": [
+  3,
+  4
+ ],
+ "machine": {
+  "frames": [
+   "machine_on1.png",
+   "machine_on2.png",
+   "machine_on3.png",
+   "machine_on4.png",
+   "machine_on5.png",
+   "machine_on6.png",
+   "machine_on7.png",
+   "machine_on8.png",
+   "machine_on9.png",
+   "machine_on10.png",
+   "machine_on11.png",
+   "machine_on12.png"
+  ],
+  "off": "machine_off.png",
+  "interval": 0.25,
+  "size": [
+   3,
+   4
+  ],
+  "offset": [
+   0,
+   0
+  ]
+ },
+ "hull": {
+  "floor": "floor.png",
+  "walls": "walls.png",
+  "roof": "roof.png",
+  "roof_normals": "roof_normals.png",
+  "lights": "lights.png"
+ },
+ "files": [
+  "floor.png",
+  "lights.png",
+  "machine_off.png",
+  "machine_on1.png",
+  "machine_on10.png",
+  "machine_on11.png",
+  "machine_on12.png",
+  "machine_on2.png",
+  "machine_on3.png",
+  "machine_on4.png",
+  "machine_on5.png",
+  "machine_on6.png",
+  "machine_on7.png",
+  "machine_on8.png",
+  "machine_on9.png",
+  "roof.png",
+  "roof_normals.png",
+  "walls.png"
+ ],
+ "factory_code": "F6",
+ "name_ptbr": "Forja de Projéteis",
+ "grid": {
+  "blocked": [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    0
+   ],
+   [
+    2,
+    0
+   ],
+   [
+    0,
+    1
+   ],
+   [
+    1,
+    1
+   ],
+   [
+    2,
+    1
+   ],
+   [
+    1,
+    2
+   ]
+  ],
+  "inputs": {
+   "tristeel": [
+    0,
+    2,
+    1,
+    1
+   ],
+   "coil2": [
+    2,
+    2,
+    1,
+    1
+   ]
+  },
+  "outputs": {
+   "slug": [
+    0,
+    3,
+    3,
+    1
+   ]
+  }
+ },
+ "palette_note": "azul/laranja da Tupa nova (USER_NOTES: referencia da railgun) em vez do violeta do spec",
+ "notes": [
+  "12 quadros x 0,25 s = 3,0 s = um projetil por volta (R07)"
+ ]
+}

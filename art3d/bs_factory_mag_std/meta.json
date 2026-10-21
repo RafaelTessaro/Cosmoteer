@@ -54,5 +54,39 @@
   "roof.png",
   "roof_normals.png",
   "walls.png"
+ ],
+ "factory_code": "F1",
+ "name_ptbr": "Prensa HE",
+ "grid": {
+  "blocked": [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    0
+   ]
+  ],
+  "inputs": {
+   "sulfur": [
+    0,
+    1,
+    1,
+    1
+   ]
+  },
+  "outputs": {
+   "he": [
+    1,
+    1,
+    1,
+    1
+   ]
+  }
+ },
+ "notes": [
+  "10 quadros x 0,125 s = 1,25 s = um Carregador HE por volta (interval_s_base 1,25)",
+  "lights.png vem do quadro 1 (repouso): so LEDs pequenos"
  ]
 }

@@ -153,7 +153,15 @@ def _roof(M, T, n, fam):
     B.box("deck_under", 0, 0, W, W, -0.05, 0.02, K, bevel=0.0, tags=tags)
     # tampa SELADA: uma placa so (aro chanfrado + painel elevado, bisel duplo), costuras nas emendas dos quadros
     lid = B.rpoly(0, 0, W - 0.05, W - 0.05, 0, chamfer=0.10 + 0.03 * W)
-    la, lp = B.shard("lid", lid, 0.0, Z_RIM, green, slope=0.03, groove=0.065, panel_h=0.025, tags=tags)
+    # aro da tampa SEM pintura (blindagem escura) e painel pintado: le como tampa blindada em qualquer pintura
+    la, lp = B.shard("lid", lid, 0.0, Z_RIM, AM, slope=0.03, groove=0.065, panel_h=0.025, panel_mat=green, tags=tags)
+    # parafusos do aro (a cada ~0,3 quadro), fora das travas
+    rim = W / 2 - 0.025 - 0.055
+    nb = max(2, int(round((W - 0.4) / 0.3)))
+    for k in range(nb):
+        t = -W / 2 + 0.2 + (W - 0.4) * k / (nb - 1)
+        for j, (bx, by) in enumerate(((t, -rim), (rim, t))):
+            B.cyl(f"rimb{k}_{j}", bx, by, Z_RIM + 0.004, 0.013, 0.010, S, axis="Z", verts=8, bevel=0.003, tags=tags)
     ztop = Z_RIM + 0.025
     seams = []
     for k in range(1, W):
@@ -238,23 +246,38 @@ def _roof(M, T, n, fam):
                 "3x3": [(1.50, 0.16, 0.80, 0.80), (1.50, 1.04, 0.80, 0.80), (0.20, 1.44, 1.10, 0.56)]}[n]
         for k, (x, y, w, h) in enumerate(blow):
             poly = _rect_poly(n, x, y, w, h, chamfer=0.05)
-            ba, bp = B.shard(f"blow{k}", poly, ztop - 0.012, ztop + 0.02, green, slope=0.016, groove=0.014,
-                             panel_h=0.010, tags=tags)
+            big = w > 0.6 and h > 0.6
+            ba, bp = B.shard(f"blow{k}", poly, ztop - 0.012, ztop + 0.03, A if big else AM, slope=0.018,
+                             groove=0.014, panel_h=0.012, tags=tags)
             mx, my = _c(n, x + w / 2, y + h / 2)
-            cuts = []
-            if w > 0.6 and h > 0.6:          # linhas de ruptura em X (painel que estoura para fora no cook-off)
-                ang = math.degrees(math.atan2(h, w))
-                for s in (-1, 1):
-                    cuts.append(B.rbox(f"blx{k}{s}", mx, my, 0.012, math.hypot(w, h) - 0.22, ztop + 0.005, 0.6, K,
-                                       rot=s * (90 - ang), bevel=0.0))
-            else:                            # respiro: 3 venezianas
+            zb = ztop + 0.006                # fundo das ranhuras: abaixo do topo da base (corte >= panel_h + 0.02)
+            if big:                          # painel de alivio: contorno de ruptura riscado + disco de ruptura no meio
+                iw, ih, g = w - 0.20, h - 0.20, 0.016
+                grooves = [(mx, my + ih / 2, iw + g, g), (mx, my - ih / 2, iw + g, g), (mx - iw / 2, my, g, ih + g),
+                           (mx + iw / 2, my, g, ih + g)]
+                for t in (ba, bp):
+                    if t is not None:
+                        B.cut(t, [B.box(f"blg{k}{i}{t.name}", gx_, gy_, sx_, sy_, zb, 0.6, K, bevel=0.0)
+                                  for i, (gx_, gy_, sx_, sy_) in enumerate(grooves)])
+                        B.cut(t, [B.cyl(f"bld{k}{t.name}", mx, my, (zb + 0.6) / 2, 0.105, 0.6 - zb, K, axis="Z",
+                                        verts=24, bevel=0.0)])
+                for i, (gx_, gy_, sx_, sy_) in enumerate(grooves):
+                    B.box(f"blgb{k}{i}", gx_, gy_, sx_, sy_, zb, zb + 0.004, M["black"], bevel=0.0, tags=tags)
+                B.cyl(f"bldb{k}", mx, my, zb + 0.002, 0.105, 0.004, M["black"], axis="Z", verts=24, bevel=0.0,
+                      tags=tags)
+                B.torus(f"bldr{k}", mx, my, zb + 0.012, 0.078, 0.011, S, tags=tags)
+                B.cyl(f"bldh{k}", mx, my, zb + 0.012, 0.035, 0.016, AM, axis="Z", verts=12, bevel=0.004, tags=tags)
+            else:                            # respiro: 3 venezianas vazadas com leito preto
                 for i in range(3):
-                    cuts.append(B.box(f"blv{k}{i}", mx, my + (i - 1) * h * 0.22, w - 0.12, 0.022, ztop + 0.0, 0.6,
-                                      K, bevel=0.0))
-            if bp is not None:
-                B.cut(bp, cuts)
+                    yy = my + (i - 1) * h * 0.22
+                    for t in (ba, bp):
+                        if t is not None:
+                            B.cut(t, [B.box(f"blv{k}{i}{t.name}", mx, yy, w - 0.14, 0.03, ztop - 0.03, 0.6, K,
+                                            bevel=0.0)])
+                    B.box(f"blvb{k}{i}", mx, yy, w - 0.14, 0.03, ztop + 0.001, ztop + 0.005, M["black"], bevel=0.0,
+                          tags=tags)
             for j, (sx, sy) in enumerate(((-1, -1), (1, -1), (1, 1), (-1, 1))):
-                B.cyl(f"blb{k}{j}", mx + sx * (w / 2 - 0.045), my + sy * (h / 2 - 0.045), ztop + 0.03, 0.014, 0.012,
+                B.cyl(f"blb{k}{j}", mx + sx * (w / 2 - 0.05), my + sy * (h / 2 - 0.05), ztop + 0.046, 0.015, 0.012,
                       S, axis="Z", verts=8, bevel=0.003, tags=tags)
 
 
@@ -383,12 +406,12 @@ def gauge(P, layer, px, level=1, **kw):
         if i >= level:
             break
         X0, Y0, X1, Y1 = x0 * S4, y0 * S4, x1 * S4, y1 * S4
-        dr.rectangle([X0, Y0, X1 - 1, Y1 - 1], fill=tuple(int(c * 0.82) for c in col) + (255,))
-        # nucleo mais claro (LED aceso) e reflexo em cima
-        core = tuple(int(min(255, c * 1.0 + (255 - c) * 0.28)) for c in col)
+        dr.rectangle([X0, Y0, X1 - 1, Y1 - 1], fill=tuple(int(c * 0.66) for c in col) + (255,))
+        # nucleo (LED aceso, sem estourar para branco) e reflexo fino em cima
+        core = tuple(int(min(255, c * 0.92 + (255 - c) * 0.12)) for c in col)
         dr.rectangle([X0 + S4, Y0 + S4, X1 - 1 - S4, Y1 - 1 - S4], fill=core + (255,))
         dr.rectangle([X0 + S4, Y0 + S4, X1 - 1 - S4, Y0 + 2 * S4 - 1],
-                     fill=tuple(int(min(255, c + (255 - c) * 0.6)) for c in col) + (255,))
+                     fill=tuple(int(min(255, c + (255 - c) * 0.45)) for c in col) + (255,))
     seg = big.resize((w, h), Image.LANCZOS)
     # brilho fraco nos vaos (luz dos LEDs no vidro), alfa baixo
     glow = seg.filter(ImageFilter.GaussianBlur(1.1))

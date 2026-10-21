@@ -1,0 +1,884 @@
+{
+ "version": 1,
+ "kind": "layered",
+ "shared": true,
+ "id": "rafaeltessaro.bs_paiol_comum",
+ "folder": "bs_paiol",
+ "parts": {
+  "1x1": {
+   "version": 1,
+   "kind": "layered",
+   "id": "rafaeltessaro.bs_paiol_1x1",
+   "size": [
+    1,
+    1
+   ],
+   "layers": {
+    "floor": {
+     "game_layer": "floors",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "files": [
+      "floor_1x1.png"
+     ],
+     "normals": null,
+     "opaque": true,
+     "emission_only": false,
+     "islands": false
+    },
+    "roof": {
+     "game_layer": "roofs",
+     "rect": [
+      0,
+      0,
+      1,
+      1
+     ],
+     "files": [
+      "roof_cartuchos_1x1.png",
+      "roof_celulas_1x1.png",
+      "roof_misseis_1x1.png",
+      "roof_projeteis_1x1.png"
+     ],
+     "normals": [
+      "roof_cartuchos_1x1_normals.png",
+      "roof_celulas_1x1_normals.png",
+      "roof_misseis_1x1_normals.png",
+      "roof_projeteis_1x1_normals.png"
+     ],
+     "variants": [
+      "cartuchos",
+      "celulas",
+      "misseis",
+      "projeteis"
+     ],
+     "opaque": false,
+     "emission_only": false,
+     "islands": false
+    },
+    "gauge": {
+     "game_layer": "roof_doodads",
+     "rect": [
+      0.68,
+      0.12,
+      0.2,
+      0.76
+     ],
+     "files": [
+      "gauge_1x1_1.png",
+      "gauge_1x1_2.png",
+      "gauge_1x1_3.png",
+      "gauge_1x1_4.png",
+      "gauge_1x1_5.png"
+     ],
+     "normals": null,
+     "levels": 5,
+     "opaque": false,
+     "emission_only": false,
+     "islands": true
+    }
+   },
+   "walls": "walls_1x1.png",
+   "icon": [
+    "icon_cartuchos_1x1.png",
+    "icon_celulas_1x1.png",
+    "icon_misseis_1x1.png",
+    "icon_projeteis_1x1.png"
+   ],
+   "blueprints": "blueprints_1x1.png",
+   "notes": [
+    "Paiol 1x1: as 4 familias usam o mesmo piso, paredes, medidor e blueprint; so o teto (chip da familia) e o icone mudam: roof_<familia>_1x1.png / icon_<familia>_1x1.png.",
+    "gauge_1x1_1..5.png: ResourceSprites em roof_doodads no rect [0.68, 0.12, 0.2, 0.76] (Round Up, HasZeroResourceSprite = false: o medidor vazio e o teto, que ja traz os segmentos apagados).",
+    "placa: placa_<tipo>.png (art3d/bs_placas) no rect 'plate' (roof_doodads), ToggledComponents por modo do seletor (MostradorTipo_<k>); projeteis = placa fixa (placa_slug.png).",
+    "digitos (opcional, switch paiol_counter): 4 ValueSprites com digito0..9.png (24 x 40) nos rects de 'digits'; os segmentos apagados ja estao pintados na janela do teto."
+   ],
+   "ids": {
+    "cartuchos": "rafaeltessaro.bs_paiol_cartuchos_1x1",
+    "celulas": "rafaeltessaro.bs_paiol_celulas_1x1",
+    "misseis": "rafaeltessaro.bs_paiol_misseis_1x1",
+    "projeteis": "rafaeltessaro.bs_paiol_projeteis_1x1"
+   },
+   "plate": {
+    "rect": [
+     0.11,
+     0.29,
+     0.42,
+     0.42
+    ],
+    "game_layer": "roof_doodads",
+    "source": "bs_placas",
+    "files": {
+     "cartuchos": [
+      "placa_he.png",
+      "placa_ap.png",
+      "placa_sap.png",
+      "placa_ac.png",
+      "placa_frag.png"
+     ],
+     "celulas": [
+      "placa_plasma.png",
+      "placa_pem.png"
+     ],
+     "misseis": [
+      "placa_msl_he.png",
+      "placa_msl_cluster.png",
+      "placa_msl_emp.png",
+      "placa_msl_nuke.png"
+     ],
+     "projeteis": [
+      "placa_slug.png"
+     ]
+    },
+    "native_px": [
+     48,
+     48
+    ]
+   },
+   "gauge_levels": 5,
+   "family_chip": {
+    "cartuchos": [
+     255,
+     190,
+     60
+    ],
+    "celulas": [
+     60,
+     220,
+     255
+    ],
+    "misseis": [
+     255,
+     120,
+     40
+    ],
+    "projeteis": [
+     150,
+     105,
+     255
+    ]
+   },
+   "digits": null,
+   "files": [
+    "blueprints_1x1.png",
+    "floor_1x1.png",
+    "gauge_1x1_1.png",
+    "gauge_1x1_2.png",
+    "gauge_1x1_3.png",
+    "gauge_1x1_4.png",
+    "gauge_1x1_5.png",
+    "icon_cartuchos_1x1.png",
+    "icon_celulas_1x1.png",
+    "icon_misseis_1x1.png",
+    "icon_projeteis_1x1.png",
+    "roof_cartuchos_1x1.png",
+    "roof_cartuchos_1x1_normals.png",
+    "roof_celulas_1x1.png",
+    "roof_celulas_1x1_normals.png",
+    "roof_misseis_1x1.png",
+    "roof_misseis_1x1_normals.png",
+    "roof_projeteis_1x1.png",
+    "roof_projeteis_1x1_normals.png",
+    "walls_1x1.png"
+   ],
+   "sub": "1x1"
+  },
+  "2x2": {
+   "version": 1,
+   "kind": "layered",
+   "id": "rafaeltessaro.bs_paiol_2x2",
+   "size": [
+    2,
+    2
+   ],
+   "layers": {
+    "floor": {
+     "game_layer": "floors",
+     "rect": [
+      0,
+      0,
+      2,
+      2
+     ],
+     "files": [
+      "floor_2x2.png"
+     ],
+     "normals": null,
+     "opaque": true,
+     "emission_only": false,
+     "islands": false
+    },
+    "roof": {
+     "game_layer": "roofs",
+     "rect": [
+      0,
+      0,
+      2,
+      2
+     ],
+     "files": [
+      "roof_cartuchos_2x2.png",
+      "roof_celulas_2x2.png",
+      "roof_misseis_2x2.png",
+      "roof_projeteis_2x2.png"
+     ],
+     "normals": [
+      "roof_cartuchos_2x2_normals.png",
+      "roof_celulas_2x2_normals.png",
+      "roof_misseis_2x2_normals.png",
+      "roof_projeteis_2x2_normals.png"
+     ],
+     "variants": [
+      "cartuchos",
+      "celulas",
+      "misseis",
+      "projeteis"
+     ],
+     "opaque": false,
+     "emission_only": false,
+     "islands": false
+    },
+    "gauge": {
+     "game_layer": "roof_doodads",
+     "rect": [
+      1.58,
+      0.16,
+      0.26,
+      1.68
+     ],
+     "files": [
+      "gauge_2x2_1.png",
+      "gauge_2x2_2.png",
+      "gauge_2x2_3.png",
+      "gauge_2x2_4.png",
+      "gauge_2x2_5.png",
+      "gauge_2x2_6.png",
+      "gauge_2x2_7.png",
+      "gauge_2x2_8.png"
+     ],
+     "normals": null,
+     "levels": 8,
+     "opaque": false,
+     "emission_only": false,
+     "islands": true
+    },
+    "digitos": {
+     "game_layer": "roof_doodads",
+     "rect": [
+      0.19,
+      1.37,
+      0.22,
+      0.36
+     ],
+     "files": [
+      "digito0.png",
+      "digito1.png",
+      "digito2.png",
+      "digito3.png",
+      "digito4.png",
+      "digito5.png",
+      "digito6.png",
+      "digito7.png",
+      "digito8.png",
+      "digito9.png"
+     ],
+     "normals": null,
+     "variants": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9"
+     ],
+     "px": [
+      24,
+      40
+     ],
+     "opaque": false,
+     "emission_only": false,
+     "islands": true,
+     "rects": [
+      [
+       0.19,
+       1.37,
+       0.22,
+       0.36
+      ],
+      [
+       0.44,
+       1.37,
+       0.22,
+       0.36
+      ],
+      [
+       0.69,
+       1.37,
+       0.22,
+       0.36
+      ],
+      [
+       0.94,
+       1.37,
+       0.22,
+       0.36
+      ]
+     ]
+    }
+   },
+   "walls": "walls_2x2.png",
+   "icon": [
+    "icon_cartuchos_2x2.png",
+    "icon_celulas_2x2.png",
+    "icon_misseis_2x2.png",
+    "icon_projeteis_2x2.png"
+   ],
+   "blueprints": "blueprints_2x2.png",
+   "notes": [
+    "Paiol 2x2: as 4 familias usam o mesmo piso, paredes, medidor e blueprint; so o teto (chip da familia) e o icone mudam: roof_<familia>_2x2.png / icon_<familia>_2x2.png.",
+    "gauge_2x2_1..8.png: ResourceSprites em roof_doodads no rect [1.58, 0.16, 0.26, 1.68] (Round Up, HasZeroResourceSprite = false: o medidor vazio e o teto, que ja traz os segmentos apagados).",
+    "placa: placa_<tipo>.png (art3d/bs_placas) no rect 'plate' (roof_doodads), ToggledComponents por modo do seletor (MostradorTipo_<k>); projeteis = placa fixa (placa_slug.png).",
+    "digitos (opcional, switch paiol_counter): 4 ValueSprites com digito0..9.png (24 x 40) nos rects de 'digits'; os segmentos apagados ja estao pintados na janela do teto."
+   ],
+   "ids": {
+    "cartuchos": "rafaeltessaro.bs_paiol_cartuchos_2x2",
+    "celulas": "rafaeltessaro.bs_paiol_celulas_2x2",
+    "misseis": "rafaeltessaro.bs_paiol_misseis_2x2",
+    "projeteis": "rafaeltessaro.bs_paiol_projeteis_2x2"
+   },
+   "plate": {
+    "rect": [
+     0.29,
+     0.29,
+     0.66,
+     0.66
+    ],
+    "game_layer": "roof_doodads",
+    "source": "bs_placas",
+    "files": {
+     "cartuchos": [
+      "placa_he.png",
+      "placa_ap.png",
+      "placa_sap.png",
+      "placa_ac.png",
+      "placa_frag.png"
+     ],
+     "celulas": [
+      "placa_plasma.png",
+      "placa_pem.png"
+     ],
+     "misseis": [
+      "placa_msl_he.png",
+      "placa_msl_cluster.png",
+      "placa_msl_emp.png",
+      "placa_msl_nuke.png"
+     ],
+     "projeteis": [
+      "placa_slug.png"
+     ]
+    },
+    "native_px": [
+     48,
+     48
+    ]
+   },
+   "gauge_levels": 8,
+   "family_chip": {
+    "cartuchos": [
+     255,
+     190,
+     60
+    ],
+    "celulas": [
+     60,
+     220,
+     255
+    ],
+    "misseis": [
+     255,
+     120,
+     40
+    ],
+    "projeteis": [
+     150,
+     105,
+     255
+    ]
+   },
+   "digits": {
+    "rects": [
+     [
+      0.19,
+      1.37,
+      0.22,
+      0.36
+     ],
+     [
+      0.44,
+      1.37,
+      0.22,
+      0.36
+     ],
+     [
+      0.69,
+      1.37,
+      0.22,
+      0.36
+     ],
+     [
+      0.94,
+      1.37,
+      0.22,
+      0.36
+     ]
+    ],
+    "files": [
+     "digito0.png",
+     "digito1.png",
+     "digito2.png",
+     "digito3.png",
+     "digito4.png",
+     "digito5.png",
+     "digito6.png",
+     "digito7.png",
+     "digito8.png",
+     "digito9.png"
+    ],
+    "switch": "paiol_counter",
+    "publish_as": "gui/digitos/digito<i>.png"
+   },
+   "files": [
+    "blueprints_2x2.png",
+    "digito0.png",
+    "digito1.png",
+    "digito2.png",
+    "digito3.png",
+    "digito4.png",
+    "digito5.png",
+    "digito6.png",
+    "digito7.png",
+    "digito8.png",
+    "digito9.png",
+    "floor_2x2.png",
+    "gauge_2x2_1.png",
+    "gauge_2x2_2.png",
+    "gauge_2x2_3.png",
+    "gauge_2x2_4.png",
+    "gauge_2x2_5.png",
+    "gauge_2x2_6.png",
+    "gauge_2x2_7.png",
+    "gauge_2x2_8.png",
+    "icon_cartuchos_2x2.png",
+    "icon_celulas_2x2.png",
+    "icon_misseis_2x2.png",
+    "icon_projeteis_2x2.png",
+    "roof_cartuchos_2x2.png",
+    "roof_cartuchos_2x2_normals.png",
+    "roof_celulas_2x2.png",
+    "roof_celulas_2x2_normals.png",
+    "roof_misseis_2x2.png",
+    "roof_misseis_2x2_normals.png",
+    "roof_projeteis_2x2.png",
+    "roof_projeteis_2x2_normals.png",
+    "walls_2x2.png"
+   ],
+   "sub": "2x2"
+  },
+  "3x3": {
+   "version": 1,
+   "kind": "layered",
+   "id": "rafaeltessaro.bs_paiol_3x3",
+   "size": [
+    3,
+    3
+   ],
+   "layers": {
+    "floor": {
+     "game_layer": "floors",
+     "rect": [
+      0,
+      0,
+      3,
+      3
+     ],
+     "files": [
+      "floor_3x3.png"
+     ],
+     "normals": null,
+     "opaque": true,
+     "emission_only": false,
+     "islands": false
+    },
+    "roof": {
+     "game_layer": "roofs",
+     "rect": [
+      0,
+      0,
+      3,
+      3
+     ],
+     "files": [
+      "roof_cartuchos_3x3.png",
+      "roof_celulas_3x3.png",
+      "roof_misseis_3x3.png",
+      "roof_projeteis_3x3.png"
+     ],
+     "normals": [
+      "roof_cartuchos_3x3_normals.png",
+      "roof_celulas_3x3_normals.png",
+      "roof_misseis_3x3_normals.png",
+      "roof_projeteis_3x3_normals.png"
+     ],
+     "variants": [
+      "cartuchos",
+      "celulas",
+      "misseis",
+      "projeteis"
+     ],
+     "opaque": false,
+     "emission_only": false,
+     "islands": false
+    },
+    "gauge": {
+     "game_layer": "roof_doodads",
+     "rect": [
+      2.46,
+      0.2,
+      0.34,
+      2.6
+     ],
+     "files": [
+      "gauge_3x3_1.png",
+      "gauge_3x3_2.png",
+      "gauge_3x3_3.png",
+      "gauge_3x3_4.png",
+      "gauge_3x3_5.png",
+      "gauge_3x3_6.png",
+      "gauge_3x3_7.png",
+      "gauge_3x3_8.png",
+      "gauge_3x3_9.png",
+      "gauge_3x3_10.png"
+     ],
+     "normals": null,
+     "levels": 10,
+     "opaque": false,
+     "emission_only": false,
+     "islands": true
+    },
+    "digitos": {
+     "game_layer": "roof_doodads",
+     "rect": [
+      0.25,
+      2.2,
+      0.3,
+      0.5
+     ],
+     "files": [
+      "digito0.png",
+      "digito1.png",
+      "digito2.png",
+      "digito3.png",
+      "digito4.png",
+      "digito5.png",
+      "digito6.png",
+      "digito7.png",
+      "digito8.png",
+      "digito9.png"
+     ],
+     "normals": null,
+     "variants": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9"
+     ],
+     "px": [
+      24,
+      40
+     ],
+     "opaque": false,
+     "emission_only": false,
+     "islands": true,
+     "rects": [
+      [
+       0.25,
+       2.2,
+       0.3,
+       0.5
+      ],
+      [
+       0.59,
+       2.2,
+       0.3,
+       0.5
+      ],
+      [
+       0.93,
+       2.2,
+       0.3,
+       0.5
+      ],
+      [
+       1.27,
+       2.2,
+       0.3,
+       0.5
+      ]
+     ]
+    }
+   },
+   "walls": "walls_3x3.png",
+   "icon": [
+    "icon_cartuchos_3x3.png",
+    "icon_celulas_3x3.png",
+    "icon_misseis_3x3.png",
+    "icon_projeteis_3x3.png"
+   ],
+   "blueprints": "blueprints_3x3.png",
+   "notes": [
+    "Paiol 3x3: as 4 familias usam o mesmo piso, paredes, medidor e blueprint; so o teto (chip da familia) e o icone mudam: roof_<familia>_3x3.png / icon_<familia>_3x3.png.",
+    "gauge_3x3_1..10.png: ResourceSprites em roof_doodads no rect [2.46, 0.2, 0.34, 2.6] (Round Up, HasZeroResourceSprite = false: o medidor vazio e o teto, que ja traz os segmentos apagados).",
+    "placa: placa_<tipo>.png (art3d/bs_placas) no rect 'plate' (roof_doodads), ToggledComponents por modo do seletor (MostradorTipo_<k>); projeteis = placa fixa (placa_slug.png).",
+    "digitos (opcional, switch paiol_counter): 4 ValueSprites com digito0..9.png (24 x 40) nos rects de 'digits'; os segmentos apagados ja estao pintados na janela do teto."
+   ],
+   "ids": {
+    "cartuchos": "rafaeltessaro.bs_paiol_cartuchos_3x3",
+    "celulas": "rafaeltessaro.bs_paiol_celulas_3x3",
+    "misseis": "rafaeltessaro.bs_paiol_misseis_3x3",
+    "projeteis": "rafaeltessaro.bs_paiol_projeteis_3x3"
+   },
+   "plate": {
+    "rect": [
+     0.39,
+     0.39,
+     0.92,
+     0.92
+    ],
+    "game_layer": "roof_doodads",
+    "source": "bs_placas",
+    "files": {
+     "cartuchos": [
+      "placa_he.png",
+      "placa_ap.png",
+      "placa_sap.png",
+      "placa_ac.png",
+      "placa_frag.png"
+     ],
+     "celulas": [
+      "placa_plasma.png",
+      "placa_pem.png"
+     ],
+     "misseis": [
+      "placa_msl_he.png",
+      "placa_msl_cluster.png",
+      "placa_msl_emp.png",
+      "placa_msl_nuke.png"
+     ],
+     "projeteis": [
+      "placa_slug.png"
+     ]
+    },
+    "native_px": [
+     48,
+     48
+    ]
+   },
+   "gauge_levels": 10,
+   "family_chip": {
+    "cartuchos": [
+     255,
+     190,
+     60
+    ],
+    "celulas": [
+     60,
+     220,
+     255
+    ],
+    "misseis": [
+     255,
+     120,
+     40
+    ],
+    "projeteis": [
+     150,
+     105,
+     255
+    ]
+   },
+   "digits": {
+    "rects": [
+     [
+      0.25,
+      2.2,
+      0.3,
+      0.5
+     ],
+     [
+      0.59,
+      2.2,
+      0.3,
+      0.5
+     ],
+     [
+      0.93,
+      2.2,
+      0.3,
+      0.5
+     ],
+     [
+      1.27,
+      2.2,
+      0.3,
+      0.5
+     ]
+    ],
+    "files": [
+     "digito0.png",
+     "digito1.png",
+     "digito2.png",
+     "digito3.png",
+     "digito4.png",
+     "digito5.png",
+     "digito6.png",
+     "digito7.png",
+     "digito8.png",
+     "digito9.png"
+    ],
+    "switch": "paiol_counter",
+    "publish_as": "gui/digitos/digito<i>.png"
+   },
+   "files": [
+    "blueprints_3x3.png",
+    "digito0.png",
+    "digito1.png",
+    "digito2.png",
+    "digito3.png",
+    "digito4.png",
+    "digito5.png",
+    "digito6.png",
+    "digito7.png",
+    "digito8.png",
+    "digito9.png",
+    "floor_3x3.png",
+    "gauge_3x3_1.png",
+    "gauge_3x3_10.png",
+    "gauge_3x3_2.png",
+    "gauge_3x3_3.png",
+    "gauge_3x3_4.png",
+    "gauge_3x3_5.png",
+    "gauge_3x3_6.png",
+    "gauge_3x3_7.png",
+    "gauge_3x3_8.png",
+    "gauge_3x3_9.png",
+    "icon_cartuchos_3x3.png",
+    "icon_celulas_3x3.png",
+    "icon_misseis_3x3.png",
+    "icon_projeteis_3x3.png",
+    "roof_cartuchos_3x3.png",
+    "roof_cartuchos_3x3_normals.png",
+    "roof_celulas_3x3.png",
+    "roof_celulas_3x3_normals.png",
+    "roof_misseis_3x3.png",
+    "roof_misseis_3x3_normals.png",
+    "roof_projeteis_3x3.png",
+    "roof_projeteis_3x3_normals.png",
+    "walls_3x3.png"
+   ],
+   "sub": "3x3"
+  }
+ },
+ "files": [
+  "blueprints_1x1.png",
+  "blueprints_2x2.png",
+  "blueprints_3x3.png",
+  "digito0.png",
+  "digito1.png",
+  "digito2.png",
+  "digito3.png",
+  "digito4.png",
+  "digito5.png",
+  "digito6.png",
+  "digito7.png",
+  "digito8.png",
+  "digito9.png",
+  "floor_1x1.png",
+  "floor_2x2.png",
+  "floor_3x3.png",
+  "gauge_1x1_1.png",
+  "gauge_1x1_2.png",
+  "gauge_1x1_3.png",
+  "gauge_1x1_4.png",
+  "gauge_1x1_5.png",
+  "gauge_2x2_1.png",
+  "gauge_2x2_2.png",
+  "gauge_2x2_3.png",
+  "gauge_2x2_4.png",
+  "gauge_2x2_5.png",
+  "gauge_2x2_6.png",
+  "gauge_2x2_7.png",
+  "gauge_2x2_8.png",
+  "gauge_3x3_1.png",
+  "gauge_3x3_10.png",
+  "gauge_3x3_2.png",
+  "gauge_3x3_3.png",
+  "gauge_3x3_4.png",
+  "gauge_3x3_5.png",
+  "gauge_3x3_6.png",
+  "gauge_3x3_7.png",
+  "gauge_3x3_8.png",
+  "gauge_3x3_9.png",
+  "icon_cartuchos_1x1.png",
+  "icon_cartuchos_2x2.png",
+  "icon_cartuchos_3x3.png",
+  "icon_celulas_1x1.png",
+  "icon_celulas_2x2.png",
+  "icon_celulas_3x3.png",
+  "icon_misseis_1x1.png",
+  "icon_misseis_2x2.png",
+  "icon_misseis_3x3.png",
+  "icon_projeteis_1x1.png",
+  "icon_projeteis_2x2.png",
+  "icon_projeteis_3x3.png",
+  "roof_cartuchos_1x1.png",
+  "roof_cartuchos_1x1_normals.png",
+  "roof_cartuchos_2x2.png",
+  "roof_cartuchos_2x2_normals.png",
+  "roof_cartuchos_3x3.png",
+  "roof_cartuchos_3x3_normals.png",
+  "roof_celulas_1x1.png",
+  "roof_celulas_1x1_normals.png",
+  "roof_celulas_2x2.png",
+  "roof_celulas_2x2_normals.png",
+  "roof_celulas_3x3.png",
+  "roof_celulas_3x3_normals.png",
+  "roof_misseis_1x1.png",
+  "roof_misseis_1x1_normals.png",
+  "roof_misseis_2x2.png",
+  "roof_misseis_2x2_normals.png",
+  "roof_misseis_3x3.png",
+  "roof_misseis_3x3_normals.png",
+  "roof_projeteis_1x1.png",
+  "roof_projeteis_1x1_normals.png",
+  "roof_projeteis_2x2.png",
+  "roof_projeteis_2x2_normals.png",
+  "roof_projeteis_3x3.png",
+  "roof_projeteis_3x3_normals.png",
+  "walls_1x1.png",
+  "walls_2x2.png",
+  "walls_3x3.png"
+ ]
+}

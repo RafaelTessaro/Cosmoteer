@@ -53,7 +53,7 @@ def mats(M):
     return {
         "brass": B.mat_metal("brass", (0.66, 0.44, 0.12), rough=0.28, metal=1.0),     # = parts/bs_mag_std.py
         "cass": B.mat_metal("lg_cass", (0.050, 0.053, 0.062), rough=0.36, metal=0.8),  # capsula escura do cassete
-        "cass_cap": B.mat_metal("lg_cass_cap", (0.30, 0.31, 0.33), rough=0.30, metal=0.9),
+        "cass_cap": B.mat_metal("lg_cass_cap", (0.50, 0.51, 0.54), rough=0.34, metal=0.55),   # tampas claras: le no teto escuro
         "amber": B.mat_glow("lg_amber", (1.0, 0.42, 0.04), 2.2),
         "amber_off": B.mat_metal("lg_amber_off", (0.09, 0.035, 0.004), rough=0.2, metal=0.0),
         "lens_off": B.mat_metal("lg_lens_off", (0.012, 0.030, 0.012), rough=0.12, metal=0.0),   # lente verde apagada

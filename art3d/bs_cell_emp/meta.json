@@ -1,0 +1,18 @@
+{
+ "version": 1,
+ "id": "rafaeltessaro.bs_cell_emp",
+ "kind": "resource",
+ "stack": 4,
+ "overlay_glow": true,
+ "nugget_scale": 0.52,
+ "files": [
+  "icon.png",
+  "nugget.png",
+  "nugget_normals.png",
+  "overlay.png",
+  "stack_1.png",
+  "stack_2.png",
+  "stack_3.png",
+  "stack_4.png"
+ ]
+}

@@ -425,7 +425,7 @@ def roof(M, T="roof"):
     bx, by = BANK_C
     pa, pp = deck[(2, 0)]
     for k, (dx, dy) in enumerate(((-1, -1), (-1, 1), (1, -1), (1, 1))):
-        sx_, sy_ = bx + dx * 0.36, by + dy * 0.41
+        sx_, sy_ = bx + dx * 0.34, by + dy * 0.36
         B.box(f"rf_bk{k}", sx_, sy_, 0.10, 0.10, 0.06, 0.12, KM, bevel=0.012, tags=tags)
         B.bolts(f"rf_bkb{k}", [(sx_, sy_)], 0.12, 0.018, S, tags=tags)
     term = B.box("rf_term", bx, by, 0.12, 0.50, 0.06, 0.11, KM, bevel=0.01, tags=tags)

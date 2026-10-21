@@ -436,7 +436,7 @@ def machine(M, T="machine", phase=0.0):
 def roof(M, T="roof"):
     tags = (T,)
     K, KM, A, AM, S = M["core"], M["core_mid"], M["armor"], M["armor_mid"], M["steel"]
-    deck = H.roof_deck(M, W, HH, skip={(1, 0), (2, 0)}, T=T)
+    deck = H.roof_deck(M, W, HH, skip={(1, 0), (2, 0), (1, 1), (2, 1)}, T=T)
     H.roof_hatch("rf_in0", M, -1.5, 0.0, 90, deck[(0, 1)], T=T)
     H.roof_hatch("rf_in1", M, 1.5, 0.0, 90, deck[(3, 1)], T=T)
     for (i, j), kind in OUTS.items():
@@ -457,17 +457,23 @@ def roof(M, T="roof"):
         H.vent(f"cr_cv{sx}", sx * 0.78, 1.20, 0.18, 0.26, 0.22, 0.27, M, tags, n=4, targets=[ca, cp])
         H.ledslot(f"cr_csl{sx}", sx * 0.78, 0.82, 0.034, 0.20, 0.22, 3, M, tags, [ca, cp], pw=0.016,
                   pip_mat=M["glow_dim"])
-    # colar octogonal segmentado sobre a mesa (le a mesa de cima) e linhas de painel das celulas do meio
+    # celulas do meio (sobre a mesa): UMA placa verde de 2 quadros com o furo octogonal do colar segmentado
+    green = H.roof_green()
+    mid = B.rpoly(0, 0, 1.92, 0.92, 0, chamfer=0.10)
+    ma, mp = B.shard("rf_mid", mid, 0.0, 0.07, green, slope=0.03, groove=0.05, panel_h=0.022, tags=tags)
+    hole = H.octo(0, 0, 0.43)
+    for q, t in enumerate((ma, mp)):
+        if t is not None:
+            B.cut(t, [B.loft(f"rf_midh{q}", hole, hole, -0.01, 0.5, K, bevel=0.0)])
+    if mp is not None:
+        # linhas de painel nas duas pontas da placa (a placa e longa: quebra a cada ~0,5 quadro)
+        B.cut(mp, [B.box(f"rf_midpl{k}", sx_ * 0.66, 0, 0.022, 0.70, 0.04, 0.3, K, bevel=0.0)
+                   for k, sx_ in enumerate((-1, 1))])
+    B.plate("cr_colbase", H.octo(0, 0, 0.42), 0.0, 0.05, K, slope=0.01, tags=tags)
     for k in range(8):
         a0 = 22.5 + 45 * k
         seg = [(math.cos(math.radians(a0 + d)) * r, math.sin(math.radians(a0 + d)) * r)
-               for r, d in ((0.30, -19), (0.40, -19), (0.40, 19), (0.30, 19))]
-        for (i, j) in ((1, 1), (2, 1)):
-            pa, pp = deck[(i, j)]
-            for q, t in enumerate((pa, pp)):
-                if t is not None:
-                    B.cut(t, [B.loft(f"cr_colh{k}{i}{q}", B.offset_poly(seg, -0.02), B.offset_poly(seg, -0.02),
-                                     -0.01, 0.5, K, bevel=0.0)])
+               for r, d in ((0.29, -19), (0.40, -19), (0.40, 19), (0.29, 19))]
         B.shard(f"cr_col{k}", seg, 0.0, 0.13, AM, slope=0.02, groove=0.012, panel_h=0.012, tags=tags)
     B.cyl("cr_hub", 0, 0, 0.10, 0.12, 0.08, KM, axis="Z", verts=8, bevel=0.01, tags=tags)
     B.cyl("cr_hubc", 0, 0, 0.15, 0.06, 0.03, S, axis="Z", verts=8, bevel=0.006, tags=tags)

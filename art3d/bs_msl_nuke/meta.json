@@ -1,0 +1,16 @@
+{
+ "version": 1,
+ "id": "rafaeltessaro.bs_msl_nuke",
+ "kind": "resource",
+ "stack": 2,
+ "overlay_glow": true,
+ "nugget_scale": 0.86,
+ "files": [
+  "icon.png",
+  "nugget.png",
+  "nugget_normals.png",
+  "overlay.png",
+  "stack_1.png",
+  "stack_2.png"
+ ]
+}

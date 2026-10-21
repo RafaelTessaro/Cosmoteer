@@ -102,7 +102,7 @@ def _hopper(M, Xm, tags, st):
     sa, sp = B.shard("hop", shell, 0.0, 0.30, A, slope=0.06, groove=0.026, panel_h=0.026, tags=tags)
     out = H.octo(hx, hy, HOP_R + 0.035)
     inn = H.octo(hx, hy, HOP_R)
-    H.bezel("hop_win", out, inn, 0.10, 0.335, M, tags, [sa, sp], bed=False)
+    H.bezel("hop_win", out, inn, 0.02, 0.335, M, tags, [sa, sp], bed=False)
     # funil: fundo escuro e um anel de aco em degrau na borda (o monte de enxofre fica dentro)
     B.plate("hop_fb", H.octo(hx, hy, HOP_R), 0.02, 0.05, K, slope=0.01, tags=tags)
     ring = B.plate("hop_fr", H.octo(hx, hy, HOP_R), 0.05, 0.10, KM, slope=0.015, tags=tags)

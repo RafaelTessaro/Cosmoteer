@@ -18,9 +18,11 @@ shell_ladder do spec de arte 2.0 (design/art/spec_art.json):
                                                     familia PEM) + luz ciano; pem_m com o brilho ciano que pula entre
                                                     as bobinas, pem_l com o nucleo segmentado
   railgun  Tupa                                     slug: dardo APFSDS longo e FINO de tungstenio CLARO (haste de
-                                                    ~0.19 quadro), penetrador conico com a ponta quente ouro-branca,
-                                                    4 colares EM violeta (3 acesos por quadro) e um feixe compacto de
-                                                    6 aletas curtas na cauda (NUNCA cobre, NUNCA chama de foguete).
+                                                    ~0.19 quadro), penetrador conico com a ponta quente
+                                                    branco-azulada e o colar LARANJA atras dela, 4 colares EM AZUIS
+                                                    (3 acesos por quadro) e um feixe compacto de 6 aletas curtas na
+                                                    cauda (NUNCA cobre, NUNCA chama de foguete). Cores = a referencia
+                                                    do usuario para o Tupa (azul eletrico, branco-azulado, laranja).
                                                     O spec pedia trilhos + armadura clara; a critica r1 mostrou que a
                                                     sela da armadura lia como asa de missil (Jararaca/Mula), entao
                                                     os colares EM fazem o papel das sapatas de trilho
@@ -114,6 +116,7 @@ ICE = (0.42, 0.60, 0.92)            # anel gelo da AP (palette.ap.band 215,230,2
 # ---- LEDs por municao (emissao; na vista Standard forca 1.0 sai ~ a cor do palette)
 LED = {"he": (1.0, 0.45, 0.05), "ap": (0.45, 0.70, 1.0), "sap": (1.0, 0.22, 0.03), "ac": (1.0, 0.025, 0.09),
        "amber": (1.0, 0.40, 0.025), "pem": (0.05, 0.60, 1.0), "violet": (0.24, 0.07, 1.0),
+       "rail": (0.04, 0.22, 1.0),
        "hot": (1.0, 0.85, 0.55), "seek": (1.0, 0.10, 0.12)}
 
 
@@ -144,15 +147,19 @@ def _mats(M):
         # cobre das bobinas PEM = o do Poraque (Mo.copper_mat: metal 1.0, rough 0.22) nas espiras redondas
         "copper": Mo.copper_mat(),
         "pem": _spec(B.mat_metal("s2_pem_body", PEM_BODY, rough=0.5, metal=0.2), 0.12),
-        # violeta anodizado dos colares EM do slug e ponta de metal claro dourado (difuso; o brilho vem do atlas)
-        "violet": _spec(B.mat_metal("s2_violet", (0.11, 0.045, 0.36), rough=0.35, metal=0.4), 0.3),
-        "tipgold": _spec(B.mat_metal("s2_tipgold", (0.46, 0.36, 0.19), rough=0.32, metal=0.5), 0.3),
+        # slug do Tupa (referencia do usuario): azul eletrico anodizado dos colares EM, ponta de metal claro azulado
+        # (difuso; o brilho vem do atlas) e o colar laranja pintado atras do penetrador
+        "railblue": _spec(B.mat_metal("s2_railblue", (0.018, 0.075, 0.40), rough=0.35, metal=0.4), 0.3),
+        "tipblue": _spec(B.mat_metal("s2_tipblue", (0.30, 0.37, 0.48), rough=0.32, metal=0.5), 0.3),
+        "railorange": _spec(B.mat_paint("s2_railorange", (0.42, 0.125, 0.012), rough=0.36, metal=0.3, wear=0.0,
+                                        grime=0.0, scale=6), 0.3),
         "black": M["black"],
     }
 
 
-# lente escura com um tom da cor (so o violeta do slug: o anel EM le violeta ate apagado, sobre o tungstenio claro)
-LENS_TINT = {"violet": 0.09}
+# lente escura com um tom da cor (o azul do slug do Tupa e o antigo violeta: o anel EM le na cor ate apagado, sobre o
+# tungstenio claro)
+LENS_TINT = {"violet": 0.09, "rail": 0.09}
 
 
 def _lt(LT, s):
@@ -832,15 +839,16 @@ def _hot(name, color, s, base):
     return m
 
 
-SLUG_GOLD = (1.0, 0.58, 0.10)       # palette.rail.gold (255, 200, 90) na vista Standard com forca 1
-SLUG_WHITE = (1.0, 0.90, 0.68)      # palette.rail.core (255, 240, 200): o ponto branco-quente
+SLUG_HOT = (0.13, 0.43, 1.0)        # azul claro da ponta quente (100, 175, 255) na vista Standard com forca 1
+SLUG_WHITE = (0.62, 0.80, 1.0)      # nucleo branco-azulado (205, 228, 255): o ponto quente da ponta
 
 
 def _slug(M, X, T, phase, n_frames):
     """Dardo APFSDS da railgun: haste fina e longa de tungstenio claro, penetrador conico com a ponta quente
-    ouro-branca, 4 colares EM violeta (3 acesos por quadro, a onda corre da cauda para a ponta) e um feixe
-    compacto de 6 aletas curtas e finas na cauda (a 30/90/150 graus: de cima, 2 de lado em planta + 2 em
-    escorco por cima da haste). Sem trilhos laterais, sem armadura em sela, sem cobre, sem chama."""
+    branco-azulada e um colar laranja atras dela, 4 colares EM azuis (3 acesos por quadro, a onda corre da cauda
+    para a ponta) e um feixe compacto de 6 aletas curtas e finas na cauda (a 30/90/150 graus: de cima, 2 de lado
+    em planta + 2 em escorco por cima da haste). Sem trilhos laterais, sem armadura em sela, sem cobre, sem chama.
+    Cores da referencia do usuario para o Tupa (azul eletrico + branco-azulado + detalhe laranja)."""
     tags = (T,)
     LT = (T, "lights")
     k = int(round(phase * n_frames)) % n_frames
@@ -855,28 +863,28 @@ def _slug(M, X, T, phase, n_frames):
     xh = xt - 0.115
     rh = R * (xt - xh) / (xt - xc)
     octo("pen", [(R, xc - 0.002), (rh * 1.02, xh + 0.004)], X["tung"], tags)
-    ring("pen_c", xh - 0.016, xh + 0.006, rh * 1.16, X["graph"], tags)
+    ring("pen_c", xh - 0.022, xh + 0.006, rh * 1.18, X["railorange"], tags)
     hot = (1.0, 0.86, 0.95, 0.80)[k % 4]
-    # ponta inteira em metal claro dourado no difuso (le ouro a 1x mesmo sem o atlas); so a frente brilha:
-    # ouro e, na pontinha, o branco-quente (o orcamento de 3% vai quase todo para os colares EM)
+    # ponta inteira em metal claro azulado no difuso (le clara a 1x mesmo sem o atlas); so a frente brilha:
+    # azul claro e, na pontinha, o branco-azulado (o orcamento de 3% vai quase todo para os colares EM)
     xg = xt - 0.095
     rg = rh * (xt - xg) / (xt - xh)
-    octo("tipb", [(rh, xh), (rg * 1.01, xg + 0.003)], X["tipgold"], tags)
-    octo("tip", [(rg, xg), (0.0, xt)], _hot("tipg", SLUG_GOLD, 1.15 * hot, (0.42, 0.34, 0.20)), LT)
+    octo("tipb", [(rh, xh), (rg * 1.01, xg + 0.003)], X["tipblue"], tags)
+    octo("tip", [(rg, xg), (0.0, xt)], _hot("tipb", SLUG_HOT, 1.15 * hot, (0.28, 0.34, 0.44)), LT)
     xw = xt - 0.04
     octo("tipw", [(rg * (xt - xw) / (xt - xg) * 1.12, xw), (0.0, xt + 0.002)],
-         _hot("tipw", SLUG_WHITE, 1.3 * hot, (0.50, 0.46, 0.38)), LT)
-    # 4 colares EM: 2 labios de metal VIOLETA anodizado que saltam da haste (o violeta le a 1x no difuso, sem
+         _hot("tipwb", SLUG_WHITE, 1.3 * hot, (0.40, 0.46, 0.54)), LT)
+    # 4 colares EM: 2 labios de metal AZUL anodizado que saltam da haste (o azul le a 1x no difuso, sem
     # depender do halo) com o anel aceso fino no rebaixo entre eles; quadro k: colar k forte, k-1 medio, k-2
     # fraco, k+1 apagado (3 acesos por quadro, a onda corre da cauda para a ponta)
     xs = [-0.80, -0.30, 0.20, 0.70]
     for i, x in enumerate(xs):
         d = (i - k) % 4
         s = (1.25, 0.0, 0.50, 0.85)[d]
-        ring(f"em{i}_a", x - 0.007 - 0.028, x - 0.007, R * 1.32, X["violet"], tags, ch=0.005)
-        ring(f"em{i}_b", x + 0.007, x + 0.007 + 0.028, R * 1.32, X["violet"], tags, ch=0.005)
+        ring(f"em{i}_a", x - 0.007 - 0.028, x - 0.007, R * 1.32, X["railblue"], tags, ch=0.005)
+        ring(f"em{i}_b", x + 0.007, x + 0.007 + 0.028, R * 1.32, X["railblue"], tags, ch=0.005)
         ring(f"em{i}_k", x - 0.009, x + 0.009, R * 1.0, X["black"], tags)
-        ring(f"em{i}_l", x - 0.007, x + 0.007, R * 1.02, _led("violet", s), _lt(LT, s))
+        ring(f"em{i}_l", x - 0.007, x + 0.007, R * 1.02, _led("rail", s), _lt(LT, s))
     # feixe de 6 aletas curtas, baixas e finas na cauda (aco claro, bordo de ataque bem varrido: pena de dardo,
     # nao asa de missil)
     r0, rf = R * 0.80, 0.19

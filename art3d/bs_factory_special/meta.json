@@ -1,0 +1,155 @@
+{
+ "version": 1,
+ "id": "rafaeltessaro.bs_factory_mag_ap",
+ "kind": "factory",
+ "size": [
+  4,
+  3
+ ],
+ "machine": {
+  "frames": [
+   "machine_on1.png",
+   "machine_on2.png",
+   "machine_on3.png",
+   "machine_on4.png",
+   "machine_on5.png",
+   "machine_on6.png",
+   "machine_on7.png",
+   "machine_on8.png",
+   "machine_on9.png",
+   "machine_on10.png"
+  ],
+  "off": "machine_off.png",
+  "interval": 0.1,
+  "size": [
+   4,
+   3
+  ],
+  "offset": [
+   0,
+   0
+  ]
+ },
+ "hull": {
+  "floor": "floor.png",
+  "walls": "walls.png",
+  "roof": "roof.png",
+  "roof_normals": "roof_normals.png",
+  "lights": "lights.png"
+ },
+ "files": [
+  "floor.png",
+  "lights.png",
+  "machine_off.png",
+  "machine_on1.png",
+  "machine_on10.png",
+  "machine_on2.png",
+  "machine_on3.png",
+  "machine_on4.png",
+  "machine_on5.png",
+  "machine_on6.png",
+  "machine_on7.png",
+  "machine_on8.png",
+  "machine_on9.png",
+  "roof.png",
+  "roof_normals.png",
+  "walls.png"
+ ],
+ "factory_code": "F2",
+ "name_ptbr": "Fábrica de Munição Especial",
+ "art3d_dir": "bs_factory_special",
+ "grid": {
+  "blocked": [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    0
+   ],
+   [
+    2,
+    0
+   ],
+   [
+    3,
+    0
+   ],
+   [
+    1,
+    1
+   ],
+   [
+    2,
+    1
+   ]
+  ],
+  "inputs": {
+   "sulfur": [
+    0,
+    1,
+    1,
+    1
+   ],
+   "tristeel": [
+    3,
+    1,
+    1,
+    1
+   ]
+  },
+  "outputs": {
+   "ap": [
+    0,
+    2,
+    1,
+    1
+   ],
+   "sap": [
+    1,
+    2,
+    1,
+    1
+   ],
+   "ac": [
+    2,
+    2,
+    1,
+    1
+   ],
+   "frag": [
+    3,
+    2,
+    1,
+    1
+   ]
+  }
+ },
+ "mode_plate": {
+  "rect_centre": [
+   2.0,
+   0.5
+  ],
+  "size": 0.8,
+  "modes": [
+   "ap",
+   "sap",
+   "ac",
+   "frag"
+  ],
+  "toggle": "bs_ammo_type",
+  "values": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "files": "placa_<modo>.png (art3d/bs_placas)",
+  "game_layer": "roof_doodads"
+ },
+ "notes": [
+  "id da peca = rafaeltessaro.bs_factory_mag_ap (ID mantido); arte 2.0 nesta pasta",
+  "o maquinario e o mesmo nos 4 modos; pastilhas pintadas nas bases de saida e placa de modo no teto"
+ ]
+}

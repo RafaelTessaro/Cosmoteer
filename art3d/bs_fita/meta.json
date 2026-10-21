@@ -1,0 +1,96 @@
+{
+ "version": 1,
+ "kind": "layered",
+ "id": "rafaeltessaro.bs_fita",
+ "size": [
+  1,
+  1
+ ],
+ "layers": {
+  "floor": {
+   "game_layer": "floors",
+   "rect": [
+    0,
+    0,
+    1,
+    1
+   ],
+   "files": [
+    "floor.png"
+   ],
+   "normals": null,
+   "opaque": true,
+   "emission_only": false,
+   "islands": false
+  },
+  "luz_grudada": {
+   "game_layer": "lights_add",
+   "rect": [
+    0,
+    0,
+    1,
+    1
+   ],
+   "files": [
+    "luz_grudada.png"
+   ],
+   "normals": null,
+   "blend": "add",
+   "opaque": false,
+   "emission_only": true,
+   "islands": true
+  },
+  "roof": {
+   "game_layer": "roofs",
+   "rect": [
+    0,
+    0,
+    1,
+    1
+   ],
+   "files": [
+    "roof.png"
+   ],
+   "normals": [
+    "roof_normals.png"
+   ],
+   "opaque": false,
+   "emission_only": false,
+   "islands": false
+  },
+  "luz_teto": {
+   "game_layer": "roof_doodads",
+   "rect": [
+    0,
+    0,
+    1,
+    1
+   ],
+   "files": [
+    "luz_grudada_teto.png"
+   ],
+   "normals": null,
+   "blend": "alpha",
+   "opaque": false,
+   "emission_only": true,
+   "islands": true
+  }
+ },
+ "walls": null,
+ "icon": "icon.png",
+ "blueprints": "blueprints.png",
+ "notes": [
+  "luz_grudada.png (lights_add, rect [0,0,1,1]): os 4 LEDs verdes das garras do PISO (vista do interior). luz_grudada_teto.png (roof_doodads, rect [0,0,1,1], alfa): as 4 lentes das garras do TETO acesas; ligue as duas no mesmo OperationalToggle Grudada (com o teto ligado o lights_add fica embaixo do teto). O verde e (0.16, 1.0, 0.0) linear: |r - b| grande, o shader de pintura nunca o trata como tinta.",
+  "Sem walls.png (walls 'none'): peca fechada como o cano de calor vanilla (heat_pipe_adaptive.rules:15-25).",
+  "icon.png 32 x 32 (EditorIcon Size [32, 32]); blueprints.png 64 x 64."
+ ],
+ "files": [
+  "blueprints.png",
+  "floor.png",
+  "icon.png",
+  "luz_grudada.png",
+  "luz_grudada_teto.png",
+  "roof.png",
+  "roof_normals.png"
+ ]
+}

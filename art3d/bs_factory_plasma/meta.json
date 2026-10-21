@@ -40,6 +40,12 @@
   "lights": "lights.png"
  },
  "files": [
+  "banco_pem.png",
+  "banco_pem_luz1.png",
+  "banco_pem_luz2.png",
+  "banco_pem_luz3.png",
+  "banco_pem_luz4.png",
+  "banco_pem_normals.png",
   "floor.png",
   "lights.png",
   "machine_off.png",
@@ -58,5 +64,127 @@
   "roof.png",
   "roof_normals.png",
   "walls.png"
+ ],
+ "overlays": {
+  "banco_pem": {
+   "game_layer": "roof_doodads",
+   "rect": [
+    2.0,
+    0.1,
+    0.9,
+    1.0
+   ],
+   "files": [
+    "banco_pem.png"
+   ],
+   "normals": [
+    "banco_pem_normals.png"
+   ],
+   "opaque": false,
+   "emission_only": false,
+   "islands": false,
+   "gate": "ModeToggle PEM (bs_cell_type = 1)"
+  },
+  "banco_pem_luz": {
+   "game_layer": "lights_add",
+   "rect": [
+    2.0,
+    0.1,
+    0.9,
+    1.0
+   ],
+   "files": [
+    "banco_pem_luz1.png",
+    "banco_pem_luz2.png",
+    "banco_pem_luz3.png",
+    "banco_pem_luz4.png"
+   ],
+   "normals": null,
+   "frames": 4,
+   "interval": 0.1,
+   "blend": "add",
+   "opaque": false,
+   "emission_only": true,
+   "islands": false,
+   "gate": "ModeToggle PEM (bs_cell_type = 1) E AnimationToggle da fabrica (produzindo)"
+  }
+ },
+ "factory_code": "F3",
+ "name_ptbr": "Fábrica de Células",
+ "grid": {
+  "blocked": [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    0
+   ],
+   [
+    2,
+    0
+   ],
+   [
+    1,
+    1
+   ]
+  ],
+  "inputs": {
+   "sulfur": [
+    0,
+    1,
+    1,
+    1
+   ],
+   "coil": [
+    2,
+    1,
+    1,
+    1
+   ],
+   "copper": [
+    1,
+    2,
+    1,
+    1
+   ]
+  },
+  "outputs": {
+   "plasma": [
+    0,
+    2,
+    1,
+    1
+   ],
+   "pem": [
+    2,
+    2,
+    1,
+    1
+   ]
+  }
+ },
+ "mode_plate": {
+  "rect_centre": [
+   0.5,
+   0.5
+  ],
+  "size": 0.8,
+  "modes": [
+   "plasma",
+   "pem"
+  ],
+  "toggle": "bs_cell_type",
+  "values": [
+   0,
+   1
+  ],
+  "files": "placa_<modo>.png (art3d/bs_placas)",
+  "game_layer": "roof_doodads"
+ },
+ "notes": [
+  "grade de cobre no poco da base [1,2] (J2R3-9)",
+  "banco_pem/banco_pem_luz: overlays do modo PEM (spec factories F3.pem_bank)"
  ]
 }

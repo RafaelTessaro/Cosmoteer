@@ -283,3 +283,358 @@ def icon_group():
         p.rect(-2.2, -L / 2, 2.2, L / 2)
         p.at()
     return p.render()
+
+
+# ============================================================================================== 2.0 (aditivo)
+# Icones 2.0 (SPEC 2.0 art_assets.assets.ui_icons; USER_NOTES 2026-10-21 "icones de UI no mesmo estilo" futurista das
+# municoes 2.0). Tudo daqui para baixo e NOVO: nada acima muda (os icones da 1.x continuam saindo iguais, bit a bit).
+# Mesmo Pen (silhueta azul 96 x 96 com brilho + UMA mascara de destaque); a linguagem 2.0 entra pela silhueta: luvas
+# partidas por frestas finas (retas ou em divisa), anel do sensor, espoleta de ponta chata, canards/aletas, capsulas
+# com janela, aneis de armadura. Saida: art3d/bs_ui_icons2/ (python3 tools/bsgen/ui_icons.py [pasta]).
+ACC.update({
+    "gold": (255, 200, 80),
+    "teal": (120, 230, 210),
+    "cyan": (60, 225, 255),
+    "violet": (170, 130, 255),
+    # projetil da Tupa: a railgun virou AZUL (USER_NOTES: referencia do usuario); sobre a silhueta azul da interface os
+    # aneis de armadura saem em azul-gelo eletrico (o violeta do spec ficou para tras com a Tupa antiga)
+    "rail": (185, 225, 255),
+})
+
+
+def ogive_flat(cx, y_tip, y_base, w, r_tip, n=12, sharp=1.0):
+    """Ogiva (lado esquerdo, lado direito) que termina CHATA no topo (raio r_tip em y_tip): espoleta/capuz 2.0."""
+    L = y_base - y_tip
+    left, right = [], []
+    for i in range(n + 1):
+        t = i / n
+        r = r_tip + (w / 2 - r_tip) * (1 - (1 - t) ** (1.0 + sharp)) ** 0.5
+        y = y_tip + L * t
+        left.append((cx - r, y))
+        right.append((cx + r, y))
+    return left, right
+
+
+def sleeve_gaps(p, cx, y0, y1, n, w=30.0, th=2.4, chevron=0.0):
+    """n frestas transparentes finas entre y0 e y1 (le como luvas de blindagem partidas). chevron > 0: fresta em
+    DIVISA apontando para o nariz (para cima), a ponta chevron px acima das bordas (as 'escamas' da Jararaca)."""
+    for i in range(n):
+        y = y0 + (y1 - y0) * (i + 1) / (n + 1)
+        h = w / 2 + 3
+        if chevron:
+            pts = [(cx - h, y + chevron), (cx, y), (cx + h, y + chevron), (cx + h, y + chevron + th), (cx, y + th),
+                   (cx - h, y + chevron + th)]
+            for k in p.m:
+                p.poly(pts, k, 0)
+        else:
+            p.gap(cx - h, y, cx + h, y + th)
+
+
+def fins(p, cx, y, w, h=18.0, span=9.0, layer="body"):
+    """2 aletas de cauda em flecha presas nas bordas do corpo (largura w), da raiz em y ate y + h."""
+    for s in (-1, 1):
+        p.poly([(cx + s * w / 2, y), (cx + s * (w / 2 + span), y + h * 0.62), (cx + s * (w / 2 + span), y + h),
+                (cx + s * w / 2, y + h * 0.82)], layer)
+
+
+def canards(p, cx, y, w, span=6.0, h=8.0, layer="body"):
+    """2 canards pequenos (triangulos para tras) nas bordas do corpo em y."""
+    for s in (-1, 1):
+        p.poly([(cx + s * w / 2, y), (cx + s * (w / 2 + span), y + h), (cx + s * (w / 2 + span), y + h + 2.2),
+                (cx + s * w / 2, y + h * 0.75 + 2.2)], layer)
+
+
+def capsule(p, cx, top, bottom, w, layer="body", cap=0.42):
+    """Celula: capsula de pontas chanfradas (octogono alongado; 'cap' = chanfro em fracao da largura)."""
+    c = w * cap
+    h = w / 2
+    p.poly([(cx - h + c, top), (cx + h - c, top), (cx + h, top + c), (cx + h, bottom - c), (cx + h - c, bottom),
+            (cx - h + c, bottom), (cx - h, bottom - c), (cx - h, top + c)], layer)
+
+
+def rod_armature(p, cx, top, bottom, w, rings, ring_w=None, ring_h=5.0, layer="body", ring_layer="acc"):
+    """Haste fina com ponta de penetrador (topo) e 'rings' aneis de armadura mais largos (em ring_layer)."""
+    rw = ring_w or w * 2.6
+    tip = w * 2.2
+    p.poly([(cx, top), (cx + w / 2, top + tip), (cx + w / 2, bottom), (cx - w / 2, bottom), (cx - w / 2, top + tip)],
+           layer)
+    y0, y1 = top + tip + 10, bottom - 22
+    for i in range(rings):
+        y = y0 + (y1 - y0) * i / max(1, rings - 1)
+        p.poly([(cx - rw / 2 + 1.5, y), (cx + rw / 2 - 1.5, y), (cx + rw / 2, y + 1.5), (cx + rw / 2, y + ring_h - 1.5),
+                (cx + rw / 2 - 1.5, y + ring_h), (cx - rw / 2 + 1.5, y + ring_h), (cx - rw / 2, y + ring_h - 1.5),
+                (cx - rw / 2, y + 1.5)], ring_layer)
+
+
+def fragment_fan(p, cx, cy, n, spread, r0=13.0, r1=30.0, th=2.6, layer="acc"):
+    """Leque de n tracos para a frente (para cima) a partir de (cx, cy), abertura total 'spread' graus; tracos
+    alternados mais curtos (a nuvem de fragmentos)."""
+    for i in range(n):
+        ang = -spread / 2 + spread * i / max(1, n - 1)
+        a = math.radians(ang)
+        rr1 = r1 if i % 2 == 0 else r1 * 0.80
+        rr0 = r0 if i % 2 == 0 else r0 * 1.12
+        x0, y0 = cx + math.sin(a) * rr0, cy - math.cos(a) * rr0
+        x1, y1 = cx + math.sin(a) * rr1, cy - math.cos(a) * rr1
+        nx, ny = math.cos(a) * th, math.sin(a) * th
+        p.poly([(x0 - nx, y0 - ny), (x0 + nx, y0 + ny), (x1 + nx * 0.55, y1 + ny * 0.55), (x1 - nx * 0.55, y1 - ny * 0.55)],
+               layer)
+
+
+def _case(p, cx, y0, y1, w, rim=3.0):
+    """Corpo do cartucho 2.0 (de y0 ate a base y1) com o aro da base mais largo e a fresta do sulco do aro."""
+    p.rect(cx - w / 2, y0, cx + w / 2, y1 - 4)
+    p.poly([(cx - w / 2 - rim + 1, y1 - 4), (cx + w / 2 + rim - 1, y1 - 4), (cx + w / 2 + rim, y1 - 2.5),
+            (cx + w / 2 + rim, y1), (cx - w / 2 - rim, y1), (cx - w / 2 - rim, y1 - 2.5)])
+    p.gap(cx - w / 2 - rim - 1, y1 - 6.4, cx + w / 2 + rim + 1, y1 - 4.4)
+
+
+def icon_ammo2(kind):
+    """Cartuchos 2.0 (seletor bs_ammo_type): he | ap | sap | ac | frag."""
+    p = Pen()
+    cx = 48
+    if kind == "he":
+        # granada 2.0: espoleta de ponta chata (corpo estreito + anel do sensor), ogiva longa, 2 frestas de luva e o aro
+        w = 26
+        p.poly([(cx - 4.2, 5), (cx + 4.2, 5), (cx + 5.6, 6.6), (cx + 5.6, 14), (cx - 5.6, 14), (cx - 5.6, 6.6)])
+        p.gap(cx - 8, 8.8, cx + 8, 10.8)                   # anel do sensor na espoleta
+        left, right = ogive_flat(cx, 14, 46, w, 6.0, sharp=0.9)
+        p.poly(left + right[::-1])
+        p.gap(cx - w / 2 - 2, 45.6, cx + w / 2 + 2, 47.8)   # juncao ogiva / luva
+        _case(p, cx, 47.8, 89, w)
+        sleeve_gaps(p, cx, 48, 83, 2, w)
+        return p.render()
+    if kind == "ap":
+        # penetrador longo (dardo) com anel de sensor, colar do sabot em petalas, luva com 1 fresta e o aro
+        w = 26
+        p.poly([(cx, 4), (cx + 5.5, 22), (cx + 5.5, 48), (cx - 5.5, 48), (cx - 5.5, 22)])
+        p.gap(cx - 7, 26, cx + 7, 28.2)
+        for s in (-1, 1):                                  # petalas do sabot abrindo para fora
+            p.poly([(cx + s * 6.5, 50), (cx + s * 13, 41), (cx + s * 16.5, 43), (cx + s * 13.5, 53)])
+        p.rect(cx - 13.5, 50, cx + 13.5, 56)
+        p.gap(cx - 15, 55.8, cx + 15, 58)
+        _case(p, cx, 58, 88, w)
+        sleeve_gaps(p, cx, 58, 84, 1, w)
+        return p.render()
+    if kind == "sap":
+        # capuz ROMBUDO largo (chato), colar, luva com 1 fresta e a meia-estrela do estopim no meio do corpo
+        w = 30
+        cx = 44
+        left, right = ogive_flat(cx, 12, 34, w, 9.5, sharp=0.35)
+        p.poly(left + right[::-1])
+        p.gap(cx - w / 2 - 2, 22.5, cx + w / 2 + 2, 24.7)   # divisa capuz / ogiva
+        p.gap(cx - w / 2 - 2, 33.6, cx + w / 2 + 2, 35.8)
+        _case(p, cx, 35.8, 88, w)
+        sleeve_gaps(p, cx, 36, 82, 1, w)
+        star(p, cx + w / 2 + 1, 56, 6.0, 14, n=7, rot=10)
+        return p.render(ACC["fire"])
+    if kind == "ac":
+        # guiada: corpo fino, ogiva longa com o buscador (anel), canards no ombro, aletas na cauda e a faixa de OURO
+        w = 22
+        left, right = ogive(cx, 6, 38, w, sharp=1.1)
+        p.poly(left + right[::-1])
+        p.gap(cx - 6, 13.2, cx + 6, 15.2)                 # anel do buscador
+        canards(p, cx, 30, w, span=7.5, h=7)
+        p.rect(cx - w / 2, 38, cx + w / 2, 84)
+        p.gap(cx - w / 2 - 3, 37.8, cx + w / 2 + 3, 40)
+        p.rect(cx - w / 2 - 1, 46, cx + w / 2 + 1, 54, "acc")   # faixa de ouro
+        p.gap(cx - w / 2 - 3, 44.2, cx + w / 2 + 3, 46.2)
+        p.gap(cx - w / 2 - 3, 54, cx + w / 2 + 3, 56)
+        fins(p, cx, 66, w, h=24, span=11)
+        p.poly([(cx - 8, 84), (cx + 8, 84), (cx + 9.5, 91), (cx - 9.5, 91)])
+        p.gap(cx - w / 2 - 12, 83.6, cx + w / 2 + 12, 85.4)
+        return p.render(ACC["gold"])
+    if kind == "frag":
+        # granada curta e gorda (luva de fragmentos com 3 frestas) e o leque de 7 tracos para a frente (verde-agua)
+        w = 32
+        left, right = ogive_flat(cx, 48, 60, w, 8.0, sharp=0.5)
+        p.poly(left + right[::-1])
+        p.gap(cx - w / 2 - 2, 59.6, cx + w / 2 + 2, 61.8)
+        _case(p, cx, 61.8, 92, w)
+        sleeve_gaps(p, cx, 61.8, 87, 2, w, th=2.2)
+        fragment_fan(p, cx, 50, 7, 124, r0=12, r1=34)
+        return p.render(ACC["teal"])
+    raise ValueError(kind)
+
+
+def icon_cell(kind):
+    """Celulas 2.0 (seletor bs_cell_type): plasma | pem."""
+    p = Pen()
+    if kind == "plasma":
+        # capsula com tampas (frestas), bornes nas pontas e a janela do nucleo CIANO segmentada
+        cx, w = 48, 34
+        p.rect(cx - 6, 4, cx + 6, 10)
+        p.rect(cx - 6, 86, cx + 6, 92)
+        capsule(p, cx, 9, 87, w, cap=0.30)
+        p.gap(cx - w / 2 - 2, 21, cx + w / 2 + 2, 23.2)
+        p.gap(cx - w / 2 - 2, 72.8, cx + w / 2 + 2, 75)
+        p.gap(cx - 10.5, 28.5, cx + 10.5, 67.5)            # moldura da janela (vao) ...
+        p.rect(cx - 7.5, 31, cx + 7.5, 65, "acc")          # ... e o nucleo aceso dentro
+        for y in (41.6, 53.2):
+            p.gap(cx - 8, y, cx + 8, y + 2.2)
+        return p.render(ACC["cyan"])
+    if kind == "pem":
+        # capsula com 3 bobinas mais largas (costelas na silhueta, espiras partidas) e o raio
+        cx, w = 40, 28
+        p.rect(cx - 5, 4, cx + 5, 10)
+        p.rect(cx - 5, 86, cx + 5, 92)
+        capsule(p, cx, 9, 87, w, cap=0.30)
+        for y in (28, 45, 62):
+            p.rect(cx - w / 2 - 4, y, cx + w / 2 + 4, y + 10)
+            p.gap(cx - w / 2 - 5, y + 4, cx + w / 2 + 5, y + 5.8)
+            p.gap(cx - w / 2 - 5, y - 2.4, cx + w / 2 + 5, y - 0.4)
+        bolt(p, 58, 16, 1.0)
+        return p.render(ACC["spark"])
+    raise ValueError(kind)
+
+
+def _missile2(p, cx, top, bottom, w, nose=0.30, fin=1.0, seeker=True):
+    """Missil 2.0 de pe: ogiva com anel do buscador, corpo, aletas em flecha quebrada e bocal."""
+    L = bottom - top
+    yb = top + L * nose
+    left, right = ogive(cx, top, yb, w, sharp=0.8)
+    tail = bottom - L * 0.08
+    p.poly(left + [(cx - w / 2, tail), (cx + w / 2, tail)] + right[::-1])
+    if seeker:
+        p.gap(cx - w / 2, top + L * 0.07, cx + w / 2, top + L * 0.07 + 2.0)
+    fw = w * 0.62 * fin
+    for s in (-1, 1):                                       # aleta em flecha quebrada (2 degraus)
+        y0 = bottom - L * 0.34
+        p.poly([(cx + s * w / 2, y0), (cx + s * (w / 2 + fw * 0.55), y0 + L * 0.10),
+                (cx + s * (w / 2 + fw), y0 + L * 0.16), (cx + s * (w / 2 + fw), tail),
+                (cx + s * w / 2, tail)])
+    p.poly([(cx - w * 0.32, tail), (cx + w * 0.32, tail), (cx + w * 0.42, bottom), (cx - w * 0.42, bottom)])
+    p.gap(cx - w / 2 - fw - 1, tail - 0.4, cx + w / 2 + fw + 1, tail + 1.6)
+    return yb, tail
+
+
+def icon_missile2(kind):
+    """Misseis 2.0 (seletor bs_missile_type): he | cluster | emp | nuclear."""
+    p = Pen()
+    if kind == "he":
+        # Jararaca: flecha fina com as luvas em DIVISA (escamas) e o anel do buscador
+        yb, tail = _missile2(p, 48, 4, 92, 17, nose=0.27, fin=1.15)
+        sleeve_gaps(p, 48, yb + 1, tail - 16, 3, 17, th=2.3, chevron=4.5)
+        return p.render()
+    if kind == "cluster":
+        # Piranha: portador com as 4 petalas ABERTAS e um leque denso de 11 minimisseis saindo dele
+        cx = 48
+        _missile2(p, cx, 60, 93, 21, nose=0.04, fin=0.8, seeker=False)
+        for sd in (-1, 1):                                  # petalas abertas (2 vistas de lado)
+            p.poly([(cx + sd * 10, 64), (cx + sd * 4.5, 63), (cx + sd * 12, 52.5), (cx + sd * 17.5, 55.5)])
+            p.poly([(cx + sd * 4, 63), (cx + sd * 1.2, 62.5), (cx + sd * 4.5, 52), (cx + sd * 8, 53)])
+        # 11 minimisseis FINOS (dardo com 2 aletas), em 2 arcos: 6 mais perto e 5 mais longe, entre eles
+        minis = [(-62, 25), (-37, 27), (-12, 28), (12, 28), (37, 27), (62, 25),
+                 (-50, 44), (-25, 46.5), (0, 47.5), (25, 46.5), (50, 44)]
+        for ang, r in minis:
+            p.at(cx + r * math.sin(math.radians(ang)), 60 - r * math.cos(math.radians(ang)), ang, 0.80)
+            p.poly([(0, -9.5), (2.0, -5.5), (2.0, 4), (-2.0, 4), (-2.0, -5.5)])
+            for sd in (-1, 1):
+                p.poly([(sd * 2.0, 1.5), (sd * 4.6, 5.2), (sd * 4.6, 7.4), (sd * 2.0, 5.4)])
+            p.at()
+        return p.render()
+    if kind == "emp":
+        # Poraque: missil com as bobinas (costelas largas partidas) e o raio
+        cx = 38
+        yb, tail = _missile2(p, cx, 8, 90, 18)
+        for y in (40, 50, 60):
+            p.rect(cx - 12.5, y, cx + 12.5, y + 6)
+            p.gap(cx - 14, y + 6, cx + 14, y + 8)
+        bolt(p, 54, 14, 1.05)
+        return p.render(ACC["spark"])
+    if kind == "nuclear":
+        # Iara: ogiva GORDA em 3 camadas (frestas), janela de contencao, aletas e o trevo verde
+        cx, w = 38, 28
+        left, right = ogive(cx, 8, 38, w, sharp=0.12)
+        p.poly(left + [(cx - w / 2, 80), (cx + w / 2, 80)] + right[::-1])
+        p.gap(cx - w / 2 - 2, 24, cx + w / 2 + 2, 26)
+        p.gap(cx - w / 2 - 2, 38, cx + w / 2 + 2, 40.2)
+        p.gap(cx - 6, 47, cx + 6, 66)                       # janela de contencao
+        p.rect(cx - 6, 52.5, cx + 6, 54.5)                  # grade
+        p.rect(cx - 6, 58.5, cx + 6, 60.5)
+        for s in (-1, 1):
+            p.poly([(cx + s * w / 2, 62), (cx + s * (w / 2 + 8), 74), (cx + s * (w / 2 + 8), 88), (cx + s * w / 2, 82)])
+        p.poly([(cx - 9, 80), (cx + 9, 80), (cx + 11, 89), (cx - 11, 89)])
+        p.gap(cx - w / 2 - 9, 79.6, cx + w / 2 + 9, 81.4)
+        trefoil(p, 71, 26, 14)
+        return p.render(ACC["nuke"])
+    raise ValueError(kind)
+
+
+def icon_slug():
+    """Projetil da Tupa: haste com ponta de penetrador, aneis de armadura (azul-gelo) e aletas curtas."""
+    p = Pen()
+    cx = 48
+    rod_armature(p, cx, 3, 84, 9, 4, ring_w=25, ring_h=5.5)
+    for s in (-1, 1):
+        p.poly([(cx + s * 4.5, 70), (cx + s * 13, 82), (cx + s * 13, 91), (cx + s * 4.5, 87)])
+    p.rect(cx - 4.5, 84, cx + 4.5, 91)
+    return p.render(ACC["rail"])
+
+
+def icon_group2():
+    """Grupo do editor 2.0: granada futurista inclinada (espoleta chata, anel do sensor, luvas partidas) com rastros
+    de velocidade."""
+    p = Pen()
+    p.at(57, 39, 45)
+    w = 24
+    left, right = ogive_flat(0, -33, -10, w, 4.0, sharp=0.9)
+    p.poly(left + right[::-1])
+    p.gap(-7, -27.4, 7, -25.6)
+    p.gap(-w / 2 - 2, -10.4, w / 2 + 2, -8.4)
+    _case(p, 0, -8.4, 31, w)
+    sleeve_gaps(p, 0, -8, 25, 2, w, th=2.2)
+    p.at()
+    for x, y, L in ((15, 58, 18), (25, 70, 24), (37, 80, 16)):
+        p.at(x, y, 45)
+        p.rect(-2.2, -L / 2, 2.2, L / 2)
+        p.at()
+    return p.render()
+
+
+# nome do arquivo no mod (gui/<nome>) -> funcao; ordem = a do spec (art_assets.assets.ui_icons.icons)
+ICONS_2_0 = {
+    "ammo_he.png": lambda: icon_ammo2("he"),
+    "ammo_ap.png": lambda: icon_ammo2("ap"),
+    "ammo_sap.png": lambda: icon_ammo2("sap"),
+    "ammo_ac.png": lambda: icon_ammo2("ac"),
+    "ammo_frag.png": lambda: icon_ammo2("frag"),
+    "cell_plasma.png": lambda: icon_cell("plasma"),
+    "cell_pem.png": lambda: icon_cell("pem"),
+    "missile_he.png": lambda: icon_missile2("he"),
+    "missile_cluster.png": lambda: icon_missile2("cluster"),
+    "missile_emp.png": lambda: icon_missile2("emp"),
+    "missile_nuclear.png": lambda: icon_missile2("nuclear"),
+    "slug_rail.png": icon_slug,
+    "group_bullet_strike.png": icon_group2,
+}
+
+
+def write_icons_2_0(out_dir):
+    """Grava os icones 2.0 (96 x 96) em out_dir + icons.json (indice: arquivo do mod -> arquivo daqui). O indice NAO
+    se chama meta.json de proposito: o check_art3d 'todos' so le pastas com meta.json de pecas."""
+    import json
+    import os
+    os.makedirs(out_dir, exist_ok=True)
+    files = {}
+    for name, fn in ICONS_2_0.items():
+        im = fn()
+        im.save(os.path.join(out_dir, name))
+        files[f"gui/{name}"] = name
+    idx = {"version": 1, "kind": "ui_icons", "size": [SIZE, SIZE], "renderer": "tools/bsgen/ui_icons.py (2.0)",
+           "files": files, "drop_1x": ["gui/ammo_std.png", "gui/ammo_aphe.png", "gui/ammo_emp.png",
+                                       "gui/missile_limpet.png", "gui/missile_napalm.png", "gui/missile_torpedo.png"],
+           "accents": {k: list(v) for k, v in ACC.items()}}
+    with open(os.path.join(out_dir, "icons.json"), "w", encoding="utf-8") as fh:
+        json.dump(idx, fh, indent=1, ensure_ascii=False)
+    return files
+
+
+if __name__ == "__main__":
+    import os
+    import sys
+    root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    out = sys.argv[1] if len(sys.argv) > 1 else os.path.join(root, "art3d", "bs_ui_icons2")
+    for k in write_icons_2_0(out):
+        print(k)
+    print("OK", out)

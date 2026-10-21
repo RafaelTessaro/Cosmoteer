@@ -74,7 +74,8 @@ def _bezel():
                                                            metal=0.3), bevel=0.0, tags=tags)
     for k, (sx, sy) in enumerate(((-1, 1), (1, -1))):
         c = (s / 2 - 0.052)
-        B.cyl(f"bolt{k}", sx * c, sy * c, 0.078, 0.021, 0.018, S, axis="Z", verts=10, bevel=0.005, tags=tags)
+        B.cyl(f"bolt{k}", sx * c, sy * c, 0.078, 0.022, 0.018, KM, axis="Z", verts=10, bevel=0.005, tags=tags)
+        B.box(f"boltx{k}", sx * c, sy * c, 0.026, 0.006, 0.086, 0.090, S, bevel=0.0, tags=tags)
     # 2 entalhes na moldura (cantos sem parafuso): linha de painel curta
     if fp is not None:
         B.cut(fp, [B.rbox(f"nick{k}", sx * (s / 2 - 0.05), sy * (s / 2 - 0.05), 0.010, 0.06, 0.07, 0.5, K,

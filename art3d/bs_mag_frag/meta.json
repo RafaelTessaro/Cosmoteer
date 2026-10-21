@@ -1,0 +1,20 @@
+{
+ "version": 1,
+ "id": "rafaeltessaro.bs_mag_frag",
+ "kind": "resource",
+ "stack": 6,
+ "overlay_glow": true,
+ "nugget_scale": 0.5,
+ "files": [
+  "icon.png",
+  "nugget.png",
+  "nugget_normals.png",
+  "overlay.png",
+  "stack_1.png",
+  "stack_2.png",
+  "stack_3.png",
+  "stack_4.png",
+  "stack_5.png",
+  "stack_6.png"
+ ]
+}

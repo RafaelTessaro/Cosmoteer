@@ -1,0 +1,71 @@
+{
+ "version": 1,
+ "kind": "layered",
+ "id": "rafaeltessaro.bs_placas",
+ "size": [
+  1,
+  1
+ ],
+ "layers": {
+  "placa": {
+   "game_layer": "roof_doodads",
+   "rect": [
+    0.0,
+    0.0,
+    0.75,
+    0.75
+   ],
+   "files": [
+    "placa_he.png",
+    "placa_ap.png",
+    "placa_sap.png",
+    "placa_ac.png",
+    "placa_frag.png",
+    "placa_plasma.png",
+    "placa_pem.png",
+    "placa_msl_he.png",
+    "placa_msl_cluster.png",
+    "placa_msl_emp.png",
+    "placa_msl_nuke.png",
+    "placa_slug.png"
+   ],
+   "normals": null,
+   "variants": [
+    "he",
+    "ap",
+    "sap",
+    "ac",
+    "frag",
+    "plasma",
+    "pem",
+    "msl_he",
+    "msl_cluster",
+    "msl_emp",
+    "msl_nuke",
+    "slug"
+   ],
+   "opaque": false,
+   "emission_only": false,
+   "islands": false
+  }
+ },
+ "walls": null,
+ "notes": [
+  "placa_<tipo>.png: 48 x 48 px, desenhada pelas regras com Size = o tamanho do encaixe (paiol 1x1 0,42 / 2x2 0,66 / 3x3 0,92 quadro; tremonha 0,42; fabricas 0,8); camada roof_doodads, sem emissao (o jogo ilumina). O 'rect' do meta e so o tamanho nativo (0,75 quadro = 48 px); size [1, 1] e nominal.",
+  "Cores: palette[tipo] band/chip do SPEC_2.0 (he ambar, ap branco-azulado, sap laranja, ac carmim + ouro, frag verde-agua, plasma ciano, pem azul + cobre, missil HE ambar, submunicao laranja, missil PEM azul, ogiva nuclear verde com trevo escuro, slug violeta + ouro)."
+ ],
+ "files": [
+  "placa_ac.png",
+  "placa_ap.png",
+  "placa_frag.png",
+  "placa_he.png",
+  "placa_msl_cluster.png",
+  "placa_msl_emp.png",
+  "placa_msl_he.png",
+  "placa_msl_nuke.png",
+  "placa_pem.png",
+  "placa_plasma.png",
+  "placa_sap.png",
+  "placa_slug.png"
+ ]
+}
