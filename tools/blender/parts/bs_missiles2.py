@@ -1,67 +1,108 @@
 """Misseis 2.0 do Bullet Strike (kind "missiles", 64 px/tile): a escada futurista dos misseis em voo.
 
 Pedido do usuario (2026-10-21): "os misseis tambem estao sendo refeitos ne? para deixa-los com aparencia mais
-futurista". Mesma familia das granadas 2.0 (tools/blender/parts/bs_shells2.py): nucleo escuro + luvas de COMPOSITO
-claro (sRGB ~170, le no espaco escuro E no casco branco) com frestas pretas, faixas de LED em recessos, narizes
-sensores de lente escura, luvas segmentadas; quanto maior o missil (s -> m -> l), mais futurista.
+futurista". Mesma familia das granadas 2.0 (tools/blender/parts/bs_shells2.py): DOIS TONS, nucleo / estrakes /
+nariz de GRAFITE contra blindagem de COMPOSITO claro com paineis de chanfro duplo mais claros (topo ~220) e filetes
+de aco claro nos bordos de ataque e nos aros (~230), frestas pretas, faixas de LED em recessos, narizes sensores de
+lente escura com reflexo; quanto maior o missil (s -> m -> l), mais futurista e mais luz.
+
+r3 (critica da r2: "os mesmos misseis, mais apagados"): contraste de volta a faixa das granadas (p95 ~225), uma
+mudanca de SILHUETA por tipo legivel a 1x, domo escuro do buscador na Jararaca, nariz da Piranha girado 45 graus
+(fresta acesa no eixo), Jararaca G a mais iluminada das tres.
 
 Conjunto 2.0 (design/art/spec_art.json -> assets.missiles; design/missiles/spec_missiles.json). Os tipos removidos
 (napalm, lapa, torpedo isca, iscas) NAO existem aqui:
 
-  Jararaca (HE, ambar)      he_s  Muricoca micro (Tocandira): luva lisa partida por 1 faixa de LED ambar, ogiva clara
-                                  com o domo do buscador de LENTE escura, 2 aletas
-                            he_m  (Caipora): luvas em divisa, anel de LED na cauda, fendas de trilho em V acesas no
-                                  ombro da ogiva, canards, buscador de lente
-                            he_l  (Mula): 2 estagios; reforco segmentado com aletas grandes e anel de separacao com 3
-                                  LEDs que correm; sustentador de blindagem segmentada (paineis de chanfro duplo),
-                                  estrakes, faixa dupla, nariz sensor com visor de lente e scanner de 3 LEDs
-  Piranha (cluster, amarela) cluster_m / cluster_l  PORTADOR gordo (estilo "Sunflower"/Transformers): baias com
-                                  JANELAS onde se veem os narizes dos mini-misseis enfileirados, LEDs de armar que
-                                  correm de baia em baia ate o nariz, faixa amarela e o nariz em 4 PETALAS (4 cascas
-                                  separadas por frestas pretas que convergem na ponta, dobradicas na base, olho escuro
-                                  na ponta). O l tem paineis de chanfro duplo nos ombros e canards.
+  Jararaca (HE, ambar)      he_s  Muricoca micro (Tocandira): cauda de grafite, luva clara partida por 1 faixa de LED,
+                                  faixa ambar com aros, ogiva clara com a frente de grafite e o DOMO DO BUSCADOR de
+                                  lente escura (~40% do nariz) com anel ambar e reflexo; 2 aletas cortadas com entalhe
+                            he_m  (Caipora): anel de LED na cauda, 3 luvas em divisa claras com paineis sobre o nucleo
+                                  escuro, ESTRAKES de grafite (asa-corpo) da raiz das aletas ate a 3a luva, aletas em
+                                  flecha quebrada com filete de aco, fendas de trilho em V acesas no ombro da ogiva,
+                                  frente de grafite + domo do buscador (sem os canards da Fase B)
+                            he_l  (Mula): flecha de 5 segmentos de blindagem clara (paineis em cima e nos ombros) com
+                                  frestas pretas de 2.5 px, ESTRAKES de grafite do meio do corpo ate as aletas em flecha
+                                  quebrada (ponta cortada, entalhe), com a FENDA AMBAR acesa em todos os quadros; faixa
+                                  ambar com aros; nariz sensor: visor com scanner de 3 LEDs, frente de grafite, domo de
+                                  lente com o anel do buscador (o 2o estagio da Fase B saiu). Luzes (3 quadros):
+                                  fendas fortes -> anel da cauda + visor -> buscador forte
+  Piranha (cluster, amarela) cluster_m / cluster_l  PORTADOR gordo (estilo "Sunflower"/Transformers): baias claras
+                                  com paineis nos ombros e JANELAS onde se veem os narizes dos mini-misseis, LEDs de
+                                  armar que correm de baia em baia, faixa amarela com aros, aletas em flecha quebrada e
+                                  o nariz em 4 PETALAS centradas a 45/135/225/315 graus: a fresta de CIMA corre no
+                                  EIXO (labios de grafite + tira amarela acesa: fina e fraca em todos os quadros, larga
+                                  e forte no ultimo, o "vai abrir"), dobradicas de aco na base de cada fresta (as de
+                                  lado saem da silhueta), olho escuro na ponta. O l tem canards.
                             cluster_mini  mini-misseil teleguiado (0.5 x 0.19 quadro = 32 x 12 px): corpo claro, nariz
                                   escuro, faixa amarela, aletas e o COLAR LARANJA do propulsor pintado (sem atlas de
-                                  luzes; as regras nao usam as normais dele)
+                                  luzes)
                             atlas de particulas bs_petals_m / bs_petals_l (+ _normals): as 4 petalas do nariz,
-                                  256 x 256 = 4 x 4 de 64 px (fileira = petala com o seu giro proprio, coluna =
-                                  inclinacao 0/30/55/75 graus), formato do debris_def.rules do jogo
-  Poraque (PEM, azul-ciano) emp_m / emp_l  corpo ENROLADO em bobinas de fio de cobre (Mo.copper_mat, assinatura PEM)
-                                  sobre a capsula escura, frestas ciano entre as bobinas por onde a carga corre ate o
-                                  emissor do nariz (olho ciano); barbatanas-fita da enguia; o l ganha mais bobinas,
-                                  blindagem segmentada na cauda, anel ciano na base e o garfo emissor de 2 pontas.
-                                  Sem faixa de ogiva, sem listras
+                                  256 x 256 = 4 x 4 de 64 px (fileira = petala com o seu giro proprio: 0 = casca de fora
+                                  larga, 2 = face de dentro; coluna = inclinacao 0/30/55/75 graus), formato do
+                                  debris_def.rules do jogo
+  Poraque (PEM, azul-ciano) emp_m / emp_l  NUCLEO ESCURO na cauda com a fita baixa da enguia e 3 LAMINAS longas,
+                                  finas e bem varridas (painel claro, filete de aco), colar de blindagem clara, bobinas
+                                  de FIO de cobre (Mo.copper_mat) que saem da silhueta sobre a capsula escura, frestas
+                                  entre as bobinas tingidas de CIANO no difuso (a cor le a 1x entre os pulsos) por onde
+                                  a carga corre ate o emissor do nariz (ogiva escura com aneis de aco, anel ciano e
+                                  lente); o l ganha 5 bobinas e os CHIFRES do emissor (2 bracos de aco que abrem e
+                                  fecham na frente, pontas ciano viradas uma para a outra). Sem faixa de ogiva, sem
+                                  listras
   Iara (nuclear, verde)     nuclear_l (estagio) / nuclear_wh_l (ogiva): continua INCONFUNDIVEL (o unico missil de
                                   blindagem escura): ogiva gorda blindada com o trevo grande (cunhas pretas sobre
                                   disco verde), DOIS aneis de faixa de perigo verde/preto em divisas emoldurando a
                                   ogiva, JANELAS DE CONTENCAO verdes acesas nos ombros (com grade de aco), faixas
-                                  verdes largas que respiram, janela do nucleo, nariz sensor de lente com anel verde,
-                                  blindagem segmentada, bocal triplo com aneis verdes, 4 aletas escuras de bordo claro;
-                                  o estagio leva 2 propulsores laterais segmentados. Nunca amarelo/preto.
+                                  verdes largas que respiram, janela do nucleo, blindagem segmentada, bocal triplo com
+                                  aneis verdes; r3: nariz SENSOR escuro e pontudo (colar de aco claro, ogiva facetada
+                                  quase preta, domo de lente com anel verde aceso e reflexo, no lugar da tampa cinza
+                                  rombuda) e 4 aletas em flecha quebrada com filete de aco; o estagio leva 2
+                                  propulsores laterais segmentados. Nunca amarelo/preto.
 
 Telas, quadros/fps, bocais e ancoras = os da tabela de arte dos misseis da Fase B (bs_missiles), menos os itens
 removidos; cluster_mini e novo (0.5 x 0.19, estatico). Emissivos so em recessos, <= 3% do corpo no quadro 0
 (Iara 4%); forcas baixas (a vista Standard estoura acima de ~1.5; azul/verde com cores proprias).
 
-Cores de tipo (faixa + LEDs): HE ambar (Mo.band_mat("he")), Piranha AMARELA (Mo.band_mat("cluster"), o mesmo
-"yellow petal cap" dos narizes da Piranha nos casulos e o amarelo do escapamento da Fase B: o laranja
-palette.cluster.band do spec de arte (255,150,40) fica a ~10 graus de matiz do ambar da HE e nao se distingue a 1x),
-Poraque ciano-azul (palette.pem), Iara verde.
+Cores de tipo (faixa + LEDs): HE ambar (Mo.band_mat("he"), LED sRGB ~(255,179,63), matiz 36), Piranha
+AMARELO-limao (Mo.band_mat("cluster"), LED ~(255,237,89), matiz ~54: o mesmo "yellow petal cap" dos narizes da
+Piranha nos casulos e o amarelo do escapamento da Fase B), Poraque CIANO (LED ~(39,222,255)), Iara verde. O laranja
+palette.cluster.band do spec de arte (255,150,40, matiz 31) fica a ~5 graus da HE e nao se distingue a 1x: e uma
+DECISAO mostrada ao usuario (docs/preview/3d/v2/misseis_futuristas.png, fim da folha); para renderizar a variante
+laranja (so previas): BS_M2_CLUSTER=palette $PY tools/blender/render_part.py bs_missiles2 --out <rascunho>
+--only cluster_m,cluster_l,cluster_mini.
+
+Materiais: copias com nome proprio "m2_*" dos "s2_*" de bs_shells2.py (COMP, COMP_D, GRAPH, CORE, STEEL, lente,
+PEM_BODY com os MESMOS valores; o cache de materiais do bs3d e por nome, entao os dois arquivos nunca se pisam).
+Proprios dos misseis: COMP_L (paineis claros), RIM (filetes de aco claro), GLINT (reflexo da lente). Divergencias de
+proposito: LED["emp"] (0.02, 0.72, 1.0) e mais ciano que o LED "pem" das granadas (0.05, 0.60, 1.0) (na cor do
+Poraque o azul lia "azul generico" no casco branco); LED["cluster"] nao existe nas granadas. Na ligacao 2.0, se as
+granadas mudarem COMP/GRAPH/etc., copie os valores para ca.
 
     $PY tools/blender/render_part.py bs_missiles2 --quick --out <rascunho> [--only he_m,cluster_l]
     $PY tools/blender/render_part.py bs_missiles2            # final em art3d/bs_missiles2/
-    $PY tools/blender/parts/bs_missiles2.py --atlases [--quick] [--out DIR]   # petalas (depois do render: o
-                                                                                # meta.json ganha "atlases")
+    $PY tools/blender/parts/bs_missiles2.py --atlases [--quick] [--out DIR]   # petalas + bloco "atlases" no meta
+    $PY tools/blender/parts/bs_missiles2.py --meta-only [--out DIR]           # so regrava o bloco "atlases"
     python3 tools/check_art3d.py art3d/bs_missiles2
+
+ATENCAO (ligacao 2.0): o render_part.py SEM --only reescreve o meta.json do zero e apaga o bloco "atlases"; depois de
+um render completo rode `bs_missiles2.py --meta-only` (ou `--atlases`). Ambos sao idempotentes.
+
+Notas para a ligacao 2.0 (regras):
+  - o spec_missiles.json (visuals / cluster_sunflower) chama as texturas das petalas de "cluster_petal_m/l"; o spec
+    de arte e esta entrega usam bs_petals_m.png / bs_petals_l.png (+ _normals): use os nomes do meta.json;
+  - cluster_mini tem msl_cluster_mini_normals.png (o contrato do kit pede normais em todo item), mas o
+    per_minis_components do spec diz SEM normais: nos 12-20 minis por portadora NAO ligue NormalsTexture/IsLit;
+  - ancora "seeker" do Poraque mudou em relacao a Fase B (emp_m 0.6 -> 0.80, emp_l 0.85 -> 1.10: o emissor novo do
+    nariz / o meio dos chifres); regenere a tabela de FX 2.0 com estas ancoras.
 """
 
+import importlib
 import math
 import os
 import sys
 
 if __name__ == "__main__":                 # --atlases: roda direto (python com bpy), precisa do kit no caminho
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    import bpy  # noqa: F401  (o bpy carrega o bmesh que o bs3d importa)
+    importlib.import_module("bpy")         # o bpy carrega o bmesh que o bs3d importa
 
 import bs3d as B  # noqa: E402
 import models as Mo  # noqa: E402
@@ -117,6 +158,12 @@ PEM_BODY = (0.050, 0.053, 0.060)    # capsula escura do Poraque
 IARA_DARK = (0.060, 0.063, 0.070)   # blindagem escura da Iara
 IARA_PLATE = (0.15, 0.155, 0.165)   # placas da Iara (composito medio escuro: contorno no espaco)
 ORANGE = (0.95, 0.30, 0.03)         # colar quente do mini-missil (tinta)
+# r3 (critica: o conjunto lia como "os mesmos misseis" mais apagados): placas CLARAS de blindagem sobre o composito
+# e filetes de aco claro nos bordos (o chanfro duplo claro das granadas 2.0: o topo dos paineis sai ~215-225 e os
+# bordos ~225-235, contra o nucleo/nariz de grafite ~60-90)
+COMP_L = (0.62, 0.64, 0.675)        # painel claro de chanfro duplo (topo dos paineis de blindagem)
+RIM = (0.78, 0.81, 0.86)            # filete de aco claro (bordos de ataque, aros)
+GLINT = (0.90, 0.93, 0.97)          # reflexo da lente do buscador (tinta: le no difuso)
 
 # ---- LEDs por tipo (emissao; forca ~1 sai ~ a cor do palette na vista Standard)
 LED = {"he": (1.0, 0.45, 0.05), "cluster": (1.0, 0.85, 0.10), "emp": (0.02, 0.72, 1.0),
@@ -140,6 +187,9 @@ def _spec(m, v):
 def _mats(M):
     return {
         "comp": B.mat_paint("m2_comp", COMP, rough=0.40, metal=0.15, wear=0.0, grime=0.03, scale=5),
+        "comp_l": B.mat_paint("m2_comp_l", COMP_L, rough=0.38, metal=0.12, wear=0.0, grime=0.02, scale=5),
+        "rim": _spec(B.mat_paint("m2_rim", RIM, rough=0.30, metal=0.20, wear=0.0, grime=0.0, scale=5), 0.3),
+        "glint": B.mat_paint("m2_glint", GLINT, rough=0.25, metal=0.0, wear=0.0, grime=0.0, scale=5),
         "comp_d": _spec(B.mat_metal("m2_comp_d", COMP_D, rough=0.45, metal=0.3), 0.25),
         "graph": _spec(B.mat_metal("m2_graph", GRAPH, rough=0.45, metal=0.35), 0.25),
         "core": _spec(B.mat_metal("m2_core", CORE, rough=0.62, metal=0.0), 0.05),
@@ -173,12 +223,14 @@ def _lt(LT, s):
     return LT if s > 1e-6 else LT[:1]
 
 
-def _led(color, s):
-    """LED: emissao na cor com forca s; no difuso sai como LENTE ESCURA levemente tingida (STYLE 11.5)."""
-    m = B.mat_glow(f"m2_led_{color}_{int(round(s * 100)):03d}", LED[color], s)
+def _led(color, s, tint=0.02):
+    """LED: emissao na cor com forca s; no difuso sai como LENTE ESCURA levemente tingida (STYLE 11.5). tint > 0.02:
+    lente tingida na cor do tipo (as frestas do Poraque leem ciano a 1x mesmo entre os pulsos)."""
+    m = B.mat_glow(f"m2_led_{color}_{int(round(s * 100)):03d}" + (f"_t{int(tint * 100):02d}" if tint != 0.02 else ""),
+                   LED[color], s)
     b = m.node_tree.nodes["Principled BSDF"]
     c = LED[color]
-    b.inputs["Base Color"].default_value = (c[0] * 0.02, c[1] * 0.02, c[2] * 0.02, 1)
+    b.inputs["Base Color"].default_value = (c[0] * tint, c[1] * tint, c[2] * tint, 1)
     b.inputs["Roughness"].default_value = 0.45
     return m
 
@@ -370,37 +422,128 @@ def _nozzle(X, tags, x0, rb, rt, length, y=0.0, pre="noz"):
     ring(pre + "_k", x0 - 0.002, x0 + 0.012, rb * 0.72, X["black"], tags, y=y)
 
 
+# ============================================================================ pecas comuns da r3 (dois tons)
+def armor(name, a, b, R, X, tags, ch=0.012, sides=True, inset=0.018):
+    """Segmento de BLINDAGEM CLARA: anel de composito chanfrado + paineis claros de chanfro duplo em cima (e nos
+    ombros): topo do painel ~220, chanfro ~170, fresta preta, nucleo escuro entre os segmentos."""
+    sl = ring(name, a, b, R, X["comp"], tags, ch=ch)
+    if b - a > 0.08:
+        top_panel(name + "_t", a + 0.022, b - 0.020, R, X["comp_l"], tags, inset=inset)
+        if sides:
+            side_panels(name + "_s", a + 0.022, b - 0.020, R, X["comp_l"], tags, inset=inset)
+    return sl
+
+
+def edge(name, pts, w, z0, z1, X, tags, mat=None):
+    """Filete claro de aco ao longo da polilinha pts (lado +y, espelhado em -y): o bordo de ataque claro das aletas e
+    estrakes (o chanfro duplo claro das granadas 2.0, le no espaco escuro)."""
+    for s in (1, -1):
+        for i, ((x0, y0), (x1, y1)) in enumerate(zip(pts, pts[1:])):
+            L = math.hypot(x1 - x0, y1 - y0)
+            nx, ny = -(y1 - y0) / L * w / 2, (x1 - x0) / L * w / 2
+            strip = [(x0 + nx, s * (y0 + ny)), (x1 + nx, s * (y1 + ny)), (x1 - nx, s * (y1 - ny)),
+                     (x0 - nx, s * (y0 - ny))]
+            B.plate(f"{name}{i}{'l' if s > 0 else 'r'}", strip, z0, z1, mat or X["rim"], slope=0.002, bevel=0.001,
+                    tags=tags)
+
+
+def _strip(name, pts, mat, tags, th=0.007):
+    """Tira fina que segue uma curva no plano XZ: pts = [(x, z_topo, largura)] (fresta acesa ao longo da ogiva)."""
+    import bmesh
+    import bpy
+    me = bpy.data.meshes.new(name)
+    bm = bmesh.new()
+    rows = []
+    for x, z, w in pts:
+        rows.append([bm.verts.new(v) for v in ((x, -w / 2, z), (x, w / 2, z), (x, w / 2, z - th), (x, -w / 2, z - th))])
+    for ra, rb in zip(rows, rows[1:]):
+        for i in range(4):
+            j = (i + 1) % 4
+            bm.faces.new((ra[i], ra[j], rb[j], rb[i]))
+    bm.faces.new(list(reversed(rows[0])))
+    bm.faces.new(rows[-1])
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(me)
+    bm.free()
+    ob = bpy.data.objects.new(name, me)
+    bpy.context.scene.collection.objects.link(ob)
+    ob.data.materials.append(mat)
+    for t in tags:
+        ob[t] = True
+    return ob
+
+
+def seeker(name, x0, x1, r, X, tags, LT, col, s, ring_w=0.018, glint=True):
+    """Domo do buscador escuro: anel de LED do sensor (rebaixado, cor do tipo, forca s) + LENTE de vidro escuro com
+    o reflexo claro (glint) no topo, um pouco atras da ponta."""
+    ring(name + "_k", x0 - 0.004, x0 + ring_w + 0.004, r * 0.92, X["black"], tags)
+    ring(name + "_l", x0, x0 + ring_w, r * 0.97, _led(col, s), _lt(LT, s))
+    xl = x0 + ring_w
+    lens_tip(name, xl, x1, r, X, tags)
+    if glint:
+        t = 0.32
+        zs = r * max(0.0, 1 - t ** 1.8) ** (1 / 1.8)
+        B.box(name + "_gl", xl + (x1 - xl) * t, 0.0, min(0.030, max(0.018, r * 0.50)), min(0.024, max(0.016, r * 0.42)),
+              zs - 0.012, zs + 0.004,
+              X["glint"], bevel=0.0, tags=tags)
+
+
+def dark_nose(name, og, xs, X, tags, rear_mat=None):
+    """Ogiva em DOIS TONS (familia das granadas 2.0): tras clara (composito) ate xs, aro de aco na divisa e a frente
+    escura de grafite. Devolve (objeto de tras, objeto da frente)."""
+    rear, front = _split(og, xs)
+    ro = octo(name + "_r", rear, rear_mat or X["comp"], tags)
+    fo = octo(name + "_f", front, X["graph"], tags)
+    rs = _r_at(og, xs)
+    ring(name + "_seam", xs - 0.009, xs + 0.009, rs * 1.035, X["rim"], tags, ch=0.003)
+    return ro, fo
+
+
+def type_band(name, xa, xb, R, mat, X, tags):
+    """Faixa do tipo num colar escuro com aros de aco claro nas 2 bordas."""
+    ring(name + "_k", xa - 0.012, xb + 0.012, R * 0.96, X["graph"], tags)
+    ring(name, xa, xb, R * 1.025, mat, tags, ch=0.003)
+    ring(name + "_a", xa - 0.012, xa, R * 1.035, X["rim"], tags, ch=0.003)
+    ring(name + "_b", xb, xb + 0.012, R * 1.035, X["rim"], tags, ch=0.003)
+
+
 # ============================================================================ Jararaca (HE, ambar)
 def _he(M, X, T, LT, k, tier):
+    """r3: dois tons (nucleo/estrakes/nariz de grafite x blindagem clara de chanfro duplo), domo do buscador de
+    LENTE escura com reflexo e anel ambar em todos os niveis, aletas em flecha quebrada com filete de aco; o m e o l
+    ganham ESTRAKES escuros (asa-corpo) da raiz das aletas ate o meio do corpo (silhueta nova a 1x)."""
     tags = (T,)
     band = _band("he")
     if tier == "s":
-        # Muricoca micro: luva lisa partida pela faixa de LED, ogiva clara + domo de lente, 2 aletas
+        # Muricoca micro: cauda de grafite, luva clara partida pela faixa de LED, faixa ambar, ogiva clara com o
+        # domo escuro do buscador (40% da frente), 2 aletas cortadas com entalhe
         R = 0.056
         _nozzle(X, tags, -0.48, 0.036, 0.044, 0.035)
-        octo("tail", [(R * 0.74, -0.452), (R * 0.97, -0.37)], X["graph"], tags)
+        octo("tail", [(R * 0.74, -0.452), (R * 0.98, -0.37)], X["graph"], tags)
         ring("spine", -0.40, 0.25, R * 0.86, X["core"], tags)
-        ring("sl0", -0.375, -0.08, R, X["comp"], tags, ch=0.010)
+        ring("sl0", -0.372, -0.08, R, X["comp"], tags, ch=0.010)
+        top_panel("pn0", -0.35, -0.10, R, X["comp_l"], tags, inset=0.012)
         led_groove("led", -0.042, 0.066, R * 0.92, "he", 1.2 if k == 0 else 0.22, X, tags, LT)
-        ring("sl1", -0.006, 0.19, R, X["comp"], tags, ch=0.010)
-        ring("band", 0.186, 0.232, R * 1.03, band, tags, ch=0.004)
-        og = _ogive_to(R, 0.425 - 0.230, R * 0.46, 0.230)
-        octo("og", og, X["comp"], tags)
-        ring("seat", 0.415, 0.432, R * 0.50, X["steel"], tags)
-        lens_tip("lens", 0.428, 0.478, R * 0.46, X, tags)
-        fin("fin", [(-0.26, R * 0.5), (-0.36, 0.163), (-0.445, 0.163), (-0.447, R * 0.5)], 0.0, 0.020,
-            X["comp"], tags)
+        ring("sl1", -0.006, 0.17, R, X["comp"], tags, ch=0.010)
+        top_panel("pn1", 0.014, 0.15, R, X["comp_l"], tags, inset=0.012)
+        type_band("band", 0.183, 0.219, R, band, X, tags)
+        og = _ogive_to(R, 0.425 - 0.232, R * 0.50, 0.232)
+        dark_nose("og", og, 0.355, X, tags)
+        seeker("lens", 0.418, 0.480, R * 0.52, X, tags, LT, "he", 0.45 if k == 0 else 1.1, ring_w=0.014)
+        fp = [(-0.25, R * 0.5), (-0.345, 0.118), (-0.392, 0.166), (-0.442, 0.166), (-0.425, 0.115), (-0.450, R * 0.5)]
+        fin("fin", fp, 0.0, 0.020, X["comp"], tags)
+        edge("fle", fp[:3], 0.012, -0.004, 0.016, X, tags)
         return
     if tier == "m":
-        # Jararaca: anel de LED na cauda, 3 luvas em divisa, ogiva clara com fendas de trilho em V acesas,
-        # canards, domo de lente
+        # Jararaca: anel de LED na cauda, 3 luvas em divisa (claras, com paineis) sobre o nucleo escuro, ESTRAKES de
+        # grafite da raiz das aletas ate a 2a luva, faixa ambar com aros de aco, ogiva clara com as fendas de trilho
+        # em V acesas e o domo escuro do buscador
         R = 0.078
         _nozzle(X, tags, -0.855, 0.048, 0.058, 0.05)
-        octo("tail", [(R * 0.72, -0.815), (R * 0.97, -0.665)], X["graph"], tags)
+        octo("tail", [(R * 0.72, -0.815), (R * 0.98, -0.685)], X["graph"], tags)
         ring("spine", -0.82, 0.32, R * 0.86, X["core"], tags)
-        ring_on = 1.1 if k == 0 else 0.22
-        led_groove("ring", -0.638, 0.034, R * 0.92, "he", ring_on, X, tags, LT, full=True)
-        a0, xs1, dv, g = -0.615, 0.25, 0.05, 0.03
+        led_groove("ring", -0.660, 0.036, R * 0.92, "he", 1.1 if k == 0 else 0.20, X, tags, LT, full=True)
+        a0, xs1, dv, g = -0.632, 0.235, 0.05, 0.042
         span = xs1 - a0
         fl = span * 0.40
         rl = (span - fl - g * 2) / 2
@@ -408,112 +551,132 @@ def _he(M, X, T, LT, k, tier):
         for i, a in enumerate(starts):
             b = (a + rl) if i < 2 else (xs1 - dv)
             Mo.chevron_sleeve(f"sl{i}", a, b, R, X["comp"], tags, dv=dv, rear=i > 0, verts=8)
-        ring("band", 0.255, 0.305, R * 1.03, band, tags, ch=0.004)
-        ring("bandk", 0.24, 0.32, R * 0.95, X["core"], tags)
-        xo, xl = 0.30, 0.795
-        og = _ogive_to(R, xl - xo, R * 0.44, xo, n=12)
-        ob = octo("og", og, X["comp"], tags)
-        # fendas de trilho em V no ombro da ogiva (borda de dentro acesa no quadro 1)
-        xa, xb = xo + 0.08, xo + 0.27
+            p0 = a + (dv if i > 0 else 0.0) + 0.02
+            top_panel(f"pn{i}", p0, b - 0.018, R, X["comp_l"], tags, inset=0.014)
+        type_band("band", 0.250, 0.290, R, band, X, tags)
+        xo, xl = 0.302, 0.792
+        og = _ogive_to(R, xl - xo, R * 0.50, xo, n=12)
+        ob, _ = dark_nose("og", og, 0.630, X, tags)
+        # fendas de trilho em V no ombro claro da ogiva (borda de dentro acesa: fraca no quadro 0, forte no 1)
+        xa, xb = xo + 0.06, xo + 0.25
         ra, rb = _r_at(og, xa), _r_at(og, xb)
         _vslits("rs", [ob], xa, xb, min(0.044, ra * TOPW / 2 + 0.006), 0.012, ra * COS8,
                 (ra - rb) * COS8 + 0.035, X, tags, LT, "he", 1.1 if k == 1 else 0.0, w=0.026, lw=0.010)
-        ring("seat", xl - 0.012, xl + 0.006, R * 0.48, X["steel"], tags)
-        lens_tip("lens", xl, 0.855, R * 0.46, X, tags)
-        # aletas da cauda (delta cortada) com garras escuras na raiz; canards pequenos no ombro do nariz
-        fin("fin", [(-0.47, R * 0.55), (-0.69, 0.29), (-0.795, 0.29), (-0.81, R * 0.55)], 0.0, 0.024,
-            X["comp"], tags)
+        seeker("lens", xl - 0.004, 0.858, R * 0.50, X, tags, LT, "he", 0.30 if k == 0 else 1.1, ring_w=0.016)
+        # estrakes escuros (asa-corpo): saem das aletas e morrem na 3a luva
+        yb = R * COS8
+        sk = [(0.16, R * 0.80), (-0.575, yb + 0.050), (-0.60, yb + 0.050), (-0.62, R * 0.80)]
+        fin("strake", sk, -0.006, 0.016, X["graph"], tags, slope=0.004, groove=0.003, ph=0.003)
+        edge("ske", sk[:2], 0.010, -0.004, 0.006, X, tags)
+        # aletas da cauda em flecha quebrada, ponta cortada e entalhe no bordo de fuga; filete de aco no bordo de
+        # ataque; garras escuras na raiz
+        fp = [(-0.585, R * 0.7), (-0.585, yb + 0.046), (-0.712, 0.290), (-0.790, 0.290), (-0.772, 0.205),
+              (-0.818, R * 0.7)]
+        fin("fin", fp, 0.0, 0.024, X["comp"], tags, panel_mat=X["comp_l"])
+        edge("fle", fp[1:4], 0.013, -0.004, 0.018, X, tags)
         for s in (1, -1):
-            B.box(f"claw{s}", -0.64, s * R * 0.98, 0.22, 0.028, -0.03, 0.032, X["graph"], bevel=0.004, tags=tags)
-        fin("can", [(0.47, R * 0.6), (0.40, 0.155), (0.36, 0.155), (0.36, R * 0.6)], 0.0, 0.016, X["comp"], tags)
+            B.box(f"claw{s}", -0.67, s * R * 0.98, 0.20, 0.028, -0.03, 0.032, X["graph"], bevel=0.004, tags=tags)
         return
-    # he_l: DOIS ESTAGIOS. Reforco segmentado (aletas grandes, garras), anel de separacao com 3 LEDs que correm;
-    # sustentador de blindagem segmentada com paineis de chanfro duplo, estrakes, faixa dupla, nariz sensor
-    Rb, R = 0.106, 0.092
-    _nozzle(X, tags, -1.23, 0.070, 0.082, 0.07)
-    octo("btail", [(Rb * 0.78, -1.17), (Rb * 0.97, -1.07)], X["graph"], tags)
-    bspine = ring("bspine", -1.17, -0.40, Rb * 0.86, X["core"], tags)
-    xs = [-1.07, -0.82, -0.62]
-    ends = [-0.84, -0.64, -0.49]
-    for i, (a, b) in enumerate(zip(xs, ends)):
-        ring(f"bseg{i}", a, b, Rb, X["comp"], tags, ch=0.012)
-        top_panel(f"bpn{i}", a + 0.03, b - 0.025, Rb, X["comp"], tags)
-    fin("bfin", [(-0.80, Rb * 0.6), (-1.05, 0.415), (-1.165, 0.415), (-1.17, Rb * 0.6)], 0.0, 0.03, X["comp"],
-        tags)
-    for s in (1, -1):
-        B.box(f"bclaw{s}", -0.99, s * Rb * 0.98, 0.30, 0.034, -0.035, 0.038, X["graph"], bevel=0.005, tags=tags)
-    sep = ring("sep", -0.485, -0.405, Rb * 1.02, X["graph"], tags)
-    zf = slot([sep, bspine], "seps", -0.445, 0.0, 0.050, 0.12, Rb * 1.02 * COS8, 0.026, X, tags)
-    for i in range(3):
-        on = 1.2 if i == k else 0.0
-        B.box(f"spip{i}", -0.445, (i - 1) * 0.04, 0.036, 0.028, zf + 0.0005, zf + 0.008, _led("he", on), bevel=0.0,
-              tags=_lt(LT, on))
-    # sustentador: as "escamas" da Jararaca (luvas em divisa encaixadas, como no he_m) agora blindadas, cada uma
-    # com paineis de chanfro duplo em cima e nos ombros
-    ring("spine", -0.42, 0.74, R * 0.86, X["core"], tags)
-    a0, xs1, dv, g, n = -0.395, 0.60, 0.06, 0.035, 3
-    rl = (xs1 - dv - a0 - g * (n - 1)) / n
-    for i in range(n):
-        a = a0 + i * (rl + g)
-        b = a + rl
-        Mo.chevron_sleeve(f"seg{i}", a, b, R, X["comp"], tags, dv=dv, rear=i > 0, verts=8)
-        p0 = a + (dv if i > 0 else 0.0) + 0.03
-        top_panel(f"pn{i}", p0, b - 0.025, R, X["comp"], tags)
-        side_panels(f"ps{i}", p0, b - 0.025, R, X["comp"], tags)
-    fin("strake", [(0.40, R * 0.6), (0.16, 0.118), (-0.22, 0.118), (-0.31, R * 0.6)], -0.01, 0.014, X["comp_d"],
-        tags)
-    ring("band0", 0.63, 0.665, R * 1.03, band, tags, ch=0.004)
-    ring("band1", 0.685, 0.715, R * 1.03, band, tags, ch=0.004)
-    ring("bandk", 0.62, 0.73, R * 0.95, X["core"], tags)
-    xo, xl = 0.715, 1.165
-    og = _ogive_to(R, xl - xo, R * 0.46, xo, n=12)
-    o1, o2 = _visor("vis", og, xo + 0.15, X, tags, LT, "he", k, hw=0.026)
+    # he_l (Mula): flecha de blindagem SEGMENTADA clara sobre o nucleo escuro (5 segmentos, frestas pretas de 2.5 px),
+    # ESTRAKES de grafite com fenda ambar acesa do meio do corpo ate as aletas grandes em flecha quebrada (filete de
+    # aco), faixa ambar com aros, nariz sensor: visor com scanner de 3 LEDs na parte clara, frente de grafite e domo
+    # de lente com o anel do buscador aceso. Luzes que correm (3 quadros): fendas dos estrakes fortes -> anel da
+    # cauda + visor -> buscador forte; as fendas e o buscador nunca apagam (a mais iluminada das 3 Jararacas, <= 3%)
+    R = 0.092
+    _nozzle(X, tags, -1.232, 0.066, 0.078, 0.068)
+    octo("tail", [(R * 0.76, -1.175), (R * 0.98, -1.075)], X["graph"], tags)
+    ring("spine", -1.08, 0.63, R * 0.86, X["core"], tags)
+    on_ring = (0.0, 1.15, 0.30)[k % 3]
+    on_slit = (1.15, 0.55, 0.55)[k % 3]
+    on_seek = (0.50, 0.50, 1.15)[k % 3]
+    led_groove("ring", -1.052, 0.036, R * 0.92, "he", on_ring, X, tags, LT, full=True)
+    segs = [(-1.028, -0.770), (-0.730, -0.470), (-0.430, -0.170), (-0.130, 0.170), (0.210, 0.500)]
+    for i, (a, b) in enumerate(segs):
+        armor(f"seg{i}", a, b, R, X, tags)
+    type_band("band", 0.535, 0.590, R, band, X, tags)
+    xo, xl = 0.615, 1.172
+    og = _ogive_to(R, xl - xo, R * 0.50, xo, n=14)
+    xs = 0.985
+    o1, o2 = _visor("vis", og[:], xo + 0.135, X, tags, LT, "he", k, hw=0.026)
+    # (o visor parte o perfil; a parte clara vai ate xs e a escura dai ate a lente)
+    r2a, r2b = _split(o2, xs)
     octo("og1", o1, X["comp"], tags)
-    octo("og2", o2, X["comp"], tags)
-    ring("seat", xl - 0.012, xl + 0.006, R * 0.50, X["steel"], tags)
-    lens_tip("lens", xl, 1.228, R * 0.48, X, tags)
+    octo("og2", r2a, X["comp"], tags)
+    octo("og3", r2b, X["graph"], tags)
+    ring("og_seam", xs - 0.010, xs + 0.010, _r_at(og, xs) * 1.035, X["rim"], tags, ch=0.003)
+    seeker("lens", xl - 0.004, 1.226, R * 0.50, X, tags, LT, "he", on_seek, ring_w=0.018)
+    # estrakes de grafite (asa-corpo) com a fenda ambar no bordo de fora
+    yb = R * COS8
+    sk = [(0.30, R * 0.80), (-0.835, yb + 0.074), (-0.87, yb + 0.074), (-0.89, R * 0.80)]
+    fin("strake", sk, -0.008, 0.018, X["graph"], tags, slope=0.004, groove=0.003, ph=0.003)
+    edge("ske", sk[:2], 0.010, -0.004, 0.008, X, tags)
+    for s in (1, -1):
+        # fenda acesa: rebaixo preto + tira ambar paralela ao bordo do estrake (de -0.58 a -0.16)
+        (x0, y0), (x1, y1) = sk[1], sk[0]
+        xa_, xb_ = -0.73, -0.46
+        ya = y1 + (y0 - y1) * (x1 - xa_) / (x1 - x0) - 0.022
+        yb_ = y1 + (y0 - y1) * (x1 - xb_) / (x1 - x0) - 0.022
+        rot = math.degrees(math.atan2(s * (yb_ - ya), xb_ - xa_))
+        Ls = math.hypot(xb_ - xa_, yb_ - ya)
+        cx, cy = (xa_ + xb_) / 2, s * (ya + yb_) / 2
+        B.rbox(f"sks{s}", cx, cy, Ls, 0.028, 0.004, 0.0125, X["black"], rot=rot, bevel=0.0, tags=tags)
+        B.rbox(f"sksl{s}", cx, cy, Ls - 0.02, 0.016, 0.010, 0.0150, _led("he", on_slit), rot=rot, bevel=0.0,
+               tags=_lt(LT, on_slit))
+    # aletas grandes em flecha quebrada (ponta cortada, entalhe no bordo de fuga), painel claro, filete de aco
+    fp = [(-0.855, R * 0.7), (-0.855, yb + 0.070), (-1.012, 0.405), (-1.100, 0.405), (-1.078, 0.290),
+          (-1.165, R * 0.7)]
+    fin("fin", fp, 0.0, 0.030, X["comp"], tags, panel_mat=X["comp_l"])
+    edge("fle", fp[1:4], 0.016, -0.004, 0.022, X, tags)
+    for s in (1, -1):
+        B.box(f"claw{s}", -1.00, s * R * 0.98, 0.24, 0.034, -0.035, 0.038, X["graph"], bevel=0.005, tags=tags)
 
 
 # ============================================================================ Piranha (cluster, amarela)
-def _petal_ring(prof_r, x, a_from, a_to):
-    """Pontos (x, y, z) da superficie do octogono (vertices em 22.5 + 45k graus) de raio prof_r entre os angulos
-    a_from e a_to (graus), com os vertices do octogono no meio."""
-    angs = [a_from]
-    v = 22.5 - 360.0                       # vertices tambem nos angulos negativos (petala centrada em 0 graus)
+def _oct_pt(r, a):
+    """Ponto (y, z) da superficie do octogono de topo plano (vertices em 22.5 + 45k graus) de raio r no angulo a."""
+    k = math.floor((a - 22.5) / 45.0)
+    va, vb = math.radians(22.5 + 45 * k), math.radians(22.5 + 45 * (k + 1))
+    t = (math.radians(a) - va) / (vb - va)
+    ya, za = math.cos(va), math.sin(va)
+    yb, zb = math.cos(vb), math.sin(vb)
+    return r * (ya + (yb - ya) * t), r * (za + (zb - za) * t)
+
+
+def _petal_angles(a_from, a_to, extra=()):
+    """Angulos de amostra de uma petala: as pontas, os vertices do octogono no meio e os extras (bordas dos labios)."""
+    angs = {round(a_from, 6), round(a_to, 6)}
+    angs |= {round(e, 6) for e in extra if a_from + 1e-6 < e < a_to - 1e-6}
+    v = 22.5 - 360.0
     while v < a_to - 1e-6:
         if v > a_from + 1e-6:
-            angs.append(v)
+            angs.add(round(v, 6))
         v += 45.0
-    angs.append(a_to)
-    pts = []
-    for a in angs:
-        k = math.floor((a - 22.5) / 45.0)
-        va, vb = math.radians(22.5 + 45 * k), math.radians(22.5 + 45 * (k + 1))
-        t = (math.radians(a) - va) / (vb - va)
-        ya, za = math.cos(va), math.sin(va)
-        yb, zb = math.cos(vb), math.sin(vb)
-        pts.append((x, prof_r * (ya + (yb - ya) * t), prof_r * (za + (zb - za) * t)))
-    return pts
+    return sorted(angs)
 
 
-def petal_mesh(name, prof, a_c, half, X, tags, thick=0.82):
-    """UMA petala do nariz da Piranha: casca do octogono entre a_c - half e a_c + half graus (faces planas), com a
-    face de fora em composito e a de dentro em grafite (espessura = raio x (1 - thick)). prof = [(raio, x)] da base
-    para a ponta."""
+def petal_mesh(name, prof, a_c, half, X, tags, thick=0.82, lip=8.0):
+    """UMA petala do nariz da Piranha: casca do octogono entre a_c - half e a_c + half graus (faces planas). Face de
+    fora em composito CLARO (comp_l) com LABIOS de grafite de `lip` graus junto das frestas (r3: a fresta escura fica
+    larga e le a 1x), face de dentro e paredes em grafite (espessura = raio x (1 - thick)). prof = [(raio, x)] da
+    base para a ponta."""
     import bmesh
     import bpy
+    a0, a1 = a_c - half, a_c + half
+    angs = _petal_angles(a0, a1, (a0 + lip, a1 - lip))
     me = bpy.data.meshes.new(name)
     bm = bmesh.new()
     outer, inner = [], []
     for r, x in prof:
-        o = _petal_ring(r, x, a_c - half, a_c + half)
-        outer.append([bm.verts.new(p) for p in o])
-        inner.append([bm.verts.new((p[0], p[1] * thick, p[2] * thick)) for p in o])
-    n = len(outer[0])
+        pts = [_oct_pt(r, a) for a in angs]
+        outer.append([bm.verts.new((x, y, z)) for y, z in pts])
+        inner.append([bm.verts.new((x, y * thick, z * thick)) for y, z in pts])
+    n = len(angs)
+    lipm = [(0.5 * (angs[i] + angs[i + 1]) < a0 + lip - 1e-6) or (0.5 * (angs[i] + angs[i + 1]) > a1 - lip + 1e-6)
+            for i in range(n - 1)]
     faces = []
     for ra, rb, ia, ib in zip(outer, outer[1:], inner, inner[1:]):
         for i in range(n - 1):
-            faces.append((bm.faces.new((ra[i], ra[i + 1], rb[i + 1], rb[i])), 0))
+            faces.append((bm.faces.new((ra[i], ra[i + 1], rb[i + 1], rb[i])), 1 if lipm[i] else 0))
             faces.append((bm.faces.new((ia[i + 1], ia[i], ib[i], ib[i + 1])), 1))
         # paredes laterais (as frestas)
         faces.append((bm.faces.new((ia[0], ra[0], rb[0], ib[0])), 1))
@@ -530,7 +693,7 @@ def petal_mesh(name, prof, a_c, half, X, tags, thick=0.82):
         p.use_smooth = False
     ob = bpy.data.objects.new(name, me)
     bpy.context.scene.collection.objects.link(ob)
-    ob.data.materials.append(X["comp"])
+    ob.data.materials.append(X["comp_l"])
     ob.data.materials.append(X["graph"])
     for t in tags:
         ob[t] = True
@@ -538,12 +701,16 @@ def petal_mesh(name, prof, a_c, half, X, tags, thick=0.82):
 
 
 CL = {
-    # R, bocal, fim da cauda, baias (de, ate), n baias, nariz, envergadura das aletas, minis por janela
+    # R, bocal, fim da cauda, baias (de, ate), n baias, nariz, envergadura das aletas, minis por janela, fresta das
+    # petalas (graus)
     "m": {"R": 0.150, "x0": -0.855, "xt": -0.62, "bays": (-0.595, 0.215), "nb": 3, "xn": 0.855, "span": 0.352,
           "nmini": 3, "gap": 20.0},
-    "l": {"R": 0.200, "x0": -1.23, "xt": -0.92, "bays": (-0.895, 0.385), "nb": 4, "xn": 1.23, "span": 0.48,
+    "l": {"R": 0.200, "x0": -1.23, "xt": -0.92, "bays": (-0.895, 0.385), "nb": 4, "xn": 1.23, "span": 0.465,
           "nmini": 3, "gap": 16.0},
 }
+# petalas centradas a 45/135/225/315 graus (r3): a fresta de CIMA corre no eixo (vista de cima: 2 petalas claras e a
+# linha escura acesa no meio); as frestas de lado ficam no contorno, marcadas pelas dobradicas que saem da silhueta
+PETAL_C = (45.0, 135.0, 225.0, 315.0)
 
 
 def cluster_nose_profile(tier):
@@ -569,19 +736,28 @@ def _mini_in_bay(name, x_tip, y, zbed, r, length, X, tags):
 
 
 def _cluster(M, X, T, LT, k, tier):
+    """r3: portador de DOIS TONS (baias claras com paineis de chanfro duplo sobre o nucleo escuro), aletas em flecha
+    quebrada com filete de aco, e o nariz em 4 petalas girado 45 graus: a fresta de cima corre no EIXO (labios de
+    grafite + tira amarela acesa fraca em todos os quadros e forte no ultimo, o "vai abrir"), dobradicas de aco na
+    base de cada fresta (as de lado saem da silhueta: entalhes legiveis a 1x)."""
     tags = (T,)
     c = CL[tier]
     R, x0, xt, (b0, b1), nb, xn = c["R"], c["x0"], c["xt"], c["bays"], c["nb"], c["xn"]
     sc = R / 0.15
-    # cauda: bocal, cone de grafite, 2 aletas de lado + dorsal de quina
+    n_frames = PART["items"][f"cluster_{tier}"]["frames"]
+    arm = (k % n_frames) == n_frames - 1
+    # cauda: bocal, cone de grafite, 2 aletas em flecha quebrada (ponta cortada, entalhe) + dorsal de quina
     _nozzle(X, tags, x0, R * 0.42, R * 0.50, 0.06 * sc)
     octo("tail", [(R * 0.56, x0 + 0.05 * sc), (R * 0.96, xt)], X["graph"], tags)
     spine = ring("spine", xt - 0.02, b1 + 0.06 * sc, R * 0.86, X["core"], tags)
-    fin("fin", [(xt + 0.02, R * 0.7), (xt - 0.08 * sc, c["span"]), (x0 + 0.06 * sc, c["span"]),
-                (x0 + 0.055 * sc, R * 0.7)], 0.0, 0.026 * sc, X["comp"], tags)
-    dorsal("dors", x0 + 0.08 * sc, xt - 0.01, R * 0.80 * COS8, 0.05 * sc, X["comp"], tags, w=0.024 * sc)
-    # baias com janelas: os narizes dos minis enfileirados aparecem no fundo escuro
-    g = 0.034 * sc
+    sp = c["span"]
+    fp = [(xt + 0.03 * sc, R * 0.7), (xt - 0.05 * sc, R * COS8 + 0.05 * sc), (x0 + 0.13 * sc, sp),
+          (x0 + 0.06 * sc, sp), (x0 + 0.075 * sc, sp - 0.07 * sc), (x0 + 0.055 * sc, R * 0.7)]
+    fin("fin", fp, 0.0, 0.026 * sc, X["comp"], tags, panel_mat=X["comp_l"])
+    edge("fle", fp[1:4], 0.014 * sc, -0.004, 0.020 * sc, X, tags)
+    dorsal("dors", x0 + 0.08 * sc, xt - 0.01, R * 0.80 * COS8, 0.05 * sc, X["graph"], tags, w=0.024 * sc)
+    # baias com janelas: os narizes dos minis enfileirados aparecem no fundo escuro; paineis claros nos ombros
+    g = 0.040 * sc
     blen = (b1 - b0 - g * (nb - 1)) / nb
     zt = R * COS8
     ww = R * (0.98 if tier == "m" else 0.82)
@@ -600,47 +776,55 @@ def _cluster(M, X, T, LT, k, tier):
             # os do meio um pouco a frente (fileira em divisa, como um cardume)
             xtip = cx + wl / 2 - 0.012 * sc - (0.0 if j == (n - 1) / 2 else 0.018 * sc)
             _mini_in_bay(f"mini{i}{j}", xtip, y, zf, rm, wl * 0.9, X, tags)
-        if tier == "l":
-            side_panels(f"ps{i}", a + 0.03, b - 0.03, R, X["comp"], tags)
-    # LEDs de armar: tiras acesas nas frestas entre as baias e na base do nariz; correm para a frente
+        side_panels(f"ps{i}", a + 0.02 * sc, b - 0.02 * sc, R, X["comp_l"], tags, inset=0.014 * sc)
+    # LEDs de armar: tiras acesas nas frestas entre as baias; correm para a frente
     n_led = nb
-    xs_led = [b0 + (i + 1) * (blen + g) - g / 2 for i in range(nb - 1)] + [b1 + 0.022 * sc]
-    for i, xl in enumerate(xs_led[:n_led]):
+    xs_led = [b0 + (i + 1) * (blen + g) - g / 2 for i in range(nb - 1)]
+    for i, xl in enumerate(xs_led):
         on = 1.15 if i == k % n_led else 0.0
-        if i < nb - 1:
-            led_groove(f"led{i}", xl, g * 1.02, R * 0.90, "cluster", on, X, tags, LT)
+        led_groove(f"led{i}", xl, g * 1.02, R * 0.90, "cluster", on, X, tags, LT)
     if tier == "l":
-        # canards na ultima baia
-        fin("can", [(b1 - 0.03, R * 0.8), (b1 - 0.13, R + 0.12), (b1 - 0.20, R + 0.12), (b1 - 0.21, R * 0.8)], 0.0,
-            0.022, X["comp"], tags)
-    # faixa amarela + anel da dobradica (escuro) com o LED de armar do nariz
+        # canards na ultima baia (flecha, filete de aco)
+        cp = [(b1 - 0.03, R * 0.8), (b1 - 0.12, R + 0.12), (b1 - 0.19, R + 0.12), (b1 - 0.21, R * 0.8)]
+        fin("can", cp, 0.0, 0.022, X["comp"], tags, panel_mat=X["comp_l"])
+        edge("cle", cp[:3], 0.014, -0.004, 0.016, X, tags)
+    # faixa amarela com aros de aco + anel da dobradica (escuro) com o LED de armar do nariz
     xb = b1 + 0.004
-    ring("band", xb, xb + 0.032 * sc, R * 1.03, _band("cluster"), tags, ch=0.004)
     og, xo, xe = cluster_nose_profile(tier)
+    type_band("band", xb + 0.012, xb + 0.012 + 0.030 * sc, R, _band("cluster"), X, tags)
     on = 1.15 if (nb - 1) == k % n_led else 0.0
-    led_groove("ledn", (xb + 0.032 * sc + xo) / 2, xo - xb - 0.032 * sc + 0.004, R * 0.90, "cluster", on, X, tags,
-               LT)
-    # nariz em 4 petalas: casca de composito em 4 pedacos (petalas centradas em 90/0/270/180 graus, frestas a 45)
-    # sobre a ogiva interna preta; dobradicas de aco na base de cada fresta visivel; olho escuro na ponta
+    xbe = xb + 0.024 + 0.030 * sc
+    if xo - xbe > 0.012:
+        led_groove("ledn", (xbe + xo) / 2, xo - xbe + 0.004, R * 0.90, "cluster", on, X, tags, LT)
+    # nariz em 4 petalas sobre a ogiva interna preta, frestas a 0/90/180/270 graus
     gap = c["gap"]
-    for j, ac in enumerate((90.0, 0.0, 180.0, 270.0)):
+    for j, ac in enumerate(PETAL_C):
         petal_mesh(f"petal{j}", og, ac, 45.0 - gap / 2, X, tags)
     octo("og_in", [(r * 0.84, x) for r, x in og], X["black"], tags)
-    # LEDs de armar DENTRO das 2 frestas vistas de cima (45 e 135 graus), no fundo preto entre as petalas: acendem
-    # junto com o LED da base do nariz (o "vai abrir")
-    xa, xb = xo + 0.025 * sc, xo + 0.135 * sc
-    rr = _r_at(og, xb) * 0.84 * math.cos(math.pi / 8)
-    for j, ang in enumerate((-45.0, 45.0)):
-        pip = B.box(f"seam{j}", (xa + xb) / 2, 0.0, xb - xa, 0.020 * sc, rr - 0.004, rr + 0.010 * sc, _led("cluster", on),
-                    bevel=0.0, tags=_lt(LT, on))
-        pip.rotation_euler = (math.radians(ang), 0.0, 0.0)
+    # fresta de cima (no eixo) ACESA: tira amarela no fundo preto entre as petalas, da base ate perto da ponta,
+    # fraca em todos os quadros e forte no ultimo ("vai abrir")
+    # (fraca = tira fina de ~0.6 px: cobre pouco e cabe no orcamento de 3% do quadro 0; forte = a tira larga)
+    s_seam = 1.15 if arm else 0.45
+    xa = xo + 0.02 * sc
+    xz = xe - 0.05 * sc
+    w0 = 0.019 * sc if arm else 0.0095
+    pts = [(x, _r_at(og, x) * 0.84 * COS8 + 0.003, max(0.0095, w0 * (1.0 - 0.5 * (x - xa) / (xz - xa))))
+           for x in (xa + (xz - xa) * j / 10 for j in range(11))]
+    _strip("seam", pts, _led("cluster", s_seam), _lt(LT, s_seam))
     rt = og[-1][0]
     lens_tip("eye", xe - 0.004, xn, rt * 1.02, X, tags)
+    # dobradicas de aco na base das frestas: a de cima (no eixo) e as 2 de lado, que saem da silhueta
+    rr = _r_at(og, xo + 0.03 * sc)
+    hl = 0.050 * sc
+    B.box("hinge_t", xo + 0.028 * sc, 0.0, hl, 0.040 * sc, rr * COS8 - 0.012, rr * COS8 + 0.010 * sc, X["rim"],
+          bevel=0.003, tags=tags)
     for s in (1, -1):
-        a = math.radians(45)
-        rr = R * COS8 * 0.99
-        B.box(f"hinge{s}", xo + 0.028 * sc, s * rr * math.cos(a), 0.046 * sc, 0.026 * sc, rr * math.sin(a) - 0.014,
-              rr * math.sin(a) + 0.014 * sc, X["steel"], bevel=0.003, tags=tags)
+        # dobradica de lado: bloco de aco que sai ~2 px da silhueta, com a fenda escura do pino no meio
+        yh = rr * COS8 + 0.010 * sc
+        B.box(f"hinge{s}", xo + 0.030 * sc, s * yh, hl * 1.25, 0.044 * sc, -0.024 * sc, 0.024 * sc, X["rim"],
+              bevel=0.003, tags=tags)
+        B.box(f"hingek{s}", xo + 0.030 * sc, s * (yh + 0.004 * sc), hl * 0.32, 0.046 * sc, -0.026 * sc,
+              0.026 * sc, X["graph"], bevel=0.0, tags=tags)
 
 
 def _mini(M, X, T):
@@ -660,126 +844,131 @@ def _mini(M, X, T):
 
 
 # ============================================================================ Poraque (PEM, ciano)
-def _coil(X, T, name, xc, w, R, turns=3):
-    """Bobina de FIO de cobre: espiras redondas (16 lados lisos, o cobre do Poraque) sobre um carretel escuro."""
+def _coil(X, T, name, xc, w, R, turns=3, h=0.13):
+    """Bobina de FIO de cobre: espiras redondas (16 lados lisos, o cobre do Poraque) sobre um carretel escuro. h =
+    altura das espiras / R (r3: 0.13, as bobinas saem da silhueta: corpo "enrolado" legivel a 1x)."""
     tags = (T,)
     ring(name + "_k", xc - w / 2, xc + w / 2, R * 1.0, X["core"], tags)
     pw = w / turns
     for i in range(turns):
         a = xc - w / 2 + i * pw + pw * 0.08
         b = a + pw * 0.84
-        h = R * 0.08
-        prof = [(R * 1.0, a)] + [(R * 1.0 + h * math.sin(math.pi * t / 6), a + (b - a) * t / 6) for t in range(1, 6)]
+        hh = R * h
+        prof = [(R * 1.0, a)] + [(R * 1.0 + hh * math.sin(math.pi * t / 6), a + (b - a) * t / 6) for t in range(1, 6)]
         prof += [(R * 1.0, b)]
         smooth(f"{name}_{i}", prof, X["copper"], tags, verts=16)
 
 
-def _lit_band(X, name, x, w, R, color, s, tags, LT, lip=None, lip_r=1.06):
+def _lit_band(X, name, x, w, R, color, s, tags, LT, lip=None, lip_r=1.06, tint=0.02):
     """Faixa acesa num rebaixo: anel aceso entre dois labios escuros mais altos (lip_r * R)."""
     if lip:
         ring(name + "_a", x - w / 2 - lip, x - w / 2, R * lip_r, X["graph"], tags, ch=0.004)
         ring(name + "_b", x + w / 2, x + w / 2 + lip, R * lip_r, X["graph"], tags, ch=0.004)
-    ring(name + "_l", x - w / 2, x + w / 2, R * 1.005, _led(color, s), _lt(LT, s))
+    ring(name + "_l", x - w / 2, x + w / 2, R * 1.005, _led(color, s, tint), _lt(LT, s))
 
 
-def _eel_fins(name, x0, x1, r0, h0, h1, n, X, tags, th=0.016):
-    """Barbatana-fita da enguia: n escamas varridas (cada uma uma lasca de chanfro duplo), mais altas na frente,
-    que encostam no corpo (alfa conectado)."""
-    L = (x1 - x0) / n
-    for k in range(n):
-        t = (k + 0.5) / n
-        h = h0 + (h1 - h0) * t
-        xa = x1 - k * L
-        # lamina varrida para tras: bordo de ataque longo, ponta curta, bordo de fuga varrido (dente de serra)
-        poly = [(xa, r0 * 0.6), (xa - L * 0.78, r0 + h), (xa - L * 1.08, r0 + h), (xa - L * 0.88, r0 * 0.6)]
-        fin(f"{name}{k}", poly, 0.004 * (n - k), th, X["comp"], tags)
+def _blades(name, roots, r0, L, hs, X, tags, th=0.016):
+    """Laminas da enguia (r3): poucas (3), LONGAS, finas e bem varridas sobre o nucleo escuro, com painel claro e
+    filete de aco no bordo de ataque (no lugar das 4-5 escamas em dente de serra, que liam "espinha de peixe")."""
+    # fita escura baixa da enguia ligando as raizes (as laminas saem dela: um sistema so, nao varetas soltas)
+    hr = 0.030
+    rib = [(roots[0] + 0.02, r0 * 0.80), (roots[0] - 0.06, r0 + hr), (roots[-1] - L * 0.80, r0 + hr),
+           (roots[-1] - L * 0.95, r0 * 0.80)]
+    fin(name + "_rib", rib, -0.004, th * 0.9, X["graph"], tags, slope=0.004, groove=0.003, ph=0.003)
+    for i, (xr, h) in enumerate(zip(roots, hs)):
+        yt = r0 + h
+        poly = [(xr, r0 * 0.72), (xr - L, yt), (xr - L - 0.035, yt), (xr - L * 0.58, r0 * 0.72)]
+        fin(f"{name}{i}", poly, 0.003 * (len(roots) - i), th, X["comp_d"], tags, slope=0.005, groove=0.004,
+            panel_mat=X["comp_l"])
+        edge(f"{name}{i}e", poly[:2], 0.012, -0.004, th / 2 + 0.004, X, tags)
 
 
 def _emp(M, X, T, LT, k, tier):
+    """r3: nucleo escuro com 3 laminas longas varridas (claras, filete de aco), bobinas de cobre que saem da
+    silhueta com as frestas tingidas de CIANO no difuso (a cor le a 1x entre os pulsos), nariz emissor escuro com o
+    anel ciano e a lente; o l ganha 2 segmentos de blindagem clara e os CHIFRES do emissor (abrem e fecham na
+    frente: o arco salta entre as pontas ciano)."""
     tags = (T,)
     late = tier == "l"
     if not late:
         R, x0, xn = 0.088, -0.855, 0.855
-        x_sl0, x_sl1 = -0.70, -0.08
+        x_c0, x_c1 = -0.72, -0.10
         coils = [0.03, 0.205, 0.38]
         cw, turns = 0.12, 3
-        x_nose0 = 0.48
+        roots, Lb, hs = [-0.16, -0.36, -0.56], 0.21, [0.10, 0.15, 0.20]
     else:
-        R, x0, xn = 0.104, -1.23, 1.105
-        x_sl0, x_sl1 = -1.03, -0.30
-        coils = [-0.20, -0.01, 0.18, 0.37, 0.56]
+        R, x0, xn = 0.104, -1.23, 1.06
+        x_c0, x_c1 = -1.06, -0.36
+        coils = [-0.155, 0.02, 0.195, 0.37, 0.545]
         cw, turns = 0.13, 3
-        x_nose0 = 0.665
+        roots, Lb, hs = [-0.44, -0.67, -0.90], 0.27, [0.14, 0.21, 0.29]
     sc = R / 0.088
     _nozzle(X, tags, x0, R * 0.52, R * 0.62, 0.055 * sc)
-    octo("tail", [(R * 0.66, x0 + 0.045 * sc), (R * 0.97, x_sl0)], X["graph"], tags)
-    spine = ring("spine", x_sl0 - 0.02, x_nose0 + 0.02, R * 0.86, X["core"], tags)
-    # cauda: blindagem de composito (m: luva em divisa com 2 LEDs ciano; l: 3 segmentos com paineis e o anel
-    # ciano da base) e as barbatanas-fita da enguia
-    lit = []          # (nome, funcao que desenha com a forca s): a carga corre na ordem da lista
-    if not late:
-        sl = Mo.chevron_sleeve("sl", x_sl0, x_sl1 - 0.05 * sc, R, X["comp"], tags, dv=0.05 * sc, rear=False)
-        cxs = (x_sl0 + x_sl1) / 2 - 0.04
-        zf = slot([sl, spine], "sled", cxs, 0.0, 0.11, 0.032, R * COS8, 0.042, X, tags)
+    octo("tail", [(R * 0.66, x0 + 0.045 * sc), (R * 0.97, x_c0)], X["graph"], tags)
+    ring("core", x_c0 - 0.01, x_c1 + 0.01, R * 0.90, X["pem"], tags)
+    lit = []          # funcoes que desenham com a forca s: a carga corre na ordem da lista
+    tint = 0.45       # lente tingida de ciano no difuso
 
-        def rear(s, zf=zf, cxs=cxs):
-            for i in range(2):
-                B.box(f"sled_p{i}", cxs + (i - 0.5) * 0.05, 0.0, 0.032, 0.022, zf + 0.0005, zf + 0.008,
-                      _led("emp", s), bevel=0.0, tags=_lt(LT, s))
-        lit.append(rear)
-        _eel_fins("rib", x0 + 0.06, -0.10, R, 0.05, 0.13, 4, X, tags)
+    def rear(s):
+        _lit_band(X, "bring", x_c0 + 0.035, 0.030, R * 0.93, "emp", s, tags, LT, lip=0.014, lip_r=1.02 / 0.93,
+                  tint=tint)
+    lit.append(rear)
+    # a cauda escura com aneis de aco finos (costuras) e as laminas
+    for j, xx in enumerate([x_c0 + 0.09 + (x_c1 - x_c0 - 0.12) * t for t in (0.33, 0.66)]):
+        ring(f"cseam{j}", xx - 0.008, xx + 0.008, R * 0.95, X["steel"], tags, ch=0.003)
+    _blades("bl", roots, R * COS8, Lb, hs, X, tags, th=0.016 * sc)
+    if late:
+        for i, (a, b) in enumerate(((x_c1 - 0.01, -0.21),)):
+            armor(f"arm{i}", a, b, R, X, tags)
     else:
-        def rear(s):
-            led_groove("bring", x_sl0 + 0.03, 0.036, R * 0.92, "emp", s, X, tags, LT, full=True)
-        lit.append(rear)
-        segs = [(x_sl0 + 0.06, -0.78), (-0.75, -0.53), (-0.50, x_sl1)]
-        for i, (a, b) in enumerate(segs):
-            ring(f"seg{i}", a, b, R, X["comp"], tags, ch=0.012)
-            top_panel(f"pn{i}", a + 0.03, b - 0.03, R, X["comp"], tags)
-            side_panels(f"ps{i}", a + 0.03, b - 0.03, R, X["comp"], tags)
-        _eel_fins("rib", x0 + 0.08, -0.38, R, 0.07, 0.19, 5, X, tags, th=0.018)
+        armor("arm0", x_c1 - 0.01, -0.01, R, X, tags, sides=False)
     # capsula escura sob as bobinas
-    ring("cap", x_sl1 - 0.01, coils[-1] + cw / 2 + 0.04, R * 0.97, X["pem"], tags)
+    xa_cap = (-0.21 if late else -0.01)
+    ring("cap", xa_cap, coils[-1] + cw / 2 + 0.04, R * 0.97, X["pem"], tags)
     for i, xc in enumerate(coils):
         _coil(X, T, f"coil{i}", xc, cw, R, turns)
     # frestas ciano entre as bobinas (com labios escuros): a carga corre da cauda para o nariz
-    for i in range(len(coils) - 1):
-        xg = (coils[i] + coils[i + 1]) / 2
-        gw = coils[i + 1] - coils[i] - cw
-
-        def gap(s, i=i, xg=xg, gw=gw):
-            _lit_band(X, f"gap{i}", xg, gw * 0.56, R, "emp", s, tags, LT, lip=gw * 0.20)
+    gaps = [(coils[i] + coils[i + 1]) / 2 for i in range(len(coils) - 1)]
+    gw = coils[1] - coils[0] - cw
+    for i, xg in enumerate(gaps):
+        def gap(s, i=i, xg=xg):
+            _lit_band(X, f"gap{i}", xg, gw * 0.56, R, "emp", s, tags, LT, lip=gw * 0.20, tint=tint)
         lit.append(gap)
-    # emissor do nariz: colar de aco, cone escuro com 2 aneis de aco, olho ciano na lente da ponta
+    # emissor do nariz: colar de aco, ogiva escura com 2 aneis de aco, anel ciano e lente com reflexo
     xc1 = coils[-1] + cw / 2 + 0.01
-    ring("ncol", xc1, xc1 + 0.035, R * 1.04, X["steel"], tags, ch=0.004)
+    ring("ncol", xc1, xc1 + 0.035, R * 1.04, X["rim"], tags, ch=0.004)
     xo = xc1 + 0.03
     xl = xn - 0.07 * sc
-    og = _ogive_to(R, xl - xo, R * 0.48, xo, n=10)
+    og = _ogive_to(R, xl - xo, R * 0.50, xo, n=10)
     octo("og", og, X["pem"], tags)
     for j, t in enumerate((0.35, 0.70)):
         xx = xo + (xl - xo) * t
         ring(f"nring{j}", xx, xx + 0.026, _r_at(og, xx + 0.013) * 1.07, X["steel"], tags, ch=0.004)
+    eye_s = []
 
     def eye(s):
-        _lit_band(X, "eye", xl - 0.018, 0.022, _r_at(og, xl - 0.018), "emp", s, tags, LT)
+        eye_s.append(s)
     lit.append(eye)
-    lens_tip("lens", xl - 0.004, xn, R * 0.48, X, tags)
     if late:
-        # garfo emissor: 2 pontas de aco paralelas ao nariz com as pontas ciano (>= 2 px)
-        yp = 0.104
-        x_pr0 = xo + 0.03
+        # CHIFRES do emissor: 2 bracos de aco que abrem do colar e fecham na frente, pontas ciano viradas uma para a
+        # outra (o arco do PEM salta no meio, onde fica a ancora "seeker" 1.10)
+        yb = R * COS8
+        P0, P1, P2 = (xo + 0.01, yb - 0.01), (0.86, 0.205), (1.165, 0.088)
         for s in (1, -1):
-            B.box(f"prong{s}", (x_pr0 + 1.20) / 2, s * yp, 1.20 - x_pr0, 0.034, -0.014, 0.022, X["steel"],
-                  bevel=0.004, tags=tags)
-            B.box(f"pbrace{s}", x_pr0 + 0.03, s * (yp + R) / 2 * 0.98, 0.05, yp - R * 0.6, -0.012, 0.02,
-                  X["graph"], bevel=0.003, tags=tags)
-        ptip = 1.2 if k == 3 else 0.35
+            for j, (pa, pb) in enumerate(((P0, P1), (P1, P2))):
+                L = math.hypot(pb[0] - pa[0], pb[1] - pa[1]) + 0.03
+                rot = math.degrees(math.atan2(s * (pb[1] - pa[1]), pb[0] - pa[0]))
+                B.rbox(f"horn{j}{s}", (pa[0] + pb[0]) / 2, s * (pa[1] + pb[1]) / 2, L, 0.036, -0.016, 0.022,
+                       X["steel"], rot=rot, chamfer=0.010, bevel=0.004, tags=tags)
+                B.rbox(f"hornp{j}{s}", (pa[0] + pb[0]) / 2, s * (pa[1] + pb[1]) / 2, L * 0.70, 0.016, 0.018, 0.026,
+                       X["graph"], rot=rot, bevel=0.0, tags=tags)
+            B.box(f"elbow{s}", P1[0], s * P1[1], 0.050, 0.050, -0.020, 0.028, X["graph"], bevel=0.006, tags=tags)
+        ptip = 1.2 if k == 3 else 0.30
 
         def tips(s):
             for sy in (1, -1):
-                B.box(f"ptip{sy}", 1.213, sy * yp, 0.030, 0.034, -0.01, 0.024, _led("emp", s), bevel=0.0,
-                      tags=_lt(LT, s))
+                B.box(f"ptip{sy}", P2[0] + 0.012, sy * (P2[1] - 0.012), 0.040, 0.026, -0.010, 0.026,
+                      _led("emp", s, tint), bevel=0.0, tags=_lt(LT, s))
         tips(ptip)
     # a onda: o elemento k forte, o anterior medio, o resto apagado (no l, 2 frestas por quadro)
     n = len(lit)
@@ -788,12 +977,14 @@ def _emp(M, X, T, LT, k, tier):
     for i, fn in enumerate(lit):
         s = 1.05 if i == lead else (0.32 if i == lead - 1 else 0.0)
         fn(s)
+    s_eye = max(eye_s[0] if eye_s else 0.0, 0.30)
+    seeker("lens", xl - 0.004, xn, R * 0.50, X, tags, LT, "emp", s_eye, ring_w=0.020)
 
 
 # ============================================================================ Iara (nuclear, verde)
 def _iara(M, X, T, LT, k, xt, xn, boosters):
     tags = (T,)
-    D, P, S, BLK, K = X["dark"], X["plate"], X["steel"], X["black"], X["core"]
+    D, P, S, BLK = X["dark"], X["plate"], X["steel"], X["black"]
     chev = Mo.chevron_mat("m2_iara_chev", scale=7.0)
     paint = _band("nuke")
     # respiracao 0.55/0.8/1.0/0.8 do brilho PERCEBIDO (forcas lineares ~0.27/0.58/0.94/0.58, verde "nuke" com
@@ -850,15 +1041,17 @@ def _iara(M, X, T, LT, k, xt, xn, boosters):
             made.append(bpy.data.objects[nm + "_bed"])
         for ob in made:
             ob.rotation_euler = (math.radians(45 * s), 0.0, 0.0)
-    # ---- nariz blindado: colar de grafite + domo de LENTE com o anel verde do sensor
+    # ---- nariz SENSOR (r3, familia das granadas 2.0): colar de aco claro, ogiva facetada ESCURA mais pontuda (a
+    # tampa cinza rombuda da Fase B saiu) e o domo de LENTE grande com o anel verde aceso e o reflexo
     xc0 = xw1 + 0.008
-    octo("cap", [(RW * 0.985, xc0), (RW * 0.95, xc0 + 0.08), (RW * 0.80, xc0 + 0.17), (RW * 0.60, xn - 0.10)],
-         X["graph"], tags)
-    ring("capr", xc0 + 0.03, xc0 + 0.05, RW * 1.0, S, tags, ch=0.003)
-    rs = RW * 0.60
-    ring("sring_k", xn - 0.105, xn - 0.075, rs * 0.97, BLK, tags)
-    ring("sring", xn - 0.10, xn - 0.08, rs * 0.99, _led("nuke", br), LT)
-    lens_tip("lens", xn - 0.082, xn, rs * 0.92, X, tags)
+    xs0 = xn - 0.13
+    octo("cap", [(RW * 0.985, xc0), (RW * 0.92, xc0 + 0.05), (RW * 0.64, xc0 + 0.17), (RW * 0.42, xs0)],
+         X["core"], tags)
+    ring("capr", xc0 + 0.022, xc0 + 0.046, RW * 1.0, X["rim"], tags, ch=0.003)
+    xm = xc0 + 0.105
+    ring("capr2", xm - 0.009, xm + 0.009, _r_at([(RW * 0.92, xc0 + 0.05), (RW * 0.64, xc0 + 0.17)], xm) * 1.03,
+         S, tags, ch=0.003)
+    seeker("lens", xs0, xn, RW * 0.42, X, tags, LT, "nuke", br, ring_w=0.024)
     # ---- corpo do meio: escuro, segmentos com placas dos ombros e a janela do nucleo (grade de aco)
     xm0, xm1 = xn - 2.30, xn - 1.50
     mid = ring("mid", xm0, xm1 + 0.01, R, D, tags)
@@ -885,17 +1078,12 @@ def _iara(M, X, T, LT, k, xt, xn, boosters):
         top_panel(f"etp{i}", a + 0.03, b - 0.03, R, P, tags, th=0.012)
         side_panels(f"esh{i}", a + 0.03, b - 0.03, R, P, tags, th=0.012)
     octo("tc", [(0.125, xt + 0.13), (R, xe0 + 0.01)], D, tags)
-    finp = [(xt + 0.49, 0.12), (xt + 0.29, 0.64), (xt + 0.165, 0.64), (xt + 0.16, 0.12)]
+    # aletas em flecha QUEBRADA (r3): raiz longa e baixa, painel de fora mais em pe, ponta cortada e entalhe no bordo
+    # de fuga; filete de aco claro no bordo de ataque
+    finp = [(xt + 0.56, 0.12), (xt + 0.36, 0.34), (xt + 0.27, 0.64), (xt + 0.15, 0.64), (xt + 0.20, 0.44),
+            (xt + 0.13, 0.12)]
     fin("fin", finp, 0.0, 0.028, D, tags, slope=0.014, groove=0.010, ph=0.010, panel_mat=P)
-    from_ = [(xt + 0.475, 0.15), (xt + 0.298, 0.615)]
-    for sy in (1, -1):
-        pts = [(x, sy * y) for x, y in from_]
-        dx, dy = pts[1][0] - pts[0][0], pts[1][1] - pts[0][1]
-        L = math.hypot(dx, dy)
-        nx, ny = -dy / L * 0.0095, dx / L * 0.0095
-        strip = [(pts[0][0] + nx, pts[0][1] + ny), (pts[1][0] + nx, pts[1][1] + ny), (pts[1][0] - nx, pts[1][1] - ny),
-                 (pts[0][0] - nx, pts[0][1] - ny)]
-        B.plate(f"fle{sy}", strip, 0.008, 0.026, X["comp"], slope=0.006, bevel=0.002, tags=tags)
+    edge("fle", finp[:3], 0.020, 0.006, 0.026, X, tags)
     fin("bar", [(xt + 0.15, 0.245), (xt + 0.39, 0.245), (xt + 0.415, 0.27), (xt + 0.39, 0.30), (xt + 0.15, 0.30)],
         0.0, 0.09, P, tags, slope=0.012, groove=0.008, ph=0.01)
     B.box("dors", xt + 0.33, 0.0, 0.30, 0.024, 0.10, R + 0.06, P, bevel=0.004, tags=tags)
@@ -916,7 +1104,7 @@ def _iara(M, X, T, LT, k, xt, xn, boosters):
                 a = x0b + i * (bl + 0.03)
                 ring(f"bos{sy}{i}", a, a + bl, 0.088, P, tags, ch=0.008, y=yy)
             octo(f"bon{sy}", _ogive_to(0.085, 0.16, 0.02, x1b, n=8) + [(0.0, x1b + 0.165)], X["graph"], tags, y=yy)
-            ring(f"bocol{sy}", x1b - 0.02, x1b + 0.005, 0.09, S, tags, ch=0.003, y=yy)
+            ring(f"bocol{sy}", x1b - 0.02, x1b + 0.005, 0.09, X["rim"], tags, ch=0.003, y=yy)
             octo(f"boz{sy}", [(0.05, x0b - 0.06), (0.062, x0b + 0.01)], S, tags, y=yy)
             for i, xx in enumerate((x0b + 0.18, x1b - 0.22)):
                 B.box(f"bobr{sy}{i}", xx, sy * 0.25, 0.09, 0.14, -0.035, 0.05, X["graph"], bevel=0.006, tags=tags)
@@ -972,27 +1160,16 @@ def petal_atlas(M, tier, T="body"):
             tr = Matrix.Translation(Vector((c - 1.5, 1.5 - r, 0.25)))
             ob.matrix_world = tr @ rot @ Matrix.Translation(-cen)
             hz = B.box(f"ph{r}{c}", xo + 0.03, 0.0, 0.05, 0.05, _r_at(og, xo) * 0.82, _r_at(og, xo) * 1.0,
-                       X["steel"], bevel=0.003, tags=tags)
+                       X["rim"], bevel=0.003, tags=tags)
             hz.matrix_world = tr @ rot @ Matrix.Translation(-cen) @ hz.matrix_world
     bpy.context.view_layer.update()
 
 
-def render_atlases(out, quick=False):
-    """Renderiza bs_petals_<m|l>.png + _normals.png (256 x 256) em out e registra em out/meta.json ("atlases")."""
+def register_atlases(out):
+    """Grava (ou regrava) o bloco "atlases" e os arquivos das petalas no out/meta.json. Idempotente: pode rodar
+    quantas vezes quiser. ATENCAO: o render_part.py SEM --only reescreve o meta.json do zero e apaga este bloco;
+    depois de um render completo rode `bs_missiles2.py --meta-only` (so o meta, segundos) ou `--atlases`."""
     import json
-    B.reset("axial")
-    for key, at in PART["atlases"].items():
-        B.reset("axial")
-        M = Mo.mats(PART.get("accent", "amber"))
-        B.camera(4.0, 4.0, (0, 0), px=at["sprite_px"])
-        import bpy
-        bpy.context.scene.cycles.samples = 12 if quick else 48
-        petal_atlas(M, at["tier"])
-        B.show_only(["body"])
-        base = os.path.join(out, at["file"][:-4])
-        B.render_set(base, (at["texture_px"], at["texture_px"]), glow_halo=False, normals=True, off=False,
-                     glow=False)
-        print(f"atlas {key}: {at['file']} + {at['normals']}")
     mp = os.path.join(out, "meta.json")
     meta = json.load(open(mp)) if os.path.exists(mp) else {"version": 1, "kind": "missiles", "id": PART["id"],
                                                            "px_per_tile": PART["px_per_tile"], "items": {},
@@ -1007,13 +1184,37 @@ def render_atlases(out, quick=False):
         files |= {a["file"], a["normals"]}
     meta["files"] = sorted(files)
     json.dump(meta, open(mp, "w"), indent=1)
+    missing = [f for a in PART["atlases"].values() for f in (a["file"], a["normals"])
+               if not os.path.exists(os.path.join(out, f))]
+    if missing:
+        print(f"AVISO: meta.json cita atlas que ainda nao existem em {out}: {missing} (rode --atlases)")
+
+
+def render_atlases(out, quick=False):
+    """Renderiza bs_petals_<m|l>.png + _normals.png (256 x 256) em out e registra em out/meta.json ("atlases")."""
+    import bpy
+    for key, at in PART["atlases"].items():
+        B.reset("axial")
+        M = Mo.mats(PART.get("accent", "amber"))
+        B.camera(4.0, 4.0, (0, 0), px=at["sprite_px"])
+        bpy.context.scene.cycles.samples = 12 if quick else 48
+        petal_atlas(M, at["tier"])
+        B.show_only(["body"])
+        base = os.path.join(out, at["file"][:-4])
+        B.render_set(base, (at["texture_px"], at["texture_px"]), glow_halo=False, normals=True, off=False,
+                     glow=False)
+        print(f"atlas {key}: {at['file']} + {at['normals']}")
+    register_atlases(out)
 
 
 if __name__ == "__main__":
     args = sys.argv[1:]
     root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
     out_dir = args[args.index("--out") + 1] if "--out" in args else os.path.join(root, "art3d", "bs_missiles2")
-    if "--atlases" not in args:
-        sys.exit("uso: bs_missiles2.py --atlases [--quick] [--out DIR]")
+    if "--atlases" not in args and "--meta-only" not in args:
+        sys.exit("uso: bs_missiles2.py --atlases [--quick] [--out DIR]   |   bs_missiles2.py --meta-only [--out DIR]")
     os.makedirs(out_dir, exist_ok=True)
-    render_atlases(out_dir, quick="--quick" in args)
+    if "--atlases" in args:
+        render_atlases(out_dir, quick="--quick" in args)
+    else:
+        register_atlases(out_dir)

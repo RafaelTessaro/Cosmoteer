@@ -254,6 +254,27 @@ def _render_hull(mod, out, P, only):
 
 
 # ============================================================================ armas (torres de convés)
+def _render_charge_glow(mod, out, P, only):
+    """Opcional (so com PART["charge_glow"] = {"frames": n, "interval": s, "color": nome} e charge_glow() no modelo):
+    charge_glow1..n.png no quadro da torre, so a emissao dos objetos de charge_glow(M, T, phase) (phase = k/n, a
+    carga sobe) com a cabeca como Holdout, mais halo (_oc_glow_sprite). --only turret ou charge."""
+    cg = P["charge_glow"]
+    ts = P["turret_box"]
+    tsz = (int(round(ts * PX)), int(round(ts * PX)))
+    names = [f"charge_glow{i + 1}.png" for i in range(int(cg.get("frames", 4)))]
+    if not only or "turret" in only or "charge" in only:
+        for i, nm in enumerate(names):
+            M = fresh(P.get("accent", "amber"))
+            B.camera(ts, ts, (0, 0))
+            samples(32)
+            mod.head(M, "head", 0.0)
+            mod.charge_glow(M, "charge", (i + 1) / len(names))
+            B.show_only(["charge", "head"])
+            em = emission_pass(os.path.join(out, "charge_raw.png"), tsz, keep_tag="charge", holdout=True)
+            _oc_glow_sprite(em).save(os.path.join(out, nm))
+    return {"frames": names, "interval": cg.get("interval", 0.125), "color": cg.get("color")}, names
+
+
 def render_gun(mod, out, only):
     P = mod.PART
     W, H = P["size"]
@@ -266,6 +287,9 @@ def render_gun(mod, out, only):
     files = []
     meta["turret"], tfiles = _render_head(mod, out, P, only)
     files += tfiles
+    if P.get("charge_glow") and hasattr(mod, "charge_glow"):   # opcional (padrao desligado): brilho de carga
+        meta["turret"]["charge_glow"], cfiles = _render_charge_glow(mod, out, P, only)
+        files += cfiles
 
     # ---------------------------------------------------------------- cano(s)
     L, root, pad, bw = bar["length"], bar["root"], bar.get("pad", 0.3), bar["width"]

@@ -1,0 +1,123 @@
+{
+ "version": 1,
+ "kind": "layered",
+ "id": "rafaeltessaro.bs_rail_barrel",
+ "size": [
+  3,
+  3
+ ],
+ "layers": {
+  "floor": {
+   "game_layer": "floors",
+   "rect": [
+    0,
+    0,
+    3,
+    3
+   ],
+   "files": [
+    "floor.png"
+   ],
+   "normals": null,
+   "opaque": true,
+   "emission_only": false,
+   "islands": false
+  },
+  "trilhos": {
+   "game_layer": "doodads_low",
+   "rect": [
+    0,
+    0,
+    3,
+    3
+   ],
+   "files": [
+    "trilhos1.png",
+    "trilhos2.png",
+    "trilhos3.png",
+    "trilhos4.png",
+    "trilhos5.png",
+    "trilhos6.png",
+    "trilhos7.png",
+    "trilhos8.png",
+    "trilhos9.png"
+   ],
+   "normals": null,
+   "levels": 9,
+   "opaque": false,
+   "emission_only": false,
+   "islands": true
+  },
+  "carga": {
+   "game_layer": "lights_add",
+   "rect": [
+    0,
+    0,
+    3,
+    3
+   ],
+   "files": [
+    "carga1.png",
+    "carga2.png",
+    "carga3.png",
+    "carga4.png",
+    "carga5.png",
+    "carga6.png",
+    "carga7.png",
+    "carga8.png"
+   ],
+   "normals": null,
+   "levels": 8,
+   "blend": "add",
+   "opaque": false,
+   "emission_only": false,
+   "islands": false
+  },
+  "roof": {
+   "game_layer": "roofs",
+   "rect": [
+    0,
+    0,
+    3,
+    3
+   ],
+   "files": [
+    "roof.png"
+   ],
+   "normals": [
+    "roof_normals.png"
+   ],
+   "opaque": false,
+   "emission_only": false,
+   "islands": true
+  }
+ },
+ "walls": "walls.png",
+ "icon": "icon.png",
+ "blueprints": "blueprints.png",
+ "files": [
+  "blueprints.png",
+  "carga1.png",
+  "carga2.png",
+  "carga3.png",
+  "carga4.png",
+  "carga5.png",
+  "carga6.png",
+  "carga7.png",
+  "carga8.png",
+  "floor.png",
+  "icon.png",
+  "roof.png",
+  "roof_normals.png",
+  "trilhos1.png",
+  "trilhos2.png",
+  "trilhos3.png",
+  "trilhos4.png",
+  "trilhos5.png",
+  "trilhos6.png",
+  "trilhos7.png",
+  "trilhos8.png",
+  "trilhos9.png",
+  "walls.png"
+ ]
+}

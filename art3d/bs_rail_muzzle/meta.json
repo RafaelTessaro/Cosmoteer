@@ -1,0 +1,157 @@
+{
+ "version": 1,
+ "kind": "layered",
+ "id": "rafaeltessaro.bs_rail_muzzle",
+ "size": [
+  3,
+  4
+ ],
+ "layers": {
+  "floor": {
+   "game_layer": "floors",
+   "rect": [
+    0,
+    0,
+    3,
+    4
+   ],
+   "files": [
+    "floor.png"
+   ],
+   "normals": null,
+   "opaque": true,
+   "emission_only": false,
+   "islands": false
+  },
+  "trilhos": {
+   "game_layer": "doodads_low",
+   "rect": [
+    0,
+    0,
+    3,
+    4
+   ],
+   "files": [
+    "trilhos.png"
+   ],
+   "normals": null,
+   "opaque": false,
+   "emission_only": false,
+   "islands": true
+  },
+  "weapon": {
+   "game_layer": "weapons",
+   "rect": [
+    0.0,
+    0.0,
+    3.0,
+    1.5
+   ],
+   "files": [
+    "weapon.png"
+   ],
+   "normals": [
+    "weapon_normals.png"
+   ],
+   "opaque": false,
+   "emission_only": false,
+   "islands": true
+  },
+  "carga": {
+   "game_layer": "lights_add",
+   "rect": [
+    0,
+    0,
+    3,
+    4
+   ],
+   "files": [
+    "carga1.png",
+    "carga2.png",
+    "carga3.png",
+    "carga4.png",
+    "carga5.png",
+    "carga6.png"
+   ],
+   "normals": null,
+   "levels": 6,
+   "blend": "add",
+   "opaque": false,
+   "emission_only": false,
+   "islands": false
+  },
+  "roof": {
+   "game_layer": "roofs",
+   "rect": [
+    0,
+    0,
+    3,
+    4
+   ],
+   "files": [
+    "roof.png"
+   ],
+   "normals": [
+    "roof_normals.png"
+   ],
+   "opaque": false,
+   "emission_only": false,
+   "islands": true
+  },
+  "slug": {
+   "game_layer": "walls",
+   "rect": [
+    1.1,
+    0.5,
+    0.8,
+    3.0
+   ],
+   "files": [
+    "slug.png"
+   ],
+   "normals": null,
+   "opaque": false,
+   "emission_only": false,
+   "islands": false
+  },
+  "slug_glow": {
+   "game_layer": "lights_add",
+   "rect": [
+    0.9,
+    0.3,
+    1.2,
+    3.4
+   ],
+   "files": [
+    "slug_glow.png"
+   ],
+   "normals": null,
+   "blend": "add",
+   "opaque": false,
+   "emission_only": false,
+   "islands": false
+  }
+ },
+ "walls": "walls.png",
+ "icon": "icon.png",
+ "blueprints": "blueprints.png",
+ "files": [
+  "blueprints.png",
+  "carga1.png",
+  "carga2.png",
+  "carga3.png",
+  "carga4.png",
+  "carga5.png",
+  "carga6.png",
+  "floor.png",
+  "icon.png",
+  "roof.png",
+  "roof_normals.png",
+  "slug.png",
+  "slug_glow.png",
+  "trilhos.png",
+  "walls.png",
+  "weapon.png",
+  "weapon_normals.png"
+ ]
+}

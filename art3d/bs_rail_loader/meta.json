@@ -1,0 +1,234 @@
+{
+ "version": 1,
+ "kind": "layered",
+ "id": "rafaeltessaro.bs_rail_loader",
+ "size": [
+  3,
+  4
+ ],
+ "layers": {
+  "floor": {
+   "game_layer": "floors",
+   "rect": [
+    0,
+    0,
+    3,
+    4
+   ],
+   "files": [
+    "floor.png"
+   ],
+   "normals": null,
+   "opaque": true,
+   "emission_only": false,
+   "islands": false
+  },
+  "projeteis": {
+   "game_layer": "doodads_low",
+   "rect": [
+    0.6,
+    2.8,
+    1.8,
+    1.0
+   ],
+   "files": [
+    "projeteis1.png",
+    "projeteis2.png",
+    "projeteis3.png",
+    "projeteis4.png",
+    "projeteis5.png",
+    "projeteis6.png"
+   ],
+   "normals": null,
+   "levels": 6,
+   "opaque": false,
+   "emission_only": false,
+   "islands": true
+  },
+  "consola": {
+   "game_layer": "walls",
+   "rect": [
+    0.1,
+    1.1,
+    1.0,
+    1.0
+   ],
+   "files": [
+    "consola1.png",
+    "consola2.png",
+    "consola3.png",
+    "consola4.png"
+   ],
+   "normals": null,
+   "frames": 4,
+   "interval": 0.1,
+   "opaque": false,
+   "emission_only": false,
+   "islands": true
+  },
+  "culatra_abre": {
+   "game_layer": "walls",
+   "rect": [
+    1.0,
+    0.0,
+    1.0,
+    1.0
+   ],
+   "files": [
+    "culatra_abre1.png",
+    "culatra_abre2.png",
+    "culatra_abre3.png"
+   ],
+   "normals": null,
+   "frames": 3,
+   "interval": 0.0666,
+   "opaque": false,
+   "emission_only": false,
+   "islands": true
+  },
+  "culatra_carrega": {
+   "game_layer": "walls",
+   "rect": [
+    1.0,
+    0.0,
+    1.0,
+    2.0
+   ],
+   "files": [
+    "culatra_carrega1.png",
+    "culatra_carrega2.png",
+    "culatra_carrega3.png",
+    "culatra_carrega4.png",
+    "culatra_carrega5.png",
+    "culatra_carrega6.png"
+   ],
+   "normals": null,
+   "frames": 6,
+   "interval": 0.2,
+   "opaque": false,
+   "emission_only": false,
+   "islands": true
+  },
+  "weapon": {
+   "game_layer": "weapons",
+   "rect": [
+    0.0,
+    0.0,
+    3.0,
+    1.0
+   ],
+   "files": [
+    "weapon.png"
+   ],
+   "normals": [
+    "weapon_normals.png"
+   ],
+   "opaque": false,
+   "emission_only": false,
+   "islands": true
+  },
+  "capacitores": {
+   "game_layer": "doodads_high",
+   "rect": [
+    0.0,
+    2.1,
+    3.0,
+    1.0
+   ],
+   "files": [
+    "capacitores1.png",
+    "capacitores2.png",
+    "capacitores3.png"
+   ],
+   "normals": null,
+   "levels": 3,
+   "opaque": false,
+   "emission_only": false,
+   "islands": true
+  },
+  "luz_culatra": {
+   "game_layer": "lights_add",
+   "rect": [
+    0.0,
+    0.0,
+    3.0,
+    1.0
+   ],
+   "files": [
+    "luz_culatra1.png",
+    "luz_culatra2.png"
+   ],
+   "normals": null,
+   "levels": 2,
+   "blend": "add",
+   "opaque": false,
+   "emission_only": false,
+   "islands": false
+  },
+  "roof": {
+   "game_layer": "roofs",
+   "rect": [
+    0,
+    0,
+    3,
+    4
+   ],
+   "files": [
+    "roof.png"
+   ],
+   "normals": [
+    "roof_normals.png"
+   ],
+   "opaque": false,
+   "emission_only": false,
+   "islands": true
+  }
+ },
+ "walls": "walls.png",
+ "icon": "icon.png",
+ "blueprints": "blueprints.png",
+ "crew_pos": [
+  [
+   0.6,
+   1.6
+  ],
+  [
+   2.4,
+   1.6
+  ]
+ ],
+ "files": [
+  "blueprints.png",
+  "capacitores1.png",
+  "capacitores2.png",
+  "capacitores3.png",
+  "consola1.png",
+  "consola2.png",
+  "consola3.png",
+  "consola4.png",
+  "culatra_abre1.png",
+  "culatra_abre2.png",
+  "culatra_abre3.png",
+  "culatra_carrega1.png",
+  "culatra_carrega2.png",
+  "culatra_carrega3.png",
+  "culatra_carrega4.png",
+  "culatra_carrega5.png",
+  "culatra_carrega6.png",
+  "floor.png",
+  "icon.png",
+  "luz_culatra1.png",
+  "luz_culatra2.png",
+  "projeteis1.png",
+  "projeteis2.png",
+  "projeteis3.png",
+  "projeteis4.png",
+  "projeteis5.png",
+  "projeteis6.png",
+  "roof.png",
+  "roof_normals.png",
+  "walls.png",
+  "weapon.png",
+  "weapon_normals.png"
+ ]
+}

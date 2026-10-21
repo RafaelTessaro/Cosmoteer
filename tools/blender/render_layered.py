@@ -22,6 +22,10 @@ Esquema de PART (coordenadas da peca em quadros, origem no canto de cima-esquerd
                                     # devolve uma imagem RGBA do tamanho px (camadas 2D: brilhos, digitos...)
          "game_layer": "roofs",     # camada do jogo (conventions.ship_layers_bottom_to_top)
          "rect": [x, y, w, h],      # retangulo na peca (quadros, +y para baixo); padrao = a peca inteira
+         "at": [[x, y], ...],       # opcional: o MESMO sprite desenhado em varios lugares (canto de cima-esquerda
+                                    # de cada copia, quadros); a 1a deve ser rect[0:2]. O modelo e renderizado
+                                    # so no "rect"; o meta ganha "rects" (uma entrada por copia) e o composite()
+                                    # desenha todas (consoles dos 2 postos, estantes dos paiois, a fita...)
          "file": "roof.png",        # nome; com niveis/quadros/variantes use {i} (1..N) ou {v} (variante)
          "levels": N | "frames": N | "variants": [..] | "situations": [..],   # opcional (um so = sprite unico)
          "interval": 0.1,           # segundos por quadro (meta; quem anima e a regra)
@@ -31,10 +35,12 @@ Esquema de PART (coordenadas da peca em quadros, origem no canto de cima-esquerd
          "blend": "add" | "alpha",  # com emission_only: "add" = opaco sobre preto (lights_add, como os PNGs
                                     # vanilla); "alpha" = brilho com alfa (como turret_oc.png)
          "halo": True,              # halo de brilho dos emissivos no difuso (render_set glow_halo)
+         "despill": True,           # tira o verde refletido das placas pintadas no metal vizinho (tetos)
          "samples": 48,             # amostras do Cycles
          "islands": False},         # meta: o sprite pode ter varias ilhas (o check_art3d aceita)
         ...],
-     "icon": {"size": [69, 92], "layers": ["floor", "roof"], "paint": [120, 124, 132]},   # EditorIcon (opcional)
+     "icon": {"size": [69, 92], "layers": ["floor", "roof"], "paint": [120, 124, 132],    # EditorIcon (opcional)
+              "pick": {"camada": indice}, "lights": {"carga": [indice, ganho]}},  # lights: aditivos no icone
      "blueprint_layers": ["weapon", "roof"]}                                                # silhueta (opcional)
 
 Funcoes de modelo: fn(M, T, **kw) com kw = level (1..N) | phase ((k-1)/N) e frame (1..N) | variant | sit.
@@ -46,9 +52,11 @@ Saida em art3d/<curto>/: os PNGs de cada camada, walls.png (moldura vanilla de 7
 icon.png, blueprints.png e meta.json:
 
     {"version": 1, "kind": "layered", "id": ..., "size": [W, H],
-     "layers": {nome: {"game_layer", "rect", "files": [...], "normals": [...] | null,
+     "layers": {nome: {"game_layer", "rect", "rects": [[x, y, w, h], ...] (todas as copias; rects[0] = rect),
+                       "files": [...], "normals": [...] | null,
                        "levels" | "frames" | "variants" | "situations", "interval", "blend", "opaque", "islands"}},
-     "walls": "walls.png" | null, "icon": "icon.png", "blueprints": "blueprints.png", "files": [...]}
+     "walls": "walls.png" | null, "icon": "icon.png", "blueprints": "blueprints.png", "files": [...],
+     "crew_pos": [...], "notes": [...]}      # crew_pos/notes: copiados de PART (as notas sao para quem liga as regras)
 
 Este arquivo nao muda render_part.py: ele so importa de la os utilitarios (emission_pass, warn_empty,
 _oc_glow_sprite). Contrato de estilo: tools/blender/STYLE.md.
@@ -87,9 +95,16 @@ def samples(n):
     bpy.context.scene.cycles.samples = max(8, n // 4) if QUICK else n
 
 
+_ACCENT_NOTED = set()
+
+
 def fresh(accent):
     B.reset()
     if isinstance(accent, str) and accent not in Mo.ACCENTS:
+        if accent not in _ACCENT_NOTED:
+            _ACCENT_NOTED.add(accent)
+            print(f"  nota: destaque '{accent}' nao existe em models.ACCENTS; M['glow'], M['glow_dim'] e M['lens'] "
+                  f"saem AMBAR (o modelo deve definir os proprios materiais de luz para '{accent}')")
         accent = "amber"   # destaques novos (ex.: "violet") definem os proprios materiais no modelo
     return Mo.mats(accent)
 
@@ -97,6 +112,23 @@ def fresh(accent):
 def rect_of(P, layer):
     W, H = P["size"]
     return list(layer.get("rect", [0, 0, W, H]))
+
+
+def rects_of(P, layer):
+    """Todas as copias do sprite da camada: [[x, y, w, h], ...] (a 1a = o rect do render)."""
+    r = rect_of(P, layer)
+    at = layer.get("at")
+    if not at:
+        return [r]
+    out = [[float(x), float(y), r[2], r[3]] for x, y in at]
+    if abs(out[0][0] - r[0]) > 1e-6 or abs(out[0][1] - r[1]) > 1e-6:
+        raise SystemExit(f"{P['id']}/{layer['name']}: at[0] {at[0]} deve ser o canto do rect {r[:2]}")
+    return out
+
+
+def ent_rects(ent):
+    """Copias de uma entrada do meta.json (meta antigo sem "rects" = so o rect)."""
+    return ent.get("rects") or [ent["rect"]]
 
 
 def rect_center(P, rect):
@@ -139,6 +171,21 @@ def additive_sprite(em, blur_px=3.0, gain=1.0, halo=0.8):
     hb = np.asarray(im.filter(ImageFilter.GaussianBlur(blur_px)), dtype=np.float32) / 255.0
     rgb = np.clip((pm + hb * halo) * gain, 0, 1)
     return Image.fromarray(np.dstack([rgb * 255, np.full(rgb.shape[:2], 255.0)]).astype(np.uint8), "RGBA")
+
+
+def despill_green(path, limit=70):
+    """Tira o verde REFLETIDO (luz indireta das placas pintadas) do que nao e pintura: pixels com o verde so um pouco
+    acima do vermelho/azul (0 < g - max(r, b) < limit) ficam neutros. O shader do jogo pinta por g - max(r, b)
+    (mesmo teste de compose_preview.paint_roof); sem isto o bisel de metal ao lado do casco pintado sai meio
+    pintado no jogo. A pintura de verdade (g - max(r, b) > 100) nao muda."""
+    im = Image.open(path).convert("RGBA")
+    a = np.asarray(im).astype(np.int16).copy()
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    mx = np.maximum(r, b)
+    d = g - mx
+    spill = (d > 0) & (d < limit)
+    a[..., 1] = np.where(spill, mx + (d * 0.15).astype(np.int16), g)
+    Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGBA").save(path)
 
 
 def walls_png(W, H, spec, color=(64, 67, 71)):
@@ -220,6 +267,8 @@ def render_layer(mod, P, layer, out):
             continue
         want_n = bool(layer.get("normals"))
         res = B.render_set(stem, px, glow_halo=layer.get("halo", True), normals=want_n, off=False, glow=True)
+        if layer.get("despill"):
+            despill_green(stem + ".png")
         if layer.get("opaque"):
             base = Image.new("RGBA", px, FLOOR_BG + (255,))
             base.alpha_composite(res["on"])
@@ -234,6 +283,8 @@ def render_layer(mod, P, layer, out):
             norms.append(normals_name(fname))
     print(f"  camada {name}: {len(files)} sprite(s) {px[0]}x{px[1]} px, {time.time() - t0:.1f} s")
     ent = {"game_layer": layer["game_layer"], "rect": rect, "files": files, "normals": norms or None}
+    if layer.get("at"):
+        ent["rects"] = rects_of(P, layer)
     for k in ("levels", "frames", "variants", "situations", "interval", "blend"):
         if k in layer:
             ent[k] = layer[k]
@@ -244,10 +295,25 @@ def render_layer(mod, P, layer, out):
 
 
 # ============================================================================ icone e blueprint
-def composite(P, out, meta_layers, pick=None, paint=None, roof=True):
+def _add_light(img, spr, xy, gain=1.0):
+    """Soma aditiva de um sprite lights_add (RGB sobre preto) onde img ja tem alfa."""
+    x, y = xy
+    Wi, Hi = img.size
+    x0, y0, x1, y1 = max(0, x), max(0, y), min(Wi, x + spr.width), min(Hi, y + spr.height)
+    if x1 <= x0 or y1 <= y0:
+        return img
+    b = np.asarray(img, dtype=np.float32).copy()
+    s = np.asarray(spr, dtype=np.float32)[y0 - y:y1 - y, x0 - x:x1 - x]
+    add = s[..., :3] * (s[..., 3:4] / 255.0) * gain
+    b[y0:y1, x0:x1, :3] = np.clip(b[y0:y1, x0:x1, :3] + add * (b[y0:y1, x0:x1, 3:4] / 255.0), 0, 255)
+    return Image.fromarray(b.astype(np.uint8), "RGBA")
+
+
+def composite(P, out, meta_layers, pick=None, paint=None, roof=True, lights=None):
     """Peca montada (camadas na ordem do jogo, walls.png na camada "walls") a partir dos PNGs gravados.
     pick = {camada: indice da instancia | None (esconde)} (padrao: a 1a); paint = cor que substitui o verde do teto;
-    roof=False = vista do interior. As camadas aditivas (lights_add) ficam de fora (o jogo as soma por cima)."""
+    roof=False = vista do interior. As camadas aditivas (lights_add) ficam de fora (o jogo as soma por cima), a nao
+    ser as pedidas em lights = {camada: (indice, ganho)}, somadas na posicao do jogo (abaixo dos tetos)."""
     from bsgen.sprites import paint_roof_preview
     W, H = P["size"]
     roofs = ("roofs", "roof_doodads", "roof_turrets", "roof_lights_fancy")
@@ -265,11 +331,28 @@ def composite(P, out, meta_layers, pick=None, paint=None, roof=True):
         spr = _load(os.path.join(out, ent["files"][idx]))
         if gl == "roofs" and paint is not None:
             spr = paint_roof_preview(spr, tuple(paint))
-        stack.append((GAME_LAYERS.index(gl), k, spr,
-                      (int(round(ent["rect"][0] * PX)), int(round(ent["rect"][1] * PX)))))
+        for r in ent_rects(ent):
+            stack.append((GAME_LAYERS.index(gl), k, spr, (int(round(r[0] * PX)), int(round(r[1] * PX)))))
+    add = []
+    for name, (idx, gain) in (lights or {}).items():
+        ent = meta_layers.get(name)
+        if ent is None or ent["game_layer"] != "lights_add":
+            continue
+        spr = _load(os.path.join(out, ent["files"][idx]))
+        for r in ent_rects(ent):
+            add.append((spr, (int(round(r[0] * PX)), int(round(r[1] * PX))), gain))
     img = Image.new("RGBA", (W * PX, H * PX), (0, 0, 0, 0))
-    for _gl, _k, spr, xy in sorted(stack, key=lambda s: (s[0], s[1])):
+    gl_add = GAME_LAYERS.index("lights_add")
+    done = False
+    for gl, _k, spr, xy in sorted(stack, key=lambda s: (s[0], s[1])):
+        if gl > gl_add and not done:
+            for a in add:
+                img = _add_light(img, *a)
+            done = True
         img.alpha_composite(spr, xy)
+    if not done:
+        for a in add:
+            img = _add_light(img, *a)
     return img
 
 
@@ -280,7 +363,8 @@ def make_icon(P, out, meta_layers):
     W, H = P["size"]
     pick = {n: (0 if n in ic.get("layers", meta_layers) else None) for n in meta_layers}
     pick.update(ic.get("pick", {}))
-    img = composite(P, out, meta_layers, pick=pick, paint=ic.get("paint", [120, 124, 132]))
+    lights = {n: (v[0], v[1]) for n, v in ic.get("lights", {}).items()}
+    img = composite(P, out, meta_layers, pick=pick, paint=ic.get("paint", [120, 124, 132]), lights=lights)
     img = img.resize(tuple(ic["size"]), Image.LANCZOS)
     img.save(os.path.join(out, "icon.png"))
     return "icon.png"
@@ -304,7 +388,8 @@ def make_blueprint(P, out, meta_layers):
             green = (a[..., 1] - np.maximum(a[..., 0], a[..., 2]) > 12) & (np.abs(a[..., 0] - a[..., 2]) < 64)
             a[..., 3] = np.where(green, 0, a[..., 3])
             spr = Image.fromarray(a.astype(np.uint8), "RGBA")
-        sil.alpha_composite(spr, (int(round(ent["rect"][0] * PX)), int(round(ent["rect"][1] * PX))))
+        for r in ent_rects(ent):
+            sil.alpha_composite(spr, (int(round(r[0] * PX)), int(round(r[1] * PX))))
     blueprint_from(W, H, sil).save(os.path.join(out, "blueprints.png"))
     return "blueprints.png"
 
@@ -322,16 +407,20 @@ def render_layered(mod, P, out, only):
     for l in P["layers"]:
         if l["game_layer"] not in GAME_LAYERS:
             raise SystemExit(f"{P['id']}/{l['name']}: camada do jogo desconhecida {l['game_layer']}")
-        r = rect_of(P, l)
-        if r[0] < -1e-6 or r[1] < -1e-6 or r[0] + r[2] > W + 1e-6 or r[1] + r[3] > H + 1e-6:
-            raise SystemExit(f"{P['id']}/{l['name']}: rect {r} fora da peca {W}x{H}")
+        for r in rects_of(P, l):
+            if r[0] < -1e-6 or r[1] < -1e-6 or r[0] + r[2] > W + 1e-6 or r[1] + r[3] > H + 1e-6:
+                raise SystemExit(f"{P['id']}/{l['name']}: rect {r} fora da peca {W}x{H}")
     layers = {}
     mp = os.path.join(out, "meta.json")
     old = json.load(open(mp)) if (only and os.path.exists(mp)) else {}
     for l in P["layers"]:
         if only and l["name"] not in only and "hull" not in only:
             if l["name"] in old.get("layers", {}):
-                layers[l["name"]] = old["layers"][l["name"]]
+                ent = dict(old["layers"][l["name"]])
+                ent.pop("rects", None)
+                if l.get("at"):
+                    ent["rects"] = rects_of(P, l)     # as copias seguem o PART mesmo sem re-renderizar
+                layers[l["name"]] = ent
             continue
         layers[l["name"]] = render_layer(mod, P, l, out)
     files = []
