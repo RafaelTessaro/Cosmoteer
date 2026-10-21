@@ -1,46 +1,61 @@
-"""Textos (en / pt-br) do Bullet Strike, montados a partir dos dados."""
+"""Textos (en / pt-br) do Bullet Strike 2.0 que o WP01 escreve: grupo do editor, recursos, seletores (bs_ammo_type,
+bs_cell_type, bs_missile_type), estatisticas, limites por nave, techs e os textos das pecas de canhao/defesa.
+
+Os modulos de conteudo acrescentam os seus pelo gancho strings(DATA) -> (en, pt) (mesmo formato: dict grupo -> dict
+chave -> texto); o build_mod junta tudo e o texto do modulo vence o daqui na mesma chave.
+Nunca citar nomes removidos (SPEC.conventions.removed_names_scan), nem para dizer que sairam.
+"""
 
 TIER_EN = {"early": "Early-game", "mid": "Mid-game", "late": "Late-game"}
 TIER_PT = {"early": "Início de jogo", "mid": "Meio de jogo", "late": "Fim de jogo"}
 
-AMMO_EN = {
-    "bullet": "loose Ammo (the vanilla Cannon Ammo)",
-    "std": "Magazines",
-    "plasma": "Plasma Cells",
-    "nuclear": "Nuclear Shells",
+# descricoes em ingles dos 12 recursos (o pt-BR vem de SPEC.resources[].description_ptbr), por resources[].key
+RES_DESC_EN = {
+    "he": "Standard High-Explosive ammunition. Made at the HE Press from sulfur only.",
+    "ap": "Armor-Piercing: less damage, tunnels through armor and SW small/medium shields.",
+    "sap": "Semi-Armor-Piercing: the middle ground between HE and AP.",
+    "ac": "High-Capacity: a huge bursting charge, nothing nuclear. Expensive, but the most destructive.",
+    "frag": "Programmable Fragment Cloud (defenses only): bursts ahead of missiles and shots.",
+    "plasma": "Plasma Cell for Boitatá and Curupira (shield specialist).",
+    "pem": "Charged EMP Cell for the EMP cannon line (drains shields). Made at the Cell Factory from copper only.",
+    "msl_he": "High-Explosive missile charge (Jararaca).",
+    "msl_cluster": "Cluster missile charge: the carrier opens and releases several mini-missiles (Piranha). Not the "
+                   "defenses' FRAG.",
+    "msl_emp": "EMP missile charge: a flux-compression generator that drains shields (Poraquê).",
+    "msl_nuke": "Nuclear warhead: 1 warhead = 1 Iara missile (Mula-sem-Cabeça only).",
+    "slug": "Solid slug for the Tupã railgun. Inert (it barely explodes).",
 }
-AMMO_PT = {
-    "bullet": "munição avulsa (a munição de canhão do jogo)",
-    "std": "carregadores",
-    "plasma": "células de plasma",
-    "nuclear": "projéteis nucleares",
+PLURAL_PT_HEAD = {"Carregador": "Carregadores", "Célula": "Células", "Carga": "Cargas", "Ogiva": "Ogivas",
+                  "Projétil": "Projéteis"}
+PLURAL_PT_FULL = {"Ogiva Nuclear": "Ogivas Nucleares"}
+
+# nomes das celulas (SPEC.toggles.bs_cell_type so tem name_ptbr)
+CELL_TXT = {"plasma": ("Plasma", "Plasma", "Plasma Cells for Boitatá and Curupira (shield specialists).",
+                       "Células de Plasma para Boitatá e Curupira (especialistas contra escudos)."),
+            "pem": ("EMP", "PEM", "EMP Cells for the EMP cannon line (Tuvira, Treme-Treme and the heavy one).",
+                    "Células PEM para a linha de canhões PEM (Tuvira, Treme-Treme e a pesada).")}
+
+# techs com nome proprio (bs_data.NAMED_TECHS): (en, pt, desc en, desc pt)
+TECH_NAMES = {
+    "rafaeltessaro.bs_logistica": (
+        "Ammo Logistics", "Logística de Munição",
+        "Shell magazines (1x1 and 2x2) and the ammo logistics of Bullet Strike: factories fill the magazines and the "
+        "magazines feed the guns.",
+        "Paióis de cartuchos (1x1 e 2x2) e a logística de munição do Bullet Strike: as fábricas enchem os paióis e os "
+        "paióis abastecem as armas."),
+    "rafaeltessaro.bs_paiol_pesado": (
+        "Heavy Magazines", "Paiol Pesado",
+        "3x3 magazines for shells, cells and missiles: more stock per tile.",
+        "Paióis 3x3 de cartuchos, células e mísseis: mais estoque por quadro."),
+    "rafaeltessaro.bs_rail": (
+        "Tupã Railgun", "Railgun Tupã",
+        "Modular fixed railgun: Loader + 1 to 6 Barrels + Muzzle. More barrels = more damage, range, penetration and "
+        "power per shot. Plus the Slug Factory.",
+        "Railgun fixa e modular: Carregador + 1 a 6 Canos + Ponta. Mais canos = mais dano, alcance, penetração e "
+        "energia por tiro. Mais a Fábrica de Projéteis."),
 }
 
-AMMO_NAMES = {  # (en, pt)
-    "bullet": ("Ball Round", "Munição avulsa"),
-    "std": ("Standard", "Padrão"),
-    "ap": ("Armor-Piercing", "Perfurante"),
-    "aphe": ("AP-Explosive", "Perfurante-Explosiva"),
-    "emp": ("EMP", "P.E.M."),
-    "plasma": ("Plasma Bolt", "Disparo de plasma"),
-    "nuclear": ("Nuclear Shell", "Projétil nuclear"),
-}
-
-AMMO_DESC = {
-    "std": ("All-round ammunition. Shell guns fire high-explosive rounds that burst on impact.",
-            "Munição versátil. Os canhões disparam granadas explosivas que estouram no impacto."),
-    "ap": ("Hardened penetrators that punch through armor (armor resists at only 60%) to wreck the parts behind it, "
-           "dealing half damage to each part after the first. Weak against shields.",
-           "Penetradores endurecidos que atravessam blindagem (a blindagem resiste só 60% do normal) e destroem o que "
-           "está atrás, com metade do dano em cada peça depois da primeira. Fracos contra escudos."),
-    "aphe": ("Penetrates one or two armor plates and then detonates INSIDE the enemy hull.",
-             "Atravessa uma ou duas placas de blindagem e então detona DENTRO do casco inimigo."),
-    "emp": ("Each hit drains battery from shields and powered parts. Lower hull damage, but great against energy-hungry ships and shields.",
-            "Cada acerto drena a energia de escudos e peças energizadas. Menos dano ao casco, mas ótima contra naves que dependem de energia e escudos."),
-}
-
-# Frases de efeito por arma (casam por pedaco do ID, a primeira da lista que bater: "quad" antes de "hmg",
-# senao bs_quad_hmg pegaria a frase da metralhadora pesada). en, pt
+# frases de efeito por arma (pedaco do ID curto; a primeira que bater: "quad" antes de "hmg"). en, pt
 FLAVOR = [
     ("lmg", ("A cheap pintle-mounted machine gun. Small enough to fit anywhere on deck.",
              "Metralhadora barata em reparo de pino. Pequena o bastante para caber em qualquer canto do convés.")),
@@ -68,11 +83,16 @@ FLAVOR = [
               "Sistema de defesa de curto alcance: um canhão rotativo guiado por radar que enche o céu de flak.")),
     ("flak_light", ("Light flak mount that bursts near incoming projectiles, destroying several at once.",
                     "Flak leve que explode perto dos projéteis que chegam, destruindo vários de uma vez.")),
-    ("flak_heavy", ("Twin heavy flak battery: a wall of fire against missiles, torpedoes, shells and bolts.",
-                    "Bateria dupla de flak pesada: uma muralha de fogo contra mísseis, torpedos, granadas e disparos.")),
-    ("nuke", ("Nuclear howitzer. Very slow, very loud, and nothing survives the blast radius. Shells can be shot down.",
-              "Obuseiro nuclear. Muito lento, muito barulhento, e nada sobrevive à explosão. Os projéteis podem ser abatidos.")),
+    ("flak_heavy", ("Twin heavy flak battery: a wall of fire against missiles, shells and bolts.",
+                    "Bateria dupla de flak pesada: uma muralha de fogo contra mísseis, granadas e disparos.")),
+    ("nuke", ("Heavy deck howitzer with the biggest conventional shells of the mod: HE and a guided High-Capacity "
+              "shell. Strong against crew and dense interiors, weak against armor; its slow shells can be shot down.",
+              "Obuseiro pesado de convés com as maiores granadas convencionais do mod: HE e a granada de Alta "
+              "Capacidade guiada. Forte contra tripulação e interiores densos, fraco contra blindagem; as granadas "
+              "lentas podem ser abatidas.")),
 ]
+
+AMMO_SHORT = {"he": "HE", "ap": "AP", "sap": "SAP", "ac": "AC", "frag": "FRAG"}
 
 
 def _flavor(short):
@@ -82,471 +102,308 @@ def _flavor(short):
     return ("Deck-mounted ammunition weapon.", "Arma de convés movida a munição.")
 
 
-def _ammo_word(g, lang):
-    if "modes" not in g:  # defesas
-        res = g["ammo"]["res"]
-        a = "bullet" if res == "bullet" else "std"
-        table = AMMO_EN if lang == "en" else AMMO_PT
-        return table[a] if a == "bullet" else (("Standard Magazines" if lang == "en" else "carregadores padrão"))
-    a = g["modes"][0]["ammo"]
-    if len(g["modes"]) > 1:
-        return ("Magazines (selectable: Standard / AP / AP-Explosive / EMP)" if lang == "en"
-                else "carregadores (selecionáveis: Padrão / Perfurante / Perfurante-Explosiva / P.E.M.)")
-    if a == "std":
-        # modo unico com carregador padrao (Saci): sem seletor, so o Carregador Padrao
-        return "Standard Magazines" if lang == "en" else "carregadores padrão"
-    table = AMMO_EN if lang == "en" else AMMO_PT
-    return table.get(a, table["std"])
+def plural_en(name):
+    head, sep, tail = name.partition(" (")
+    head = head if head.endswith("s") else head + "s"
+    return head + (sep + tail if sep else "")
 
 
-def strings():
-    import bs_data as D
-    en = {"EditorGroups": {"BulletStrike": "Bullet Strike"}, "Parts": {}, "PartToggles": {}, "Stats": {},
-          "StatCategories": {}, "Resource": {}}
-    pt = {"EditorGroups": {"BulletStrike": "Bullet Strike"}, "Parts": {}, "PartToggles": {}, "Stats": {},
-          "StatCategories": {}, "Resource": {}}
+def plural_pt(name):
+    if name in PLURAL_PT_FULL:
+        return PLURAL_PT_FULL[name]
+    first, _, rest = name.partition(" ")
+    if first in PLURAL_PT_HEAD:
+        return PLURAL_PT_HEAD[first] + (" " + rest if rest else "")
+    return name + "s"
 
+
+def _pct(x):
+    return f"{int(round((x - 1) * 100)):+d}%"
+
+
+def _ammo_words(g, D):
+    keys = [m["key"] for m in g["modes"]]
+    if keys == ["plasma"]:
+        return ("Plasma Cells", "células de plasma")
+    names = " / ".join(AMMO_SHORT.get(k, k.upper()) for k in keys)
+    if len(keys) > 1:
+        return (f"magazines (selectable: {names})", f"carregadores (selecionáveis: {names})")
+    return (f"{names} magazines", f"carregadores {names}")
+
+
+def oc_text(oc, lang):
+    """Descricao do overclock montada dos numeros do spec (fator de cadencia, alcance, dano)."""
+    name = oc.get("name_en" if lang == "en" else "name_ptbr") or ""
+    bits = []
+    fr = oc.get("fire_rate_factor")
+    if fr and abs(fr - 1) > 1e-3:
+        bits.append(f"{_pct(fr)} {'fire rate' if lang == 'en' else 'cadência'}")
+    rf = oc.get("range_factor")
+    if rf and abs(rf - 1) > 1e-3:
+        bits.append(f"{_pct(rf)} {'range' if lang == 'en' else 'alcance'}")
+    df = oc.get("damage_factor")
+    if df and abs(df - 1) > 1e-3:
+        bits.append(f"{_pct(df)} {'damage' if lang == 'en' else 'dano'}")
+    if oc.get("explosive_damage"):
+        bits.append("explosion on impact" if lang == "en" else "explosão no impacto")
+    if oc.get("cloud"):
+        bits.append("leaves a flak cloud" if lang == "en" else "deixa uma nuvem de flak")
+    body = ", ".join(bits) if bits else ("faster operation" if lang == "en" else "opera mais rápido")
+    tail = " Produces waste heat when firing." if lang == "en" else " Produz calor ao disparar."
+    return f"\"{name}\": {body}.{tail}" if name else f"{body[0].upper()}{body[1:]}.{tail}"
+
+
+def _part_strings(D, en, pt):
+    """Textos das pecas de canhao e de defesa (Parts/<key>, Desc, Icon, Overclock, OverclockDesc); o WP02 pode
+    trocar pelo gancho strings(DATA)."""
     for g in D.GUNS + D.DEFENSES:
         k = g["key"]
         w = g["spec"]
         fen, fpt = _flavor(g["short"])
         code = f" \"{g['codename']}\"" if g.get("codename") else ""
-        en["Parts"][k] = f"{g['name_en']}"
-        pt["Parts"][k] = f"{g['name_pt']}"
+        en["Parts"][k] = g["name_en"]
+        pt["Parts"][k] = g["name_pt"]
         en["Parts"][k + "Icon"] = (g.get("codename") or g["name_en"])[:18]
         pt["Parts"][k + "Icon"] = (g.get("codename") or g["name_pt"])[:18]
         crew_en = f"{g['crew']} crew"
         crew_pt = f"{g['crew']} tripulante" + ("s" if g["crew"] > 1 else "")
+        a_en, a_pt = _ammo_words(g, D)
+        role_en = role_pt = ""
         if g in D.DEFENSES:
-            role_en = ("DEFENSE. Airburst flak that damages EVERY missile, mine, shell, laser bolt and ion shot inside its blast. "
-                       "Defense only: it never fires at ships. Extra-strong charge against laser bolts and ion shots.")
-            role_pt = ("DEFESA. Flak de explosão aérea que danifica TODOS os mísseis, minas, granadas, disparos laser e iônicos "
-                       "dentro da explosão. Só defende: nunca atira em naves. Carga reforçada contra disparos laser e "
-                       "iônicos.")
-        else:
-            role_en, role_pt = "", ""
+            role_en = ("DEFENSE. Airburst flak that damages EVERY missile, mine, shell, laser bolt and ion shot inside "
+                       "its blast. Defense only: it never fires at ships. HE = proximity-fused airburst; FRAG = smaller "
+                       "burst plus a cone of fragments, best against swarms and salvos.")
+            role_pt = ("DEFESA. Flak de explosão aérea que danifica TODOS os mísseis, minas, granadas, disparos laser "
+                       "e iônicos dentro da explosão. Só defende: nunca atira em naves. HE = espoleta de proximidade; "
+                       "FRAG = explosão menor e um cone de fragmentos, melhor contra enxames e salvas.")
         oc_en = " Can be overclocked." if g.get("oc") else ""
         oc_pt = " Aceita overclock." if g.get("oc") else ""
         en["Parts"][k + "Desc"] = (f"{fen}{code}\n\n{TIER_EN[g['tier']]} deck weapon. Range {w['range_m']} m. "
-                                   f"Needs no power: {crew_en} and {_ammo_word(g, 'en')}.{oc_en}"
+                                   f"Needs no power: {crew_en} and {a_en}.{oc_en}"
                                    + (f"\n\n{role_en}" if role_en else "") + "<string id='BSModTag'/>")
         pt["Parts"][k + "Desc"] = (f"{fpt}{code}\n\n{TIER_PT[g['tier']]} - arma de convés. Alcance {w['range_m']} m. "
-                                   f"Não usa energia: {crew_pt} e {_ammo_word(g, 'pt')}.{oc_pt}"
+                                   f"Não usa energia: {crew_pt} e {a_pt}.{oc_pt}"
                                    + (f"\n\n{role_pt}" if role_pt else "") + "<string id='BSModTag'/>")
         if g.get("oc"):
             ocs = w.get("overclock") or {}
-            if not ocs.get("description") or not ocs.get("description_ptbr"):
-                raise ValueError(f"{g['short']}: overclock sem description / description_ptbr no spec")
             en["Parts"][k + "Overclock"] = f"Overclocked {g['name_en']}"
             pt["Parts"][k + "Overclock"] = f"{g['name_pt']} (Overclocking)"
-            # final igual ao do jogo base (CannonDeckOverclockDesc)
-            en["Parts"][k + "OverclockDesc"] = ocs["description"] + " Produces waste heat when firing."
-            pt["Parts"][k + "OverclockDesc"] = ocs["description_ptbr"] + " Produz calor ao disparar."
+            en["Parts"][k + "OverclockDesc"] = oc_text(ocs, "en")
+            pt["Parts"][k + "OverclockDesc"] = oc_text(ocs, "pt")
 
-    _factory_strings(D, en, pt)
+
+def _oc_spec(D, pid):
+    for g in D.GUNS + D.DEFENSES:
+        if g["id"] == pid:
+            return g["spec"].get("overclock")
+    for p in D.PEM:
+        if p["id"] == pid:
+            return p.get("overclock")
+    for L in D.MSPEC.get("launchers", []):
+        if L["id"] == pid:
+            return D.launcher_overclock(L)
+    return None
+
+
+def _missile_name(D, key, lang):
+    ch = next((c for c in D.TOGGLES["bs_missile_type"]["choices"] if c["index"] == D.MISSILE_INDEX.get(key)), None)
+    if ch is None:
+        return str(key).upper()
+    return ch["name_en"] if lang == "en" else ch["name_ptbr"]
+
+
+def launcher_oc_text(D, oc, lang):
+    """Descricao do overclock de um lancador (MSPEC: divisor de recarga por modo; dano e alcance nao mudam)."""
+    name = oc.get("name_en" if lang == "en" else "name_ptbr") or ""
+    per = oc.get("per_mode") or {}
+    top = oc.get("reload_factor")
+    if top:
+        body = f"{_pct(top)} {'reload speed' if lang == 'en' else 'velocidade de recarga'}"
+        notes = [f"{_missile_name(D, k, lang)} {_pct(f)}" for k, f in per.items() if f and abs(f - top) > 1e-3]
+        notes += [f"{_missile_name(D, k, lang)} {'unchanged' if lang == 'en' else 'sem mudança'}"
+                  for k in oc.get("excluded") or []]
+        if notes:
+            body += f" ({', '.join(notes)})"
+        body += "; damage and range unchanged" if lang == "en" else "; dano e alcance iguais"
+    else:
+        body = "faster reload" if lang == "en" else "recarga mais rápida"
+    tail = " Produces waste heat while loading." if lang == "en" else " Produz calor ao carregar."
+    return f"\"{name}\": {body}.{tail}" if name else f"{body[0].upper()}{body[1:]}.{tail}"
+
+
+def _oc_strings(D, pid):
+    info = D.PART_INFO.get(pid) or {}
+    n_en, n_pt = info.get("name_en", pid), info.get("name_pt", pid)
+    oc = _oc_spec(D, pid)
+    if oc and info.get("kind") == "launcher":
+        d_en, d_pt = launcher_oc_text(D, oc, "en"), launcher_oc_text(D, oc, "pt")
+    elif oc and (oc.get("name_en") or oc.get("name_ptbr")):
+        d_en, d_pt = oc_text(oc, "en"), oc_text(oc, "pt")
+    elif info.get("kind") == "factory":
+        d_en = "Overclock: the factory works 3x faster and uses 1.5x the power. Produces waste heat."
+        d_pt = "Overclock: a fábrica trabalha 3x mais rápido e usa 1,5x a energia. Produz calor."
+    else:
+        d_en = "Unlocks the overclock of this part. Produces waste heat."
+        d_pt = "Libera o overclock desta peça. Produz calor."
+    return (f"Overclocked {n_en}", f"{n_pt} (Overclocking)", d_en, d_pt)
+
+
+def _choice_strings(D, tok):
+    kind, key = tok.split(":", 1)
+    if kind == "ammo":
+        a = next(x for x in D.SPEC["ammo_types"] if x["key"] == key)
+        return (f"{a['name_en']} Ammo ({a['label']})", f"Munição {a['name_ptbr']} ({a['label']})", a["desc_en"],
+                a["desc_ptbr"])
+    if kind == "cell":
+        c = CELL_TXT[key]
+        return (f"{c[0]} Cells", f"Células {c[1]}", c[2], c[3])
+    ch = next(c for c in D.TOGGLES["bs_missile_type"]["choices"] if c["index"] == D.MISSILE_INDEX[key])
+    return (ch["name_en"], ch["name_ptbr"], ch["desc_en"], ch["desc_ptbr"])
+
+
+def tech_strings(D):
+    """Textos de todas as techs que usam chave propria (grupo BSTechs): nomeadas, so de overclock, so de escolha, e as
+    do Build & Battle (overclock e municao da Tocandira)."""
+    en, pt = {}, {}
+
+    def put(key, t):
+        en[key], pt[key], en[key + "Desc"], pt[key + "Desc"] = t[0], t[1], t[2], t[3]
+    for t in D.SPEC["career_techs"]:
+        tid = t["id"]
+        key = D.tech_string_key(tid)
+        toks = t["unlocks"]
+        if tid in TECH_NAMES:
+            put(key, TECH_NAMES[tid])
+            continue
+        ocs = [u.split(":", 1)[1] for u in toks if u.startswith("overclock:")]
+        choices = [u for u in toks if u.startswith(("ammo:", "cell:", "missile:"))]
+        if ocs:
+            put(key, _oc_strings(D, ocs[0]))
+        elif choices:
+            put(key, _choice_strings(D, choices[0]))
+        # tech so de pecas: o nome vem da propria peca (&<...>/Part/NameKey); sem chave propria
+    for pid, info in D.PART_INFO.items():
+        if info.get("oc"):
+            put(D.tech_string_key(pid) + "_BBOC", _oc_strings(D, pid))
+    for L in D.MSPEC.get("launchers", []):
+        info = D.PART_INFO.get(L["id"]) or {}
+        put(D.tech_string_key(L["id"]) + "_BBAmmo",
+            (f"{info.get('name_en', L['id'])} Missiles", f"Mísseis do {info.get('name_pt', L['id'])}",
+             "Unlocks the missile charges of this launcher.", "Libera as cargas de míssil deste lançador."))
+    rk = D.tech_string_key(f"{D.AUTHOR}.bs_rail")
+    if rk not in en:
+        put(rk, TECH_NAMES[f"{D.AUTHOR}.bs_rail"])
+    return en, pt
+
+
+def _toggle_strings(D, en, pt):
+    for a in D.SPEC["ammo_types"]:
+        ch = next(c for c in D.TOGGLES["bs_ammo_type"]["choices"] if c["index"] == a["index"])
+        key = ch["string_key"].split("/", 1)[1]
+        r = D.RES_BY_ID.get(a["resource"])
+        mag = f" Uses <string id='Resource/{r['key']}Plural'/>." if r else ""
+        mag_pt = f" Usa <string id='Resource/{r['key']}Plural'/>." if r else ""
+        en["PartToggles"][key] = f"<b>Ammo: {a['name_en']} ({a['label']})</b>\n\n{a['desc_en']}{mag}"
+        pt["PartToggles"][key] = f"<b>Munição: {a['name_ptbr']} ({a['label']})</b>\n\n{a['desc_ptbr']}{mag_pt}"
+    for ch in D.TOGGLES["bs_cell_type"]["choices"]:
+        c = CELL_TXT[ch["key"]]
+        key = cell_tip_key(ch["key"]).split("/", 1)[1]
+        en["PartToggles"][key] = f"<b>Cell: {c[0]}</b>\n\n{c[2]}"
+        pt["PartToggles"][key] = f"<b>Célula: {c[1]}</b>\n\n{c[3]}"
+    for ch in D.TOGGLES["bs_missile_type"]["choices"]:
+        key = ch["string_key"].split("/", 1)[1]
+        en["PartToggles"][key] = f"<b>Missile: {ch['name_en']}</b>\n\n{ch['desc_en']}"
+        pt["PartToggles"][key] = f"<b>Míssil: {ch['name_ptbr']}</b>\n\n{ch['desc_ptbr']}"
+
+
+def cell_tip_key(key):
+    return {"plasma": "PartToggles/BSCell_Plasma", "pem": "PartToggles/BSCell_PEM"}[key]
+
+
+# recursos do jogo citados nas linhas 'uso de <insumo>' das fabricas (en, pt)
+VANILLA_RES = {
+    "sulfur": ("Sulfur Use", "Uso de enxofre"),
+    "coil": ("Coil Use", "Uso de bobina"),
+    "coil2": ("Superconductor Use", "Uso de supercondutor"),
+    "copper": ("Copper Use", "Uso de cobre"),
+    "tristeel": ("Tri-Steel Use", "Uso de triaço"),
+    "iron": ("Iron Use", "Uso de ferro"),
+    "uranium": ("Uranium Use", "Uso de urânio"),
+}
+
+
+def use_stat(res):
+    """ID da linha 'uso de <insumo>' ([por item, por segundo]) - mesmo formato do factory.use_stat 1.x."""
+    short = res.split(".")[-1]
+    if short.startswith("bs_"):
+        short = short[3:]
+    return "BSAmmo" + "".join(p.capitalize() for p in short.split("_")) + "Usage"
+
+
+def input_stat_ids(D):
+    """Linhas 'uso de <insumo>' de todas as entradas das fabricas do spec (ordem de aparecimento)."""
+    out = []
+    for f in D.SPEC["factories"]:
+        for r in f["recipes"]:
+            for res in (r.get("inputs_per_cycle") or {}):
+                sid = use_stat(res)
+                if sid not in out:
+                    out.append(sid)
+    return out
+
+
+def strings(written=None):
+    """(en, pt) do nucleo; o build_mod junta os strings(DATA) dos modulos por cima."""
+    import bs_data as D
+    groups = ("EditorGroups", "Parts", "PartToggles", "Stats", "StatCategories", "Resource", "CategoryNouns", "BSTechs")
+    en = {g: {} for g in groups}
+    pt = {g: {} for g in groups}
+    en["EditorGroups"]["BulletStrike"] = "Bullet Strike"
+    pt["EditorGroups"]["BulletStrike"] = "Bullet Strike"
 
     for r in D.RESOURCES:
         k = r["key"]
         en["Resource"][k] = r["name_en"]
         pt["Resource"][k] = r["name_pt"]
-        en["Resource"][k + "Plural"] = r["name_en"] + ("s" if not r["name_en"].endswith("s") else "")
-        pt["Resource"][k + "Plural"] = PLURAL_PT.get(r["name_pt"], r["name_pt"] + "s")
-        en["Resource"][k + "Desc"] = RES_DESC_EN.get(r["art"]["kind"], "") + " Bullet Strike ammunition."
-        pt["Resource"][k + "Desc"] = RES_DESC_PT.get(r["art"]["kind"], "") + " Munição do Bullet Strike."
+        en["Resource"][k + "Plural"] = plural_en(r["name_en"])
+        pt["Resource"][k + "Plural"] = plural_pt(r["name_pt"])
+        en["Resource"][k + "Desc"] = RES_DESC_EN.get(r["spec_key"], "") + " Bullet Strike ammunition."
+        pt["Resource"][k + "Desc"] = (r.get("desc_pt") or "") + " Munição do Bullet Strike."
 
-    used = _tech_string_keys(D)
-    sel = next(g for g in D.GUNS if g["selector"])
-    res_of = {m["ammo"]: m["res"] for m in sel["modes"]}
-    for idx, a in enumerate(("std", "ap", "aphe", "emp")):
-        key = {0: "Std", 1: "AP", 2: "APHE", 3: "EMP"}[idx]
-        n_en, n_pt = AMMO_NAMES[a]
-        d_en, d_pt = AMMO_DESC[a]
-        # qual carregador o modo puxa (Perfurante e Perfurante-Explosiva dividem o Carregador Perfurante)
-        mag = f"<string id='Resource/{_res_key(D, res_of[a])}Plural'/>"
-        d_en = f"{d_en} Uses {mag}."
-        d_pt = f"{d_pt} Usa {mag}."
-        en["PartToggles"][f"BSAmmo_{key}"] = f"<b>Ammo: {n_en}</b>\n\n{d_en}"
-        pt["PartToggles"][f"BSAmmo_{key}"] = f"<b>Munição: {n_pt}</b>\n\n{d_pt}"
-        if f"PartToggles/BSAmmo_{key}Name" in used:
-            # nome da tech = o tipo de municao (nao existe carregador proprio de Perfurante-Explosiva)
-            en["PartToggles"][f"BSAmmo_{key}Name"] = f"{n_en} Ammo"
-            pt["PartToggles"][f"BSAmmo_{key}Name"] = f"Munição {n_pt}"
-            en["PartToggles"][f"BSAmmo_{key}Desc"] = d_en
-            pt["PartToggles"][f"BSAmmo_{key}Desc"] = d_pt
+    _toggle_strings(D, en, pt)
+    _part_strings(D, en, pt)
 
-    for a, (n_en, n_pt) in AMMO_NAMES.items():
-        en["StatCategories"][f"BSAmmo_{a}"] = n_en
-        pt["StatCategories"][f"BSAmmo_{a}"] = n_pt
-    en["CategoryNouns"], pt["CategoryNouns"] = {}, {}
+    for a in D.SPEC["ammo_types"]:
+        en["StatCategories"][f"BSAmmo_{a['key']}"] = f"{a['name_en']} ({a['label']})"
+        pt["StatCategories"][f"BSAmmo_{a['key']}"] = f"{a['name_ptbr']} ({a['label']})"
+    en["StatCategories"]["BSAmmo_plasma"], pt["StatCategories"]["BSAmmo_plasma"] = "Plasma Bolt", "Disparo de plasma"
+    en["StatCategories"]["BSAmmo_pem"], pt["StatCategories"]["BSAmmo_pem"] = "EMP Shell", "Granada PEM"
+    en["StatCategories"]["BSFlak"], pt["StatCategories"]["BSFlak"] = "Airburst Flak", "Flak de explosão aérea"
+
     for l in D.LIMIT_DEFS:
-        key = "BS" + "".join(p.capitalize() for p in l["category"].split("_")[1:])
-        en["CategoryNouns"][key + "Singular"], en["CategoryNouns"][key + "Plural"] = l["en"]
-        pt["CategoryNouns"][key + "Singular"], pt["CategoryNouns"][key + "Plural"] = l["pt"]
-    en["StatCategories"]["BSFlak"] = "Airburst Flak"
-    pt["StatCategories"]["BSFlak"] = "Flak de explosão aérea"
+        sk, pk = l["string_keys"]
+        en["CategoryNouns"][sk.split("/", 1)[1]], en["CategoryNouns"][pk.split("/", 1)[1]] = l["nouns_en"]
+        pt["CategoryNouns"][sk.split("/", 1)[1]], pt["CategoryNouns"][pk.split("/", 1)[1]] = l["nouns_ptbr"]
+
     en["Stats"]["BSShotsPerMagFmt"] = "<white>Shots per Load:</white> <good>{0:0}</good>"
     pt["Stats"]["BSShotsPerMagFmt"] = "<white>Disparos por carga:</white> <good>{0:0}</good>"
     en["Stats"]["BSFactoryOutputFmt"] = "<white>Production:</white> <good>{0:0.##}</good><gray>/sec</gray>"
     pt["Stats"]["BSFactoryOutputFmt"] = "<white>Produção:</white> <good>{0:0.##}</good><gray>/s</gray>"
-    # 2a carga das defesas (so laser/ion_shot); mesmo formato do ShotDamageFmt vanilla (en "Dmg vs Shots",
-    # pt-br "Dano x disparos")
     en["Stats"]["BSShotDamageVsLasersFmt"] = ("<white>Dmg vs Lasers:</white> <good>{0:n0}</good><gray>/shot (</gray>"
                                               "<good>{1:n0}</good><gray>/sec)</gray>")
     pt["Stats"]["BSShotDamageVsLasersFmt"] = ("<white>Dano x lasers:</white> <good>{0:n0}</good><gray>/disparo (</gray>"
                                               "<good>{1:n0}</good><gray>/s)</gray>")
-    _factory_stat_strings(D, en, pt)
-    _launcher_strings(D, en, pt, used)
-    return en, pt
-
-
-def _tech_string_keys(D):
-    """Chaves de texto citadas pelas techs da Carreira (NameKey / DescriptionKey); as chaves Name/Desc dos
-    seletores so sao geradas quando alguma tech as usa (sem textos mortos)."""
-    keys = set()
-    for t in D.career_techs():
-        for f in ("NameKey", "DescriptionKey"):
-            v = t.get(f)
-            if isinstance(v, str) and not v.startswith("&"):
-                keys.add(v.strip('"'))
-    return keys
-
-
-def _res_key(D, res):
-    own = next((r for r in D.RESOURCES if r["id"] == res), None)
-    return own["key"] if own else VANILLA_RES[res][0]
-
-
-# ============================================================================= fabricas
-# Recursos vanilla citados nas descricoes: chave em strings/<lingua>.rules Resource/<chave> (nome traduzido pelo
-# proprio jogo) e rotulo da linha "uso de <insumo>" das fabricas (en, pt).
-VANILLA_RES = {
-    "bullet": ("Bullet", "Cannon Ammo Use", "Uso de munição de canhão"),
-    "sulfur": ("Sulfur", "Sulfur Use", "Uso de enxofre"),
-    "coil": ("Coil", "Coil Use", "Uso de bobina"),
-    "copper": ("Copper", "Copper Use", "Uso de cobre"),
-    "tristeel": ("Tristeel", "Tri-Steel Use", "Uso de triaço"),
-    "enriched_uranium": ("EnrichedUranium", "Enriched Uranium Use", "Uso de urânio enriquecido"),
-}
-# Taxa da Fabrica de Municao para Canhao vanilla (factory_ammo.rules: ToQuantity 1 / Interval 0.5 s)
-VANILLA_AMMO_PER_S = 2.0
-
-
-def _res_ref(D, res, qty):
-    """<string id='Resource/X'/> (ou XPlural) do recurso: o jogo mostra o nome traduzido."""
-    own = next((r for r in D.RESOURCES if r["id"] == res), None)
-    key = own["key"] if own else VANILLA_RES[res][0]
-    return f"<string id='Resource/{key}{'Plural' if qty > 1 else ''}'/>"
-
-
-def _factory_strings(D, en, pt):
-    seen = {"en": {}, "pt": {}}
-    for f in D.FACTORIES:
-        k = f["key"]
-        out_r, out_q = f["output"]
-        ins_en = " + ".join(f"{_num_en(q, 3)} {_res_ref(D, r, q)}" for r, q in f["inputs"])
-        ins_pt = " + ".join(f"{_num_pt(q, 3)} {_res_ref(D, r, q)}" for r, q in f["inputs"])
-        out_ref = _res_ref(D, out_r, out_q)
-        pw_en = f" and {_num_en(f['power'] / 1000, 3)} power" if f.get("power") else " (no power needed)"
-        pw_pt = f" e {_num_pt(f['power'] / 1000, 3)} de energia" if f.get("power") else " (não usa energia)"
-        oc = f.get("oc")
-        oc_en = " Can be overclocked." if oc else ""
-        oc_pt = " Aceita overclock." if oc else ""
-        tip_en = tip_pt = ""
-        bullets = sum(q for r, q in f["inputs"] if r == "bullet")
-        if bullets:
-            # dica do spec: quantas Fabricas de Municao vanilla alimentam esta fabrica (mesmos bonus dos dois lados)
-            need = bullets / f["interval"] / VANILLA_AMMO_PER_S
-            if abs(need - round(need)) > 1e-6:
-                raise ValueError(f"{f['short']}: {need:.3f} Fabricas de Municao por prensa nao e um numero inteiro")
-            need = int(round(need))
-            fac_en = "Cannon Ammo Factory" if need == 1 else "Cannon Ammo Factories"
-            fac_pt = "Fábrica de munição para canhão" if need == 1 else "Fábricas de munição para canhão"
-            tip_en = f"\n\nTip: {need} {fac_en} feed{'s' if need == 1 else ''} 1 {f['name_en']}."
-            tip_pt = f"\n\nDica: {need} {fac_pt} alimenta{'m' if need > 1 else ''} 1 {f['name_pt']}."
-        en["Parts"][k] = f["name_en"]
-        pt["Parts"][k] = f["name_pt"]
-        # rotulo do menu de construcao = o produto, como no vanilla (FactoryAmmoIcon = "Ammo")
-        icon_en = f.get("icon_en") or f["name_en"]
-        icon_pt = f.get("icon_pt") or f["name_pt"]
-        for lang, lab in (("en", icon_en), ("pt", icon_pt)):
-            if len(lab) > 24:
-                raise ValueError(f"{f['short']}: rotulo do icone '{lab}' ({lang}) passa de 24 caracteres")
-            if lab in seen[lang]:
-                raise ValueError(f"{f['short']}: rotulo do icone '{lab}' ({lang}) repete o de {seen[lang][lab]}")
-            seen[lang][lab] = f["short"]
-        en["Parts"][k + "Icon"] = icon_en
-        pt["Parts"][k + "Icon"] = icon_pt
-        en["Parts"][k + "Desc"] = (f"Turns {ins_en}{pw_en} into {_num_en(out_q, 3)} {out_ref} every "
-                                   f"{_num_en(f['interval'], 3)} s. +25% speed for each adjacent factory.{oc_en}"
-                                   f"{tip_en}<string id='BSModTag'/>")
-        pt["Parts"][k + "Desc"] = (f"Transforma {ins_pt}{pw_pt} em {_num_pt(out_q, 3)} {out_ref} a cada "
-                                   f"{_num_pt(f['interval'], 3)} s. +25% de velocidade para cada fábrica vizinha."
-                                   f"{oc_pt}{tip_pt}<string id='BSModTag'/>")
-        if oc:
-            sf = oc["speed_factor"]
-            out_pl = _res_ref(D, out_r, 2)
-            pwx_en = (f", using {_num_en(oc['power_use_factor'])}x the power per item" if f.get("power") else "")
-            pwx_pt = (f", com {_num_pt(oc['power_use_factor'])} {_vezes(oc['power_use_factor'])} a energia por item"
-                      if f.get("power") else "")
-            en["Parts"][k + "Overclock"] = f"Overclocked {f['name_en']}"
-            pt["Parts"][k + "Overclock"] = f"{f['name_pt']} (Overclocking)"
-            en["Parts"][k + "OverclockDesc"] = (f"Produces {_num_en(sf)}x faster{pwx_en}. Produces waste heat while "
-                                                f"producing {out_pl}.")
-            pt["Parts"][k + "OverclockDesc"] = (f"Produz {_num_pt(sf)} {_vezes(sf)} mais rápido{pwx_pt}. Produz calor "
-                                                f"enquanto fabrica {out_pl}.")
-
-
-def _factory_stat_strings(D, en, pt):
-    """Linhas 'uso de <insumo>' das fabricas ([por item, por segundo]); mesmo formato de AmmoSulfurUsageFmt."""
-    from bsgen.factory import input_stat_ids, use_stat
-    labels = {}
-    for f in D.FACTORIES:
-        for r, _q in f["inputs"]:
-            own = next((x for x in D.RESOURCES if x["id"] == r), None)
-            if own:
-                labels[use_stat(r)] = (f"{own['name_en']} Use", f"Uso de {own['name_pt'].lower()}")
-            else:
-                labels[use_stat(r)] = VANILLA_RES[r][1:]
-    for sid in input_stat_ids(D.FACTORIES):
-        l_en, l_pt = labels[sid]
+    for res in [r for f in D.SPEC["factories"] for rc in f["recipes"] for r in (rc.get("inputs_per_cycle") or {})]:
+        sid = use_stat(res)
+        own = D.RES_BY_ID.get(res)
+        l_en, l_pt = ((f"{own['name_en']} Use", f"Uso de {own['name_pt'].lower()}") if own
+                      else VANILLA_RES.get(res, (f"{res} Use", f"Uso de {res}")))
         en["Stats"][sid + "Fmt"] = (f"<white>{l_en}:</white> <good>{{0:0.###}}</good><gray>/ammo (</gray>"
                                     f"<good>{{1:0.###}}</good><gray>/sec)</gray>")
         pt["Stats"][sid + "Fmt"] = (f"<white>{l_pt}:</white> <good>{{0:0.###}}</good><gray>/munição (</gray>"
                                     f"<good>{{1:0.###}}</good><gray>/s)</gray>")
 
-
-# ============================================================================= lancadores de misseis
-# Nomes e codinomes vem do spec (tools/spec/bullet_strike_missiles.json); aqui so as frases.
-MISSILE_TXT = {  # tipo: (nome curto en, nome curto pt, descricao en, descricao pt)
-    "he": ("High-Explosive", "Alto-Explosivo",
-           "A fast, direct high-explosive warhead: the reference missile. Big salvos saturate point defense.",
-           "Ogiva alto-explosiva rápida e direta: o míssil de referência. Salvas grandes saturam os pontos de defesa."),
-    "cluster": ("Cluster", "Submunições",
-                "Opens 25 m from the enemy hull (or on impact, or at the end of its flight) and releases a school of "
-                "mini-missiles that spread over several parts. Shot down before it opens, it releases nothing.",
-                "Abre a 25 m do casco inimigo (ou no impacto, ou no fim do voo) e solta um cardume de minimísseis que "
-                "se espalham por várias peças. Abatido antes de abrir, não solta nada."),
-    "limpet": ("Limpet", "Grudento",
-               "Sticks to the hull and explodes 2.5 s later, with a high chance to kill crew rushing in to repair. "
-               "Shot down in flight it is lost; on a shield it only pops.",
-               "Gruda no casco e explode 2,5 s depois, com alta chance de matar a tripulação que vier consertar. "
-               "Abatido no voo, se perde; num escudo só estoura."),
-    "napalm": ("Napalm", "Napalm",
-               "Small blast, guaranteed fire on the part it hits and a heat pool that keeps lighting new fires. "
-               "Useless against armor; extinguishers and foam are the counter.",
-               "Explosão pequena, fogo garantido na peça atingida e calor em volta que continua acendendo incêndios. "
-               "Inútil contra blindagem; extintor e espuma são o contra."),
-    "emp": ("EMP", "P.E.M.",
-            "Drains batteries and shields in an area and keeps draining powered parts for a few seconds. "
-            "Bullet Strike weapons have no battery and are immune.",
-            "Drena baterias e escudos em área e continua drenando as peças com energia por alguns segundos. "
-            "As armas do Bullet Strike não usam bateria e são imunes."),
-    "torpedo": ("Decoy Torpedo", "Torpedo com Iscas",
-                "A slow, tough torpedo: 1.5 s after launch the warhead separates among decoys that soak up point "
-                "defense and flak.",
-                "Torpedo lento e resistente: 1,5 s depois do lançamento a ogiva se separa no meio de iscas que gastam "
-                "os pontos de defesa e a flak."),
-    "nuclear": ("Nuclear Torpedo", "Torpedo Nuclear",
-                "Heavy battery only. Counts toward the nuclear limit (2 per ship, shared with the Boiúna) and overclock "
-                "never speeds up its reload. Dies to area flak on its own: mask it with a heavy salvo fired right after it.",
-                "Só na bateria pesada. Conta no limite nuclear (2 por nave, junto com a Boiúna) e o overclock nunca "
-                "acelera a recarga. Sozinho morre para flak de área: esconda-o com uma salva pesada logo depois."),
-}
-# pecas de missil vanilla: o proprio jogo escreve o nome traduzido (strings/<lingua>.rules Resource/MissilePart*)
-RES_WORD = {"missile_part_he": "<string id='Resource/MissilePartHEPlural'/>",
-            "missile_part_thermal": "<string id='Resource/MissilePartThermalPlural'/>",
-            "missile_part_emp": "<string id='Resource/MissilePartEMPPlural'/>",
-            "missile_part_nuke": "<string id='Resource/MissilePartNukePlural'/>"}
-LAUNCHER_FLAVOR = {
-    "bs_msl_box": ("A RAM-style micro-missile box: the gunner cranks it around and twelve micro-missiles hiss out, "
-                   "pair by pair.",
-                   "Uma caixa de micromísseis estilo RAM: o atirador gira a caixa e doze micromísseis saem chiando, "
-                   "de dois em dois."),
-    "bs_msl_twin": ("Two octagonal pods flank an armored sensor dome; a full rack is a two-second drum-roll of sixteen "
-                    "missiles, right pod first.",
-                    "Dois casulos octogonais ladeiam uma cúpula blindada com olho sensor; com as células cheias, vem um "
-                    "rufar de dezesseis mísseis em dois segundos, o casulo direito primeiro."),
-    "bs_msl_quad": ("A headless armored body carries four long pods on hydraulic arms: a stampede of 48 heavy missiles "
-                    "in three seconds. Loaded, it is the most dangerous part of your ship.",
-                    "Um corpo blindado sem cabeça carrega quatro casulos longos em braços hidráulicos: um estouro de 48 "
-                    "mísseis pesados em três segundos. Carregada, é a peça mais perigosa da sua nave."),
-}
-# forma curta da familia, a mesma sigla dos nomes vanilla (en H.E. / T.C. / E.M.P.; pt A.E. / T. / P.E.M.)
-FAMILY_WORD = {"missile_part_he": ("H.E.", "A.E."), "missile_part_thermal": ("T.C.", "T."),
-               "missile_part_emp": ("E.M.P.", "P.E.M."), "missile_part_nuke": ("nuclear", "nuclear")}
-
-
-def _low(s):
-    """Minuscula para uso no meio da frase, sem estragar siglas (P.E.M.)."""
-    return " ".join(w if w.isupper() else w.lower() for w in s.split(" "))
-
-
-def _num_pt(x, nd=2):
-    return f"{x:.{nd}f}".rstrip("0").rstrip(".").replace(".", ",")
-
-
-def _num_en(x, nd=2):
-    return f"{x:.{nd}f}".rstrip("0").rstrip(".")
-
-
-def _vezes(x):
-    """'vez' abaixo de 2 (1,5 vez), 'vezes' de 2 para cima (3 vezes)."""
-    return "vez" if x < 2 else "vezes"
-
-
-def _choice_codename(D, mt):
-    """Codinome de uma escolha do seletor compartilhado: o do tipo e os das variantes de cada lancador que a
-    oferece (ex.: 'Jararaca / Muricoca', 'Taturana / Taturana-mirim')."""
-    t = D.MISSILE_TYPES[mt]
-    built = {lch["id"] for lch in D.LAUNCHERS if t["toggle_index"] in lch["available"]}
-    names = [t["codename"]]
-    for v in t["variants"]:
-        if v["launcher"] in built and v["variant_codename"] not in names:
-            names.append(v["variant_codename"])
-    return " / ".join(names)
-
-
-def _launcher_strings(D, en, pt, used):
-    for c_idx, cid, key, _icon, mt in D.MISSILE_CHOICES:
-        code = _choice_codename(D, mt)
-        s_en, s_pt, d_en, d_pt = MISSILE_TXT[mt]
-        k = key.split("/", 1)[1]
-        en["PartToggles"][k] = f"<b>Missile: {code} ({s_en})</b>\n\n{d_en}"
-        pt["PartToggles"][k] = f"<b>Míssil: {code} ({s_pt})</b>\n\n{d_pt}"
-        if f"PartToggles/{k}Name" in used:
-            # so os tipos liberados por tech propria (o alto-explosivo vem junto com a Tocandira)
-            en["PartToggles"][k + "Name"] = f"{code} Missiles ({s_en})"
-            pt["PartToggles"][k + "Name"] = f"Mísseis {code} ({_low(s_pt)})"
-            en["PartToggles"][k + "Desc"] = d_en
-            pt["PartToggles"][k + "Desc"] = d_pt
-    for lch in D.LAUNCHERS:
-        k = lch["key"]
-        m0 = lch["modes"][0]
-        n = m0["cells"] * m0["mpu"]
-        salvo_t = (m0["cells"] - 1) * lch["ripple_s"] + (m0["mpu"] - 1) * (2 / 30)
-        cycle = m0["cells"] * m0["reload"] + salvo_t
-        unit_en = "cassette" if m0["mpu"] > 1 else "cell"
-        unit_pt = "um cassete" if m0["mpu"] > 1 else "uma célula"
-        rng = lch["spec"]["range_m"][m0["type"]]
-        mis_en = ", ".join(f"{m['codename']} ({MISSILE_TXT[m['type']][0]})" for m in lch["modes"])
-        mis_pt = ", ".join(f"{m['codename']} ({_low(MISSILE_TXT[m['type']][1])})" for m in lch["modes"])
-        res_en = res_pt = " / ".join(RES_WORD[f["res"]] for f in lch["families"])
-        mags = [f["mag"] for f in lch["families"]]
-        if len(set(mags)) == 1:
-            mag_en, mag_pt = f"{mags[0]} parts each", f"{mags[0]} peças cada"
-        else:
-            mag_en = ", ".join(f"{FAMILY_WORD[f['res']][0]} {f['mag']}" for f in lch["families"]) + " parts"
-            mag_pt = ", ".join(f"{FAMILY_WORD[f['res']][1]} {f['mag']}" for f in lch["families"]) + " peças"
-        crew_en = f"{lch['crew']} crew"
-        crew_pt = f"{lch['crew']} tripulante" + ("s" if lch["crew"] > 1 else "")
-        fl_en, fl_pt = LAUNCHER_FLAVOR.get(lch["short"], ("Deck missile launcher.", "Lança-mísseis de convés."))
-        # salva parcial (variante dry_flush do spec): o texto segue o mecanismo gerado
-        dry_en, dry_pt = {
-            "debounced": ("; when the magazine stays dry for a whole reload, the partial rack still fires",
-                          "; se o paiol ficar vazio por uma recarga inteira, as células já carregadas disparam mesmo "
-                          "assim"),
-            "instant": ("; a dry magazine still fires the partial rack",
-                        "; com o paiol vazio, as células já carregadas disparam mesmo assim"),
-        }.get(D.MISSILE_VARIANTS.get("dry_flush", "debounced"), ("", ""))
-        oc_en = " Can be overclocked." if lch.get("oc") else ""
-        oc_pt = " Aceita overclock." if lch.get("oc") else ""
-        # salvas de tamanhos diferentes por modo (Mula: 48 finos, 16 pesados, 4 torpedos, 2 Iara)
-        sizes = {}
-        for m in lch["modes"]:
-            sizes.setdefault(m["cells"] * m["mpu"], []).append(m["codename"])
-        var_en = var_pt = ""
-        if len(sizes) > 1:
-            var_en = " Missiles per salvo: " + "; ".join(f"{', '.join(v)} {n}" for n, v in sizes.items()) + "."
-            var_pt = " Mísseis por salva: " + "; ".join(f"{', '.join(v)} {n}" for n, v in sizes.items()) + "."
-        lim_en = lim_pt = ""
-        lims = [c for c in lch["categories"] if c.startswith("bs_limit_")]
-        if "bs_limit_nuke" in lims:
-            mx = next(l_[1] for l_ in D.LIMITS if l_[0] == "bs_limit_nuke")
-            lim_en = (f"\n\nLimit: {mx} per ship, shared with the Boiúna nuclear howitzer (nuclear weapons, any mix).")
-            lim_pt = (f"\n\nLimite: {mx} por nave, junto com o obuseiro nuclear Boiúna (armas nucleares, em qualquer "
-                      f"combinação).")
-        en["Parts"][k] = lch["name_en"]
-        pt["Parts"][k] = lch["name_pt"]
-        en["Parts"][k + "Icon"] = lch["codename"][:18]
-        pt["Parts"][k + "Icon"] = lch["codename"][:18]
-        en["Parts"][k + "Desc"] = (
-            f"{fl_en} \"{lch['codename']}\"\n\n{TIER_EN[lch['tier']]} deck missile launcher. A full rack ripples "
-            f"{n} missiles in {_num_en(salvo_t)} s, then a crewed autoloader refills it one {unit_en} at a time "
-            f"({_num_en(m0['reload'])} s each; reloading stops while nobody mans it): one salvo every "
-            f"{_num_en(cycle, 1)} s. Range {rng} m. Missiles: {mis_en}.{var_en}\n\nNeeds no power: {crew_en} and vanilla "
-            f"{res_en} carried into its internal magazines ({mag_en}). Switching the missile type costs one "
-            f"full reload{dry_en}. The missiles "
-            f"fly over your own deck and can be shot down by point defense. A loaded launcher cooks off when it burns or is destroyed.{oc_en}{lim_en}"
-            "<string id='BSModTag'/>")
-        pt["Parts"][k + "Desc"] = (
-            f"{fl_pt} \"{lch['codename']}\"\n\n{TIER_PT[lch['tier']]} - lança-mísseis de convés. Com todas as células "
-            f"carregadas, dispara {n} mísseis em sequência em {_num_pt(salvo_t)} s; depois um autocarregador tripulado recarrega "
-            f"{unit_pt} por vez ({_num_pt(m0['reload'])} s cada; sem tripulação no posto a recarga para): uma "
-            f"salva a cada {_num_pt(cycle, 1)} s. Alcance {rng} m. Mísseis: {mis_pt}.{var_pt}\n\nNão usa energia: "
-            f"{crew_pt} e {res_pt} do jogo base levadas até os paióis internos ({mag_pt}). Trocar o tipo de "
-            f"míssil custa uma recarga completa{dry_pt}. Os mísseis passam por cima do próprio convés e podem ser abatidos pelos pontos "
-            f"de defesa. Carregado, o lançador explode quando pega fogo ou é destruído.{oc_pt}{lim_pt}<string id='BSModTag'/>")
-        if lch["tier"] == "early":
-            # tech do Build & Battle que libera as pecas de missil vanilla do lancador de inicio (bs_data.buildbattle_techs)
-            res_and_en = " and ".join(RES_WORD[f["res"]] for f in lch["families"])
-            res_and_pt = " e as ".join(RES_WORD[f["res"]] for f in lch["families"])
-            en["Parts"][k + "Ammo"] = f"{lch['codename']} Missile Parts"
-            pt["Parts"][k + "Ammo"] = f"Peças de Míssil da {lch['codename']}"
-            en["Parts"][k + "AmmoDesc"] = (
-                f"Unlocks the vanilla {res_and_en} that the {lch['name_en']} \"{lch['codename']}\" fires. In Build & "
-                f"Battle the launcher itself is always available, but its missile parts are not.")
-            pt["Parts"][k + "AmmoDesc"] = (
-                f"Libera as {res_and_pt} do jogo base que a {lch['name_pt']} \"{lch['codename']}\" dispara. No modo "
-                f"Construir e Batalhar o lançador já vem liberado, mas as peças de míssil não.")
-        if lch.get("oc"):
-            o = lch["spec"]["overclock"]
-            en["Parts"][k + "Overclock"] = f"Overclocked {lch['name_en']}"
-            pt["Parts"][k + "Overclock"] = f"{lch['name_pt']} (Overclocking)"
-            oc = lch["oc"]
-            fac = sorted({m["oc_factor"] for m in lch["modes"] if m["oc_factor"]}, reverse=True)
-            emp = [m for m in lch["modes"] if m["oc_factor"] and m["oc_factor"] != fac[0]]
-            no_oc = [m for m in lch["modes"] if not m["oc_factor"]]
-            vent = any(m["vent"] for m in lch["modes"])
-            ex_en = "".join(f" ({m['codename']}: {_num_en(m['oc_factor'])}x)" for m in emp)
-            ex_pt = "".join(f" ({m['codename']}: {_num_pt(m['oc_factor'])} {_vezes(m['oc_factor'])})" for m in emp)
-            nn_en = "".join(f" It never speeds up the reload of the {m['codename']} {m['name_en'].lower()}." for m in no_oc)
-            nn_pt = "".join(f" Nunca acelera a recarga do {m['name_pt'].lower()} {m['codename']}." for m in no_oc)
-            pre = D.MISSILE_VARIANTS.get("prefilled_switch", "full_delay") == "full_delay"
-            pre_en = (" A rack that is already full when you switch to its missile type waits a normal (not overclocked) "
-                      "reload." if pre else "")
-            pre_pt = (" Se as células já estavam cheias na troca de míssil, a primeira salva espera a recarga normal "
-                      "(sem overclock)." if pre else "")
-            vent_en = " About 1 in 16 missiles is vented from the magazine every salvo (torpedoes exempt)." if vent else ""
-            vent_pt = (" Cerca de 1 em cada 16 mísseis é descartado do paiol a cada salva (torpedos isentos)."
-                       if vent else "")
-            en["Parts"][k + "OverclockDesc"] = (
-                f"\"{o.get('name_en', '')}\": the autoloader works {_num_en(fac[0])}x faster{ex_en}; ripple, damage and "
-                f"range stay the same.{nn_en} Costs {oc['heat_per_part']} heat per missile part loaded plus "
-                f"{oc['heat_per_second']} heat/s (needs radiators).{vent_en}{pre_en} The magazine empties faster. Switching "
-                f"it off pauses the launcher for 3 s. Without enough cooling it overheats, catches fire and cooks off with "
-                f"its stock.")
-            pt["Parts"][k + "OverclockDesc"] = (
-                f"\"{o.get('name_ptbr', '')}\": o autocarregador trabalha {_num_pt(fac[0])} {_vezes(fac[0])} mais "
-                f"rápido{ex_pt}; a cadência da salva, o dano e o alcance não mudam.{nn_pt} Custa {oc['heat_per_part']} de "
-                f"calor por peça de míssil carregada mais {oc['heat_per_second']} de calor/s (precisa de radiador)."
-                f"{vent_pt}{pre_pt} O paiol esvazia mais rápido. Desligar o overclock dá uma pausa de 3 s. Sem "
-                f"refrigeração suficiente, esquenta, pega fogo e explode junto com o estoque.")
-        for m in lch["modes"]:
-            en["StatCategories"][f"{k}_{m['type']}"] = f"{m['name_en']} \"{m['codename']}\""
-            pt["StatCategories"][f"{k}_{m['type']}"] = f"{m['name_pt']} \"{m['codename']}\""
-
-
-RES_DESC_EN = {"mag": "A sealed magazine that crew carry to Bullet Strike guns. Each gun opens it into a number of shots.",
-               "cell": "A magnetically sealed cell of plasma for plasma weapons.",
-               "shell": "A nuclear artillery shell. Handle with care: it cooks off violently if its storage is destroyed."}
-RES_DESC_PT = {"mag": "Um carregador lacrado que a tripulação leva até as armas do Bullet Strike. Cada arma o abre em vários disparos.",
-               "cell": "Uma célula de plasma selada magneticamente para armas de plasma.",
-               "shell": "Um projétil de artilharia nuclear. Cuidado: explode violentamente se o depósito for destruído."}
-# plural em pt-br: o nucleo do nome vai para o plural ("Carregador Padrao" + "s" daria "Carregador Padraos")
-PLURAL_PT = {
-    "Carregador Padrão": "Carregadores Padrão",
-    "Carregador Perfurante": "Carregadores Perfurantes",
-    "Carregador P.E.M.": "Carregadores P.E.M.",
-    "Célula de Plasma": "Células de Plasma",
-    "Projétil Nuclear": "Projéteis Nucleares",
-}
+    ten, tpt = tech_strings(D)
+    en["BSTechs"].update(ten)
+    pt["BSTechs"].update(tpt)
+    return en, pt

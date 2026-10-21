@@ -528,6 +528,120 @@ class SchemaCheckTests(unittest.TestCase):
             shutil.rmtree(tmp, ignore_errors=True)
 
 
+# --------------------------------------------------------------------------- 2.0 (WP01): checagens de sentido
+VANILLA_20 = {
+    'buffs/buffs.rules': '''
+        Factory { CombineMode = Add }
+        Overclock {}
+    ''',
+    'gui/game/parts/part_toggles.rules': '''
+        PartToggles
+        [
+            { ToggleID = "on_off"; Style = Popout }
+        ]
+    ''',
+}
+
+MOD_20 = {
+    'mod.rules': '''
+        ID = tester.mod20
+        Name = "Mod 20"
+        CompatibleGameVersions = ["0.30.4"]
+        StringsFolder = "strings"
+        Actions
+        [
+            { Action = Overrides; OverrideIn = "<./Data/buffs/buffs.rules>"; Overrides = &<buffs/my_buffs.rules> }
+            { Action = AddMany; AddTo = "<ships/terran/terran.rules>/Terran/Parts"; ManyToAdd [ &<parts/a.rules>/Part, &<parts/b.rules>/Part ] }
+            { Action = AddMany; AddTo = "<gui/game/parts/part_toggles.rules>/PartToggles"; ManyToAdd = &<gui/toggles.rules>/PartToggles }
+        ]
+    ''',
+    'strings/en.rules': 'Parts { A = "a" }\n',
+    'strings/pt-br.rules': 'Parts { A = "a" }\n',
+    'buffs/my_buffs.rules': 'MyLink { CombineMode = Max }\n',
+    'gui/toggles.rules': '''
+        PartToggles
+        [
+            { ToggleID = "my_ammo"; Style = Popout }
+        ]
+    ''',
+    'parts/a.rules': '''
+        Part
+        {
+            ID = tester.a
+            TypeCategories = [cat_a]
+            ReceivableBuffs = [MyLink, Factory, NoSuchBuff]
+            Components
+            {
+                Estoque_he { Type = ResourceStorage; MaxResources = 10 }
+                Feed { Type = ResourceConverter; FromQuantity = 1; ToQuantity = 1; Amount = 2.5 }
+                Grid { Type = GridBuffProvider; BuffType = MyLink; BuffAmount = 0.5; GridDistance = 12.5 }
+                Bad { Type = GridBuffProvider; BuffType = Typo_Buff; BuffAmount = 1 }
+                Sel { Type = UIToggle; ToggleID = "my_ammo" }
+                SelBad { Type = UIToggle; ToggleID = "bs_cell_type" }
+                Sub { Type = MultiToggle; Toggles = [ { Toggle = { ID=Timer; ToggleID="IsRunning"; } } ] }
+                Via
+                {
+                    Type = MultiResourceStorage
+                    ViaBuffs { OutgoingBuffProviders = [Grid]; ComponentIDs = [Estoque_he, Estoque_hee] }
+                }
+                Area { Type = AreaBuffProvider; BuffType = MyLink; Criteria { Category = cat_b } }
+                AreaBad { Type = AreaBuffProvider; BuffType = MyLink; Criteria { Category = cat_typo } }
+                Port1 { Type = NetworkPort; Types = [ tester.solo ] }
+                Port2 { Type = NetworkPort; Types = [ tester.pair ] }
+            }
+        }
+    ''',
+    'parts/b.rules': '''
+        Part
+        {
+            ID = tester.b
+            TypeCategories = [cat_b]
+            Components
+            {
+                Port { Type = NetworkPort; Types = [ tester.pair ] }
+                Prox { Type = ResourceStorageProxy; PartCriteria { Category = cat_a } }
+            }
+        }
+    ''',
+}
+
+
+class Semantics20Tests(Base):
+    """WP01: BuffType definido, Category existente, ViaBuffs.ComponentIDs, ToggleID, NetworkPort >= 2 pecas e
+    campos inteiros novos (Amount, GridDistance; BuffAmount fica livre)."""
+
+    def setUp(self):
+        Base.setUp(self)
+        write_tree(self.vdir, VANILLA_20)
+        self.mdir = os.path.join(self.tmp, 'Mod20')
+        write_tree(self.mdir, MOD_20)
+
+    def test_semantic_checks(self):
+        code, out = self.run_main(['--mod', self.mdir])
+        errs = self.errors(out)
+        self.assertEqual(code, 1, out)
+        # buffs: vanilla (Factory) e Overrides do mod (MyLink) valem; os outros nao
+        self.assertTrue(any("BuffType 'NoSuchBuff'" in e for e in errs), out)
+        self.assertTrue(any("BuffType 'Typo_Buff'" in e for e in errs), out)
+        self.assertFalse(any("'MyLink'" in e or "'Factory'" in e for e in errs), out)
+        # categorias
+        self.assertTrue(any("Category 'cat_typo'" in e for e in errs), out)
+        self.assertFalse(any("'cat_a'" in e or "'cat_b'" in e for e in errs), out)
+        # ViaBuffs: erro de digitacao no nome do componente
+        self.assertTrue(any("'Estoque_hee'" in e for e in errs), out)
+        self.assertFalse(any("'Estoque_he'" in e for e in errs), out)
+        # ToggleID inexistente (a F3 sem bs_cell_type); sub-toggle de componente nao conta
+        self.assertTrue(any("ToggleID 'bs_cell_type'" in e for e in errs), out)
+        self.assertFalse(any("'my_ammo'" in e or "IsRunning" in e for e in errs), out)
+        # NetworkPort: tipo do mod numa peca so
+        self.assertTrue(any("'tester.solo'" in e for e in errs), out)
+        self.assertFalse(any("'tester.pair'" in e for e in errs), out)
+        # inteiros novos: Amount e GridDistance; BuffAmount fracionario e permitido (vanilla usa 25 %, 0.5...)
+        self.assertTrue(any("'Amount'" in e and '2.5' in e for e in errs), out)
+        self.assertTrue(any("'GridDistance'" in e and '12.5' in e for e in errs), out)
+        self.assertFalse(any("'BuffAmount'" in e for e in errs), out)
+
+
 REAL = os.environ.get('COSMOTEER_DATA') or RL.DEFAULT_VANILLA
 
 

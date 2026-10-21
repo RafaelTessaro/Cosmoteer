@@ -1,0 +1,430 @@
+{
+ "meta": {
+  "task": "Research for the Tupã 'tranco' (violent firing jolt) and the 5x5 loader chain, Cosmoteer 0.30.4c rules. No art and no repo files changed.",
+  "user_request_ptbr": "gostei da rail gun, só acho que o carregador poderia ser maior e poderia ter um efeito de 'tranco' quando ela disparasse",
+  "date": "2026-10-21",
+  "path_aliases": {
+   "VM": "/tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/v2/research/grid/vanilla_merged (vanilla 0.30.5 RC1 checkout + RC4 rules cache)",
+   "V303": "/tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/v2/research/rail/v0303 (vanilla 0.30.3 copies)",
+   "SW": "/tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/repos/main (SW:ACD, mod.rules:28 CompatibleGameVersions [\"0.30.4\"])",
+   "AW": "/tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/v2/research/grid/altmank_wiki (AutoWiki of the decompiled 0.30.4c; source-manifest.json = member NAMES only, no code)",
+   "TK": "/home/user/Cosmoteer/testes/BulletStrike_Teste2/parts (test kit bs2t_rail_*)",
+   "SPEC": "/tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/v2/design/final/SPEC_2.0.json",
+   "BS": "/home/user/Cosmoteer (repo)"
+  },
+  "safety_rule": "0.30.4-safe = the same construct is in BOTH vanilla 0.30.3 (V303) and 0.30.5 RC (VM), OR it is live in SW:ACD (targets 0.30.4), OR the field is a member in the 0.30.4c manifest (AW) AND used in vanilla. 'inferred' = member exists in 0.30.4c but this exact use has no vanilla/SW example.",
+  "status_keys": {
+   "verified": "vanilla/SW use of exactly this construct",
+   "inferred": "fields exist in 0.30.4c, this combination unproven",
+   "unverified": "no evidence beyond a member name"
+  }
+ },
+ "summary": [
+  "PHYSICAL RECOIL: two 0.30.4-safe mechanisms. (A) a part TriggeredEffects with HitEffects [{Type = Impulse}] - exactly how the vanilla railgun kicks its own ship (VM railgun_launcher.rules:518-556 = V303 :540-578, identical); Impulse is a ModifiableFloat (vanilla scales it with a ScaledBuff), so the Tupã kick can grow with N via BulletStrike_RailShot. (B) the emitter field Recoil (number, one impulse per shot at the emitter, opposite the fire direction): vanilla deck cannon 240, nuke launcher 300, EMP launcher 150; our own guns already ship Recoil up to 400. Recommended: (A) as one kick on the BulletEmitter trigger.",
+  "PITFALL in SPEC_2.0 railgun.firing_timeline[4] / visuals.muzzle: 'RecoilProjectile + 1/30 s Timer Impulse 3000' copies the vanilla per-tick push, but our slug crawls through the barrel (SpeedStart 6 -> SpeedEnd 50 tiles/s, 0.25-0.79 s) instead of vanilla 360+ tiles/s (~0.03 s). The timer would fire 8 (N=1) to 24 (N=6) times: 24000-72000 total impulse, 6-18x the vanilla railgun (~2000 x 2 ticks = 4000 at N=4). Also the vanilla RecoilProjectile must have Interpolate = false (game logic on an interpolated component desyncs multiplayer).",
+  "SCREEN SHAKE: media effect Type = ScreenShake via the global base /BASE_SHAKE (VM common_effects/base_shake.rules:1-5: DurationFalloff 2, MinDistance 0, MaxDistance 2, DistanceFalloff 1); per use only ShakeAmount + Duration. 0.30.4c fields: ShakeAmount, Duration, DurationFalloff, MinDistance, MaxDistance, DistanceFalloff. Vanilla firing shakes: deck cannon 0.1/1 s (largest gun), large cannon 0.075/0.5, med/chaingun/flak 0.025/0.25; vanilla railgun has NO fire shake (only impact 0.1 x RailgunShot / 0.75 s). Recommended Tupã fire shake 0.2 / 0.7 s in the ponta FireEffect (above our 406 mm 0.12, below reactor_small death 0.25).",
+  "SPRITE RECOIL: vanilla deck cannon pattern = a Graphics component with ResetAnimationTrigger = <the shot trigger>, OperationalDoodad AnimationFiles (+NormalsAnimationFiles) whose LAST frame is the rest pose, AnimationStartTime = MinValue, ClampAnimation = true (VM cannon_deck.rules:1173-1272). ResetAnimationTrigger is handled by Graphics, Sprite and SpriteGrid components (AW PartGraphics/PartSprite/PartSpriteGrid.OnResetAnimation) but NOT by ValueSprites/ResourceSprites, so the recoiling drums/rails/crown/breech must move OUT of the static roof and the charge ValueSprites into their own animated Graphics components.",
+  "5x5 LOADER CHAIN: criteria Left/Right/Top/Bottom are the TARGET part's edges in this part's unrotated tile coordinates (Right/Bottom exclusive, each optional; VM chaingun.rules:575-635). With canos on loader tiles x 1..3: loader providers/TriggerProxies move to BuffArea [1,-1,3,1] / PartLocation [1,-1] with {Left 1; Right 4; Bottom 0}; loader trilho port to [2,0] Up; every cano component that looks BACK (LoadedAmmo + LoaderBattery proxies, ReverseBuffOperationProvider, cano B ContagemProvider) needs a SECOND criteria entry for the loader {Left -1; Right 4; Top 3} via the list forms ProxyableComponents [...] and Criterias [...] (both vanilla chaingun and live in SW:ACD 0.30.4). The ponta does not change (it only ever touches a cano)."
+ ],
+ "q1_physical_recoil": {
+  "mechanisms": [
+   {
+    "id": "A_triggered_impulse",
+    "what": "Part component TriggeredEffects with HitEffects [ { Type = Impulse; Impulse = <ModifiableFloat> } ]: the hit effect is applied to the part's OWN ship at the component's Location, pushing along the component's world rotation.",
+    "vanilla": [
+     "VM ships/terran/railgun_launcher/railgun_launcher.rules:518-556 (RecoilProjectile : Projectile { Interpolate = false } / RecoilTimer Timer Duration 1/30, AutoStart, Repeats, TriggerWhenStarted, OperationalToggle = ProjectileToggle / RecoilEffects TriggeredEffects ChainedTo = RecoilProjectile, Rotation = 90d, Trigger = RecoilTimer, HitEffects [ Impulse { BaseValue = 2000; Modifiers [ ScaledBuff Overclock Scale RECOIL_FACTOR 250% Multiply ] } ])",
+     "V303 railgun_launcher.rules:540-578 (identical block in 0.30.3)",
+     "VM ships/terran/cannon_deck/cannon_deck.rules:998-1015 (StunEffect: TriggeredEffects with HitEffects on the own ship at Location [2,2], Trigger = MultiTrigger of the emitter proxies - same 'own-ship hit effect on firing' pattern, AreaCrewStun)",
+     "VM ships/terran/tractor_beam_emitter/tractor_beam_emitter.rules:909-952 (TriggeredEffects with HitEffects AreaImpulse + PushShipCenterOfMassOnly)"
+    ],
+    "fields": {
+     "TriggeredEffects": "Trigger (trigger ID, req), Location [x,y] tiles part-relative (or relative to ChainedTo), Rotation (angle, 'd' suffix), ChainedTo (ID), HitEffects [], MediaEffects [], AnchorMediaEffects bool, HitEffectsFactor / MediaEffectsFactor, MediaEffectsRequireShipInView (AW source-manifest.json:26671 PartTriggeredEffectsRules members: AnchorMediaEffects, HitEffectsFactor, MediaEffectsFactor, MediaEffectsRequireShipInView, Trigger; Location/Rotation from ChainablePartComponentRules)",
+     "Impulse hit effect (ImpulseEffectRules, AW source-manifest.json:38798)": {
+      "Impulse": "ModifiableFloat - plain number, { BaseValue; BuffType; BuffMode }, or { BaseValue; Modifiers [ ScaledBuff ] } (VM railgun_launcher.rules:540-552); EffectScaleExponent only matters inside shots",
+      "ApplyToCenterOfMass": "bool (verified VM shots/tractor_beam/tractor_beam_overclock.rules:13); true = no torque, pure translation",
+      "PushShip / PushCrew / PushBullet": "bool members (0.30.4c), no vanilla use in Impulse; defaults evidently push the ship (vanilla recoil sets none)",
+      "UseEffectDirection": "bool member; vanilla recoil leaves it unset and steers with Rotation, so the default follows the effect (component) direction"
+     },
+     "status": "verified 0.30.4-safe (0.30.3 + 0.30.5 RC identical)"
+    },
+    "direction": "Vanilla: Weapon Rotation = -90d (fires toward -y = 'up' in the unrotated part) and RecoilEffects Rotation = 90d relative to RecoilProjectile (not rotated) = +y = backwards. For the ponta: either no ChainedTo + Rotation = 90d, or ChainedTo = Weapon + Rotation = 180d. Sign: check in game (test T-TR-1); if the ship lurches forward use -90d.",
+    "torque": "The impulse acts at Location, so an off-centre Tupã also spins the ship (vanilla railgun does the same: its push point runs along the barrel). ApplyToCenterOfMass = true removes the spin. Recommended default: false (vanilla feel), switch rail.recoil_com.",
+    "determinism": "Game logic (hit effects) must never be ChainedTo a component with Interpolate = true: vanilla comment 'WARNING: Only use this for interpolating graphics. Using it for game logic will cause multiplayer desyncs.' (VM railgun_launcher.rules:501) and the dedicated RecoilProjectile copy with Interpolate = false (:518-521). The TK ponta Projectile has Interpolate = true (TK bs2t_rail_ponta/bs2t_rail_ponta.rules:389): do not chain the kick to it. Trigger = BulletEmitter with no ChainedTo (or ChainedTo = Weapon) is safe."
+   },
+   {
+    "id": "B_emitter_recoil_field",
+    "what": "EmitterRules.Recoil on the BulletEmitter: one impulse per shot at the emitter location, opposite the fire direction (vanilla deck cannon feel).",
+    "evidence": [
+     "AW source-manifest.json:31198-31218 EmitterRules members include Recoil; AW wiki/05-reference/part-component-catalog.md:47",
+     "VM cannon_deck.rules:847 Recoil = 240 and :876 Recoil = (&^/0/Recoil) * (&~/OVERCLOCK/RECOIL_FACTOR) (250%, :6)",
+     "VM missile_launcher/nuke/missile_launcher_nuke.rules:140 Recoil = 300; emp :120 150; he :418 50; mine :167 50; thermal :818 50",
+     "VM cannon_large.rules:402 80 (:4 OC x2); cannon_med.rules:510 20; chaingun.rules:891 10; flak_cannon_large.rules:534 10",
+     "SW: ion cannons 25-75, missile launchers 50-150, turbolasers with (&^/0/Recoil) * (&~/OVERCLOCK/RECOIL_FACTOR)",
+     "BS: our generated guns already load in 0.30.4c with Recoil 0..400 (BulletStrike/parts/bs_naval_406/bs_naval_406.rules, bs_naval_155 325, tools/bsgen/guns.py:482, ciws.py:206)"
+    ],
+    "type": "number (float). Whether it is a ModifiableFloat (buffable per N) is UNKNOWN: no vanilla/SW use with BuffType; only arithmetic expressions. Treat it as a fixed number for all N.",
+    "status": "verified 0.30.4-safe as a fixed number"
+   },
+   {
+    "id": "C_vanilla_run_push (not recommended as is)",
+    "what": "Copy of the vanilla RecoilProjectile/RecoilTimer/RecoilEffects: pushes every 1/30 s while the slug runs.",
+    "problem": "Our slug is a slow visual run. RailgunProjectile kinematics of the Tupã: SpeedStart 6 -> SpeedEnd 50 tiles/s over 3N+4 tiles, T = (3N+4)/28 s = 0.25/0.36/0.46/0.57/0.68/0.79 s for N=1..6 (SPEC railgun.firing_timeline.per_N; TK bs2t_rail_ponta.rules:21-22,380-390). Timer ticks = 1 + floor(30 T) = 8/11/14/18/21/24. With the SPEC's 3000/tick: 24000/33000/42000/54000/63000/72000 per shot. Vanilla railgun: SpeedStart 360 x RailgunShot (VM shots/bullet_railgun/bullet_railgun.rules:10), N=4 path 16 tiles at ~470 tiles/s = 0.034 s = 2 ticks x 2000 = ~4000 (OC x2.5 ~10000).",
+    "if_wanted": "Use it only as a small 'push while the slug runs' on top of the kick: per-tick value = desired_total / ticks (e.g. 150/tick = 1200 at N=1 .. 3600 at N=6), always on a RecoilProjectile copy with Interpolate = false.",
+    "status": "verified mechanism, wrong magnitude in SPEC"
+   },
+   {
+    "id": "D_feedback_hit_effect (rejected)",
+    "what": "HitEffects [ { Type = Feedback; HitEffects [ Impulse ] } ] inside a SHOT applies effects back to the firing ship.",
+    "evidence": "VM shots/tractor_beam/tractor_beam.rules:177-197 (Feedback Impulse = +TractorImpulse/2 to the source), tractor_beam_overclock.rules:16; SW tractor/collector beams; AW FeedbackEffectRules (source-manifest.json:38660)",
+    "why_rejected": "Fires only when the slug HITS something (late at range, never on a miss). Not a firing jolt."
+   },
+   {
+    "id": "E_area_impulse_self (rejected)",
+    "what": "AreaImpulse with Filter { Self = true } from a part TriggeredEffects.",
+    "evidence": "VM tractor_beam_emitter.rules:909-952 (Filter Self=false for ships; Self=true only for bullets); AW AreaImpulseEffectRules members ApplyFalloff, Falloff, Filter, Impulse, InvertFalloff, PushShip(s), PushShipCenterOfMassOnly, Radius, UseEffectDirection",
+    "why_rejected": "Radial push, needs filter tricks to hit the own ship, no vanilla example on the own hull. Option A is the vanilla way."
+   }
+  ],
+  "magnitude_reference": {
+   "units": "Impulse and Recoil share the physics impulse unit (thruster force strings are kN, so impulse ~ kN*s). Thruster forces: huge 8000 (VM thruster_huge/thruster_huge.rules:39), boost 3600/9600 (thruster_boost.rules:56,92).",
+   "vanilla_per_shot": {
+    "deck_cannon": 240,
+    "deck_cannon_OC": 600,
+    "nuke_launcher": 300,
+    "railgun_N4": "~4000 (2 ticks x 2000)",
+    "railgun_N4_OC": "~10000"
+   },
+   "our_mod_per_shot": {
+    "bs_naval_406": 400,
+    "bs_naval_155": 325
+   },
+   "proposal": "Kick = { BaseValue = 2400; BuffType = BulletStrike_RailShot; BuffMode = Multiply } (m(N) = 1 + 0.25 N^0.85): N=1 3000, N=2 3380, N=3 3900, N=4 4350, N=5 4750, N=6 5150 = about the vanilla railgun at the same N and well under vanilla OC. Average over the 6 s cycle at N=4 = 725 (9% of one huge thruster): a visible jolt, not a drive. Tune in game (T-TR-1). Fixed-number fallback (mechanism B): Recoil = 4000.",
+   "status": "proposal (balance call)"
+  },
+  "recommended_rules_sketch_ponta": "TrancoImpulso\n{\n\tType = TriggeredEffects\n\tTrigger = BulletEmitter            // the shot itself (the slug leaves)\n\tLocation = [1.5, 2]                // ponta centre (part tiles)\n\tRotation = 90d                     // +y = backwards for a gun that fires toward -y (sign: test T-TR-1)\n\tHitEffects\n\t[\n\t\t{\n\t\t\tType = Impulse\n\t\t\tImpulse = { BaseValue = 2400; BuffType = BulletStrike_RailShot; BuffMode = Multiply; }\n\t\t\t// ApplyToCenterOfMass = true   // switch rail.recoil_com: no spin from an off-centre gun\n\t\t}\n\t]\n}",
+  "notes": [
+   "Do NOT combine A with the vanilla RecoilProjectile copy at 3000/tick (SPEC firing_timeline[4]); replace it.",
+   "The TK ponta (TK bs2t_rail_ponta.rules) has NO recoil today; TK bs2t_rail_carregador.rules:706-722 FireEffect plays only the vanilla shot sound.",
+   "The vanilla railgun loader/accelerators have no sprite recoil and no fire shake: the vanilla railgun's only 'kick' is the physical impulse."
+  ]
+ },
+ "q2_screen_shake": {
+  "media_effect": {
+   "base": "VM cosmoteer.rules:163 BASE_SHAKE = &<common_effects/base_shake.rules>; VM common_effects/base_shake.rules:1-5 = { Type = ScreenShake; DurationFalloff = 2; MinDistance = 0; MaxDistance = 2; DistanceFalloff = 1 }",
+   "use_form": ": /BASE_SHAKE { ShakeAmount = <x>; Duration = <s> }  inside any MediaEffects list (part TriggeredEffects / DeathEffects, shot Hit* blocks)",
+   "fields_0304c": "AW source-manifest.json:40371 ScreenShakeEffectRules members: ShakeAmount, Duration, DurationFalloff, MinDistance, MaxDistance, DistanceFalloff (+ internal DistanceLookupTable). ScreenShakeEffect (:40355) has PlayOneShot / PlayContinuous / EndContinuous.",
+   "field_types": {
+    "ShakeAmount": "float in parts (all vanilla part uses are plain numbers); in shots it is buffable: VM shots/bullet_railgun/bullet_railgun.rules:116-120 ShakeAmount = { BaseValue=.1; BuffType=RailgunShot; BuffMode=Multiply }, bullet_railgun_overclock.rules:91 (also V303 bullet_railgun.rules:116-118). Buff reading inside a PART TriggeredEffects media effect: unverified -> use a number.",
+    "Duration": "seconds (float)",
+    "DurationFalloff / DistanceFalloff": "exponents (float), keep base values",
+    "MinDistance / MaxDistance": "float, unit not documented (base 0..2; likely view-relative). Keep base values."
+   },
+   "camera_side": "VM cosmoteer.rules:119-128 camera: ScreenShakeExponent = 1, LinearShakeAmount = 1, AngularShakeAmount = 2d, ShakePerlinNoise { GridSize 4; Octaves 2 } (AW CameraRules source-manifest.json:37622). Player setting 'Screen Shake' can turn it off (VM strings/en.rules:1208-1209): never rely on shake alone for the tranco.",
+   "status": "verified 0.30.4-safe (BASE_SHAKE used in 0.30.3 copies V303 bullet_railgun.rules:116, missile_emp.rules:220, ion_beam_overclock.rules:191; and by our own shipped rules, tools/bsgen/guns.py:539, caliber_fx.py:780-810, missile_fx.py:77,355-372, launchers.py:210,332)"
+  },
+  "vanilla_values": {
+   "firing": {
+    "cannon_deck FireEffect1/2 + OC": ".1 / 1 s (VM cannon_deck.rules:930-955 shake at :950-954, :980-984)",
+    "cannon_large": ".075 / .5 (VM cannon_large.rules:432-435, :460-463)",
+    "cannon_med": ".025 / .25 (VM cannon_med.rules:550-553)",
+    "chaingun": ".025 / .25 (VM chaingun.rules:1001-1004)",
+    "flak_cannon_large": ".025 / .25 (VM flak_cannon_large.rules:609-612)",
+    "railgun_launcher": "none (VM railgun_launcher.rules:557-569 FireEffect = particles only)"
+   },
+   "impacts": {
+    "bullet_deck": ".2 / .75 (VM shots/bullet_deck/bullet_deck.rules:79-82)",
+    "bullet_railgun": ".1 x RailgunShot / .75 (VM bullet_railgun.rules:116-120)",
+    "missile_he / thermal / nuke stage1": ".15 / .75",
+    "bullet_large / mine": ".1 / .75",
+    "laser_bolt_large": ".06 / .3"
+   },
+   "deaths": {
+    "BigPartDestroyed": ".15 / 1 (VM common_effects/common_effects.rules:762-765)",
+    "HugePartDestroyed": ".3 / 1 (:816-819)",
+    "reactor_small / med / large": ".25 / 2, .5 / 3, .75 / 4 (VM reactor_small.rules:717-720, reactor_med.rules:759-762, reactor_large.rules:850-853)"
+   },
+   "continuous": "Only beams re-trigger a shake every HitInterval (VM shots/ion_beam/ion_beam.rules:261-264 inside HitOperational). No vanilla part ContinuousEffects with a shake: a charge-up rumble would be unverified."
+  },
+  "our_mod_values": "BulletStrike rules: naval 406 fire 0.12 / 1 s (BulletStrike/parts/bs_naval_406/bs_naval_406.rules:888-891), deck guns 0.02-0.16 (tools/bs_data.py:94-131), nuke 0.35 (bs_data.py:307,755); SPEC railgun.visuals.end_of_path impact 0.15 x m / 0.9 s.",
+  "recommendation": {
+   "where": "ponta FireEffect (TriggeredEffects Trigger = BulletEmitter, ChainedTo = Weapon; TK bs2t_rail_ponta.rules:425-437) - add one entry to its MediaEffects",
+   "sketch": ": /BASE_SHAKE\n{\n\tShakeAmount = 0.2\n\tDuration = 0.7\n}",
+   "range": "ShakeAmount 0.18-0.25, Duration 0.6-0.8 s. Above the vanilla deck cannon (0.1) and our 406 mm (0.12) because the Tupã fires every 6 s; below reactor_small death (0.25/2 s). Fixed for every N (buffs in part media unverified).",
+   "optional": "A second small shake (0.05 / 0.3 s) in the loader breech-slam TriggeredEffects is redundant (same tick); skip. A charge rumble (ContinuousEffects with BASE_SHAKE during the charge timer) has no vanilla precedent: unverified, default off."
+  }
+ },
+ "q3_sprite_recoil": {
+  "pattern": {
+   "vanilla": [
+    "VM cannon_deck.rules:1173-1272 Barrel1Graphics: Type = Graphics; ChainedTo = Turret; Rotation = 90d; ResetAnimationTrigger = Emitter1Proxy; OperationalDoodad { Layer = \"roof_turrets\"; DamageLevels [ { AnimationFiles [barrel2..barrel8, barrel1 ('Loop back to beginning and clamp there.')]; NormalsAnimationFiles [same order]; Size = [2,2]; AnimationInterval = 0.0625; AnimationStartTime = MinValue; ClampAnimation = true } x 3 damage levels ] }; Barrel2Graphics :1273-1277 with ResetAnimationTrigger = Emitter2Proxy",
+    "VM cannon_med.rules:755-790 BarrelGraphics ResetAnimationTrigger = BulletEmitter (the emitter component itself is a valid trigger)",
+    "VM chaingun.rules:1137-1141 + 1175-1209: ResetAnimationTrigger = BarrelAnimationResetTriggerProxy, a TriggerProxy (same part) - proxies are valid reset triggers",
+    "VM factory_diamond.rules:266-272: one Graphics with BOTH DoodadToggle = ResourceConverter and ResetAnimationTrigger = ConversionTimer",
+    "VM flak_cannon_large.rules:764,864; laser_blaster_large.rules:945,994; point_defense.rules:550; cannon_large.rules:729; disruptor.rules:622 (all ResetAnimationTrigger)",
+    "V303 railgun_loader.rules:564-682 WeaponGraphics: DoodadToggle = LoadedAmmo; ToggleOnDoodad 3 frames / ToggleOffDoodad 4 frames reversed, AnimationInterval 0.0666, ClampAnimation = true (the existing breech door pattern, kept by TK bs2t_rail_carregador.rules:614-659)"
+   ],
+   "our_generator": "tools/bsgen/guns.py:171-216 deck_graphics(): Graphics with OperationalToggle = IsOperational, ResetAnimationTrigger = <emitter proxy>, OperationalDoodad {AnimationFiles, NormalsAnimationFiles, AnimationInterval, AnimationStartTime = MinValue, ClampAnimation = true}, NonOperationalDoodad = rest frame (in game since stage 1); STYLE.md:97-100,145 (recoil list per frame in tiles, first = shot; 76 mm 0.26 .. 406 mm 0.6)",
+   "fields": {
+    "Graphics.ResetAnimationTrigger": "trigger ID (component, TriggerProxy or MultiTrigger). Handled by PartGraphics, PartSprite and PartSpriteGrid (AW source-manifest.json:26961, :27222 OnResetAnimation). NOT by ValueSprites/ResourceSprites (BasePartValueSprites :26781 has no OnResetAnimation).",
+    "AtlasSprite animation fields (AW source-manifest.json:33111)": "AnimationFiles [str], NormalsAnimationFiles [str] (same count; repeating one normals file is accepted, guns.py:190-195), AnimationInterval (s/frame), AnimationStartTime (MinValue = start already clamped at the last frame, so the rest pose shows at load and only a trigger plays it; Zero = plays once at time 0), ClampAnimation bool, also FrameCount/FramesPerRow/UVOffsetPerFrame (flipbook form, not needed), Offset (static only), Size",
+    "status": "verified 0.30.4-safe (deck cannon/cannon_med/chaingun patterns are in 0.30.3-era vanilla and in our shipped guns)"
+   }
+  },
+  "cross_part_trigger": {
+   "question": "Canos and loader do not own the emitter: their reset trigger is a TriggerProxy toward the ponta (cano EmissionTriggered TK bs2t_rail_cano.rules:178-181; loader EmitTrigger TK bs2t_rail_carregador.rules:345-348; vanilla V303 railgun_loader.rules:243-257).",
+   "evidence": "Vanilla uses those same cross-part TriggerProxies as TriggeredToggle OnTrigger/OffTrigger (V303 railgun_loader.rules:684-690 AmmoHideToggle) and TriggeredEffects Trigger (:838-855). A TriggerProxy implements the part trigger interface (AW wiki/04-integration/logic-gate-authoring.md:130-150 'anything that consumes that signal can point at a proxy'). Vanilla ResetAnimationTrigger only ever points at same-part triggers/proxies.",
+   "status": "inferred (should work; test T-TR-3)",
+   "fallback": "Local relay: TrancoRelay { Type = Timer; StartTrigger = EmissionTriggered; Duration = 0.5; TriggerWhenStarted = true } and ResetAnimationTrigger = TrancoRelay (Timer as trigger: VM factory_diamond.rules:272 ConversionTimer; TriggerWhenStarted: VM railgun_launcher.rules:522-530). Or a MultiTrigger { Triggers = [EmissionTriggered] } (ponta EmissionTriggered pattern TK bs2t_rail_ponta.rules:420-424)."
+  },
+  "what_to_animate": {
+   "ponta_crown": {
+    "now": "art3d/bs_rail_muzzle 'weapon' layer (game layer weapons, rect [0,0,3,1.5], weapon.png + weapon_normals.png) drawn by a static Graphics",
+    "tranco": "new Graphics TrancoCoroa { OperationalToggle = IsOperational; ResetAnimationTrigger = BulletEmitter; OperationalDoodad Layer \"weapons\" AnimationFiles weapon_tranco1..8 + NormalsAnimationFiles; NonOperationalDoodad = rest }. The crown slides toward +y (into the part), so the rect grows by the stroke: [0, 0, 3, 1.5 + stroke] (e.g. [0,0,3,1.7]). The static weapon.png must stop drawing the moving pieces (keep only the fixed base, or drop it)."
+   },
+   "cano_drums_rails": {
+    "now": "the 3 EM drums, white rails and orange half-clamps are painted in roof.png (static 'roofs' layer); trilhos1..9 (doodads_low) and carga1..8 (lights_add) are ValueSprites driven by the charge value (TK bs2t_rail_cano.rules:246-286; art3d/bs_rail_barrel/meta.json notes)",
+    "constraint": "ValueSprites cannot be reset-animated, and a moving copy drawn over the static roof would double the drums. The recoiling pieces must be cut out of roof.png into their own animated layer.",
+    "tranco": "new Graphics TrancoTambores { Location = [1.5,1.5]; ResetAnimationTrigger = EmissionTriggered (cano TriggerProxy); OperationalDoodad Layer \"roof_turrets\" (vanilla lit+animated layer for deck barrels) or \"roof_doodads\"; AnimationFiles tambores_tranco1..8 + normals; Size [3,3] }. Rails: keep trilhos1..9 static (they are the charge display) OR move only the white rail caps into the same tranco layer. Joints must stay seamless at rest (last frame = current roof pixels).",
+    "why_not_chain_offsets": "Moving a ValueSprites by ChainedTo a moving component: only RailgunProjectile translates (one way, no spring back) and Oscillator only rotates (AW OscillatorRules Angle/Interval). Not usable for a spring recoil."
+   },
+   "loader_breech_slam": {
+    "now": "art3d/bs_rail_loader 'weapon' layer (weapons, rect [0,0,3,1], normals) static; culatra_abre1..3 / culatra_carrega1..6 on walls via DoodadToggle = LoadedAmmo",
+    "tranco": "new Graphics CulatraTranco { ResetAnimationTrigger = EmitTrigger; OperationalDoodad Layer \"weapons\" AnimationFiles culatra_tranco1..N + normals }: the breech block slams back (+y) then returns. Keep it a SEPARATE component from the DoodadToggle breech doors (a reset would also restart any other animated doodad in the same component). At emission LoadedAmmo empties, so the existing ToggleOffDoodad opens the breech doors (walls) in the same instant: slam (weapons, above) + doors open (walls, below) read as one violent cycle.",
+    "springs": "the golden springs on the side plates can compress in the same frames (they sit in the 5-wide plates, also on the weapons/roof_turrets layer)"
+   }
+  },
+  "timing": {
+   "requested": "slide back 0.12-0.2 tile, spring forward over ~0.4 s",
+   "recommended": "8 frames x 0.05 s = 0.40 s, frame 1 = full stroke (instant kick), last frame = rest (ClampAnimation holds it). Offsets as a fraction of the stroke k: [1.00, 0.85, 0.62, 0.36, 0.12, -0.05, -0.03, 0.00] (small forward overshoot = spring) or without overshoot [1.00, 0.90, 0.74, 0.55, 0.36, 0.19, 0.07, 0.00].",
+   "stroke_per_part_tiles": {
+    "ponta_crown": 0.18,
+    "cano_drums": 0.12,
+    "loader_breech_block": 0.15,
+    "loader_springs_compress": "0.10-0.15"
+   },
+   "pixels": "64 px per tile (STYLE.md:62): 0.12 = 7.7 px, 0.15 = 9.6 px, 0.18 = 11.5 px, 0.2 = 12.8 px",
+   "vanilla_reference": "deck cannon 8 frames x 0.0625 = 0.5 s; our naval guns 5 frames x 0.06 (guns.py:192-195, recoil [0.26,0.18,0.10,0.04] + rest)",
+   "wave_option": "Kick travelling back from the muzzle (cano i a few hundredths later) needs a per-cano delay from the cano index (BuffableValue BS_Rail): PartDelayTriggerRules has only Delay/Trigger (AW :28056) and vanilla only uses numeric Delay (VM ships/base_part_overclock.rules:100) -> per-index delay unverified. Default: all pieces recoil on the same tick (physically correct)."
+  },
+  "glow_rule": "Do not relight the charge planes on the recoil frames (barrel meta note: 'Nunca reacender um plano de carga depois do disparo'). The tranco frames are pure armour/drum motion; a muzzle flash/ring carries the light."
+ },
+ "muzzle_shock_ring": {
+  "options": [
+   "Vanilla railgun_shoot.rules (VM ships/terran/railgun_launcher/particles/railgun_shoot.rules: flipbook railgun_shoot.png, Lifetime 0.4 (:50-53), LocalScale 2 (:32-34), Bucket RailgunShoot (:223)) - already in the TK ponta FireEffect (TK bs2t_rail_ponta.rules:425-437) with railgun_shoot_distortion.rules",
+   "Our fxkit.blob with tex = SHOCKWAVE (./Data/common_effects/particles/shockwave.png, tools/bsgen/fxkit.py:382-427: the nuke ring builder, explosive_charge_shockwave pattern, linear growth, bucket Upper2) recoloured blue [100,175,255] -> white core: e.g. size 6-7 tiles, start 1 tile, life 0.3-0.35 s, alpha ramp 1 -> 0",
+   "Our fxkit.ring (plasma muzzle ring, tools/bsgen/plasma_fx.py:429-446 / fxkit copy) with texture railgun_shoot.png and a blue ramp"
+  ],
+  "where": "ponta FireEffect MediaEffects (Trigger = BulletEmitter, ChainedTo = Weapon, Location [1.6,0], AnchorMediaEffects = true), or a separate TriggeredEffects at the muzzle so the ring stays where the ship was (AnchorMediaEffects = false) while the ship recoils - reads stronger with the physical kick",
+  "breech_puff": "optional vent puff at the loader breech on EmitTrigger (pattern: our RecoilSmoke TriggeredEffects at the breech, tools/bsgen/guns.py:555-566) in blue-white ion haze instead of smoke",
+  "status": "verified field set (vanilla particle + our shipped fxkit text, 0.30.4c TAIL_TEXT)"
+ },
+ "extra_tranco_options": [
+  {
+   "id": "crew_stun",
+   "what": "AreaCrewStun on the own crew near the loader when the gun fires (vanilla deck cannon blast: VM cannon_deck.rules:992-1015, Duration 0.5, Radius 6, Filter Friendlies, HitShipOnly; our generator already has g['stun'] for big guns, tools/bsgen/guns.py:568-575).",
+   "note": "gameplay change (crew lose ~0.5 s); balance decision, default off"
+  },
+  {
+   "id": "light_kick",
+   "what": "a 1-2 frame bright frame of the muzzle light (roof_lights_fancy light_blob) on the shot",
+   "note": "already planned as the muzzle flash"
+  }
+ ],
+ "q4_loader_5x5_chain": {
+  "criteria_semantics": {
+   "rule": "RelativePartCriteria fields Rot (relative rotation, 0 = same orientation), Left/Right/Top/Bottom = the TARGET part's rect edges in THIS part's unrotated tile coordinates; Right/Bottom are exclusive; every edge is optional; plus Category / IDs filters.",
+   "evidence": [
+    "VM chaingun.rules:34 Size [3,6] and :575-635: left magazine proxy PartLocation [-1,4] with PartCriteria {Rot 0; Right 0; Bottom 6} = the 1x2 magazine on the left has its right edge at x 0 and its bottom edge at y 6; a second entry {Rot 2; Right 0; Bottom 5} accepts a 180-degree magazine",
+    "V303 railgun_loader.rules:163-191 (2-wide loader: BuffArea [0,-1,2,1], Criteria {Rot 0; Left 0; Right 2; Bottom 0} = the accelerator above spans x 0..2 and ends at y 0)",
+    "V303 railgun_accelerator.rules:181-211 (Criteria {Rot 0; Left 0; Right 2; Top 3} toward the part below)",
+    "VM chaingun_magazine.rules:36-92 IDs filter + Criterias list"
+   ],
+   "list_forms": {
+    "AreaBuffProvider": "Criteria { ... } (single, vanilla railgun) or Criterias [ {..} {..} ] (list; a receiver must match at least one; VM ships/terran/chaingun_magazine/chaingun_magazine.rules:43-92; live in SW 0.30.4 ships/terran/weapons/missile_launchers/chaingun_magazine/chaingun_magazine.rules:43-90; AW wiki/02-subsystems/buff-system.md:175)",
+    "ResourceStorageProxy / TriggerProxy / ToggleProxy": "PartCriteria {..} + ComponentID (single) or ProxyableComponents [ { PartCriteria {..}; ComponentID = X } ... ] (first match wins; PartLocation stays ONE cell for all entries; VM chaingun.rules:575-635; live in SW chaingun_magazine.rules:139,168,207; AW logic-gate-authoring.md:144-145, ProxyRules members ComponentID/InvertProxyToggle/ProxyableComponents source-manifest.json:29314)",
+    "status": "verified 0.30.4-safe"
+   }
+  },
+  "geometry": "Unrotated, gun fires toward -y. 5x5 loader tiles x 0..4, y 0..4; breech row y = 0. The 3-wide canos sit on loader x 1..3 (cano local x 0..2 = loader x 1..3, cano bottom edge at loader y 0). Cano rect in loader coords: Left 1, Right 4, Top -3, Bottom 0. Loader rect in cano coords: Left -1, Right 4, Top 3, Bottom 8.",
+  "changes": [
+   {
+    "part": "carregador (5x5)",
+    "component": "RailBuffProvider (BulletStrike_Rail, BuffAmount 0)",
+    "was": "BuffArea [0,-1,3,1]; Criteria {Category bs_rail_energia; Rot 0; Left 0; Right 3; Bottom 0} (TK bs2t_rail_carregador.rules:297-311)",
+    "now": "BuffArea [1,-1,3,1]; Criteria {Category bs_rail_energia; Rot 0; Left 1; Right 4; Bottom 0}"
+   },
+   {
+    "part": "carregador (5x5)",
+    "component": "OperationBuffProvider (BulletStrike_RailOperation)",
+    "was": "same as above (TK :312-326)",
+    "now": "BuffArea [1,-1,3,1]; Criteria {Category bs_rail_energia; Rot 0; Left 1; Right 4; Bottom 0}"
+   },
+   {
+    "part": "carregador (5x5)",
+    "component": "TriggerProxies WeaponTrigger / ProjectileStartTrigger / EmitTrigger (ComponentID Weapon / ProjectileStartTrigger / EmissionTriggered)",
+    "was": "PartLocation [0,-1]; PartCriteria {bs_rail_energia; Rot 0; Left 0; Right 3; Bottom 0} (TK :327-348)",
+    "now": "PartLocation [1,-1] (or [2,-1]); PartCriteria {Category bs_rail_energia; Rot 0; Left 1; Right 4; Bottom 0}"
+   },
+   {
+    "part": "carregador (5x5)",
+    "component": "Porta_Trilho (charge-wave port, own type rafaeltessaro.bs_trilho_cima / compatible _baixo)",
+    "was": "Location [1,0] Direction Up (TK :415-431)",
+    "now": "Location [2,0] Direction Up (faces the cano's Porta_Trilho_Baixo at cano [1,2] = loader [2,-1])"
+   },
+   {
+    "part": "cano",
+    "component": "LoadedSlug (spec name; TK LoadedAmmo) + LoaderBattery ResourceStorageProxy",
+    "was": "PartLocation [0,3]; PartCriteria {bs_rail_municao; Rot 0; Left 0; Right 3; Top 3} (TK bs2t_rail_cano.rules:138-157; SPEC parts.cano.proxies writes only {bs_rail_municao; Top 3})",
+    "now": "PartLocation [0,3] (inside both a cano and the centred loader); ProxyableComponents [ { PartCriteria {Category bs_rail_municao; Rot 0; Left 0; Right 3; Top 3}; ComponentID = LoadedSlug }  { PartCriteria {IDs [rafaeltessaro.bs_rail_loader] (or Category bs_rail_carregador); Rot 0; Left -1; Right 4; Top 3}; ComponentID = LoadedSlug } ] (same for LoaderBattery)"
+   },
+   {
+    "part": "cano",
+    "component": "ReverseBuffOperationProvider (BulletStrike_RailReverseOperation)",
+    "was": "BuffArea [0,3,3,1]; Criteria {bs_rail_municao; Rot 0; Left 0; Right 3; Top 3} (TK :120-135)",
+    "now": "BuffArea [0,3,3,1] (unchanged, intersects either); Criterias [ {Category bs_rail_municao; Rot 0; Left 0; Right 3; Top 3} {IDs [rafaeltessaro.bs_rail_loader]; Rot 0; Left -1; Right 4; Top 3} ]. CRITICAL: without it the loader never receives RailReverseOperation and stays non-operational (TK carregador IsOperational = BuffOperational AND RailReverseOperationBuffToggle, :77-82)."
+   },
+   {
+    "part": "cano B (power variant B only)",
+    "component": "ContagemProvider (BulletStrike_RailCount)",
+    "was": "BuffArea [0,3,3,1]; Criteria {bs_rail_municao; Left 0; Right 3; Top 3} (TK bs2t_rail_cano_b.rules:31-47)",
+    "now": "same two-entry Criterias as ReverseBuffOperationProvider"
+   },
+   {
+    "part": "cano",
+    "component": "forward links (RailBuffProvider, RailOperationBuffProvider, TriggerProxies Weapon/ProjectileStartTrigger/EmissionTriggered, Porta_Trilho_Cima/Baixo)",
+    "was": "toward [0,-1] / the next cano or ponta (TK :87-119, :160-181, :196-219)",
+    "now": "unchanged"
+   },
+   {
+    "part": "ponta",
+    "component": "ProjetilProxy / BateriaProxy / ReverseOperationBuffProvider / ContagemInicio",
+    "was": "toward [0,4] with {Left 0; Right 3; Top 4} (TK bs2t_rail_ponta.rules:142-194)",
+    "now": "unchanged: the ponta only ever sits on a cano (CanosOk demands N >= 1, :128-134). Side effect: a ponta placed straight on the 5x5 loader no longer connects at all (correct)."
+   }
+  ],
+  "why_exact_edges": "With only {Category; Top 3} (SPEC wording) a loader shifted 1 tile sideways would still be hit by the cano's proxy cell [0,3] and feed slugs/power through a misaligned gun while the forward buffs fail; exact edges keep a misaligned build fully disconnected (MissingComponent indicators).",
+  "other_loader_geometry_to_update": {
+   "Size": "[5,5]; Graphics Location [2.5,2.5]; Blueprints Size [5,5]; EditorIcon Size [115,115] (23 px per tile like the current [69,92], TK :59-67)",
+   "AllowedDoorLocations": "was [[-1,1],[-1,2],[3,1],[3,2],[1,4]]; proposal [[-1,2],[-1,3],[5,2],[5,3],[2,5]] (sides + rear middle; final rows follow the art's crew stations)",
+   "BlockedTravelCells": "was breech row [[0,0],[1,0],[2,0]]; proposal [[0,0],[1,0],[2,0],[3,0],[4,0]] (+ any machinery cells the art fills: capacitor banks, magazine column)",
+   "crew": "2 (unchanged): CrewLocation/CrewDestinations from the art's crew_pos",
+   "LoadedSlug UITileRect": "was [1 + 7/64, 7/64, 1 - 14/64, 1 - 14/64] (TK :182) -> [2 + 7/64, 7/64, 1 - 14/64, 1 - 14/64]",
+   "belt ports (reserve network)": "rear corners [0,4] Left/Down and [4,4] Down/Right (was [0,3]/[2,3], TK :275-294; SPEC railgun.belt.ports)",
+   "fallback_adjacency PaiolAcoplado_0": "PartLocation [0,5] (was [0,4])",
+   "fita teleporte AvisaFita* (SPEC railgun.logistica.teleporte.host)": "AvisaFitaHorizontal BuffArea [-1,0,7,5] (was [-1,0,5,4]); AvisaFitaVertical [0,-1,5,7] (was [0,-1,3,6])",
+   "CapacitorDischarge / DestroyedEffects / Indicators Location": "[2.5,2.5]",
+   "flagged balance items (not decided here)": "MaxHealth (20000 for 12 tiles), build cost, Density (mass 4 x 25 = 100 vs 48: heavier gun = slightly less recoil acceleration), LoaderBattery levels for the bigger capacitor bank"
+  }
+ },
+ "spec_patch_inputs": {
+  "note": "Inputs for the art step's spec_patch.json (this research step writes no spec patch).",
+  "railgun.parts.carregador": {
+   "size": [
+    5,
+    5
+   ],
+   "layout_unrotated": "row 0 = breech across the centre 3 columns (x 1..3, under the canos) with white wedge plates + golden springs on the outer columns x 0 and x 4; rows 1-3 = 2 crew stations + bigger capacitor bank; rows 3-4 = bigger capsule magazine window (more capsules); feed slit x 2",
+   "chains_start": "BuffArea [1,-1,3,1]; Criteria {Category bs_rail_energia; Rot 0; Left 1; Right 4; Bottom 0}; TriggerProxies PartLocation [1,-1] same criteria; Porta_Trilho [2,0] Up",
+   "doors": "see q4 other_loader_geometry_to_update"
+  },
+  "railgun.parts.cano.proxies": "LoadedSlug + LoaderBattery: PartLocation [0,3], ProxyableComponents [cano {Left 0; Right 3; Top 3}, loader {IDs [rafaeltessaro.bs_rail_loader]; Left -1; Right 4; Top 3}]; ReverseBuffOperationProvider + ContagemProvider: Criterias [same two]",
+  "railgun.firing_timeline[4]": "replace 'RecoilProjectile + 1/30 s Timer Impulse 3000' by 'TrancoImpulso TriggeredEffects Trigger = BulletEmitter, Rotation 90d, Impulse { BaseValue 2400; BuffType BulletStrike_RailShot; BuffMode Multiply } (3000 N=1 .. 5150 N=6)'",
+  "railgun.visuals.muzzle": "recoil Impulse 3000 -> one kick 2400 x m(N); + BASE_SHAKE 0.2 / 0.7 s on the shot; + blue shock ring",
+  "new railgun.tranco block": {
+   "impulse": {
+    "component": "ponta TrancoImpulso",
+    "trigger": "BulletEmitter",
+    "base": 2400,
+    "buff": "BulletStrike_RailShot Multiply",
+    "rotation": "90d",
+    "location": [
+     1.5,
+     2
+    ],
+    "switch_com": "rail.recoil_com (ApplyToCenterOfMass, default false)"
+   },
+   "shake": {
+    "where": "ponta FireEffect",
+    "ShakeAmount": 0.2,
+    "Duration": 0.7
+   },
+   "anim": {
+    "frames": 8,
+    "interval": 0.05,
+    "start": "MinValue",
+    "clamp": true,
+    "rest": "last frame",
+    "curve_fraction": [
+     1.0,
+     0.85,
+     0.62,
+     0.36,
+     0.12,
+     -0.05,
+     -0.03,
+     0.0
+    ],
+    "strokes_tiles": {
+     "ponta_crown": 0.18,
+     "cano_drums": 0.12,
+     "loader_breech": 0.15
+    }
+   },
+   "triggers": {
+    "ponta": "BulletEmitter",
+    "cano": "EmissionTriggered (TriggerProxy)",
+    "loader": "EmitTrigger (TriggerProxy)",
+    "fallback": "local Timer TriggerWhenStarted relay"
+   }
+  },
+  "art_contract_deltas (names are proposals for the art step)": [
+   "bs_rail_loader: size 3x4 -> 5x5 (every rect/file re-rendered at 320x320 px); NEW culatra_tranco1..8.png + culatra_tranco_normals1..8.png (weapons layer, rect = breech block + stroke) and molas in the same frames or molas_tranco1..8; projeteis1..N / capacitores1..N with more levels (bigger window/bank)",
+   "bs_rail_barrel: drums (+ rail caps) cut out of roof.png into NEW tambores_tranco1..8.png + normals (roof_turrets or roof_doodads, rect [0,0,3,3]); file names/rects/frame counts of trilhos1..9 and carga1..8 unchanged; joints seamless at rest",
+   "bs_rail_muzzle: crown cut out of weapon.png into NEW weapon_tranco1..8.png + weapon_tranco_normals1..8.png (weapons layer, rect [0,0,3,1.5 + stroke] e.g. [0,0,3,1.7]); everything else unchanged"
+  ]
+ },
+ "tests": [
+  {
+   "id": "T-TR-1",
+   "what": "Creative, one Tupã N=4 on a small ship at rest, centred: fire once. Ship must move BACKWARD (else flip Rotation to -90d). Note the speed after one shot; compare N=1 and N=6 (buff scaling) and the fixed Recoil = 4000 variant."
+  },
+  {
+   "id": "T-TR-2",
+   "what": "Same gun mounted off-centre: ship spins a little; with ApplyToCenterOfMass = true it must not spin."
+  },
+  {
+   "id": "T-TR-3",
+   "what": "Every shot replays the crown, every cano's drums and the loader breech frames (cross-part TriggerProxy as ResetAnimationTrigger); at load/build all show the rest frame (AnimationStartTime MinValue). If the canos/loader do not replay: use the local Timer relay."
+  },
+  {
+   "id": "T-TR-4",
+   "what": "Shake felt on each shot and gone with Settings > Screen Shake off; no shake when the camera is far (MaxDistance)."
+  },
+  {
+   "id": "T-TR-5",
+   "what": "5x5 loader chain for N=1..6: CanosOk on, BulletStrike_Rail = N, loader operational (RailReverseOperation reaches it), slug/battery reach the ponta, charge wave lights from the loader port [2,0]. Shift the loader 1 tile left/right: nothing connects (MissingComponent on canos/ponta)."
+  },
+  {
+   "id": "T-TR-6",
+   "what": "Multiplayer/replay: no desync after many shots (impulse not chained to the Interpolate = true Projectile)."
+  }
+ ],
+ "open_questions": [
+  "EmitterRules.Recoil: float or ModifiableFloat? (member name only; no buffed use anywhere) - matters only if mechanism B should scale with N.",
+  "Sign of the TriggeredEffects impulse without ChainedTo (expected: positive pushes along Rotation) - T-TR-1.",
+  "Cross-part TriggerProxy as ResetAnimationTrigger has no vanilla example (inferred) - T-TR-3, fallback ready.",
+  "Unit of ScreenShake MinDistance/MaxDistance (base 0..2) - keep base values.",
+  "Whether a part TriggeredEffects media effect can read part buffs (ShakeAmount with BuffType) - not needed if the shake is a fixed number.",
+  "Balance: kick size (2400 x m), loader MaxHealth/cost/Density at 5x5, optional crew stun."
+ ],
+ "sources_read": [
+  "VM ships/terran/railgun_launcher/railgun_launcher.rules (1-570), cannon_deck.rules (1-12, 825-1015, 1170-1300), chaingun.rules (570-680, 1137-1210), chaingun_magazine.rules (1-95), cannon_med.rules (755-790), factory_diamond.rules (265-300), tractor_beam_emitter.rules (895-985), missile_launcher_* Recoil lines, thruster_* forces",
+  "VM shots/tractor_beam/tractor_beam.rules, tractor_beam_overclock.rules, bullet_railgun.rules, bullet_deck.rules, ion_beam.rules; common_effects/base_shake.rules, common_effects.rules shakes; cosmoteer.rules (76, 105-128, 163)",
+  "V303 railgun_launcher.rules (505-600), railgun_loader.rules (160-260, 560-735, 836-860), railgun_accelerator.rules (140-215, 500-535), buffs.rules (59-83), bullet_railgun.rules",
+  "SW mod.rules:28; chaingun_magazine copy; Recoil uses; no part-level Impulse recoil in SW",
+  "AW source-manifest.json (EmitterRules, ScreenShakeEffect(Rules), ImpulseEffectRules, AreaImpulseEffectRules, FeedbackEffectRules, PartTriggeredEffectsRules, PartGraphics, PartSprite, BasePartValueSprites, AtlasSprite, PartDelayTriggerRules, ProxyRules, RelativePartCriteria, CameraRules, symbol_index), wiki part-component-catalog.md:40-60, buff-system.md:140-200, logic-gate-authoring.md:130-160, simulation-core.md",
+  "TK bs2t_rail_carregador.rules (all 812 lines), bs2t_rail_cano.rules (393), bs2t_rail_cano_b.rules (62), bs2t_rail_ponta.rules (677)",
+  "SPEC railgun (parts, firing_timeline, power, visuals, belt, logistica)",
+  "BS tools/bsgen/guns.py, caliber_fx.py, missile_fx.py, launchers.py, sprites.py, fxkit.py, plasma_fx.py; tools/blender/STYLE.md sections 2-3; art3d/bs_rail_*/meta.json"
+ ]
+}

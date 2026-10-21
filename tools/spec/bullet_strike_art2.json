@@ -1,0 +1,5945 @@
+{
+ "_generated_from": "tools/spec/SPEC_2.0.json (tools/spec2_split.py)",
+ "version": "2.0.0",
+ "art_assets": {
+  "section": "art",
+  "title": "Bullet Strike 2.0 - Arte e VFX (spec por asset)",
+  "design_version": "2.0-art-1",
+  "status_note": "Complete spec of every 2.0 art/VFX asset: KEEP / REWORK / NEW / DROP, sizes, layers, frames, render kind, shell ladder, own effects (railgun, PEM, FRAG, AC, Piranha opening), paiol gauges, belt animation, factory reskins, UI icons, previews, and the two Phase B leftover fixes. Nothing in /home/user/Cosmoteer was edited. Supporting tables: assets.csv, fx.csv, light_wash_check.csv, penetration_budget.csv, previews.csv in this folder.",
+  "binding_inputs_applied": {
+   "user_note_2026_10_21": "REWORK of ALL ammo visuals (design/USER_NOTES.txt): every resource item (incl. KEEP IDs bs_mag_std/bs_mag_ap/bs_plasma_cell), every gun projectile from 76 mm up (S tier too, not the current he/ap), AC guided, slug, PEM; small calibres stay tracers coloured per ammo; UI icons in the same style. Overrides the art research's KEEP on those items.",
+   "clean_break": "no legacy art kept for removed IDs: bs_mag_emp, bs_shell_nuke, bs_factory_mag_emp, bs_factory_shell_nuke, napalm/limpet/torpedo/decoy art all DROP (bs_factory_mag_ap CONTINUA como F2 4x3, J3R2-P10)",
+   "names": "railgun = Tupa; heavy PEM = Corisco (newweapons section); premium round = Alta Capacidade (AC); ammo index table 0 HE / 1 AP / 2 SAP / 3 AC / 4 FRAG",
+   "sounds": "NOT now: every new effect file keeps its MediaEffects sound slot with the vanilla wav placeholder (Phase B rule R5)",
+   "game_version": "0.30.4c: only components/fields already used by vanilla 0.30.3/0.30.4c data, SW:ACD or Phase B (d149ec3); ToggledBlendSprites/ValueSprites digits are behind switches pending the testkit"
+  },
+  "conventions": {
+   "px_per_tile": {
+    "parts": 64,
+    "shells": 128,
+    "missiles": 64,
+    "ui_icons": "96x96 px",
+    "editor_icons": "rendered at 64 px/tile, EditorIcon Size per rules"
+   },
+   "ship_layers_bottom_to_top": [
+    "structure",
+    "floors",
+    "turrets",
+    "doodads_low",
+    "walls_stencil",
+    "external_walls",
+    "walls",
+    "doors",
+    "weapons",
+    "doodads_high",
+    "lights_add",
+    "fire",
+    "roofs",
+    "roof_doodads",
+    "roof_turrets",
+    "roof_lights_fancy"
+   ],
+   "layer_evidence": "vanilla_rules_0.30.5/ships/terran/terran.rules:159-658 (art research finding 'Render layers')",
+   "projectile_buckets": "BulletUpper2 (tracer/shade), BulletUpper3 (body, streak), BulletUpper4 (mask, lights, IsLight) - Phase B layout (caliber_fx.py shell_layout)",
+   "style_contract": "tools/blender/STYLE.md applies unchanged: dark core + light double-bevel armour (B.shard), LEDs only in dark recesses, emissive <= 1-2% parts / 3% projectiles / 4% nuclear, roof = pure green key (B.mat_roof_green), copper = PEM family only (exception: shell forcing band), no hazard stripes except nuclear projectiles, blue/violet glows at custom LOW intensities (Mo.mats('blue') overblows)",
+   "naming": "file names inside new railgun parts follow the testkit (trilhos, carga, culatra, consolas) so the generator can copy the tested rules; everything else keeps the kit's English stems"
+  },
+  "palette": {
+   "he": {
+    "band": [
+     255,
+     190,
+     60
+    ],
+    "tracer": [
+     255,
+     170,
+     60
+    ],
+    "core": [
+     255,
+     235,
+     190
+    ],
+    "glow": [
+     255,
+     120,
+     30
+    ],
+    "hull": [
+     255,
+     96,
+     12
+    ],
+    "chip": [
+     255,
+     190,
+     60
+    ]
+   },
+   "ap": {
+    "band": [
+     215,
+     230,
+     255
+    ],
+    "tracer": [
+     190,
+     215,
+     255
+    ],
+    "core": [
+     240,
+     248,
+     255
+    ],
+    "glow": [
+     200,
+     225,
+     255
+    ],
+    "hull": [
+     24,
+     104,
+     255
+    ],
+    "chip": [
+     215,
+     230,
+     255
+    ]
+   },
+   "sap": {
+    "band": [
+     255,
+     140,
+     50
+    ],
+    "tracer": [
+     255,
+     135,
+     50
+    ],
+    "core": [
+     255,
+     215,
+     180
+    ],
+    "glow": [
+     255,
+     110,
+     40
+    ],
+    "hull": [
+     255,
+     64,
+     8
+    ],
+    "chip": [
+     255,
+     140,
+     50
+    ]
+   },
+   "ac": {
+    "band": [
+     230,
+     40,
+     80
+    ],
+    "band2_gold": [
+     255,
+     200,
+     80
+    ],
+    "tracer": [
+     220,
+     30,
+     60
+    ],
+    "core": [
+     255,
+     225,
+     235
+    ],
+    "glow": [
+     220,
+     30,
+     60
+    ],
+    "hull": [
+     200,
+     10,
+     40
+    ],
+    "chip": [
+     230,
+     40,
+     80
+    ],
+    "hull_refl": 4,
+    "note": "ADDENDUM: tracante/luz da AC em CARMIM profundo (~220,30,60), nao rosa; luz de casco refl 4 (shellart nota b/c)"
+   },
+   "frag": {
+    "band": [
+     120,
+     210,
+     200
+    ],
+    "tracer": [
+     150,
+     230,
+     215
+    ],
+    "core": [
+     225,
+     255,
+     250
+    ],
+    "glow": [
+     110,
+     210,
+     200
+    ],
+    "hull": null,
+    "chip": [
+     120,
+     210,
+     200
+    ],
+    "note": "fragments carry NO IsLight (guns spec)"
+   },
+   "plasma": {
+    "chip": [
+     60,
+     220,
+     255
+    ],
+    "note": "plasma_fx unchanged (Phase B); cell art only"
+   },
+   "pem": {
+    "band": [
+     60,
+     200,
+     255
+    ],
+    "core": [
+     200,
+     245,
+     255
+    ],
+    "glow": [
+     40,
+     170,
+     255
+    ],
+    "hull": [
+     8,
+     150,
+     255
+    ],
+    "copper": [
+     200,
+     110,
+     50
+    ],
+    "chip": [
+     60,
+     200,
+     255
+    ],
+    "note": "copper coils = PEM family signature (STYLE 1/9); blue/cyan glows use custom LOW intensities"
+   },
+   "rail": {
+    "blue": [
+     45,
+     115,
+     255
+    ],
+    "glow": [
+     100,
+     175,
+     255
+    ],
+    "core": [
+     205,
+     228,
+     255
+    ],
+    "hull": [
+     20,
+     82,
+     255
+    ],
+    "hull_refl": 4,
+    "light_blob_vertexcolor_float": [
+     0.1,
+     0.32,
+     1.0
+    ],
+    "chip": [
+     64,
+     128,
+     255
+    ],
+    "chip_tip": [
+     255,
+     140,
+     40
+    ],
+    "accent_orange_gold": [
+     215,
+     145,
+     40
+    ],
+    "springs": [
+     235,
+     185,
+     50
+    ],
+    "note": "ADDENDUM: AZUL ELETRICO (referencia do usuario); violeta/ouro REMOVIDOS. Luz de casco: canal mais fraco 20 <= 37 (limite a refl 4) e refl 4 (a refl 6 o slug saturava o casco branco, shellart nota c). NUNCA cobre. Cor de cada efeito da Tupa: art_assets.effects.railgun.palette_map_addendum."
+   },
+   "cluster": {
+    "band": [
+     255,
+     150,
+     40
+    ],
+    "hull": [
+     255,
+     110,
+     16
+    ],
+    "chip": [
+     255,
+     120,
+     40
+    ]
+   },
+   "msl_he": {
+    "hull": [
+     255,
+     96,
+     12
+    ]
+   },
+   "msl_emp": {
+    "hull": [
+     0,
+     90,
+     255
+    ],
+    "note": "Phase B missile_fx.HULL_GLOW['emp'] kept"
+   },
+   "nuclear": {
+    "hull": [
+     0,
+     255,
+     0
+    ],
+    "note": "Phase B fxkit.NUKE_GREEN_HULL kept (Iara only)"
+   },
+   "boiuna_amber": {
+    "led": [
+     255,
+     170,
+     40
+    ],
+    "hull": [
+     255,
+     96,
+     12
+    ]
+   },
+   "family_chip": {
+    "cartuchos": [
+     255,
+     190,
+     60
+    ],
+    "celulas": [
+     60,
+     220,
+     255
+    ],
+    "misseis": [
+     255,
+     120,
+     40
+    ],
+    "projeteis": [
+     64,
+     128,
+     255
+    ],
+    "projeteis_tip": [
+     255,
+     140,
+     40
+    ],
+    "note": "ADDENDUM: projeteis AZUL com pontas laranja (meta art3d/bs_paiol family_chip; troque o spec, nao a arte)"
+   },
+   "gauge": {
+    "low": [
+     255,
+     70,
+     30
+    ],
+    "high": [
+     255,
+     200,
+     40
+    ],
+    "full": [
+     110,
+     230,
+     90
+    ],
+    "note": "same three colours as the econ ProgressBar (econ paiol.components_per_kind.BarraEstoque_<k>)"
+   }
+  },
+  "render_kinds": {
+   "gun": {
+    "status": "KEEP kit",
+    "used_by": [
+     "Tuvira",
+     "Treme-Treme",
+     "Corisco",
+     "Boiuna (re-skin)"
+    ],
+    "new_option": {
+     "charge_glow": {
+      "PART_key": "PART['charge_glow'] = {'frames': 4, 'interval': 0.125, 'color': 'pem'}",
+      "output": "charge_glow1..4.png at turret_box size, emission-only (reuse render_part._oc_glow_sprite, l.382-397)",
+      "rules": "Graphics on roof_turrets ChainedTo the turret, AnimationToggle = the 0.5 s pre-shot Timer, ClampAnimation",
+      "switch": "pem.charge_glow (default on)",
+      "effort_days": 0.25
+     }
+    }
+   },
+   "factory": {
+    "status": "KEEP kit + 3 layouts",
+    "new_layouts": {
+     "4x3": "factory_mine: blocked row 0 + [1,1],[2,1]; inputs [0,1],[3,1]; outputs per recipe [0,2],[1,2],[2,2],[3,2]",
+     "4x4": "factory_nuke: blocked rows 0-1 + [1,2],[2,2]; inputs [0,2],[3,2]; output row 3 [0,3,4,1]",
+     "3x4": "factory_emp: blocked rows 0-1 + [1,2]; inputs [0,2],[2,2]; output row 3 [0,3,3,1]"
+    },
+    "where": "BS tools/bsgen/factory.py:66-73 (_layout) + STYLE.md section 6 table; the model must leave input/output pads free (STYLE 6)",
+    "mode_plates": "factories with a selector (F2 bs_ammo_type [1,2,3,4], F3 bs_cell_type [0,1], F4 bs_missile_type [0,1,2]) get a roof_doodads plate per mode (shared plates placa_<kind>.png) in a ToggledComponents keyed on the mode toggle (vanilla missile_launcher.rules:126-145 pattern); plate slot per factory in assets",
+    "lights_rule": "lights.png comes from frame 1 only (render_part.py:592-603)"
+   },
+   "resource": {
+    "status": "KEEP kit + STACK_LAYOUT 7..10",
+    "stack_layout_7_10": {
+     "note": "render_part.STACK_LAYOUT only goes to 6 (render_part.py:616-623); missile charges (10) need 7..10. Elongated charges lie along X, 2 layers of 5.",
+     "missile_charges": {
+      "1": [
+       [
+        -0.28,
+        0.0,
+        0.0
+       ]
+      ],
+      "2": [
+       [
+        -0.28,
+        0.0,
+        0.0
+       ],
+       [
+        -0.14,
+        0.0,
+        0.0
+       ]
+      ],
+      "3": [
+       [
+        -0.28,
+        0.0,
+        0.0
+       ],
+       [
+        -0.14,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        0.0
+       ]
+      ],
+      "4": [
+       [
+        -0.28,
+        0.0,
+        0.0
+       ],
+       [
+        -0.14,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.14,
+        0.0,
+        0.0
+       ]
+      ],
+      "5": [
+       [
+        -0.28,
+        0.0,
+        0.0
+       ],
+       [
+        -0.14,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.14,
+        0.0,
+        0.0
+       ],
+       [
+        0.28,
+        0.0,
+        0.0
+       ]
+      ],
+      "6": [
+       [
+        -0.28,
+        0.0,
+        0.0
+       ],
+       [
+        -0.14,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.14,
+        0.0,
+        0.0
+       ],
+       [
+        0.28,
+        0.0,
+        0.0
+       ],
+       [
+        -0.21,
+        0.0,
+        0.14
+       ]
+      ],
+      "7": [
+       [
+        -0.28,
+        0.0,
+        0.0
+       ],
+       [
+        -0.14,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.14,
+        0.0,
+        0.0
+       ],
+       [
+        0.28,
+        0.0,
+        0.0
+       ],
+       [
+        -0.21,
+        0.0,
+        0.14
+       ],
+       [
+        -0.07,
+        0.0,
+        0.14
+       ]
+      ],
+      "8": [
+       [
+        -0.28,
+        0.0,
+        0.0
+       ],
+       [
+        -0.14,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.14,
+        0.0,
+        0.0
+       ],
+       [
+        0.28,
+        0.0,
+        0.0
+       ],
+       [
+        -0.21,
+        0.0,
+        0.14
+       ],
+       [
+        -0.07,
+        0.0,
+        0.14
+       ],
+       [
+        0.07,
+        0.0,
+        0.14
+       ]
+      ],
+      "9": [
+       [
+        -0.28,
+        0.0,
+        0.0
+       ],
+       [
+        -0.14,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.14,
+        0.0,
+        0.0
+       ],
+       [
+        0.28,
+        0.0,
+        0.0
+       ],
+       [
+        -0.21,
+        0.0,
+        0.14
+       ],
+       [
+        -0.07,
+        0.0,
+        0.14
+       ],
+       [
+        0.07,
+        0.0,
+        0.14
+       ],
+       [
+        0.21,
+        0.0,
+        0.14
+       ]
+      ],
+      "10": [
+       [
+        -0.28,
+        0.0,
+        0.0
+       ],
+       [
+        -0.14,
+        0.0,
+        0.0
+       ],
+       [
+        0.0,
+        0.0,
+        0.0
+       ],
+       [
+        0.14,
+        0.0,
+        0.0
+       ],
+       [
+        0.28,
+        0.0,
+        0.0
+       ],
+       [
+        -0.21,
+        0.0,
+        0.14
+       ],
+       [
+        -0.07,
+        0.0,
+        0.14
+       ],
+       [
+        0.07,
+        0.0,
+        0.14
+       ],
+       [
+        0.21,
+        0.0,
+        0.14
+       ],
+       [
+        0.35,
+        0.0,
+        0.14
+       ]
+      ]
+     },
+     "unit_scale": 0.5,
+     "stack_rot": [
+      90,
+      92,
+      88,
+      91,
+      89,
+      90,
+      92,
+      88,
+      91,
+      89
+     ]
+    },
+    "outputs": "stack_1..N (64x64), nugget.png + nugget_normals.png, icon.png, overlay.png (white silhouette 128x128); N = econ max_stack_size"
+   },
+   "shells": {
+    "status": "KEEP kit, new item keys",
+    "px_per_tile": 128,
+    "check_art3d": "SHELL_KEYS (check_art3d.py:102) = the 18 keys of shell_ladder.items; caliber_fx._shell_art key check (caliber_fx.py:478) = same list",
+    "models": "Mo.shell_profile gains 'sap', 'ac' (fins/canards), 'how' (fat) and the tier sleeves (Mo.chevron_sleeve for M, segmented sleeve helper for L)"
+   },
+   "missiles": {
+    "status": "KEEP kit + particle_atlas option",
+    "particle_atlas": "PART['atlases'] = {'petals_m': {...}, 'petals_l': {...}}: 16 sprites of 64 px in a 4x4 atlas (256x256) + normals atlas, the vanilla debris_def.rules format (UvSprites SpriteCount 16, SpritesPerRow 4, TextureSize 256, SpriteSize 64: VM/common_effects/particles/debris_def.rules:100-130)",
+    "effort_days": 0.25
+   },
+   "launcher": {
+    "status": "KEEP kit; re-render --only cells for the new cluster looks"
+   },
+   "layered": {
+    "status": "NEW generic kind (art research recommendation 1)",
+    "purpose": "parts made of independent layers with level sprites, per-type variants, animation frames, sub-rect crops and blend situations: paiol, fita, corredor com fita, tremonha, port kit, railgun loader/cano/ponta, mode plates",
+    "PART_schema": {
+     "id": "rafaeltessaro.<id>",
+     "kind": "layered",
+     "size": "[W, H] tiles",
+     "accent": "amber|cyan|blue|green|violet",
+     "walls": "'closed' (render_part.walls_png frame) | 'none' | {'open': [[side, t0, t1], ...]} side in top/bottom/left/right, t in tiles along that side (railgun canos: top [1.0, 2.0] and bottom [1.0, 2.0])",
+     "situations": "optional list, e.g. ['hub','stub','straight','corner','3way','4way'] (codes 0000, 0010, 1010, 0110, 1110, 1111 = vanilla heat_pipe_blend_sprites.rules:1-38); layers with per_situation true render once per situation",
+     "layers": "list of {name, fn, game_layer, rect [x, y, w, h] tiles (top-left origin, +y down), normals bool, opaque bool, per_situation bool, levels N | frames N | variants [..], file pattern, emission_only bool, islands bool, interval s, pil bool}"
+    },
+    "model_functions": "fn(M, T, **kw) with kw = level (1..N) | phase (frame/F) | variant (str) | sit (str); coordinates centred on the PART, 1 unit = 1 tile, +Y = part front (top of image) like the factory kind",
+    "render": "for each layer: camera cropped to rect (overlay_rect crop of render_launcher, render_part.py:486-498), B.render_set with normals when asked, emission_pass + _oc_glow_sprite for emission_only layers (render_part.py:382-397, 523-542), PIL layers (digits, plate icon paste) through 'pil:<module>.<func>'",
+    "meta_json": {
+     "version": 1,
+     "kind": "layered",
+     "id": "...",
+     "size": "[W,H]",
+     "layers": "{name: {game_layer, rect, files: [...], normals: [...]|null, levels|frames|variants|situations, interval}}",
+     "walls": "walls.png | null",
+     "files": "[...]"
+    },
+    "bsgen": "new tools/bsgen/layered.py: graphics(meta, name, **toggles) -> Graphics / ValueSprites / ResourceSprites / ToggledBlendSprites dicts with Location = rect centre in part coordinates and Size = rect size; part modules (paiol, fita, railgun) call it",
+    "check_art3d": "kind 'layered': every listed file exists; px = rect x 64 (+-1); normals alpha = diffuse alpha; complete level/frame/variant/situation sets; one alpha component per sprite unless islands = true (carts, digits, gauges, plates); emissive budget <= 2% on lit layers (emission_only layers skipped); a missing PNG crashes the game, so the check is a build stopper",
+    "make_art": "EditorIcon = floor + roof (+ default plate) composite, blueprints from the silhouette (same handlers as factory)",
+    "preview": "compose_preview: GIF of every animated/levelled layer over hull plates; belt preview = a 5x5 network sample",
+    "stand_in": "until it exists, the factory kind renders the static layers (the 3 prototypes did)",
+    "effort_days": 2.0,
+    "risks": "same-layer overlap order undefined -> keep sub-rects disjoint; normal maps rotated in PIL need channel remap (90 deg: (nx, ny) -> (-ny, nx))",
+    "source_r3": "ADOTADO: tools/blender/render_layered.py (generico, feito pelo job do Tupã; PART/PARTS, rect, normals, emission_only, 'pil:', levels/frames/variants/situations, meta.json version 1 com mapa de camadas). O WP10 nao reescreve o kind dentro do render_part.py: so completa o que faltar (bsgen/layered.py, check_art3d, make_art/art3d.py)."
+   },
+   "ui": {
+    "status": "KEEP tools/bsgen/ui_icons.py Pen (96x96 blue silhouette + one accent mask)"
+   },
+   "fxtex": {
+    "status": "NEW tools/bsgen/fx_tex.py (PIL, same idiom as bsgen/plasma_tex.py)",
+    "output_dir": "shots/bs_fx_tex/"
+   }
+  },
+  "shell_ladder": {
+   "rule": "bigger calibre = more futuristic (REQ 11). Tracers below 76 mm, three shell tiers above.",
+   "tracers_no_shell_art": {
+    "weapons": [
+     "Marimbondo 7.62",
+     "Cigarra 7.62",
+     "Mangangá 12.7",
+     "Saci 12.7",
+     "Carcará 20",
+     "Furacão 30"
+    ],
+    "look": "Phase B tracer sizes (bullet_strike_vfx.json weapons.*.projectile) kept; colour per mode from palette (he amber, ap blue-white, sap orange); light = two-light split (phase_b_leftovers)"
+   },
+   "tiers": {
+    "s": {
+     "weapon": "Tambor (rafaeltessaro.bs_naval_76)",
+     "mm": 76,
+     "body_in_game": [
+      0.72,
+      0.26
+     ],
+     "look": "composite sleeve + 1 LED band + recessed seeker ring; big readable shapes (only ~46 px long on screen at 1x)",
+     "lights_frames": 2,
+     "lights_fps": 4
+    },
+    "m": {
+     "weapon": "Trovao (rafaeltessaro.bs_naval_155)",
+     "mm": 155,
+     "body_in_game": [
+      1.15,
+      0.4
+     ],
+     "look": "chevron armour sleeves (Mo.chevron_sleeve) + LED ring + forward rail slits",
+     "lights_frames": 2,
+     "lights_fps": 4
+    },
+    "l": {
+     "weapon": "Mapinguari (rafaeltessaro.bs_naval_406)",
+     "mm": 406,
+     "body_in_game": [
+      2.05,
+      0.72
+     ],
+     "look": "segmented sleeves + sensor nose (dark lens dome) + base glow ring",
+     "lights_frames": 4,
+     "lights_fps": 6
+    },
+    "h": {
+     "weapon": "Boiuna (rafaeltessaro.bs_nuke_howitzer, AC heavy howitzer)",
+     "mm": 380,
+     "body_in_game": [
+      2.2,
+      0.86
+     ],
+     "look": "fat L-tier howitzer shell: segmented sleeves + sensor nose + amber base-bleed ring; NO trefoil, NO green",
+     "lights_frames": 4,
+     "lights_fps": 6
+    }
+   },
+   "pem": {
+    "pem_s": "Tuvira (torre) tela 2,0 x 0,80",
+    "pem_m": "Treme-Treme tela 2,0 x 0,75",
+    "pem_l": "Corisco tela 2,0 x 0,70"
+   },
+   "rail": {
+    "slug": "Tupa tela 3,0 x 0,8 (dardo APFSDS azul, colares EM, ancora 'tip'); o dardo no cano (slug.png) e o mesmo objeto"
+   },
+   "plasma": "Boitata/Curupira: Phase B plasma_fx unchanged",
+   "items": {
+    "he_s": {
+     "status": "NEW",
+     "tier": "s",
+     "ammo": "he",
+     "canvas_tiles": [
+      2.0,
+      0.7
+     ],
+     "px": [
+      256,
+      90
+     ],
+     "in_game_body": [
+      0.72,
+      0.26
+     ],
+     "files": [
+      "bs_shell_he_s.png",
+      "bs_shell_he_s_normals.png",
+      "bs_shell_band_he_s.png",
+      "bs_shell_he_s_lights.png"
+     ],
+     "mask": true,
+     "lights": {
+      "frames": 2,
+      "per_row": 2,
+      "fps": 4
+     },
+     "shape": "short point-detonating fuze nose, forcing band, boat tail; tier cue: composite sleeve + 1 LED band + recessed seeker ring; big readable shapes (only ~46 px long on screen at 1x)",
+     "nozzle_x": -0.97,
+     "anchors": {},
+     "canvas": [
+      2.0,
+      0.7
+     ],
+     "canvas_px": [
+      256,
+      90
+     ],
+     "lights_frames": 2,
+     "anchors_meta": {}
+    },
+    "ap_s": {
+     "status": "NEW",
+     "tier": "s",
+     "ammo": "ap",
+     "canvas_tiles": [
+      2.0,
+      0.7
+     ],
+     "px": [
+      256,
+      90
+     ],
+     "in_game_body": [
+      0.72,
+      0.26
+     ],
+     "files": [
+      "bs_shell_ap_s.png",
+      "bs_shell_ap_s_normals.png",
+      "bs_shell_band_ap_s.png",
+      "bs_shell_ap_s_lights.png"
+     ],
+     "mask": true,
+     "lights": {
+      "frames": 2,
+      "per_row": 2,
+      "fps": 4
+     },
+     "shape": "long ogive with dark ballistic cap and exposed tristeel penetrator tip, no fuze; tier cue: composite sleeve + 1 LED band + recessed seeker ring; big readable shapes (only ~46 px long on screen at 1x)",
+     "nozzle_x": -0.97,
+     "anchors": {},
+     "canvas": [
+      2.0,
+      0.7
+     ],
+     "canvas_px": [
+      256,
+      90
+     ],
+     "lights_frames": 2,
+     "anchors_meta": {}
+    },
+    "sap_s": {
+     "status": "NEW",
+     "tier": "s",
+     "ammo": "sap",
+     "canvas_tiles": [
+      2.0,
+      0.7
+     ],
+     "px": [
+      256,
+      90
+     ],
+     "in_game_body": [
+      0.72,
+      0.26
+     ],
+     "files": [
+      "bs_shell_sap_s.png",
+      "bs_shell_sap_s_normals.png",
+      "bs_shell_band_sap_s.png",
+      "bs_shell_sap_s_lights.png"
+     ],
+     "mask": true,
+     "lights": {
+      "frames": 2,
+      "per_row": 2,
+      "fps": 4
+     },
+     "shape": "medium blunt cap (between HE and AP), base-fuze collar; tier cue: composite sleeve + 1 LED band + recessed seeker ring; big readable shapes (only ~46 px long on screen at 1x)",
+     "nozzle_x": -0.97,
+     "anchors": {},
+     "canvas": [
+      2.0,
+      0.7
+     ],
+     "canvas_px": [
+      256,
+      90
+     ],
+     "lights_frames": 2,
+     "anchors_meta": {}
+    },
+    "ac_s": {
+     "status": "NEW",
+     "tier": "s",
+     "ammo": "ac",
+     "canvas_tiles": [
+      2.0,
+      0.8
+     ],
+     "px": [
+      256,
+      102
+     ],
+     "in_game_body": [
+      0.72,
+      0.297
+     ],
+     "files": [
+      "bs_shell_ac_s.png",
+      "bs_shell_ac_s_normals.png",
+      "bs_shell_band_ac_s.png",
+      "bs_shell_ac_s_lights.png"
+     ],
+     "mask": true,
+     "lights": {
+      "frames": 1,
+      "per_row": 1,
+      "fps": 0
+     },
+     "shape": "NOT GUIDED (voa reta): 4 tail fins, sem canards e sem janela do sensor; crimson mask band + painted gold second band (fixed gold in the diffuse; only the crimson band is tinted); tier cue: composite sleeve + 1 LED band + recessed seeker ring; big readable shapes (only ~46 px long on screen at 1x)",
+     "nozzle_x": -0.97,
+     "r1_note": "J3-P4: so a AC da Boiúna (ac_h) e guiada (TargetHoming); Tambor/Trovão/Mapinguari AC voam retas",
+     "r3_rerender": "J3R3-P1: a arte commitada (ate af0b0ed) desenha esta AC GUIADA (canards, buscador que pisca, ancora 'seeker', luzes 2/4 quadros - bs_shells2.py:36). O WP11 re-renderiza SO ac_s, ac_m e ac_l sem canards e sem janela do sensor, luzes 1 quadro, sem ancora seeker (render_part.py bs_shells2 --only ac_s,ac_m,ac_l), salvo se o job de arte ja tiver feito",
+     "canvas": [
+      2.0,
+      0.8
+     ],
+     "canvas_px": [
+      256,
+      102
+     ],
+     "lights_frames": 2,
+     "anchors_meta": {
+      "seeker": [
+       0.9,
+       0.0
+      ]
+     },
+     "status_addendum": "ARTE AINDA GUIADA no meta (ancora seeker + luzes 2/4 quadros): o WP11 re-renderiza sem canards/sensor (1 quadro de luz, sem 'seeker'); so a ac_h da Boiuna e guiada"
+    },
+    "he_m": {
+     "status": "NEW",
+     "tier": "m",
+     "ammo": "he",
+     "canvas_tiles": [
+      2.0,
+      0.7
+     ],
+     "px": [
+      256,
+      90
+     ],
+     "in_game_body": [
+      1.15,
+      0.4
+     ],
+     "files": [
+      "bs_shell_he_m.png",
+      "bs_shell_he_m_normals.png",
+      "bs_shell_band_he_m.png",
+      "bs_shell_he_m_lights.png"
+     ],
+     "mask": true,
+     "lights": {
+      "frames": 2,
+      "per_row": 2,
+      "fps": 4
+     },
+     "shape": "short point-detonating fuze nose, forcing band, boat tail; tier cue: chevron armour sleeves (Mo.chevron_sleeve) + LED ring + forward rail slits",
+     "nozzle_x": -0.97,
+     "anchors": {},
+     "canvas": [
+      2.0,
+      0.7
+     ],
+     "canvas_px": [
+      256,
+      90
+     ],
+     "lights_frames": 2,
+     "anchors_meta": {}
+    },
+    "ap_m": {
+     "status": "NEW",
+     "tier": "m",
+     "ammo": "ap",
+     "canvas_tiles": [
+      2.0,
+      0.7
+     ],
+     "px": [
+      256,
+      90
+     ],
+     "in_game_body": [
+      1.15,
+      0.4
+     ],
+     "files": [
+      "bs_shell_ap_m.png",
+      "bs_shell_ap_m_normals.png",
+      "bs_shell_band_ap_m.png",
+      "bs_shell_ap_m_lights.png"
+     ],
+     "mask": true,
+     "lights": {
+      "frames": 2,
+      "per_row": 2,
+      "fps": 4
+     },
+     "shape": "long ogive with dark ballistic cap and exposed tristeel penetrator tip, no fuze; tier cue: chevron armour sleeves (Mo.chevron_sleeve) + LED ring + forward rail slits",
+     "nozzle_x": -0.97,
+     "anchors": {},
+     "canvas": [
+      2.0,
+      0.7
+     ],
+     "canvas_px": [
+      256,
+      90
+     ],
+     "lights_frames": 2,
+     "anchors_meta": {}
+    },
+    "sap_m": {
+     "status": "NEW",
+     "tier": "m",
+     "ammo": "sap",
+     "canvas_tiles": [
+      2.0,
+      0.7
+     ],
+     "px": [
+      256,
+      90
+     ],
+     "in_game_body": [
+      1.15,
+      0.4
+     ],
+     "files": [
+      "bs_shell_sap_m.png",
+      "bs_shell_sap_m_normals.png",
+      "bs_shell_band_sap_m.png",
+      "bs_shell_sap_m_lights.png"
+     ],
+     "mask": true,
+     "lights": {
+      "frames": 2,
+      "per_row": 2,
+      "fps": 4
+     },
+     "shape": "medium blunt cap (between HE and AP), base-fuze collar; tier cue: chevron armour sleeves (Mo.chevron_sleeve) + LED ring + forward rail slits",
+     "nozzle_x": -0.97,
+     "anchors": {},
+     "canvas": [
+      2.0,
+      0.7
+     ],
+     "canvas_px": [
+      256,
+      90
+     ],
+     "lights_frames": 2,
+     "anchors_meta": {}
+    },
+    "ac_m": {
+     "status": "NEW",
+     "tier": "m",
+     "ammo": "ac",
+     "canvas_tiles": [
+      2.0,
+      0.8
+     ],
+     "px": [
+      256,
+      102
+     ],
+     "in_game_body": [
+      1.15,
+      0.457
+     ],
+     "files": [
+      "bs_shell_ac_m.png",
+      "bs_shell_ac_m_normals.png",
+      "bs_shell_band_ac_m.png",
+      "bs_shell_ac_m_lights.png"
+     ],
+     "mask": true,
+     "lights": {
+      "frames": 1,
+      "per_row": 1,
+      "fps": 0
+     },
+     "shape": "NOT GUIDED (voa reta): 4 tail fins, sem canards e sem janela do sensor; crimson mask band + painted gold second band (fixed gold in the diffuse; only the crimson band is tinted); tier cue: chevron armour sleeves (Mo.chevron_sleeve) + LED ring + forward rail slits",
+     "nozzle_x": -0.97,
+     "r1_note": "J3-P4: so a AC da Boiúna (ac_h) e guiada (TargetHoming); Tambor/Trovão/Mapinguari AC voam retas",
+     "r3_rerender": "J3R3-P1: a arte commitada (ate af0b0ed) desenha esta AC GUIADA (canards, buscador que pisca, ancora 'seeker', luzes 2/4 quadros - bs_shells2.py:36). O WP11 re-renderiza SO ac_s, ac_m e ac_l sem canards e sem janela do sensor, luzes 1 quadro, sem ancora seeker (render_part.py bs_shells2 --only ac_s,ac_m,ac_l), salvo se o job de arte ja tiver feito",
+     "canvas": [
+      2.0,
+      0.8
+     ],
+     "canvas_px": [
+      256,
+      102
+     ],
+     "lights_frames": 2,
+     "anchors_meta": {
+      "seeker": [
+       0.9,
+       0.0
+      ]
+     },
+     "status_addendum": "ARTE AINDA GUIADA no meta (ancora seeker + luzes 2/4 quadros): o WP11 re-renderiza sem canards/sensor (1 quadro de luz, sem 'seeker'); so a ac_h da Boiuna e guiada"
+    },
+    "he_l": {
+     "status": "NEW",
+     "tier": "l",
+     "ammo": "he",
+     "canvas_tiles": [
+      2.0,
+      0.7
+     ],
+     "px": [
+      256,
+      90
+     ],
+     "in_game_body": [
+      2.05,
+      0.72
+     ],
+     "files": [
+      "bs_shell_he_l.png",
+      "bs_shell_he_l_normals.png",
+      "bs_shell_band_he_l.png",
+      "bs_shell_he_l_lights.png"
+     ],
+     "mask": true,
+     "lights": {
+      "frames": 4,
+      "per_row": 4,
+      "fps": 6
+     },
+     "shape": "short point-detonating fuze nose, forcing band, boat tail; tier cue: segmented sleeves + sensor nose (dark lens dome) + base glow ring",
+     "nozzle_x": -0.97,
+     "anchors": {},
+     "canvas": [
+      2.0,
+      0.7
+     ],
+     "canvas_px": [
+      256,
+      90
+     ],
+     "lights_frames": 4,
+     "anchors_meta": {}
+    },
+    "ap_l": {
+     "status": "NEW",
+     "tier": "l",
+     "ammo": "ap",
+     "canvas_tiles": [
+      2.0,
+      0.7
+     ],
+     "px": [
+      256,
+      90
+     ],
+     "in_game_body": [
+      2.05,
+      0.72
+     ],
+     "files": [
+      "bs_shell_ap_l.png",
+      "bs_shell_ap_l_normals.png",
+      "bs_shell_band_ap_l.png",
+      "bs_shell_ap_l_lights.png"
+     ],
+     "mask": true,
+     "lights": {
+      "frames": 4,
+      "per_row": 4,
+      "fps": 6
+     },
+     "shape": "long ogive with dark ballistic cap and exposed tristeel penetrator tip, no fuze; tier cue: segmented sleeves + sensor nose (dark lens dome) + base glow ring",
+     "nozzle_x": -0.97,
+     "anchors": {},
+     "canvas": [
+      2.0,
+      0.7
+     ],
+     "canvas_px": [
+      256,
+      90
+     ],
+     "lights_frames": 4,
+     "anchors_meta": {}
+    },
+    "sap_l": {
+     "status": "NEW",
+     "tier": "l",
+     "ammo": "sap",
+     "canvas_tiles": [
+      2.0,
+      0.7
+     ],
+     "px": [
+      256,
+      90
+     ],
+     "in_game_body": [
+      2.05,
+      0.72
+     ],
+     "files": [
+      "bs_shell_sap_l.png",
+      "bs_shell_sap_l_normals.png",
+      "bs_shell_band_sap_l.png",
+      "bs_shell_sap_l_lights.png"
+     ],
+     "mask": true,
+     "lights": {
+      "frames": 4,
+      "per_row": 4,
+      "fps": 6
+     },
+     "shape": "medium blunt cap (between HE and AP), base-fuze collar; tier cue: segmented sleeves + sensor nose (dark lens dome) + base glow ring",
+     "nozzle_x": -0.97,
+     "anchors": {},
+     "canvas": [
+      2.0,
+      0.7
+     ],
+     "canvas_px": [
+      256,
+      90
+     ],
+     "lights_frames": 4,
+     "anchors_meta": {}
+    },
+    "ac_l": {
+     "status": "NEW",
+     "tier": "l",
+     "ammo": "ac",
+     "canvas_tiles": [
+      2.0,
+      0.8
+     ],
+     "px": [
+      256,
+      102
+     ],
+     "in_game_body": [
+      2.05,
+      0.823
+     ],
+     "files": [
+      "bs_shell_ac_l.png",
+      "bs_shell_ac_l_normals.png",
+      "bs_shell_band_ac_l.png",
+      "bs_shell_ac_l_lights.png"
+     ],
+     "mask": true,
+     "lights": {
+      "frames": 1,
+      "per_row": 1,
+      "fps": 0
+     },
+     "shape": "NOT GUIDED (voa reta): 4 tail fins, sem canards e sem janela do sensor; crimson mask band + painted gold second band (fixed gold in the diffuse; only the crimson band is tinted); tier cue: segmented sleeves + sensor nose (dark lens dome) + base glow ring",
+     "nozzle_x": -0.97,
+     "r1_note": "J3-P4: so a AC da Boiúna (ac_h) e guiada (TargetHoming); Tambor/Trovão/Mapinguari AC voam retas",
+     "r3_rerender": "J3R3-P1: a arte commitada (ate af0b0ed) desenha esta AC GUIADA (canards, buscador que pisca, ancora 'seeker', luzes 2/4 quadros - bs_shells2.py:36). O WP11 re-renderiza SO ac_s, ac_m e ac_l sem canards e sem janela do sensor, luzes 1 quadro, sem ancora seeker (render_part.py bs_shells2 --only ac_s,ac_m,ac_l), salvo se o job de arte ja tiver feito",
+     "canvas": [
+      2.0,
+      0.8
+     ],
+     "canvas_px": [
+      256,
+      102
+     ],
+     "lights_frames": 4,
+     "anchors_meta": {
+      "seeker": [
+       0.9,
+       0.0
+      ]
+     },
+     "status_addendum": "ARTE AINDA GUIADA no meta (ancora seeker + luzes 2/4 quadros): o WP11 re-renderiza sem canards/sensor (1 quadro de luz, sem 'seeker'); so a ac_h da Boiuna e guiada"
+    },
+    "he_h": {
+     "status": "NEW",
+     "tier": "h",
+     "ammo": "he",
+     "canvas_tiles": [
+      2.0,
+      0.78
+     ],
+     "px": [
+      256,
+      100
+     ],
+     "in_game_body": [
+      2.2,
+      0.86
+     ],
+     "files": [
+      "bs_shell_he_h.png",
+      "bs_shell_he_h_normals.png",
+      "bs_shell_band_he_h.png",
+      "bs_shell_he_h_lights.png"
+     ],
+     "mask": true,
+     "lights": {
+      "frames": 4,
+      "per_row": 4,
+      "fps": 6
+     },
+     "shape": "short point-detonating fuze nose, forcing band, boat tail; tier cue: fat L-tier howitzer shell: segmented sleeves + sensor nose + amber base-bleed ring; NO trefoil, NO green",
+     "nozzle_x": -0.97,
+     "anchors": {},
+     "canvas": [
+      2.0,
+      0.78
+     ],
+     "canvas_px": [
+      256,
+      100
+     ],
+     "lights_frames": 4,
+     "anchors_meta": {}
+    },
+    "ac_h": {
+     "status": "NEW",
+     "tier": "h",
+     "ammo": "ac",
+     "canvas_tiles": [
+      2.0,
+      0.89
+     ],
+     "px": [
+      256,
+      114
+     ],
+     "in_game_body": [
+      2.2,
+      0.983
+     ],
+     "files": [
+      "bs_shell_ac_h.png",
+      "bs_shell_ac_h_normals.png",
+      "bs_shell_band_ac_h.png",
+      "bs_shell_ac_h_lights.png"
+     ],
+     "mask": true,
+     "lights": {
+      "frames": 4,
+      "per_row": 4,
+      "fps": 6
+     },
+     "shape": "GUIDED: 4 tail fins + 4 nose canards + seeker window (2-frame blink); crimson mask band + painted gold second band (fixed gold in the diffuse; only the crimson band is tinted); tier cue: fat L-tier howitzer shell: segmented sleeves + sensor nose + amber base-bleed ring; NO trefoil, NO green",
+     "nozzle_x": -0.97,
+     "anchors": {
+      "seeker": [
+       0.9,
+       0.0
+      ]
+     },
+     "r1_note": "unica AC guiada (switch boiuna.ac_guided): aletas + canards + janela do sensor piscando",
+     "r3_note": "tela 0,89 da arte commitada (corpo 2,2 x 0,983 tem proporcao 2,24; 0,80 esticava 12 %)",
+     "canvas": [
+      2.0,
+      0.89
+     ],
+     "canvas_px": [
+      256,
+      114
+     ],
+     "lights_frames": 4,
+     "anchors_meta": {
+      "seeker": [
+       0.9,
+       0.0
+      ]
+     }
+    },
+    "pem_s": {
+     "status": "NEW",
+     "tier": "pem",
+     "ammo": "pem",
+     "canvas_tiles": [
+      2.0,
+      0.8
+     ],
+     "px": [
+      256,
+      102
+     ],
+     "in_game_body": [
+      0.5,
+      0.2
+     ],
+     "weapon": "Tuvira (rafaeltessaro.bs_pem_light)",
+     "files": [
+      "bs_shell_pem_s.png",
+      "bs_shell_pem_s_normals.png",
+      "bs_shell_pem_s_lights.png"
+     ],
+     "mask": false,
+     "lights": {
+      "frames": 2,
+      "per_row": 2,
+      "fps": 6
+     },
+     "shape": "dark capsule, 2 copper coil rings, cyan LED band in a recess",
+     "nozzle_x": -0.97,
+     "anchors": {},
+     "r3_note": "tela da arte commitada (proporcao = corpo no jogo; o jogo nao estica o sprite)",
+     "canvas": [
+      2.0,
+      0.8
+     ],
+     "canvas_px": [
+      256,
+      102
+     ],
+     "lights_frames": 2,
+     "anchors_meta": {}
+    },
+    "pem_m": {
+     "status": "NEW",
+     "tier": "pem",
+     "ammo": "pem",
+     "canvas_tiles": [
+      2.0,
+      0.75
+     ],
+     "px": [
+      256,
+      96
+     ],
+     "in_game_body": [
+      0.75,
+      0.28
+     ],
+     "weapon": "Treme-Treme (rafaeltessaro.bs_pem_medium)",
+     "files": [
+      "bs_shell_pem_m.png",
+      "bs_shell_pem_m_normals.png",
+      "bs_shell_pem_m_lights.png"
+     ],
+     "mask": false,
+     "lights": {
+      "frames": 4,
+      "per_row": 4,
+      "fps": 10
+     },
+     "shape": "dark capsule, 3 copper coils, glowing cyan band; lights atlas = 2-3 arcs jumping between the coils",
+     "nozzle_x": -0.97,
+     "anchors": {},
+     "r3_note": "tela da arte commitada (proporcao = corpo no jogo; o jogo nao estica o sprite)",
+     "canvas": [
+      2.0,
+      0.75
+     ],
+     "canvas_px": [
+      256,
+      96
+     ],
+     "lights_frames": 4,
+     "anchors_meta": {}
+    },
+    "pem_l": {
+     "status": "NEW",
+     "tier": "pem",
+     "ammo": "pem",
+     "canvas_tiles": [
+      2.0,
+      0.7
+     ],
+     "px": [
+      256,
+      90
+     ],
+     "in_game_body": [
+      1.15,
+      0.4
+     ],
+     "weapon": "Corisco (rafaeltessaro.bs_pem_heavy)",
+     "files": [
+      "bs_shell_pem_l.png",
+      "bs_shell_pem_l_normals.png",
+      "bs_shell_pem_l_lights.png"
+     ],
+     "mask": false,
+     "lights": {
+      "frames": 4,
+      "per_row": 4,
+      "fps": 12
+     },
+     "shape": "segmented copper-ringed core (the white-hot core and cyan sheath are ADDITIVE rules sprites: fx texture bs_pem_sheath.png + bs_pem_trail.png)",
+     "nozzle_x": -0.97,
+     "anchors": {},
+     "canvas": [
+      2.0,
+      0.7
+     ],
+     "canvas_px": [
+      256,
+      90
+     ],
+     "lights_frames": 4,
+     "anchors_meta": {}
+    },
+    "slug": {
+     "status": "ADOTADO (arte commitada em art3d/bs_shells2)",
+     "tier": "rail",
+     "ammo": "slug",
+     "canvas_tiles": [
+      3.0,
+      0.8
+     ],
+     "px": [
+      384,
+      102
+     ],
+     "in_game_body": [
+      3.0,
+      0.8
+     ],
+     "weapon": "Tupa railgun (rafaeltessaro.bs_rail_muzzle emits rafaeltessaro.bs_slug_rail_shot)",
+     "files": [
+      "bs_shell_slug.png",
+      "bs_shell_slug_normals.png",
+      "bs_shell_slug_lights.png"
+     ],
+     "mask": false,
+     "lights": {
+      "frames": 4,
+      "per_row": 4,
+      "fps": 12
+     },
+     "shape": "dardo APFSDS longo e FINO de tungstenio CLARO (haste ~0,19 quadro), penetrador conico com a ponta quente BRANCO-AZULADA (palette.rail.core [205,228,255] sobre azul claro [100,175,255]) e o colar LARANJA-OURO (palette.rail.accent_orange_gold [215,145,40]) atras dela, 4 colares EM AZUIS (palette.rail.blue/glow; 3 acesos por quadro, a onda corre da cauda para a ponta) e um feixe compacto de 6 aletas curtas na cauda; sem trilhos, sem sela de armadura, NUNCA cobre, NUNCA violeta, NUNCA chama de foguete (bs_shells2.py docstring, referencia do usuario). Os colares EM fazem o papel das sapatas de trilho (critica r1).",
+     "nozzle_x": -1.47,
+     "anchors": {
+      "tip": [
+       1.45,
+       0.0
+      ]
+     },
+     "canvas": [
+      3.0,
+      0.8
+     ],
+     "canvas_px": [
+      384,
+      102
+     ],
+     "lights_frames": 4,
+     "anchors_meta": {
+      "tip": [
+       1.45,
+       0.0
+      ]
+     }
+    }
+   },
+   "art_key_rule": "caliber_fx.ART_KEY (caliber_fx.py:501) becomes art_key(ammo, tier) = f'{ammo}_{tier}' with the weapon row's new field art_tier (bs_naval_76 's', bs_naval_155 'm', bs_naval_406 'l', bs_nuke_howitzer 'h'); rows std/aphe/emp/bullet/nuclear removed",
+   "emissive_budget": "frame 0 lit area <= 3% of body (STYLE 11.4); AC seeker blink and L base ring inside it",
+   "mask": "white band on transparent, tinted in game by VertexColor = palette[ammo].band (lit mask, as Phase B)",
+   "trails": "bsgen/trails.py needs the new colour keys: large_{he,ap,sap,ac}, deck_{..}, deckL_{..}; drop *_aphe, *_emp, deck_nuclear (dono: WP03)",
+   "source_r3": "ADOTADA (J3R3-P1): tools/blender/parts/bs_shells2.py -> art3d/bs_shells2/ (id rafaeltessaro.bs_shells2, kind shells, 128 px/tile), ja commitada (d2ca659..af0b0ed, 'arte final dos criticos'). O nome bs_shells2 FICA (renomear brigaria com o job de arte e com 70+ arquivos); caliber_fx, check_art3d e make_art leem art3d/bs_shells2; a pasta 1.x art3d/bs_shells e bs_shells.py saem na limpeza 1.x do WP14b (legacy_1x_cleanup), junto com o fallback LEGACY_1X_FALLBACK do WP03 (R4)."
+  },
+  "assets": {
+   "paiol": {
+    "parts": "rafaeltessaro.bs_paiol_{cartuchos,celulas,misseis,projeteis}_{1x1,2x2,3x3} (12 pecas; projeteis 3x3 atras de logistics.projeteis_3x3, padrao True)",
+    "status": "NEW",
+    "render_kind": "layered",
+    "template": "vanilla thermal_battery (sealed, ResourceSprites fill, per-port ToggledComponents); NOT storage_2x2 (crew hatch roof) and NOT Mo.hull_roof (adds a crew hatch, models.py:107-113)",
+    "art_dir": "art3d/bs_paiol (meta shared) -> parts/bs_paiol_comum/",
+    "not_rotatable": "IsRotateable = false (econ) -> plates, digits and gauge are drawn upright",
+    "files_per_size": {
+     "floor_<n>.png": "floors; interior racks along the perimeter + free central aisle (also correct for the fallback tripulacao where the paiol becomes a walkable ammo room)",
+     "walls_<n>.png": "walls; closed frame (walls_png)",
+     "roof_<fam>_<n>.png + roof_<fam>_<n>_normals.png": "roofs; closed armoured lid, green key, recessed gauge window, recessed plate socket, recessed digit window (2x2/3x3), family chip = 3 px non-emissive stripe on the lid edge in palette.family_chip[fam]",
+     "gauge_<n>_<k>.png": "roof_doodads ResourceSprites (Round Up, HasZeroResourceSprite false -> empty = the dark window painted in the roof); k = 1..5 (1x1), 1..8 (2x2), 1..10 (3x3)",
+     "icon_<fam>_<n>.png": "EditorIcon",
+     "blueprints_<n>.png": "blueprints (shared per size)"
+    },
+    "layout_tiles": {
+     "1x1": {
+      "gauge_rect": [
+       0.68,
+       0.12,
+       0.2,
+       0.76
+      ],
+      "plate_centre": [
+       0.32,
+       0.5
+      ],
+      "plate_size": 0.42,
+      "digits": null
+     },
+     "2x2": {
+      "gauge_rect": [
+       1.58,
+       0.16,
+       0.26,
+       1.68
+      ],
+      "plate_centre": [
+       0.62,
+       0.62
+      ],
+      "plate_size": 0.66,
+      "digits": {
+       "centres_x": [
+        0.3,
+        0.55,
+        0.8,
+        1.05
+       ],
+       "y": 1.55,
+       "size": [
+        0.22,
+        0.36
+       ]
+      }
+     },
+     "3x3": {
+      "gauge_rect": [
+       2.46,
+       0.2,
+       0.34,
+       2.6
+      ],
+      "plate_centre": [
+       0.85,
+       0.85
+      ],
+      "plate_size": 0.92,
+      "digits": {
+       "centres_x": [
+        0.4,
+        0.74,
+        1.08,
+        1.42
+       ],
+       "y": 2.45,
+       "size": [
+        0.3,
+        0.5
+       ]
+      }
+     }
+    },
+    "gauge_design": "N segments with 1 px gaps and 2 px margin; level k lights segments 1..k from the bottom; segment colour baked per fill fraction f = k/N: f <= 0.5 low->high, f > 0.5 high->full (palette.gauge = the econ ProgressBar colours) - no VertexColor on ResourceLevels (unverified)",
+    "type_plate": "shared placa_<kind>.png (assets.plates); ToggledComponents per selector mode (econ components_per_kind.MostradorTipo_<k>); projeteis family has 1 kind -> static plate",
+    "digits": "DESLIGADO nesta versao (logistics.paiol_contador = false): digitos nao publicados",
+    "counts": {
+     "files_without_plates_digits": 68,
+     "gauge_files": 23
+    },
+    "fallback_crew_only": "logistics.transport = tripulacao: same art, but no port kit, and rules give normal doors (floor already has an aisle)",
+    "teleporte_note": "sem portas de esteira no primario; o teto do paiol so precisa do medidor, da placa, do chip da familia e (opcional) dos digitos"
+   },
+   "plates": {
+    "status": "NEW",
+    "files": [
+     "placa_he.png",
+     "placa_ap.png",
+     "placa_sap.png",
+     "placa_ac.png",
+     "placa_frag.png",
+     "placa_plasma.png",
+     "placa_pem.png",
+     "placa_msl_he.png",
+     "placa_msl_cluster.png",
+     "placa_msl_emp.png",
+     "placa_msl_nuke.png",
+     "placa_slug.png"
+    ],
+    "px": [
+     48,
+     48
+    ],
+    "layer": "roof_doodads",
+    "render": "one Blender bezel (dark recessed frame, 2 bolts) rendered once; PIL pastes the ui_icons silhouette of the kind recoloured to palette[kind] band/chip (not the UI blue) into the bezel; non-emissive (lit roof_doodads)",
+    "used_by": [
+     "paiols (MostradorTipo_<k>)",
+     "Tremonha (12 choices = bs_tremonha_tipo)",
+     "F2/F3/F4 mode plates"
+    ],
+    "sizes_in_game": {
+     "paiol_1x1": 0.42,
+     "paiol_2x2": 0.66,
+     "paiol_3x3": 0.92,
+     "tremonha": 0.42,
+     "factories": 0.8
+    }
+   },
+   "porta_fita": {
+    "status": "RESERVA (rede/gemea; WP15)",
+    "art_dir": "art3d/bs_porta_fita -> parts/bs_porta_fita/",
+    "what": "shared belt-port kit drawn on every part edge that has a connected belt port (paiol, factory, weapon, Tupa loader, Tremonha), so no weapon/factory needs a re-render; per-port ToggledComponents (Toggle = the port) like VM/ships/terran/thermal_battery/thermal_battery.rules:274-345",
+    "files_per_direction_d_in_URDL": {
+     "porta_chao_<d>.png": "doodads_low, 1x1, stub from the edge into the part (vanilla pipes.png bbox (8,36,56,64) for D)",
+     "porta_teto_<d>.png + porta_teto_<d>_normals.png": "roof_doodads, 1x1, Offset U [0,-0.5] / R [0.5,0] / D [0,0.5] / L [-0.5,0] (straddles the joint)",
+     "porta_stencil_<d>.png": "walls_stencil (cuts the wall frame 48x8 px)",
+     "porta_luz_<d>.png": "lights_add, 2 tiny pips; also the green 'alimentada' lamp of guns (AlimentadaRecente timer)"
+    },
+    "why_pre_rotated": "no evidence that Graphics layers take a Rotation field on 0.30.4c; 4 PIL rotations of one render (normal maps with channel remap) avoid the question",
+    "counts": {
+     "files": 20
+    }
+   },
+   "tremonha": {
+    "id": "rafaeltessaro.bs_tremonha",
+    "status": "RESERVA (rede/gemea; WP15)",
+    "size": [
+     1,
+     1
+    ],
+    "render_kind": "layered",
+    "files": {
+     "floor.png": "funnel grate (crew drop point)",
+     "walls.png": "closed frame with door openings handled by rules",
+     "roof.png + roof_normals.png": "lid with an open funnel hatch",
+     "icon.png": "",
+     "blueprints.png": ""
+    },
+    "plate": "shared placa_<kind>.png, 12 choices (bs_tremonha_tipo), centre [0.5, 0.62], size 0.42"
+   },
+   "railgun": {
+    "palette": "user reference (r4): WHITE fixed armour plates (double bevel) over dark gunmetal, deep electric BLUE energy [45,115,255] with a blue-white core [205,228,255], small ORANGE-GOLD paint details [215,145,40] (hue ~36, never copper = PEM family) and golden springs [235,185,50]; see bs_rail meta.json notes",
+    "carregador": {
+     "id": "rafaeltessaro.bs_rail_loader",
+     "size": [
+      5,
+      5
+     ],
+     "crew": 2,
+     "render_kind": "layered",
+     "files": {
+      "floor.png": "floors",
+      "walls.png": "walls 320x320, open on the top edge x 2.0-3.0 (the breech meets the cano channel; canos sit on x 1..4)",
+      "roof.png + roof_normals.png": "crew roof 5x5, FIXED: transparent breech slot (x 2.0-3.0, under the moving breech block), narrow feed slit (x 2.34-2.66) and the magazine window (x 2.0-3.0, y 2.7-4.78, 12 capsules); the breech block, rods, crossheads and recoil springs are NOT here: they are culatra_tranco1..8 (roof_turrets), required with this roof",
+      "weapon.png + weapon_normals.png": "weapons, rect [1,0,3,1]: inner breech block (under the roof and under culatra_tranco; seen through the slot and in the interior)",
+      "consola1..4.png": "walls layer, 1x1, the SAME sprite at the 2 crew cells (rects [1,1.5] and [3,1.5]; crew_pos [1.5,2] and [3.5,2]), loop 0.1 s",
+      "culatra_abre1..3.png": "walls, rect [2,0,1,1]: breech opening, 0.0666 s, ClampAnimation, reversed ToggleOffDoodad",
+      "culatra_carrega1..6.png": "walls, rect [2,0,1,2]: slug rising from the lift and rammed into the chamber, 0.2 s/frame",
+      "projeteis1..6.png": "doodads_low ResourceSprites (SlugMagazine 12 -> 2 slugs per level), rect [1.75,2.625,1.5,2.25]: the capsule column seen through the magazine window",
+      "capacitores1..3.png": "doodads_high ResourceSprites (LoaderBattery levels), rect [0,2.625,5,2]: k big cells per side",
+      "luz_culatra1..2.png": "lights_add ValueSprites, rect [1,0,3,1]: first segment of the charge wave (masked to the breech)",
+      "icon.png": "EditorIcon 115x115",
+      "blueprints.png": "",
+      "culatra_projetil.png": "doodads_low, rect [2,0,1,2]: the chambered slug under the breech leaves (LoadedAmmo ResourceSprites)",
+      "culatra_tranco1..8.png": "roof_turrets [0.375,0,4.25,4.75] + culatra_tranco{1..8}_normals.png: breech block, yokes, rods and crossheads kick 13 px (1 frame after the muzzle) and the fat golden recoil springs compress; file 1 = rest; REQUIRED with the new roof.png"
+     },
+     "count": 49,
+     "crew_pos": [
+      [
+       1.5,
+       2.0
+      ],
+      [
+       3.5,
+       2.0
+      ]
+     ],
+     "layers": {
+      "floor": {
+       "game_layer": "floors",
+       "rect": [
+        0,
+        0,
+        5,
+        5
+       ],
+       "files": [
+        "floor.png"
+       ],
+       "normals": null,
+       "status": "MUDOU so o rect (carregador 5x5)",
+       "was": {
+        "rect": [
+         0,
+         0,
+         3,
+         4
+        ]
+       }
+      },
+      "projeteis": {
+       "game_layer": "doodads_low",
+       "rect": [
+        1.75,
+        2.625,
+        1.5,
+        2.25
+       ],
+       "files": [
+        "projeteis1.png",
+        "projeteis2.png",
+        "projeteis3.png",
+        "projeteis4.png",
+        "projeteis5.png",
+        "projeteis6.png"
+       ],
+       "normals": null,
+       "levels": 6,
+       "status": "MUDOU so o rect (carregador 5x5)",
+       "was": {
+        "rect": [
+         0.6,
+         2.8,
+         1.8,
+         1.0
+        ]
+       }
+      },
+      "culatra_projetil": {
+       "game_layer": "doodads_low",
+       "rect": [
+        2.0,
+        0.0,
+        1.0,
+        2.0
+       ],
+       "files": [
+        "culatra_projetil.png"
+       ],
+       "normals": null,
+       "status": "MUDOU so o rect (carregador 5x5)",
+       "was": {
+        "rect": [
+         1.0,
+         0.0,
+         1.0,
+         2.0
+        ]
+       }
+      },
+      "consola": {
+       "game_layer": "walls",
+       "rect": [
+        1.0,
+        1.5,
+        1.0,
+        1.0
+       ],
+       "files": [
+        "consola1.png",
+        "consola2.png",
+        "consola3.png",
+        "consola4.png"
+       ],
+       "normals": null,
+       "rects": [
+        [
+         1.0,
+         1.5,
+         1.0,
+         1.0
+        ],
+        [
+         3.0,
+         1.5,
+         1.0,
+         1.0
+        ]
+       ],
+       "frames": 4,
+       "interval": 0.1,
+       "status": "MUDOU so o rect (carregador 5x5)",
+       "was": {
+        "rect": [
+         0.1,
+         1.1,
+         1.0,
+         1.0
+        ],
+        "rects": [
+         [
+          0.1,
+          1.1,
+          1.0,
+          1.0
+         ],
+         [
+          1.9,
+          1.1,
+          1.0,
+          1.0
+         ]
+        ]
+       }
+      },
+      "culatra_abre": {
+       "game_layer": "walls",
+       "rect": [
+        2.0,
+        0.0,
+        1.0,
+        1.0
+       ],
+       "files": [
+        "culatra_abre1.png",
+        "culatra_abre2.png",
+        "culatra_abre3.png"
+       ],
+       "normals": null,
+       "frames": 3,
+       "interval": 0.0666,
+       "status": "MUDOU so o rect (carregador 5x5)",
+       "was": {
+        "rect": [
+         1.0,
+         0.0,
+         1.0,
+         1.0
+        ]
+       }
+      },
+      "culatra_carrega": {
+       "game_layer": "walls",
+       "rect": [
+        2.0,
+        0.0,
+        1.0,
+        2.0
+       ],
+       "files": [
+        "culatra_carrega1.png",
+        "culatra_carrega2.png",
+        "culatra_carrega3.png",
+        "culatra_carrega4.png",
+        "culatra_carrega5.png",
+        "culatra_carrega6.png"
+       ],
+       "normals": null,
+       "frames": 6,
+       "interval": 0.2,
+       "status": "MUDOU so o rect (carregador 5x5)",
+       "was": {
+        "rect": [
+         1.0,
+         0.0,
+         1.0,
+         2.0
+        ]
+       }
+      },
+      "weapon": {
+       "game_layer": "weapons",
+       "rect": [
+        1.0,
+        0.0,
+        3.0,
+        1.0
+       ],
+       "files": [
+        "weapon.png"
+       ],
+       "normals": [
+        "weapon_normals.png"
+       ],
+       "status": "MUDOU so o rect (carregador 5x5)",
+       "was": {
+        "rect": [
+         0.0,
+         0.0,
+         3.0,
+         1.0
+        ]
+       }
+      },
+      "capacitores": {
+       "game_layer": "doodads_high",
+       "rect": [
+        0.0,
+        2.625,
+        5.0,
+        2.0
+       ],
+       "files": [
+        "capacitores1.png",
+        "capacitores2.png",
+        "capacitores3.png"
+       ],
+       "normals": null,
+       "levels": 3,
+       "status": "MUDOU so o rect (carregador 5x5)",
+       "was": {
+        "rect": [
+         0.0,
+         2.1,
+         3.0,
+         1.0
+        ]
+       }
+      },
+      "luz_culatra": {
+       "game_layer": "lights_add",
+       "rect": [
+        1.0,
+        0.0,
+        3.0,
+        1.0
+       ],
+       "files": [
+        "luz_culatra1.png",
+        "luz_culatra2.png"
+       ],
+       "normals": null,
+       "levels": 2,
+       "blend": "add",
+       "status": "MUDOU so o rect (carregador 5x5)",
+       "was": {
+        "rect": [
+         0.0,
+         0.0,
+         3.0,
+         1.0
+        ]
+       }
+      },
+      "roof": {
+       "game_layer": "roofs",
+       "rect": [
+        0,
+        0,
+        5,
+        5
+       ],
+       "files": [
+        "roof.png"
+       ],
+       "normals": [
+        "roof_normals.png"
+       ],
+       "status": "MUDOU (5x5); a fileira da culatra saiu para culatra_tranco",
+       "was": {
+        "rect": [
+         0,
+         0,
+         3,
+         4
+        ]
+       }
+      },
+      "culatra_tranco": {
+       "game_layer": "roof_turrets",
+       "rect": [
+        0.375,
+        0.0,
+        4.25,
+        4.75
+       ],
+       "files": [
+        "culatra_tranco1.png",
+        "culatra_tranco2.png",
+        "culatra_tranco3.png",
+        "culatra_tranco4.png",
+        "culatra_tranco5.png",
+        "culatra_tranco6.png",
+        "culatra_tranco7.png",
+        "culatra_tranco8.png"
+       ],
+       "normals": [
+        "culatra_tranco1_normals.png",
+        "culatra_tranco2_normals.png",
+        "culatra_tranco3_normals.png",
+        "culatra_tranco4_normals.png",
+        "culatra_tranco5_normals.png",
+        "culatra_tranco6_normals.png",
+        "culatra_tranco7_normals.png",
+        "culatra_tranco8_normals.png"
+       ],
+       "frames": 8,
+       "interval": 0.05,
+       "status": "NOVO (tranco)",
+       "tranco": {
+        "curve": "breech",
+        "stroke_px_at_64": 13,
+        "stroke_tiles": 0.2031,
+        "offset_px_by_file": [
+         0,
+         6,
+         13,
+         13,
+         9,
+         5,
+         2,
+         0
+        ],
+        "offset_px_play_order": [
+         6,
+         13,
+         13,
+         9,
+         5,
+         2,
+         0,
+         0
+        ],
+        "AnimationFiles_order": [
+         "culatra_tranco2.png",
+         "culatra_tranco3.png",
+         "culatra_tranco4.png",
+         "culatra_tranco5.png",
+         "culatra_tranco6.png",
+         "culatra_tranco7.png",
+         "culatra_tranco8.png",
+         "culatra_tranco1.png"
+        ],
+        "positive": "para tras (para a culatra)"
+       }
+      }
+     },
+     "layer_flags": {
+      "culatra_tranco": {
+       "required_with": "roof"
+      }
+     },
+     "count_now": 49,
+     "count_now_seen_at": "2026-10-21 21:32 (disco; a lista valida e a 'files' do meta.json no BASE)",
+     "meta_wins": "valores de art3d/bs_rail_loader/meta.json do BASE vencem (BASE = commit da arte r2 do Tupa: SPEC.status_addendum.portao_tranco_r2)",
+     "art_contract_tranco": {
+      "id": "rafaeltessaro.bs_rail_loader",
+      "folder": "art3d/bs_rail_loader",
+      "size": [
+       5,
+       5
+      ],
+      "size_was": [
+       3,
+       4
+      ],
+      "files_new": [
+       "culatra_tranco1.png",
+       "culatra_tranco1_normals.png",
+       "culatra_tranco2.png",
+       "culatra_tranco2_normals.png",
+       "culatra_tranco3.png",
+       "culatra_tranco3_normals.png",
+       "culatra_tranco4.png",
+       "culatra_tranco4_normals.png",
+       "culatra_tranco5.png",
+       "culatra_tranco5_normals.png",
+       "culatra_tranco6.png",
+       "culatra_tranco6_normals.png",
+       "culatra_tranco7.png",
+       "culatra_tranco7_normals.png",
+       "culatra_tranco8.png",
+       "culatra_tranco8_normals.png"
+      ],
+      "files_removed": [],
+      "files_total": 49,
+      "files_total_was": 33,
+      "icon": {
+       "file": "icon.png",
+       "size_px": [
+        115,
+        115
+       ]
+      },
+      "crew_pos": [
+       [
+        1.5,
+        2.0
+       ],
+       [
+        3.5,
+        2.0
+       ]
+      ],
+      "walls": "walls.png",
+      "layer_flags": {
+       "culatra_tranco": {
+        "required_with": "roof"
+       }
+      },
+      "layers": {
+       "floor": {
+        "game_layer": "floors",
+        "rect": [
+         0,
+         0,
+         5,
+         5
+        ],
+        "files": [
+         "floor.png"
+        ],
+        "normals": null,
+        "status": "MUDOU so o rect (carregador 5x5)",
+        "was": {
+         "rect": [
+          0,
+          0,
+          3,
+          4
+         ]
+        }
+       },
+       "projeteis": {
+        "game_layer": "doodads_low",
+        "rect": [
+         1.75,
+         2.625,
+         1.5,
+         2.25
+        ],
+        "files": [
+         "projeteis1.png",
+         "projeteis2.png",
+         "projeteis3.png",
+         "projeteis4.png",
+         "projeteis5.png",
+         "projeteis6.png"
+        ],
+        "normals": null,
+        "levels": 6,
+        "status": "MUDOU so o rect (carregador 5x5)",
+        "was": {
+         "rect": [
+          0.6,
+          2.8,
+          1.8,
+          1.0
+         ]
+        }
+       },
+       "culatra_projetil": {
+        "game_layer": "doodads_low",
+        "rect": [
+         2.0,
+         0.0,
+         1.0,
+         2.0
+        ],
+        "files": [
+         "culatra_projetil.png"
+        ],
+        "normals": null,
+        "status": "MUDOU so o rect (carregador 5x5)",
+        "was": {
+         "rect": [
+          1.0,
+          0.0,
+          1.0,
+          2.0
+         ]
+        }
+       },
+       "consola": {
+        "game_layer": "walls",
+        "rect": [
+         1.0,
+         1.5,
+         1.0,
+         1.0
+        ],
+        "files": [
+         "consola1.png",
+         "consola2.png",
+         "consola3.png",
+         "consola4.png"
+        ],
+        "normals": null,
+        "rects": [
+         [
+          1.0,
+          1.5,
+          1.0,
+          1.0
+         ],
+         [
+          3.0,
+          1.5,
+          1.0,
+          1.0
+         ]
+        ],
+        "frames": 4,
+        "interval": 0.1,
+        "status": "MUDOU so o rect (carregador 5x5)",
+        "was": {
+         "rect": [
+          0.1,
+          1.1,
+          1.0,
+          1.0
+         ],
+         "rects": [
+          [
+           0.1,
+           1.1,
+           1.0,
+           1.0
+          ],
+          [
+           1.9,
+           1.1,
+           1.0,
+           1.0
+          ]
+         ]
+        }
+       },
+       "culatra_abre": {
+        "game_layer": "walls",
+        "rect": [
+         2.0,
+         0.0,
+         1.0,
+         1.0
+        ],
+        "files": [
+         "culatra_abre1.png",
+         "culatra_abre2.png",
+         "culatra_abre3.png"
+        ],
+        "normals": null,
+        "frames": 3,
+        "interval": 0.0666,
+        "status": "MUDOU so o rect (carregador 5x5)",
+        "was": {
+         "rect": [
+          1.0,
+          0.0,
+          1.0,
+          1.0
+         ]
+        }
+       },
+       "culatra_carrega": {
+        "game_layer": "walls",
+        "rect": [
+         2.0,
+         0.0,
+         1.0,
+         2.0
+        ],
+        "files": [
+         "culatra_carrega1.png",
+         "culatra_carrega2.png",
+         "culatra_carrega3.png",
+         "culatra_carrega4.png",
+         "culatra_carrega5.png",
+         "culatra_carrega6.png"
+        ],
+        "normals": null,
+        "frames": 6,
+        "interval": 0.2,
+        "status": "MUDOU so o rect (carregador 5x5)",
+        "was": {
+         "rect": [
+          1.0,
+          0.0,
+          1.0,
+          2.0
+         ]
+        }
+       },
+       "weapon": {
+        "game_layer": "weapons",
+        "rect": [
+         1.0,
+         0.0,
+         3.0,
+         1.0
+        ],
+        "files": [
+         "weapon.png"
+        ],
+        "normals": [
+         "weapon_normals.png"
+        ],
+        "status": "MUDOU so o rect (carregador 5x5)",
+        "was": {
+         "rect": [
+          0.0,
+          0.0,
+          3.0,
+          1.0
+         ]
+        }
+       },
+       "capacitores": {
+        "game_layer": "doodads_high",
+        "rect": [
+         0.0,
+         2.625,
+         5.0,
+         2.0
+        ],
+        "files": [
+         "capacitores1.png",
+         "capacitores2.png",
+         "capacitores3.png"
+        ],
+        "normals": null,
+        "levels": 3,
+        "status": "MUDOU so o rect (carregador 5x5)",
+        "was": {
+         "rect": [
+          0.0,
+          2.1,
+          3.0,
+          1.0
+         ]
+        }
+       },
+       "luz_culatra": {
+        "game_layer": "lights_add",
+        "rect": [
+         1.0,
+         0.0,
+         3.0,
+         1.0
+        ],
+        "files": [
+         "luz_culatra1.png",
+         "luz_culatra2.png"
+        ],
+        "normals": null,
+        "levels": 2,
+        "blend": "add",
+        "status": "MUDOU so o rect (carregador 5x5)",
+        "was": {
+         "rect": [
+          0.0,
+          0.0,
+          3.0,
+          1.0
+         ]
+        }
+       },
+       "roof": {
+        "game_layer": "roofs",
+        "rect": [
+         0,
+         0,
+         5,
+         5
+        ],
+        "files": [
+         "roof.png"
+        ],
+        "normals": [
+         "roof_normals.png"
+        ],
+        "status": "MUDOU (5x5); a fileira da culatra saiu para culatra_tranco",
+        "was": {
+         "rect": [
+          0,
+          0,
+          3,
+          4
+         ]
+        }
+       },
+       "culatra_tranco": {
+        "game_layer": "roof_turrets",
+        "rect": [
+         0.375,
+         0.0,
+         4.25,
+         4.75
+        ],
+        "files": [
+         "culatra_tranco1.png",
+         "culatra_tranco2.png",
+         "culatra_tranco3.png",
+         "culatra_tranco4.png",
+         "culatra_tranco5.png",
+         "culatra_tranco6.png",
+         "culatra_tranco7.png",
+         "culatra_tranco8.png"
+        ],
+        "normals": [
+         "culatra_tranco1_normals.png",
+         "culatra_tranco2_normals.png",
+         "culatra_tranco3_normals.png",
+         "culatra_tranco4_normals.png",
+         "culatra_tranco5_normals.png",
+         "culatra_tranco6_normals.png",
+         "culatra_tranco7_normals.png",
+         "culatra_tranco8_normals.png"
+        ],
+        "frames": 8,
+        "interval": 0.05,
+        "status": "NOVO (tranco)",
+        "tranco": {
+         "curve": "breech",
+         "stroke_px_at_64": 13,
+         "stroke_tiles": 0.2031,
+         "offset_px_by_file": [
+          0,
+          6,
+          13,
+          13,
+          9,
+          5,
+          2,
+          0
+         ],
+         "offset_px_play_order": [
+          6,
+          13,
+          13,
+          9,
+          5,
+          2,
+          0,
+          0
+         ],
+         "AnimationFiles_order": [
+          "culatra_tranco2.png",
+          "culatra_tranco3.png",
+          "culatra_tranco4.png",
+          "culatra_tranco5.png",
+          "culatra_tranco6.png",
+          "culatra_tranco7.png",
+          "culatra_tranco8.png",
+          "culatra_tranco1.png"
+         ],
+         "positive": "para tras (para a culatra)"
+        }
+       }
+      },
+      "from": "spec_patch tranco-r2 (2026-10-21 21:20)"
+     }
+    },
+    "cano": {
+     "id": "rafaeltessaro.bs_rail_barrel",
+     "size": [
+      3,
+      3
+     ],
+     "render_kind": "layered",
+     "proto": "/tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/v2/research/art/proto/proto_rail.png",
+     "files": {
+      "floor.png": "floors (channel floor lighter than the proto: lesson 1)",
+      "walls.png": "walls OPEN at top and bottom edges x 1.0-2.0 (prototype lesson 3: a closed frame crosses the channel at every joint)",
+      "roof.png + roof_normals.png": "open channel x 1.10-1.90 for the full length, white rails, cheeks, seam half-clamps; it has NO drums any more: the 3 EM drums + the middle bracket are tambores_tranco1..8 (roof_turrets). roof.png without the tambores_tranco Graphics = a cano with NO drums",
+      "trilhos1..9.png": "doodads_low ValueSprites 3x3 (TK bs2t_rail_cano.rules:248-262): trilhos + 3 aneis de bobina AZUIS por cano (palette.rail blue/glow); o nivel k acende os aneis da culatra (baixo) para a boca (cima); nivel 1 = frio. A arte (art3d/bs_rail_barrel) manda",
+      "carga1..8.png": "lights_add ValueSprites 3x3 (TK :268-284): planos aditivos de LARGURA INTEIRA sobre o canal (licao 2 do prototipo), o nivel k cobre os k/8 de baixo do cano; AZUL blue [45, 115, 255] -> glow [100, 175, 255], puxando para o nucleo branco-azulado core [205, 228, 255] nos niveis 7..8 (era violet [150,105,255] + gold-white [255,225,150]); largura igual em todos os canos para as emendas casarem. A arte (art3d/bs_rail_barrel) manda",
+      "icon.png": "69x69 (TK)",
+      "blueprints.png": "",
+      "tambores_tranco1..8.png": "roof_turrets [0,0,3,3] + tambores_tranco{1..8}_normals.png: the 3 EM drums + the middle bracket kick 13 px back, hold 2 frames, 1 px spring overshoot (file 1 = rest); REQUIRED with the new roof.png"
+     },
+     "charge_wave_drive": "CargaNormal = clamp((NoTrilho - IndiceCano)/1.5, 0, 1) -> trilhos + carga levels (newweapons parts.cano.charge_wave); rail.charge_wave = delay uses the SAME carga1..8 as AnimationFiles (ClampAnimation, 0.03 s) started by a DelayTrigger of 0.3 s x index",
+     "count": 39,
+     "layers": {
+      "floor": {
+       "game_layer": "floors",
+       "rect": [
+        0,
+        0,
+        3,
+        3
+       ],
+       "files": [
+        "floor.png"
+       ],
+       "normals": null,
+       "status": "igual"
+      },
+      "trilhos": {
+       "game_layer": "doodads_low",
+       "rect": [
+        0,
+        0,
+        3,
+        3
+       ],
+       "files": [
+        "trilhos1.png",
+        "trilhos2.png",
+        "trilhos3.png",
+        "trilhos4.png",
+        "trilhos5.png",
+        "trilhos6.png",
+        "trilhos7.png",
+        "trilhos8.png",
+        "trilhos9.png"
+       ],
+       "normals": null,
+       "levels": 9,
+       "status": "igual"
+      },
+      "carga": {
+       "game_layer": "lights_add",
+       "rect": [
+        0,
+        0,
+        3,
+        3
+       ],
+       "files": [
+        "carga1.png",
+        "carga2.png",
+        "carga3.png",
+        "carga4.png",
+        "carga5.png",
+        "carga6.png",
+        "carga7.png",
+        "carga8.png"
+       ],
+       "normals": null,
+       "levels": 8,
+       "blend": "add",
+       "status": "igual"
+      },
+      "roof": {
+       "game_layer": "roofs",
+       "rect": [
+        0,
+        0,
+        3,
+        3
+       ],
+       "files": [
+        "roof.png"
+       ],
+       "normals": [
+        "roof_normals.png"
+       ],
+       "status": "igual (nome/rect); CONTEUDO mudou: os tambores sairam para a camada do tranco; o teto leva a sombra de contato FRACA (50%) deles em repouso (r2)"
+      },
+      "tambores_tranco": {
+       "game_layer": "roof_turrets",
+       "rect": [
+        0.0,
+        0.0,
+        3.0,
+        3.0
+       ],
+       "files": [
+        "tambores_tranco1.png",
+        "tambores_tranco2.png",
+        "tambores_tranco3.png",
+        "tambores_tranco4.png",
+        "tambores_tranco5.png",
+        "tambores_tranco6.png",
+        "tambores_tranco7.png",
+        "tambores_tranco8.png"
+       ],
+       "normals": [
+        "tambores_tranco1_normals.png",
+        "tambores_tranco2_normals.png",
+        "tambores_tranco3_normals.png",
+        "tambores_tranco4_normals.png",
+        "tambores_tranco5_normals.png",
+        "tambores_tranco6_normals.png",
+        "tambores_tranco7_normals.png",
+        "tambores_tranco8_normals.png"
+       ],
+       "frames": 8,
+       "interval": 0.05,
+       "status": "NOVO (tranco)",
+       "tranco": {
+        "curve": "drum",
+        "stroke_px_at_64": 13,
+        "stroke_tiles": 0.2031,
+        "offset_px_by_file": [
+         0,
+         13,
+         13,
+         10,
+         6,
+         2,
+         -1,
+         0
+        ],
+        "offset_px_play_order": [
+         13,
+         13,
+         10,
+         6,
+         2,
+         -1,
+         0,
+         0
+        ],
+        "AnimationFiles_order": [
+         "tambores_tranco2.png",
+         "tambores_tranco3.png",
+         "tambores_tranco4.png",
+         "tambores_tranco5.png",
+         "tambores_tranco6.png",
+         "tambores_tranco7.png",
+         "tambores_tranco8.png",
+         "tambores_tranco1.png"
+        ],
+        "positive": "para tras (para a culatra)"
+       }
+      }
+     },
+     "layer_flags": {
+      "tambores_tranco": {
+       "required_with": "roof"
+      }
+     },
+     "count_now": 39,
+     "count_now_seen_at": "2026-10-21 21:32 (disco; a lista valida e a 'files' do meta.json no BASE)",
+     "meta_wins": "valores de art3d/bs_rail_barrel/meta.json do BASE vencem (BASE = commit da arte r2 do Tupa: SPEC.status_addendum.portao_tranco_r2)",
+     "art_contract_tranco": {
+      "id": "rafaeltessaro.bs_rail_barrel",
+      "folder": "art3d/bs_rail_barrel",
+      "size": [
+       3,
+       3
+      ],
+      "size_was": [
+       3,
+       3
+      ],
+      "files_new": [
+       "tambores_tranco1.png",
+       "tambores_tranco1_normals.png",
+       "tambores_tranco2.png",
+       "tambores_tranco2_normals.png",
+       "tambores_tranco3.png",
+       "tambores_tranco3_normals.png",
+       "tambores_tranco4.png",
+       "tambores_tranco4_normals.png",
+       "tambores_tranco5.png",
+       "tambores_tranco5_normals.png",
+       "tambores_tranco6.png",
+       "tambores_tranco6_normals.png",
+       "tambores_tranco7.png",
+       "tambores_tranco7_normals.png",
+       "tambores_tranco8.png",
+       "tambores_tranco8_normals.png"
+      ],
+      "files_removed": [],
+      "files_total": 39,
+      "files_total_was": 23,
+      "icon": {
+       "file": "icon.png",
+       "size_px": [
+        69,
+        69
+       ]
+      },
+      "crew_pos": null,
+      "walls": "walls.png",
+      "layer_flags": {
+       "tambores_tranco": {
+        "required_with": "roof"
+       }
+      },
+      "layers": {
+       "floor": {
+        "game_layer": "floors",
+        "rect": [
+         0,
+         0,
+         3,
+         3
+        ],
+        "files": [
+         "floor.png"
+        ],
+        "normals": null,
+        "status": "igual"
+       },
+       "trilhos": {
+        "game_layer": "doodads_low",
+        "rect": [
+         0,
+         0,
+         3,
+         3
+        ],
+        "files": [
+         "trilhos1.png",
+         "trilhos2.png",
+         "trilhos3.png",
+         "trilhos4.png",
+         "trilhos5.png",
+         "trilhos6.png",
+         "trilhos7.png",
+         "trilhos8.png",
+         "trilhos9.png"
+        ],
+        "normals": null,
+        "levels": 9,
+        "status": "igual"
+       },
+       "carga": {
+        "game_layer": "lights_add",
+        "rect": [
+         0,
+         0,
+         3,
+         3
+        ],
+        "files": [
+         "carga1.png",
+         "carga2.png",
+         "carga3.png",
+         "carga4.png",
+         "carga5.png",
+         "carga6.png",
+         "carga7.png",
+         "carga8.png"
+        ],
+        "normals": null,
+        "levels": 8,
+        "blend": "add",
+        "status": "igual"
+       },
+       "roof": {
+        "game_layer": "roofs",
+        "rect": [
+         0,
+         0,
+         3,
+         3
+        ],
+        "files": [
+         "roof.png"
+        ],
+        "normals": [
+         "roof_normals.png"
+        ],
+        "status": "igual (nome/rect); CONTEUDO mudou: os tambores sairam para a camada do tranco; o teto leva a sombra de contato FRACA (50%) deles em repouso (r2)"
+       },
+       "tambores_tranco": {
+        "game_layer": "roof_turrets",
+        "rect": [
+         0.0,
+         0.0,
+         3.0,
+         3.0
+        ],
+        "files": [
+         "tambores_tranco1.png",
+         "tambores_tranco2.png",
+         "tambores_tranco3.png",
+         "tambores_tranco4.png",
+         "tambores_tranco5.png",
+         "tambores_tranco6.png",
+         "tambores_tranco7.png",
+         "tambores_tranco8.png"
+        ],
+        "normals": [
+         "tambores_tranco1_normals.png",
+         "tambores_tranco2_normals.png",
+         "tambores_tranco3_normals.png",
+         "tambores_tranco4_normals.png",
+         "tambores_tranco5_normals.png",
+         "tambores_tranco6_normals.png",
+         "tambores_tranco7_normals.png",
+         "tambores_tranco8_normals.png"
+        ],
+        "frames": 8,
+        "interval": 0.05,
+        "status": "NOVO (tranco)",
+        "tranco": {
+         "curve": "drum",
+         "stroke_px_at_64": 13,
+         "stroke_tiles": 0.2031,
+         "offset_px_by_file": [
+          0,
+          13,
+          13,
+          10,
+          6,
+          2,
+          -1,
+          0
+         ],
+         "offset_px_play_order": [
+          13,
+          13,
+          10,
+          6,
+          2,
+          -1,
+          0,
+          0
+         ],
+         "AnimationFiles_order": [
+          "tambores_tranco2.png",
+          "tambores_tranco3.png",
+          "tambores_tranco4.png",
+          "tambores_tranco5.png",
+          "tambores_tranco6.png",
+          "tambores_tranco7.png",
+          "tambores_tranco8.png",
+          "tambores_tranco1.png"
+         ],
+         "positive": "para tras (para a culatra)"
+        }
+       }
+      },
+      "from": "spec_patch tranco-r2 (2026-10-21 21:20)"
+     }
+    },
+    "ponta": {
+     "id": "rafaeltessaro.bs_rail_muzzle",
+     "size": [
+      3,
+      4
+     ],
+     "render_kind": "layered",
+     "files": {
+      "floor.png": "",
+      "walls.png": "open on the bottom edge x 1.0-2.0",
+      "roof.png + roof_normals.png": "open channel up to the crown; NO EM drum at the seam (tambor_tranco) and 2 HOLES where the big white cheeks are (they are in weapon_tranco since tranco-r1). roof.png without weapon_tranco + tambor_tranco = a holed roof and no drum",
+      "weapon.png + weapon_normals.png": "weapons rect [0,0,3,1.5]: REST / NonOperational image of the crown ONLY (= the top 96 rows of weapon_tranco1, pixel for pixel). NEVER draw it together with weapon_tranco (same layer and place: a doubled, ghosting crown); the Graphics of the ponta is weapon_tranco1..8 (NonOperationalDoodad = weapon_tranco1)",
+      "trilhos.png": "doodads_low static rails (TK :543-550)",
+      "carga1..6.png": "lights_add ValueSprites 3x4 (TK :566-580), same colour rule as the cano",
+      "slug.png": "walls, Size [0.8, 3], Sprite ChainedTo Projectile (TK :478-484); light armature, same object as the in-flight slug body",
+      "slug_glow.png": "lights_add, Size [1.2, 3.4], ChainedTo Projectile (TK :448-454); halo AZUL (blue [45, 115, 255] -> glow [100, 175, 255]), OCO no meio para o dardo claro continuar legivel; sem ponta dourada (era violet halo + gold tip)",
+      "light_blob": "vanilla ./Data/ships/common/light_blob.png 9x9 on roof_lights_fancy, VertexColor palette.rail.light_blob_vertexcolor_float (low red, no green; replaces newweapons' {0.30, 0.22, 0.55} which washes white hulls, see light_wash_check.csv)",
+      "icon.png": "69x92 (TK)",
+      "blueprints.png": "",
+      "weapon_tranco1..8.png": "weapons [0,0,3,3.5625] + weapon_tranco{1..8}_normals.png: the shield front AND the big white cheeks kick 13 px back and hold 2 frames, no forward overshoot (file 1 = rest; its top 96 rows = weapon.png); REQUIRED with the new roof.png",
+      "tambor_tranco1..8.png": "roof_turrets [0.875,3.0,1.25,1.0] + tambor_tranco{1..8}_normals.png: the seam EM drum kicks 13 px with the cano drums; REQUIRED with the new roof.png"
+     },
+     "count": 49,
+     "layers": {
+      "floor": {
+       "game_layer": "floors",
+       "rect": [
+        0,
+        0,
+        3,
+        4
+       ],
+       "files": [
+        "floor.png"
+       ],
+       "normals": null,
+       "status": "igual"
+      },
+      "trilhos": {
+       "game_layer": "doodads_low",
+       "rect": [
+        0,
+        0,
+        3,
+        4
+       ],
+       "files": [
+        "trilhos.png"
+       ],
+       "normals": null,
+       "status": "igual"
+      },
+      "weapon": {
+       "game_layer": "weapons",
+       "rect": [
+        0.0,
+        0.0,
+        3.0,
+        1.5
+       ],
+       "files": [
+        "weapon.png"
+       ],
+       "normals": [
+        "weapon_normals.png"
+       ],
+       "status": "igual (nome/rect [0,0,3,1.5]); = as 96 linhas de cima de weapon_tranco1 pixel a pixel (so a coroa em repouso): imagem de repouso/icone; NUNCA desenhar junto com weapon_tranco (meta.layer_flags)"
+      },
+      "weapon_tranco": {
+       "game_layer": "weapons",
+       "rect": [
+        0.0,
+        0.0,
+        3.0,
+        3.5625
+       ],
+       "files": [
+        "weapon_tranco1.png",
+        "weapon_tranco2.png",
+        "weapon_tranco3.png",
+        "weapon_tranco4.png",
+        "weapon_tranco5.png",
+        "weapon_tranco6.png",
+        "weapon_tranco7.png",
+        "weapon_tranco8.png"
+       ],
+       "normals": [
+        "weapon_tranco1_normals.png",
+        "weapon_tranco2_normals.png",
+        "weapon_tranco3_normals.png",
+        "weapon_tranco4_normals.png",
+        "weapon_tranco5_normals.png",
+        "weapon_tranco6_normals.png",
+        "weapon_tranco7_normals.png",
+        "weapon_tranco8_normals.png"
+       ],
+       "frames": 8,
+       "interval": 0.05,
+       "status": "NOVO (tranco): a frente em escudo + as bochechas brancas (sairam do teto)",
+       "tranco": {
+        "curve": "crown",
+        "stroke_px_at_64": 13,
+        "stroke_tiles": 0.2031,
+        "offset_px_by_file": [
+         0,
+         13,
+         13,
+         10,
+         6,
+         3,
+         1,
+         0
+        ],
+        "offset_px_play_order": [
+         13,
+         13,
+         10,
+         6,
+         3,
+         1,
+         0,
+         0
+        ],
+        "AnimationFiles_order": [
+         "weapon_tranco2.png",
+         "weapon_tranco3.png",
+         "weapon_tranco4.png",
+         "weapon_tranco5.png",
+         "weapon_tranco6.png",
+         "weapon_tranco7.png",
+         "weapon_tranco8.png",
+         "weapon_tranco1.png"
+        ],
+        "positive": "para tras (para a culatra)"
+       }
+      },
+      "carga": {
+       "game_layer": "lights_add",
+       "rect": [
+        0,
+        0,
+        3,
+        4
+       ],
+       "files": [
+        "carga1.png",
+        "carga2.png",
+        "carga3.png",
+        "carga4.png",
+        "carga5.png",
+        "carga6.png"
+       ],
+       "normals": null,
+       "levels": 6,
+       "blend": "add",
+       "status": "igual"
+      },
+      "roof": {
+       "game_layer": "roofs",
+       "rect": [
+        0,
+        0,
+        3,
+        4
+       ],
+       "files": [
+        "roof.png"
+       ],
+       "normals": [
+        "roof_normals.png"
+       ],
+       "status": "igual (nome/rect); CONTEUDO mudou: sem o tambor da emenda (tambor_tranco) e com 2 BURACOS onde ficam as bochechas brancas (weapon_tranco); r2: sombra de contato FRACA das bochechas e do tambor em repouso + um calco escuro de 2 px no topo da borda de fora de cada buraco (no tranco o piso nao aparece na quina da coroa)"
+      },
+      "slug": {
+       "game_layer": "walls",
+       "rect": [
+        1.1,
+        0.5,
+        0.8,
+        3.0
+       ],
+       "files": [
+        "slug.png"
+       ],
+       "normals": null,
+       "status": "igual"
+      },
+      "slug_glow": {
+       "game_layer": "lights_add",
+       "rect": [
+        0.9,
+        0.3,
+        1.2,
+        3.4
+       ],
+       "files": [
+        "slug_glow.png"
+       ],
+       "normals": null,
+       "blend": "add",
+       "status": "igual"
+      },
+      "tambor_tranco": {
+       "game_layer": "roof_turrets",
+       "rect": [
+        0.875,
+        3.0,
+        1.25,
+        1.0
+       ],
+       "files": [
+        "tambor_tranco1.png",
+        "tambor_tranco2.png",
+        "tambor_tranco3.png",
+        "tambor_tranco4.png",
+        "tambor_tranco5.png",
+        "tambor_tranco6.png",
+        "tambor_tranco7.png",
+        "tambor_tranco8.png"
+       ],
+       "normals": [
+        "tambor_tranco1_normals.png",
+        "tambor_tranco2_normals.png",
+        "tambor_tranco3_normals.png",
+        "tambor_tranco4_normals.png",
+        "tambor_tranco5_normals.png",
+        "tambor_tranco6_normals.png",
+        "tambor_tranco7_normals.png",
+        "tambor_tranco8_normals.png"
+       ],
+       "frames": 8,
+       "interval": 0.05,
+       "status": "NOVO (tranco)",
+       "tranco": {
+        "curve": "drum",
+        "stroke_px_at_64": 13,
+        "stroke_tiles": 0.2031,
+        "offset_px_by_file": [
+         0,
+         13,
+         13,
+         10,
+         6,
+         2,
+         -1,
+         0
+        ],
+        "offset_px_play_order": [
+         13,
+         13,
+         10,
+         6,
+         2,
+         -1,
+         0,
+         0
+        ],
+        "AnimationFiles_order": [
+         "tambor_tranco2.png",
+         "tambor_tranco3.png",
+         "tambor_tranco4.png",
+         "tambor_tranco5.png",
+         "tambor_tranco6.png",
+         "tambor_tranco7.png",
+         "tambor_tranco8.png",
+         "tambor_tranco1.png"
+        ],
+        "positive": "para tras (para a culatra)"
+       }
+      }
+     },
+     "layer_flags": {
+      "weapon": {
+       "rest_only": true,
+       "exclusive_with": "weapon_tranco",
+       "use": "so a coroa em repouso (icone / contrato antigo); com o roof.png novo o NonOperationalDoodad e weapon_tranco1; NUNCA junto com weapon_tranco"
+      },
+      "weapon_tranco": {
+       "exclusive_with": "weapon",
+       "required_with": "roof",
+       "use": "Graphics animada da frente + bochechas (o roof.png novo tem o buraco delas)"
+      },
+      "tambor_tranco": {
+       "required_with": "roof"
+      }
+     },
+     "count_now": 49,
+     "count_now_seen_at": "2026-10-21 21:32 (disco; a lista valida e a 'files' do meta.json no BASE)",
+     "meta_wins": "valores de art3d/bs_rail_muzzle/meta.json do BASE vencem (BASE = commit da arte r2 do Tupa: SPEC.status_addendum.portao_tranco_r2)",
+     "art_contract_tranco": {
+      "id": "rafaeltessaro.bs_rail_muzzle",
+      "folder": "art3d/bs_rail_muzzle",
+      "size": [
+       3,
+       4
+      ],
+      "size_was": [
+       3,
+       4
+      ],
+      "files_new": [
+       "tambor_tranco1.png",
+       "tambor_tranco1_normals.png",
+       "tambor_tranco2.png",
+       "tambor_tranco2_normals.png",
+       "tambor_tranco3.png",
+       "tambor_tranco3_normals.png",
+       "tambor_tranco4.png",
+       "tambor_tranco4_normals.png",
+       "tambor_tranco5.png",
+       "tambor_tranco5_normals.png",
+       "tambor_tranco6.png",
+       "tambor_tranco6_normals.png",
+       "tambor_tranco7.png",
+       "tambor_tranco7_normals.png",
+       "tambor_tranco8.png",
+       "tambor_tranco8_normals.png",
+       "weapon_tranco1.png",
+       "weapon_tranco1_normals.png",
+       "weapon_tranco2.png",
+       "weapon_tranco2_normals.png",
+       "weapon_tranco3.png",
+       "weapon_tranco3_normals.png",
+       "weapon_tranco4.png",
+       "weapon_tranco4_normals.png",
+       "weapon_tranco5.png",
+       "weapon_tranco5_normals.png",
+       "weapon_tranco6.png",
+       "weapon_tranco6_normals.png",
+       "weapon_tranco7.png",
+       "weapon_tranco7_normals.png",
+       "weapon_tranco8.png",
+       "weapon_tranco8_normals.png"
+      ],
+      "files_removed": [],
+      "files_total": 49,
+      "files_total_was": 17,
+      "icon": {
+       "file": "icon.png",
+       "size_px": [
+        69,
+        92
+       ]
+      },
+      "crew_pos": null,
+      "walls": "walls.png",
+      "layer_flags": {
+       "weapon": {
+        "rest_only": true,
+        "exclusive_with": "weapon_tranco",
+        "use": "so a coroa em repouso (icone / contrato antigo); com o roof.png novo o NonOperationalDoodad e weapon_tranco1; NUNCA junto com weapon_tranco"
+       },
+       "weapon_tranco": {
+        "exclusive_with": "weapon",
+        "required_with": "roof",
+        "use": "Graphics animada da frente + bochechas (o roof.png novo tem o buraco delas)"
+       },
+       "tambor_tranco": {
+        "required_with": "roof"
+       }
+      },
+      "layers": {
+       "floor": {
+        "game_layer": "floors",
+        "rect": [
+         0,
+         0,
+         3,
+         4
+        ],
+        "files": [
+         "floor.png"
+        ],
+        "normals": null,
+        "status": "igual"
+       },
+       "trilhos": {
+        "game_layer": "doodads_low",
+        "rect": [
+         0,
+         0,
+         3,
+         4
+        ],
+        "files": [
+         "trilhos.png"
+        ],
+        "normals": null,
+        "status": "igual"
+       },
+       "weapon": {
+        "game_layer": "weapons",
+        "rect": [
+         0.0,
+         0.0,
+         3.0,
+         1.5
+        ],
+        "files": [
+         "weapon.png"
+        ],
+        "normals": [
+         "weapon_normals.png"
+        ],
+        "status": "igual (nome/rect [0,0,3,1.5]); = as 96 linhas de cima de weapon_tranco1 pixel a pixel (so a coroa em repouso): imagem de repouso/icone; NUNCA desenhar junto com weapon_tranco (meta.layer_flags)"
+       },
+       "weapon_tranco": {
+        "game_layer": "weapons",
+        "rect": [
+         0.0,
+         0.0,
+         3.0,
+         3.5625
+        ],
+        "files": [
+         "weapon_tranco1.png",
+         "weapon_tranco2.png",
+         "weapon_tranco3.png",
+         "weapon_tranco4.png",
+         "weapon_tranco5.png",
+         "weapon_tranco6.png",
+         "weapon_tranco7.png",
+         "weapon_tranco8.png"
+        ],
+        "normals": [
+         "weapon_tranco1_normals.png",
+         "weapon_tranco2_normals.png",
+         "weapon_tranco3_normals.png",
+         "weapon_tranco4_normals.png",
+         "weapon_tranco5_normals.png",
+         "weapon_tranco6_normals.png",
+         "weapon_tranco7_normals.png",
+         "weapon_tranco8_normals.png"
+        ],
+        "frames": 8,
+        "interval": 0.05,
+        "status": "NOVO (tranco): a frente em escudo + as bochechas brancas (sairam do teto)",
+        "tranco": {
+         "curve": "crown",
+         "stroke_px_at_64": 13,
+         "stroke_tiles": 0.2031,
+         "offset_px_by_file": [
+          0,
+          13,
+          13,
+          10,
+          6,
+          3,
+          1,
+          0
+         ],
+         "offset_px_play_order": [
+          13,
+          13,
+          10,
+          6,
+          3,
+          1,
+          0,
+          0
+         ],
+         "AnimationFiles_order": [
+          "weapon_tranco2.png",
+          "weapon_tranco3.png",
+          "weapon_tranco4.png",
+          "weapon_tranco5.png",
+          "weapon_tranco6.png",
+          "weapon_tranco7.png",
+          "weapon_tranco8.png",
+          "weapon_tranco1.png"
+         ],
+         "positive": "para tras (para a culatra)"
+        }
+       },
+       "carga": {
+        "game_layer": "lights_add",
+        "rect": [
+         0,
+         0,
+         3,
+         4
+        ],
+        "files": [
+         "carga1.png",
+         "carga2.png",
+         "carga3.png",
+         "carga4.png",
+         "carga5.png",
+         "carga6.png"
+        ],
+        "normals": null,
+        "levels": 6,
+        "blend": "add",
+        "status": "igual"
+       },
+       "roof": {
+        "game_layer": "roofs",
+        "rect": [
+         0,
+         0,
+         3,
+         4
+        ],
+        "files": [
+         "roof.png"
+        ],
+        "normals": [
+         "roof_normals.png"
+        ],
+        "status": "igual (nome/rect); CONTEUDO mudou: sem o tambor da emenda (tambor_tranco) e com 2 BURACOS onde ficam as bochechas brancas (weapon_tranco); r2: sombra de contato FRACA das bochechas e do tambor em repouso + um calco escuro de 2 px no topo da borda de fora de cada buraco (no tranco o piso nao aparece na quina da coroa)"
+       },
+       "slug": {
+        "game_layer": "walls",
+        "rect": [
+         1.1,
+         0.5,
+         0.8,
+         3.0
+        ],
+        "files": [
+         "slug.png"
+        ],
+        "normals": null,
+        "status": "igual"
+       },
+       "slug_glow": {
+        "game_layer": "lights_add",
+        "rect": [
+         0.9,
+         0.3,
+         1.2,
+         3.4
+        ],
+        "files": [
+         "slug_glow.png"
+        ],
+        "normals": null,
+        "blend": "add",
+        "status": "igual"
+       },
+       "tambor_tranco": {
+        "game_layer": "roof_turrets",
+        "rect": [
+         0.875,
+         3.0,
+         1.25,
+         1.0
+        ],
+        "files": [
+         "tambor_tranco1.png",
+         "tambor_tranco2.png",
+         "tambor_tranco3.png",
+         "tambor_tranco4.png",
+         "tambor_tranco5.png",
+         "tambor_tranco6.png",
+         "tambor_tranco7.png",
+         "tambor_tranco8.png"
+        ],
+        "normals": [
+         "tambor_tranco1_normals.png",
+         "tambor_tranco2_normals.png",
+         "tambor_tranco3_normals.png",
+         "tambor_tranco4_normals.png",
+         "tambor_tranco5_normals.png",
+         "tambor_tranco6_normals.png",
+         "tambor_tranco7_normals.png",
+         "tambor_tranco8_normals.png"
+        ],
+        "frames": 8,
+        "interval": 0.05,
+        "status": "NOVO (tranco)",
+        "tranco": {
+         "curve": "drum",
+         "stroke_px_at_64": 13,
+         "stroke_tiles": 0.2031,
+         "offset_px_by_file": [
+          0,
+          13,
+          13,
+          10,
+          6,
+          2,
+          -1,
+          0
+         ],
+         "offset_px_play_order": [
+          13,
+          13,
+          10,
+          6,
+          2,
+          -1,
+          0,
+          0
+         ],
+         "AnimationFiles_order": [
+          "tambor_tranco2.png",
+          "tambor_tranco3.png",
+          "tambor_tranco4.png",
+          "tambor_tranco5.png",
+          "tambor_tranco6.png",
+          "tambor_tranco7.png",
+          "tambor_tranco8.png",
+          "tambor_tranco1.png"
+         ],
+         "positive": "para tras (para a culatra)"
+        }
+       }
+      },
+      "from": "spec_patch tranco-r2 (2026-10-21 21:20)"
+     }
+    },
+    "source_r3": "ADOTADA: tools/blender/parts/bs_rail.py (PARTS loader/barrel/muzzle) renderizado por tools/blender/render_layered.py -> art3d/bs_rail_loader|bs_rail_barrel|bs_rail_muzzle/ (feito, com o tranco e o carregador 5x5). Listas de arquivos: 49/39/49 (carregador/cano/ponta, meta.json files).",
+    "source_addendum": "ADOTADA (bs_rail.py + render_layered.py): carregador 5x5 e camadas do tranco (spec_patch tranco-r2 (2026-10-21 21:20)); a arte valida e a do commit r2 (portao do WP01)"
+   },
+   "pem_guns": {
+    "kind": "gun",
+    "accent": "blue (custom low intensities, as parts/bs_mag_emp.py) + copper coils (Mo.copper_mat)",
+    "Tuvira": {
+     "id": "rafaeltessaro.bs_pem_light",
+     "size": [
+      1,
+      2
+     ],
+     "barrels": 2,
+     "look": "TORRE 270 graus 1x2 com 2 canos curtos sincronizados (arte refeita: pivo [0.5,0.5], turret_size 1.0)",
+     "barrel_anim": "recoil 3 frames + rest, heat_color low blue (0.05, 0.35, 1.0)",
+     "art3d": "art3d/bs_pem_light (kind gun; 17 arquivos + meta)"
+    },
+    "Treme-Treme": {
+     "id": "rafaeltessaro.bs_pem_medium",
+     "size": [
+      2,
+      2
+     ],
+     "barrels": 1,
+     "look": "squat round turret, 1 thick barrel with 3 copper coils, 2 cell drums on the sides",
+     "barrel_anim": "recoil 4 + rest",
+     "art3d": "art3d/bs_pem_medium"
+    },
+    "Corisco": {
+     "id": "rafaeltessaro.bs_pem_heavy",
+     "size": [
+      4,
+      4
+     ],
+     "barrels": 2,
+     "look": "big armoured twin turret, 2 long barrels in glowing coil stacks, lightning-rod muzzle ring",
+     "barrel_anim": "recoil 5 + rest",
+     "charge_glow": "charge_glow1..4 (render_kinds.gun.new_option)",
+     "art3d": "art3d/bs_pem_heavy (charge_glow1..4)"
+    }
+   },
+   "factories": {
+    "F1": {
+     "name_ptbr": "Prensa HE",
+     "id": "rafaeltessaro.bs_factory_mag_std",
+     "size": [
+      2,
+      2
+     ],
+     "status": "REWORK (KEEP ID)",
+     "model": "bs_factory_mag_std.py",
+     "machine_frames": 10,
+     "machine_interval_s": 0.125,
+     "theme": "sulfur hopper chute on input pad [0,1]; casting die + press ram; 10 frames x 0.125 = 1.25 s = one magazine per animation loop (econ interval_s_base 1.25)",
+     "accent": "amber"
+    },
+    "F2": {
+     "name_ptbr": "Fabrica de Municao Especial",
+     "id": "rafaeltessaro.bs_factory_mag_ap",
+     "size": [
+      4,
+      3
+     ],
+     "status": "REWORK (ID mantido bs_factory_mag_ap; 3x3 -> 4x3)",
+     "model": "bs_factory_special.py",
+     "machine_frames": 10,
+     "machine_interval_s": 0.1,
+     "theme": "4x3 factory_mine layout: machine row 0 + [1,1],[2,1]; inputs sulfur [0,1] / tristeel [3,1]; 4 output pads [0..3,2] with painted band chips AP/SAP/AC/FRAG; mode plate slot on roof",
+     "accent": "amber",
+     "mode_plate": {
+      "rect_centre": [
+       2.0,
+       0.5
+      ],
+      "size": 0.8,
+      "modes": [
+       "ap",
+       "sap",
+       "ac",
+       "frag"
+      ]
+     },
+     "art3d_dir": "bs_factory_special"
+    },
+    "F3": {
+     "name_ptbr": "Fabrica de Celulas",
+     "id": "rafaeltessaro.bs_factory_plasma",
+     "size": [
+      3,
+      3
+     ],
+     "status": "REWORK (KEEP ID)",
+     "model": "bs_factory_plasma.py + coils of bs_factory_mag_emp.py",
+     "machine_frames": 12,
+     "machine_interval_s": 0.12,
+     "theme": "plasma tanks left, copper coil bank right; banco_pem overlay + banco_pem_luz1..4 shown only in PEM mode",
+     "accent": "cyan",
+     "mode_plate": {
+      "rect_centre": [
+       0.5,
+       0.5
+      ],
+      "size": 0.8,
+      "modes": [
+       "plasma",
+       "pem"
+      ]
+     },
+     "pem_bank": {
+      "files": [
+       "banco_pem.png (+normals)",
+       "banco_pem_luz1..4.png"
+      ],
+      "rect": [
+       2.0,
+       0.1,
+       0.9,
+       1.0
+      ],
+      "layers": "roof_doodads (bank) + lights_add (luz, 0.1 s loop)",
+      "gate": "ModeToggle PEM (bs_cell_type = 1); luz also needs the factory AnimationToggle (producing)"
+     },
+     "copper_grid": "grade de cobre em [1,2] (fileira de baixo, entre as saidas; J2R3-9)"
+    },
+    "F4": {
+     "name_ptbr": "Fabrica de Misseis",
+     "id": "rafaeltessaro.bs_factory_missile",
+     "size": [
+      3,
+      3
+     ],
+     "status": "NEW",
+     "model": "bs_factory_missile.py",
+     "machine_frames": 12,
+     "machine_interval_s": 0.1,
+     "theme": "gantry arm mating a warhead to a body on a cradle; outputs HE [0,2] / cluster [1,2] / EMP [2,2]",
+     "accent": "amber",
+     "mode_plate": {
+      "rect_centre": [
+       1.5,
+       0.5
+      ],
+      "size": 0.8,
+      "modes": [
+       "msl_he",
+       "msl_cluster",
+       "msl_emp"
+      ]
+     }
+    },
+    "F5": {
+     "name_ptbr": "Fabrica de Ogivas Nucleares",
+     "id": "rafaeltessaro.bs_factory_warhead",
+     "size": [
+      4,
+      4
+     ],
+     "status": "NEW (model from bs_factory_shell_nuke.py)",
+     "model": "bs_factory_warhead.py",
+     "machine_frames": 12,
+     "machine_interval_s": 0.125,
+     "theme": "4x4 factory_nuke layout: hot cell with shield glass, 2 manipulator arms; 12 x 0.125 = 1.5 s = half of the 3.0 s cycle (2 loops per warhead)",
+     "accent": "green"
+    },
+    "F6": {
+     "name_ptbr": "Forja de Projeteis",
+     "id": "rafaeltessaro.bs_factory_slug",
+     "size": [
+      3,
+      4
+     ],
+     "status": "NEW",
+     "model": "bs_factory_slug.py",
+     "machine_frames": 12,
+     "machine_interval_s": 0.25,
+     "theme": "3x4 factory_emp layout: induction furnace ring heating a tungsten rod + armature crimp press; 12 x 0.25 = 3.0 s = one slug per loop (R07: F6 3,0 s)",
+     "accent": "blue (paleta da Tupa nova; laranja-ouro so nos detalhes)"
+    },
+    "DROP": [
+     "art3d/bs_factory_mag_emp (coils -> F3)",
+     "art3d/bs_factory_shell_nuke (model -> F5)",
+     "art3d/bs_factory_mag_ap (1.x 3x3; a F2 2.0 esta em art3d/bs_factory_special)",
+     "tools/blender/parts/bs_factory_mag_ap.py (1.x)"
+    ]
+   },
+   "resources": [
+    {
+     "id": "rafaeltessaro.bs_mag_std",
+     "name_ptbr": "Carregador HE",
+     "stack": 6,
+     "base": "bs_mag_std.py (KEEP ID, REWORK model)",
+     "look": "armoured magazine box (dark core, light double-bevel shell) with 3 tier-S HE noses showing and an amber LED band in a recess",
+     "accent": "amber",
+     "files": [
+      "stack_1.png",
+      "stack_2.png",
+      "stack_3.png",
+      "stack_4.png",
+      "stack_5.png",
+      "stack_6.png",
+      "icon.png",
+      "overlay.png",
+      "nugget.png",
+      "nugget_normals.png"
+     ],
+     "art3d_dir": "bs_mag_std",
+     "status": "PRONTO (adotado, itens 2.0)"
+    },
+    {
+     "id": "rafaeltessaro.bs_mag_ap",
+     "name_ptbr": "Carregador AP",
+     "stack": 4,
+     "base": "bs_mag_ap.py (KEEP ID, REWORK model)",
+     "look": "same box family, blue-white band, long tristeel penetrator tips protruding",
+     "accent": "amber",
+     "files": [
+      "stack_1.png",
+      "stack_2.png",
+      "stack_3.png",
+      "stack_4.png",
+      "icon.png",
+      "overlay.png",
+      "nugget.png",
+      "nugget_normals.png"
+     ],
+     "art3d_dir": "bs_mag_ap",
+     "status": "PRONTO (adotado, itens 2.0)"
+    },
+    {
+     "id": "rafaeltessaro.bs_mag_sap",
+     "name_ptbr": "Carregador SAP",
+     "stack": 5,
+     "base": "bs_mag_ap.py derivative (NEW)",
+     "look": "same box family, orange band, medium blunt caps",
+     "accent": "amber",
+     "files": [
+      "stack_1.png",
+      "stack_2.png",
+      "stack_3.png",
+      "stack_4.png",
+      "stack_5.png",
+      "icon.png",
+      "overlay.png",
+      "nugget.png",
+      "nugget_normals.png"
+     ],
+     "art3d_dir": "bs_mag_sap",
+     "status": "PRONTO (adotado, itens 2.0)"
+    },
+    {
+     "id": "rafaeltessaro.bs_mag_ac",
+     "name_ptbr": "Carregador AC (Alta Capacidade)",
+     "stack": 3,
+     "base": "NEW",
+     "look": "premium case: gold corner caps + crimson band, guided rounds with fin tips visible",
+     "accent": "amber",
+     "files": [
+      "stack_1.png",
+      "stack_2.png",
+      "stack_3.png",
+      "icon.png",
+      "overlay.png",
+      "nugget.png",
+      "nugget_normals.png"
+     ],
+     "art3d_dir": "bs_mag_ac",
+     "status": "PRONTO (adotado, itens 2.0)"
+    },
+    {
+     "id": "rafaeltessaro.bs_mag_frag",
+     "name_ptbr": "Carregador FRAG (Nuvem de Fragmentos)",
+     "stack": 6,
+     "base": "bs_mag_std.py derivative (NEW)",
+     "look": "short flak rounds with a segmented fragment ring (grooved sleeve), teal band",
+     "accent": "amber",
+     "files": [
+      "stack_1.png",
+      "stack_2.png",
+      "stack_3.png",
+      "stack_4.png",
+      "stack_5.png",
+      "stack_6.png",
+      "icon.png",
+      "overlay.png",
+      "nugget.png",
+      "nugget_normals.png"
+     ],
+     "art3d_dir": "bs_mag_frag",
+     "status": "PRONTO (adotado, itens 2.0)"
+    },
+    {
+     "id": "rafaeltessaro.bs_plasma_cell",
+     "name_ptbr": "Celula de Plasma",
+     "stack": 4,
+     "base": "bs_plasma_cell.py (KEEP ID, REWORK model)",
+     "look": "hex-armoured cylinder with a cyan core window in a recess",
+     "accent": "cyan",
+     "files": [
+      "stack_1.png",
+      "stack_2.png",
+      "stack_3.png",
+      "stack_4.png",
+      "icon.png",
+      "overlay.png",
+      "nugget.png",
+      "nugget_normals.png"
+     ],
+     "art3d_dir": "bs_plasma_cell",
+     "status": "PRONTO (adotado, itens 2.0)"
+    },
+    {
+     "id": "rafaeltessaro.bs_cell_emp",
+     "name_ptbr": "Celula PEM",
+     "stack": 4,
+     "base": "bs_mag_emp.py coils (NEW resource; model reused)",
+     "look": "cell with 3 copper coil rings and a low blue LED band (PEM copper signature)",
+     "accent": "blue",
+     "files": [
+      "stack_1.png",
+      "stack_2.png",
+      "stack_3.png",
+      "stack_4.png",
+      "icon.png",
+      "overlay.png",
+      "nugget.png",
+      "nugget_normals.png"
+     ],
+     "art3d_dir": "bs_cell_emp",
+     "status": "PRONTO (adotado, itens 2.0)"
+    },
+    {
+     "id": "rafaeltessaro.bs_msl_he",
+     "name_ptbr": "Carga de Missil HE",
+     "stack": 10,
+     "base": "NEW (from bs_missiles he_s geometry)",
+     "look": "small missile charge in a cradle, amber band, sleeve seams",
+     "accent": "amber",
+     "files": [
+      "stack_1.png",
+      "stack_2.png",
+      "stack_3.png",
+      "stack_4.png",
+      "stack_5.png",
+      "stack_6.png",
+      "stack_7.png",
+      "stack_8.png",
+      "stack_9.png",
+      "stack_10.png",
+      "icon.png",
+      "overlay.png",
+      "nugget.png",
+      "nugget_normals.png"
+     ],
+     "art3d_dir": "bs_msl_he",
+     "status": "PRONTO (adotado, itens 2.0)"
+    },
+    {
+     "id": "rafaeltessaro.bs_msl_cluster",
+     "name_ptbr": "Carga de Missil de Submunicao",
+     "stack": 10,
+     "base": "NEW (from cluster_m nose)",
+     "look": "charge with the 4-petal segmented nose, orange-gold band",
+     "accent": "amber",
+     "files": [
+      "stack_1.png",
+      "stack_2.png",
+      "stack_3.png",
+      "stack_4.png",
+      "stack_5.png",
+      "stack_6.png",
+      "stack_7.png",
+      "stack_8.png",
+      "stack_9.png",
+      "stack_10.png",
+      "icon.png",
+      "overlay.png",
+      "nugget.png",
+      "nugget_normals.png"
+     ],
+     "art3d_dir": "bs_msl_cluster",
+     "status": "PRONTO (adotado, itens 2.0)"
+    },
+    {
+     "id": "rafaeltessaro.bs_msl_emp",
+     "name_ptbr": "Carga de Missil PEM",
+     "stack": 10,
+     "base": "NEW (from emp_m)",
+     "look": "charge with copper coil bands and blue LED",
+     "accent": "blue",
+     "files": [
+      "stack_1.png",
+      "stack_2.png",
+      "stack_3.png",
+      "stack_4.png",
+      "stack_5.png",
+      "stack_6.png",
+      "stack_7.png",
+      "stack_8.png",
+      "stack_9.png",
+      "stack_10.png",
+      "icon.png",
+      "overlay.png",
+      "nugget.png",
+      "nugget_normals.png"
+     ],
+     "art3d_dir": "bs_msl_emp",
+     "status": "PRONTO (adotado, itens 2.0)"
+    },
+    {
+     "id": "rafaeltessaro.bs_msl_nuke",
+     "name_ptbr": "Ogiva Nuclear",
+     "stack": 2,
+     "base": "bs_shell_nuke.py -> bs_msl_nuke.py (REWORK)",
+     "look": "fat warhead, green band, 3-wedge trefoil inlay (STYLE 7 allows it on the nuclear resource), NO chevrons, NO yellow",
+     "accent": "green",
+     "files": [
+      "stack_1.png",
+      "stack_2.png",
+      "icon.png",
+      "overlay.png",
+      "nugget.png",
+      "nugget_normals.png"
+     ],
+     "art3d_dir": "bs_msl_nuke",
+     "status": "PRONTO (adotado, itens 2.0)"
+    },
+    {
+     "id": "rafaeltessaro.bs_slug_rail",
+     "name_ptbr": "Projetil de Railgun",
+     "stack": 2,
+     "base": "NEW (from shells item 'slug')",
+     "look": "dardo de tungstenio com colares EM AZUIS e colar laranja-ouro (paleta da Tupa nova)",
+     "accent": "blue",
+     "files": [
+      "stack_1.png",
+      "stack_2.png",
+      "icon.png",
+      "overlay.png",
+      "nugget.png",
+      "nugget_normals.png"
+     ],
+     "art3d_dir": "bs_slug_rail",
+     "status": "PRONTO (adotado, itens 2.0)"
+    }
+   ],
+   "missiles": {
+    "items": {
+     "he_s": "REWORK light: Tocandira micro (1.0x0.375), futuristic S cues (sleeve gap + LED band)",
+     "he_m": "REWORK light: Caipora (M cues: chevron sleeve)",
+     "he_l": "REWORK light: Mula (L cues: segmented sleeves + sensor nose)",
+     "cluster_m": "REWORK: carrier with a 4-petal segmented nose (seams cut into the ogive) and mini noses visible in the bays",
+     "cluster_l": "REWORK: same, larger",
+     "emp_m": "REWORK light: copper coil bands + blue LED",
+     "emp_l": "REWORK light",
+     "nuclear_l": "KEEP (Phase B unmistakable look)",
+     "nuclear_wh_l": "KEEP",
+     "cluster_mini": "NEW: 0.5x0.19 tiles (32x12 px), static, NO normals, NO lights atlas, orange plume collar painted; Mula uses x1.2"
+    },
+    "particle_atlases": {
+     "bs_petals_m.png + bs_petals_m_normals.png": "256x256, 4x4 of 64 px: the 4 nose petals of cluster_m at 4 tilt angles",
+     "bs_petals_l.png + bs_petals_l_normals.png": "same for cluster_l"
+    },
+    "drop": [
+     "napalm_s",
+     "napalm_m",
+     "napalm_l",
+     "limpet_m",
+     "limpet_l",
+     "limpet_charge",
+     "torpedo_m",
+     "torpedo_l",
+     "torpedo_wh_m",
+     "torpedo_wh_l",
+     "torpedo_decoy",
+     "nuclear_decoy",
+     "cluster_child"
+    ],
+    "launcher_cells": {
+     "Tocandira": "he cassettes only (drop cells_napalm, 14 files)",
+     "Caipora": "he fine16, NEW cluster8 look (4 corner cells per 3-2-3 pod hold fat carriers, 4 middle cells capped dummies), emp fine16; drop limpet/napalm/torpedo (80 files)",
+     "Mula-sem-Cabeca": "he fine48, NEW heavy8 cluster look (2 carriers per pod, 3x2 cell block), emp heavy16, nuclear torpedo2_inner + shutters; drop limpet/napalm/torpedo (96 files)",
+     "render": "tools/launcher_layout.py layouts cluster8 / heavy8, then render_part.py bs_msl_twin|bs_msl_quad --only cells"
+    },
+    "source_r3": "ADOTADA: tools/blender/parts/bs_missiles2.py -> art3d/bs_missiles2/ (job de arte em andamento; he_s/m/l, cluster_m/l, cluster_mini, emp_m/l, nuclear_l e nuclear_wh_l redesenhados, atlas bs_petals_m/l). O WP13 so renderiza o que faltar; a Iara 2.0 segue inconfundivel (trevo so nela)."
+   },
+   "turrets": {
+    "KEEP": [
+     "bs_lmg Marimbondo",
+     "bs_hmg Mangangá",
+     "bs_autocannon_20 Carcará",
+     "bs_quad_hmg Saci",
+     "bs_minigun Cigarra",
+     "bs_naval_76 Tambor",
+     "bs_rotary_30 Furacão",
+     "bs_naval_155 Trovão",
+     "bs_naval_406 Mapinguari",
+     "bs_plasma_gatling Boitatá",
+     "bs_plasma_heavy Curupira",
+     "bs_flak_light Tatu",
+     "bs_ciws Tamanduá",
+     "bs_flak_heavy Pororoca",
+     "bs_msl_box Tocandira",
+     "bs_msl_twin Caipora",
+     "bs_msl_quad Mula-sem-Cabeça"
+    ],
+    "REWORK": {
+     "bs_nuke_howitzer Boiúna": "ADOTADO (R4): tools/blender/parts/bs_boiuna_ac.py (job de arte: copia 2.0 do bs_nuke_howitzer.py; ambar, sem trevo, escamas de serpente mantidas, crew_pos com 5 postos; meta id rafaeltessaro.bs_nuke_howitzer) -> art3d/bs_boiuna_ac/ (saida padrao do render_part; 44 arquivos esperados: turret, barrel 17 quadros, hull). O gerador 2.0 liga a arte por weapons[].art3d_dir = 'bs_boiuna_ac' (WP01 bs_data). NAO editar tools/blender/parts/bs_nuke_howitzer.py nem art3d/bs_nuke_howitzer/ (1.x; USER_NOTES); os dois saem na limpeza 1.x do WP14b. Re-renderizar so o que faltar no art3d/bs_boiuna_ac."
+    }
+   },
+   "ui_icons": {
+    "renderer": "tools/bsgen/ui_icons.py Pen (96x96, blue (0,183,255) silhouette + glow, one accent mask); ACC gains 'gold' (255,200,80), 'teal' (120,230,210), 'cyan' (60,225,255), 'violet' (170,130,255)",
+    "new_primitives": [
+     "sleeve_gaps(p, cx, y0, y1, n) - thin transparent bands that read as armour sleeves",
+     "canards(p, cx, y, w) / fins(p, cx, y, w)",
+     "capsule(p, cx, top, bottom, w) - cell",
+     "rod_armature(p, cx, top, bottom, w, rings)",
+     "fragment_fan(p, cx, cy, n, spread)"
+    ],
+    "icons": {
+     "gui/ammo_he.png": "NEW (replaces ammo_std): shell with 2 sleeve gaps + sensor ring, no accent",
+     "gui/ammo_ap.png": "REWORK: long penetrator + sabot collar, sleeve gap, no accent",
+     "gui/ammo_sap.png": "NEW: medium blunt-cap shell + small star mid-body (accent fire = half burster)",
+     "gui/ammo_ac.png": "NEW: guided shell with canards + fins, gold accent band",
+     "gui/ammo_frag.png": "NEW: stubby shell bursting into a forward fan of 7 dashes (accent teal)",
+     "gui/cell_plasma.png": "NEW: capsule with core window (accent cyan)",
+     "gui/cell_pem.png": "NEW: capsule with coil rings + bolt (accent spark)",
+     "gui/missile_he.png": "REWORK: futuristic sleeves",
+     "gui/missile_cluster.png": "REWORK: carrier with open petals + a dense fan of 11 minis",
+     "gui/missile_emp.png": "REWORK",
+     "gui/missile_nuclear.png": "REWORK (keep trefoil, accent nuke)",
+     "gui/slug_rail.png": "ADOTADO (art3d/bs_ui_icons2/slug_rail.png): dardo com aneis de armadura, acento 'rail' [185,225,255] azul claro (icons.json accents.rail; era 'accent violet')",
+     "gui/group_bullet_strike.png": "REWORK: futuristic shell with speed lines"
+    },
+    "drop": [
+     "gui/ammo_std.png",
+     "gui/ammo_aphe.png",
+     "gui/ammo_emp.png",
+     "gui/missile_limpet.png",
+     "gui/missile_napalm.png",
+     "gui/missile_torpedo.png"
+    ],
+    "selector_use": {
+     "bs_ammo_type": "ammo_he/ap/sap/ac/frag",
+     "bs_cell_type": "cell_plasma/cell_pem",
+     "bs_missile_type": "missile_he/cluster/emp/nuclear",
+     "bs_tremonha_tipo": "the 12 above + slug_rail (no paiol_* icons needed: paiols use the family toggles)"
+    },
+    "make_art": "make_art.misc_art (make_art.py:491-502) loops the new key lists",
+    "editor_group": "no new group icon: paiols/fita/tremonha go in ['BulletStrike', 'Storage'] (R22: so ['BulletStrike'])",
+    "art3d": "art3d/bs_ui_icons2 (ADOTADO; icons.json 'files' = mapa gui/<x>.png -> <x>.png, 96x96): ammo_he/ap/sap/ac/frag, cell_plasma/pem, missile_he/cluster/emp/nuclear, slug_rail, group_bullet_strike",
+    "gap_addendum": "FALTA gui/buff_fita.png (icone do buff da Fita): WP11 acrescenta icon_buff_fita() ao ui_icons.py e grava em art3d/bs_ui_icons2"
+   },
+   "fx_textures": {
+    "module": "NEW tools/bsgen/fx_tex.py (PIL, deterministic, same idiom as bsgen/plasma_tex.py), output shots/bs_fx_tex/",
+    "files": {
+     "bs_ring_thin.png": "256x256 single frame, WHITE thin ring (alpha ring 6 px, soft 3 px) - tingido por uso: rail glow [100, 175, 255] (palette.rail.glow), PEM cyan, AC gold (o railgun_shoot.png vanilla e ciano e nao recolore por multiplicacao)",
+     "bs_rail_streak.png": "512x384 atlas, 8 frames of 256x96 (2 per row): risco com nucleo branco-azulado core [205, 228, 255], franja azul blue [45, 115, 255] e 2 bojos de anel glow [100, 175, 255] andando para tras; AnimatedSprite 30 fps. Cores ASSADAS pelo fx_tex.py a partir de palette.rail (nada de ouro/violeta)",
+     "bs_pem_sheath.png": "512x192 atlas, 4 frames of 256x96: cyan plasma sheath flicker (additive)",
+     "bs_pem_trail.png": "1024x256 atlas, 8 frames of 512x64 (2 per row): forked lightning tail (plasma tail format, plasma_fx.py:760-764)",
+     "bs_frag_cone.png": "128x128 single frame: 36-50 deg additive wedge fan, apex at the left edge centre (+x = forward), radial streak texture"
+    },
+    "blender_textures": "bs_petals_m/l (+normals) come from the missiles kind (render_kinds.missiles.particle_atlas)"
+   },
+   "esteira": {
+    "id": "rafaeltessaro.bs_esteira",
+    "status": "RESERVA (rede/gemea; WP15)",
+    "render_kind": "layered (situations)",
+    "shapes": "ToggledBlendSprites keyed on the 4 belt ports (HUB 0000 AllowRotation false / STUB 0010 / STRAIGHT 1010 / CORNER 0110 / 3WAY 1110 / 4WAY 1111; the engine rotates) on floors, roofs(+normals), roof_doodads and BlueprintToggledBlendSprites - TK parts/bs2t_esteira/bs2t_esteira_blend.rules:1-61",
+    "files": {
+     "floor_<sit>.png": "steel trough with rollers along connected arms",
+     "roof_<sit>.png + roof_normals_<sit>.png": "green armoured flanks with an OPEN centre channel 0.40 tile wide (the carts on doodads_high are seen through it, same trick as the open vanilla accelerator roof)",
+     "trim_<sit>.png": "roof_doodads: dark channel lips + 1 amber pip per arm in a recess",
+     "blueprints_<sit>.png": "blueprints",
+     "carts_<d><f>.png": "d in U/R/D/L, f 1..8: half strip centre->edge (Location [0.5,0.5], Size [1,1]), gated by OperationalToggle = Port_<d>, AnimationToggle = Andando, AnimationInterval 0.0333, AnimationStartTime Zero (vanilla conveyor.rules:58-87; TK bs2t_esteira.rules Cartuchos_U..L)",
+     "icon.png": "EditorIcon"
+    },
+    "cartridge_design": "neutral sealed ammo cassette (the belt carries every kind): dark capsule 0.16 x 0.20 tile, brass band, 1 amber pip; pitch 0.25 tile -> 2 per half strip; moves 2 px (1/32 tile) per frame, 8 frames = one pitch, 0.94 tile/s",
+    "flow_convention": "global: U and D halves move DOWN (+y), L and R halves move RIGHT (+x) - the testkit convention (carts_U/D centroid +1.1 px/frame in y, carts_L/R in x). Straights flow continuously, U+R and D+L corners flow through, U+L corners read as a merge and D+R as a split (cosmetic: the network has no direction) R1 (J3-P6): toggle por tile bs_esteira_sentido escolhe a lista AnimationFiles normal ou a mesma lista em ordem inversa (nenhum arquivo novo).",
+    "counts": {
+     "files": 63
+    },
+    "fallback_arms": "switch art.belt_shapes = arms (if testkit item 20 = NAO): floor_centro + floor_braco_{U,R,D,L} and roof_centro(+normals) + roof_braco_{U,R,D,L}(+normals), each arm a Graphics gated by its Port toggle exactly like the carts (pure vanilla Graphics + port toggles, already used by the carts) - 19 files"
+   },
+   "esteira_corredor": {
+    "id": "rafaeltessaro.bs_esteira_corredor",
+    "status": "RESERVA (rede/gemea; WP15)",
+    "render_kind": "layered (situations)",
+    "look": "walkable corridor: the belt runs UNDER a grated floor; crew walk on it",
+    "files": {
+     "floor_<sit>.png (6)": "floors: dark trough + rollers",
+     "carts_<d><f>.png (32)": "doodads_low; cartridges WITH the grating bars baked on top in every frame (TK bs2t_esteira_corredor.rules:120-230)",
+     "roof.png + roof_normals.png": "corridor roof",
+     "blueprints_<sit>.png (6)": "",
+     "icon.png": "",
+     "walls": "vanilla walls.rules BlendSprite (BlendsWithCategories [corridor]) - no own walls",
+     "carts_<d><f>_sobre_grade.png (32)": "variante art.corredor_carts = sobre_grade: cartuchos sem a grade, em doodads_high sobre a grade aberta"
+    },
+    "counts": {
+     "files": 79
+    },
+    "switch": "logistics.fita_corredor (default true; NUNCA desligado automaticamente, J3-P1) + art.corredor_carts sob_grade|sobre_grade (item 25)"
+   },
+   "fita": {
+    "id": "rafaeltessaro.bs_fita",
+    "status": "NEW (primario)",
+    "size": [
+     1,
+     1
+    ],
+    "render_kind": "layered",
+    "files": {
+     "floor.png": "base escura com trilho curto e 4 garras nas bordas (gruda em qualquer lado)",
+     "roof.png + roof_normals.png": "tampa blindada com o simbolo da fita (cartucho estilizado) em baixo relevo",
+     "luz_grudada.png": "lights_add: 4 pips verdes nas bordas (acende com o buff de resposta)",
+     "blueprints.png": "",
+     "icon.png": "EditorIcon 32 px"
+    },
+    "template": "TF/parts/bs2f_fita/* (mesmos nomes de arquivo)",
+    "art_dir": "art3d/bs_fita -> parts/bs_fita/"
+   },
+   "fita_fx": {
+    "status": "NEW (primario)",
+    "art_dir": "art3d/bs_fita_fx -> parts/bs_fita_fx/",
+    "files": {
+     "cartucho_sai1..8.png": "roof_doodads 1x1: 2 cassetes selados neutros (capsula escura + faixa de latao + 1 pip ambar) saindo do centro para a borda e sumindo",
+     "cartucho_entra1..8.png": "o inverso (da borda para o centro)",
+     "brilho_sai1..8.png / brilho_entra1..8.png": "lights_add: rastro ciano baixo (canal mais fraco <= 25) sob os cassetes"
+    },
+    "timing": "8 quadros x 0,075 s = 0,6 s (o Timer das maquinas)",
+    "counts": {
+     "files": 32
+    },
+    "rule": "um so conjunto para todas as maquinas e todos os tipos (o cassete e neutro); tamanho 1 tile no centro da maquina"
+   }
+  },
+  "effects": {
+   "modules": {
+    "rules": "NEW tools/bsgen/fx2.py using fxkit bricks (blob, streaks, flipbook, ring, particles) and vendored full copies (CONTRATOS R8: never partial inheritance of a vanilla Def)",
+    "dirs": [
+     "shots/bs_rail_fx/",
+     "shots/bs_pem_fx/",
+     "shots/bs_frag_fx/",
+     "shots/bs_ac_fx/",
+     "shots/bs_fx_tex/"
+    ],
+    "sounds": "each effect list keeps its vanilla wav entry (REQ 12 later)"
+   },
+   "railgun": {
+    "charge_wave": {
+     "duration_s": "1.0 + 0.25 N (newweapons firing_timeline)",
+     "visual": "luz_culatra (loader) -> trilhos/carga of each cano in order -> ponta carga1..6; plus rail_charge_arcs at the ponta crown during the last 0.5 s",
+     "rail_charge_arcs": "vendored copy of ./Data/ships/terran/disruptor/particles/disruptor_shoot_lightning.rules recoloured BLUE (arco glow [100, 175, 255] com nucleo core [205, 228, 255]; plasma_fx 'arcs' builder), 1-2 arcs per 0.16 s, <= 4 live"
+    },
+    "breech": "culatra_abre / culatra_carrega sprites (assets.railgun.carregador)",
+    "slug_slide": "slug.png + slug_glow.png + light_blob ChainedTo the RailgunProjectile on walls / lights_add / roof_lights_fancy, visible through the open roof channel (TK bs2t_rail_ponta.rules:440-492)",
+    "muzzle": {
+     "file": "bs_rail_fx/rail_muzzle_flash",
+     "parts": [
+      "blue-white flash: fxkit.blob additive 6 tiles 0.12 s, core [205, 228, 255] -> glow [100, 175, 255] (era gold-white)",
+      "blue EM ring: fxkit.blob tex bs_ring_thin.png 8 tiles, scale 0.2->1, 0.35 s, colour glow [100, 175, 255] (era violet)",
+      "TRANCO shock ring (railgun.tranco.shock_ring): TriggeredEffects proprio na boca (Location [1.5, 0]), AnchorMediaEffects = false (fica no espaco enquanto a nave recua), vanilla shockwave.png pelo fxkit ring, 1.0 -> 6.5 tiles em 0.32 s (ease-out), borda glow [100, 175, 255] -> nucleo core [205, 228, 255], alfa 1 -> 0, bucket Upper2",
+      "vanilla railgun_shoot_distortion (colourless)",
+      "light: fxkit.blob light=True 10 tiles 0.2 s colour palette.rail.hull [20, 82, 255]"
+     ],
+     "shake": "BASE_SHAKE 0.2 / 0.7 s (railgun.tranco.shake; MediaEffects do FireEffect da ponta)",
+     "scale": "MediaEffectsScale BulletStrike_RailShot",
+     "budget_particles": 5,
+     "palette": "resolvido pelo addendum (palette_map_addendum): o 'palette_debt' do spec_patch r2 nao existe mais"
+    },
+    "in_flight": {
+     "body": "shells item 'slug' 3.0x0.8, IsLit + normals, ALPHA blended (reads on white hulls)",
+     "lights_atlas": "bs_shell_slug_lights.png 4 frames 12 fps (hot tip + rail slits)",
+     "streak": "AnimatedSprite bs_rail_streak.png (AZUL: core [205, 228, 255] + franja blue [45, 115, 255] + aneis glow [100, 175, 255], ver assets.fx_textures), Size [4.2, 1.6], Offset [-0.6, 0], BulletUpper3, Add",
+     "trail_core": "rail_trail_core: particulas BRANCO-AZULADAS core [205, 228, 255] ao nascer -> glow [100, 175, 255] ao morrer, no mundo (receita do rastro ionico do Curupira no plasma_fx: FpsCompensator sem InheritVelocity), 40/s x 0.3 s = ~12 vivas (era gold)",
+     "trail_rings": "rail_trail_rings: bs_ring_thin tingido glow [100, 175, 255] (franja blue [45, 115, 255]), 10/s, scale 0.4->1.6, scale2 [0.35, 1] (achatado perpendicular ao voo), vida 0.35 s = ~4 vivos (era violet)",
+     "distortion": "vanilla bullet_trail_railgun_ring_distortion.rules (colourless)",
+     "lights": "fxkit.light_pair: halo [6, 3] cor glow/4 [25, 44, 64] SO NO ESPACO (refl 0) + luz de casco [3.6, 1.2] palette.rail.hull [20, 82, 255] refl 4, StartTime por regra"
+    },
+    "per_penetrated_part": {
+     "media": [
+      "vanilla bullet_penetrate_railgun.rules (1 particle)",
+      "rail_puncture: 1 flash blob core [205, 228, 255] 1.4 tiles 0.08 s + fxkit.streaks n (3,3) core -> glow [100, 175, 255] + 1 chiado (sizzle) blob glow [100, 175, 255] 1.0 tile 0.25 s (era gold + violet)"
+     ],
+     "budget_particles": 6,
+     "emp": "the disruptor_drain status shows the vanilla electron sizzle on powered parts"
+    },
+    "end_of_path_impact": {
+     "file": "bs_rail_fx/rail_impact",
+     "parts": [
+      "flash light: fxkit.blob light=True 9 tiles 0.25 s colour palette.rail.hull [20, 82, 255]",
+      "flash additive 6 tiles 0.15 s core [205, 228, 255] -> glow [100, 175, 255]",
+      "BLUE lightning: vendored missile_emp_lightning copy recoloured glow [100, 175, 255] com nucleo core [205, 228, 255], 4-6 arcs (era violet)",
+      "sparks: fxkit.streaks n (10, 14) core [205, 228, 255] -> glow [100, 175, 255] (faiscas branco-azuladas; era gold)",
+      "smoke: vanilla bullet_smoke_deck (10)",
+      "rail_embers: 8-12 brasas accent_orange_gold [215, 145, 40] -> [120, 45, 10] que desaceleram e brilham 1.2-2.0 s (codigo droplets_text do napalm em missile_fx.py:607-640, recolorido, reaproveitado antes de o napalm sair) = 'a area continua queimando' ate o visual do status de fogo assumir. UNICA cor quente do rail_fx (o alvo queimando)"
+     ],
+     "shake": "BASE_SHAKE 0.15 x m(N), 0.9 s",
+     "budget_particles": 45,
+     "scale": "MediaEffectsScale BulletStrike_RailShot"
+    },
+    "shield_hit": {
+     "file": "bs_rail_fx/rail_shield_hit",
+     "parts": [
+      "flash branco-azulado blob core [205, 228, 255] -> glow [100, 175, 255] 5 tiles 0.18 s (era violet-white)",
+      "bs_ring_thin tingido glow [100, 175, 255] 6 tiles 0.4 s (era violet)",
+      "vanilla missile_emp_hit_shockwave (1)"
+     ],
+     "budget_particles": 4
+    },
+    "intercepted": {
+     "file": "bs_rail_fx/rail_intercepted",
+     "parts": [
+      "blob azul glow [100, 175, 255] 3 tiles 0.2 s (era violet)",
+      "fxkit.streaks n (4, 4) core [205, 228, 255] -> glow [100, 175, 255]"
+     ],
+     "budget_particles": 5
+    },
+    "palette_map_addendum": {
+     "rule": "rail_fx AZUL (USER_NOTES: 'Efeitos da Tupa (rail_fx) em azul'; referencia do usuario): TODO efeito de ENERGIA da Tupa (claroes, aneis, arcos, raios, chiados, rastro, halo, escudo, interceptado, carga dos canos) usa palette.rail; o UNICO elemento quente e a brasa do ALVO queimando (rail_embers). Nada violeta, nada ouro-branco [255,225,150], nada cobre.",
+     "map": {
+      "gold-white (claroes, ponta quente, nucleo do rastro)": "core [205, 228, 255] no centro -> glow [100, 175, 255] na borda",
+      "violet (aneis EM, aneis do rastro, chiado, raios, arcos de carga, halo, escudo, interceptado)": "glow [100, 175, 255]; franja/borda externa blue [45, 115, 255]",
+      "gold (particulas do rastro, faiscas da perfuracao e do impacto)": "core [205, 228, 255] ao nascer -> glow [100, 175, 255] ao morrer (faiscas branco-azuladas)",
+      "gold-orange (rail_embers)": "FICA QUENTE: accent_orange_gold [215, 145, 40] -> [120, 45, 10] ao apagar (o alvo queimando; ponte para o fogo do jogo base; o laranja-ouro e a cor de detalhe da propria Tupa)",
+      "luzes": "fxkit.blob light=True e luz de casco: palette.rail.hull [20, 82, 255] (refl 4); halo do light_pair = glow/4 [25, 44, 64], so no espaco"
+     },
+     "fica": {
+      "ouro/laranja que CONTINUA": "so rail_embers e as molas/detalhes pintados da ARTE (molas [235,185,50], laranja-ouro [215,145,40])",
+      "ouro que SAI": "trail_core, faiscas, claroes, nucleo do bs_rail_streak, ponta do slug_glow, carga 7..8 dos canos"
+     },
+     "by": "addendum 2026-10-21 (decisao do orquestrador: a frase do usuario manda o rail_fx em azul; as brasas sao o alvo, nao a Tupa)"
+    }
+   },
+   "pem": {
+    "muzzle": {
+     "files": [
+      "bs_pem_fx/pem_muzzle_s|m|l"
+     ],
+     "parts": [
+      "copper-amber flash blob (1, 0.62, 0.3) size 1.2 / 1.8 / 2.6",
+      "cyan arcs (disruptor_shoot_lightning copy, cyan) n (1,2) / (2,3) / (3,4)",
+      "particle light cyan-blue palette.pem.hull"
+     ],
+     "budget_particles": [
+      4,
+      6,
+      8
+     ]
+    },
+    "mae_do_ouro_charge": "pem_charge_arcs between the 2 barrels during the 0.5 s pre-shot Timer (8/s, life 0.16 s, ~4 live) + charge_glow1..4 overlay (pem.charge_glow)",
+    "in_flight": {
+     "pem_s": "body pem_s + additive cyan core blob [0.5, 0.25] + crackle 2/s (disruptor_bolt_lightning copy)",
+     "pem_m": "+ lights atlas 4 frames (arcs)",
+     "pem_l": "+ sheath AnimatedSprite bs_pem_sheath.png [1.6, 0.7] 12 fps + tail AnimatedSprite bs_pem_trail.png [4.0, 0.6] 30 fps (plasma tail recipe, StartTime 0.02)",
+     "body_rule": "alpha-blended dark body under the additive layers (newweapons pem_line.visuals)",
+     "lights": "fxkit.light_pair hull colour palette.pem.hull [8,150,255], refl 6"
+    },
+    "hits": {
+     "hull": "vanilla disruptor_bolt_hit_orb + _hit_bolts + _flash x 0.8 / 1.2 / 1.8 (newweapons) - Tuvira uses EMP_FAST (no hit_bolts: 30-40 particles at 4+ shots/s)",
+     "shield": "missile_emp_hit_orb + missile_emp_hit_shockwave + own pem_ring (bs_ring_thin cyan 3 / 4.5 / 6 tiles 0.3 s); Corisco adds missile_emp_lightning",
+     "struct": "disruptor_bolt_hit_struct_lightning",
+     "drain": "vanilla ship_drain + own pem_sizzle (cyan blob 1.0 tile 0.2 s)",
+     "fizzle": "pem_fizzle: cyan blob 1.2 tiles 0.15 s (OnDeath; never the hit preset)"
+    }
+   },
+   "frag": {
+    "name_ptbr": "Nuvem de Fragmentos",
+    "airburst": {
+     "files": [
+      "bs_frag_fx/frag_burst_l (Tatu, Tamanduá)",
+      "bs_frag_fx/frag_burst_h (Pororoca)"
+     ],
+     "parts": [
+      "cold-white pinpoint flash: fxkit.blob additive colour (0.85, 1, 0.97) 1.4 / 2.2 tiles 0.07 s",
+      "frag_cone: fxkit.blob tex bs_frag_cone.png 3 / 5 tiles, 0.12 s, scale 0.6->1 (the AHEAD cone)",
+      "teal-grey puff: vendored flak_large_smoke copy n 6 / 10, life 0.5 s, NO smoke column"
+     ],
+     "budget_particles": [
+      8,
+      12
+     ],
+     "where": "beam HitNothing MediaEffects of the FRAG beam (+ MediaEffectsScale as Phase B MES_ON_HITNOTHING)"
+    },
+    "fragments": "each SpawnBullets fragment = one additive Sprite (blob.png, VertexColor palette.frag.tracer, Size [0.35, 0.06], BulletUpper3, LerpScaleFrom [0.3, 1], LerpTime 0.03); NO IsLight, NO emitter (guns spec); live: Tatu ~9, Tamanduá ~20, Pororoca ~22",
+    "fragment_hit_bullet": "chaingun_sparks (2-4) - NOT pd_shot_sparks (15-20): 24 fragments x 20 would blow the Tamanduá 940-particle cap",
+    "fallback": "art.frag_cone = radial if test T-ART-7 shows the wedge not aligned with the beam: frag_cone replaced by bs_ring_thin teal 3 / 5 tiles 0.12 s"
+   },
+   "ac": {
+    "presets": {
+     "AC_BLAST_S": "Tambor",
+     "AC_BLAST_M": "Trovão",
+     "AC_BLAST_L": "Mapinguari; Boiúna x2.25 (guns)"
+    },
+    "where": "FinishedPenetratingOperational / FinishedPenetratingStructural of the AC shot (the burster); direct hull hit uses the tier hull preset like HE",
+    "stages": [
+     "t=0: missile_he_flash (1) + ac_flash_light (fxkit.blob light=True 8 tiles 0.2 s, colour (1, 0.75, 0.35))",
+     "t=0: missile_he_hit fireball (2-3)",
+     "t=0.05: ac_ring (fxkit.blob tex bs_ring_thin.png gold (1, 0.78, 0.3), 7.3 tiles x MES, scale 0.15->1, 0.5 s) = thermobaric pressure ring (never green)",
+     "t=0: ac_embers (8-12 crimson-gold embers 1.0-1.5 s; same droplet recipe as rail_embers)",
+     "L only: missile_he_smoke (15-20); Boiúna also big_part_explode_debris (8-12)"
+    ],
+    "scale": "MediaEffectsScale = radius / 4 (missile_he drawn for r4; vfx laws.he_mes)",
+    "budget_particles": {
+     "S": 17,
+     "M": 17,
+     "L": 37,
+     "Boiuna": 49
+    },
+    "in_flight": "guided AC shell art + crimson tracer + seeker blink; Boiúna adds the amber base-bleed and the grey TSM smoke wake (NOT TSM_G)"
+   },
+   "cluster_opening": {
+    "carrier": "cluster_m / cluster_l art with the 4-petal segmented nose",
+    "burst_media": [
+     "missile_fx 'burst_cluster' kept (yellow blob 4.5 tiles 0.3 s)",
+     "petals: NEW bs_missile_fx/petals_m|l = vendored FULL copies of common_effects/particles/explosions/big_part_explode_debris.rules + debris_def.rules with Material.Texture -> bs_petals_<m|l>.png, _normalsTexture -> bs_petals_<m|l>_normals.png, EmitPerOneShot {Min 4; Max 4}, randLife 0.5-0.8 (vanilla 1-4), speed 25-40, rot_vel 360-720 d/s (the vanilla debris spin)",
+     "puff: bullet_smoke_med <= 12",
+     "sparks: fxkit.streaks n (12, 20) gold"
+    ],
+    "budget_particles": 40,
+    "minis": "cluster_mini sprite + plume_cluster_mini (one additive Beam, no particles, no IsLight)",
+    "switch": "art.cluster_petals = particles (default) | bullets (missiles section variant: 4 petal shots with Sprite + Spin, same textures cut from the atlas)",
+    "salvo_budget": "one Mula salvo ~960 live particles (missiles performance_budget) - the Phase B Tamanduá cap"
+   },
+   "paiol_gauges": {
+    "design": "assets.paiol.gauge_design",
+    "readout": "ProgressBar (always) + roof gauge (always) + 4 digits (switch paiol_counter)",
+    "animation": "none (levels follow stock)"
+   },
+   "belt_animation": {
+    "design": "assets.fita.cartridge_design",
+    "trigger": "Andando = ThresholdToggle on NoFita (network value published 1 s by any paiol stock change, econ network_primary.flow)",
+    "frames": "8 x 0.0333 s, AnimationStartTime Zero (all tiles in phase)",
+    "corner_rule": "half strips meet at the cell centre (testkit), so no corner arc and no seam",
+    "status": "RESERVA (so a esteira fisica); no primario as maquinas tocam assets.fita_fx"
+   }
+  },
+  "phase_b_leftovers": {
+   "penetration_preset_spam": {
+    "problem": "every penetrated part replays the FULL first-hit preset: BS tools/bsgen/shots.py:274 (pen_op MediaEffects = '&../HitOperational/MediaEffects') and, with caliber_fx on, caliber_fx.py:863-871 (_decorate_kinetic: refs = _preset_paths(hp) = the hull preset, plus big_part_explode_debris for 406 AP). Shot-down shells do the same: shots.py:333 (Targetable.OnDeath = the HitOperational media).",
+    "numbers": [
+     {
+      "weapon": "Mapinguari 406 AP (Phase B)",
+      "per_part": [
+       43,
+       61
+      ],
+      "parts": 13,
+      "per_shell": [
+       559,
+       793
+      ]
+     },
+     {
+      "weapon": "Mapinguari 406 AP (2.0, PEN_L)",
+      "per_part": [
+       4,
+       5
+      ],
+      "parts": 13,
+      "per_shell": [
+       52,
+       65
+      ]
+     },
+     {
+      "weapon": "Mapinguari 406 HE/SAP (Phase B)",
+      "per_part": [
+       35,
+       49
+      ],
+      "parts": 13,
+      "per_shell": [
+       455,
+       637
+      ]
+     },
+     {
+      "weapon": "Mapinguari 406 HE/SAP (2.0, PEN_L)",
+      "per_part": [
+       4,
+       5
+      ],
+      "parts": 13,
+      "per_shell": [
+       52,
+       65
+      ]
+     },
+     {
+      "weapon": "Tambor 76 AP (Phase B, preset L)",
+      "per_part": [
+       35,
+       49
+      ],
+      "parts": 8,
+      "per_shell": [
+       280,
+       392
+      ]
+     },
+     {
+      "weapon": "Tambor 76 AP (2.0, PEN_M)",
+      "per_part": [
+       3,
+       4
+      ],
+      "parts": 8,
+      "per_shell": [
+       24,
+       32
+      ]
+     },
+     {
+      "weapon": "Trovao 155 AP (Phase B, preset D)",
+      "per_part": [
+       35,
+       49
+      ],
+      "parts": 10,
+      "per_shell": [
+       350,
+       490
+      ]
+     },
+     {
+      "weapon": "Trovao 155 AP (2.0, PEN_M)",
+      "per_part": [
+       3,
+       4
+      ],
+      "parts": 10,
+      "per_shell": [
+       30,
+       40
+      ]
+     }
+    ],
+    "fix": [
+     "tools/spec/bullet_strike_vfx.json hit_presets: add PEN_S = [chaingun_shot/overclock/particles/chaingun_shot_overclock_hit] (2-3), PEN_M = PEN_S + [chaingun_shot/particles/chaingun_hit_flash] (3-4), PEN_L = PEN_M + [bullet_railgun/particles/bullet_penetrate_railgun] (4-5); POP_S = [chaingun_shot/particles/chaingun_hit_flash, chaingun_shot/overclock/particles/chaingun_shot_overclock_hit], POP_L = [bullet_large/particles/bullet_flash_large, chaingun_shot/overclock/particles/chaingun_shot_overclock_hit]",
+     "weapon rows: impact.pen = PEN_S (Cigarra, Carcará, Furacão), PEN_M (Tambor, Trovão), PEN_L (Mapinguari); pen_mes values unchanged (0.45 / 0.55 / 0.7 / 0.65 / 0.7 / 0.75)",
+     "caliber_fx._decorate_kinetic (l.863-871): refs = _preset_paths(imp.get('pen') or 'PEN_S'); delete the extra_ap debris from PenetratingOperational",
+     "caliber_fx._decorate_kinetic: when hit['FinishedPenetratingOperational'] is the string '&PenetratingOperational' (AP: no burster, shots.py:311) replace it by an explicit dict {ReduceEffectsByPenetration true, HitEffects = deepcopy(pen['HitEffects']), MediaEffects = _preset_paths(hp) (+ big_part_explode_debris for 406 AP) + sounds, MediaEffectsScale = hmes x 0.8}: the round's stop point gets the full impact ONCE (HitEffects identical = R4-safe)",
+     "Targetable.OnDeath of caliber shells (shots.py:333): MediaEffects = POP_S (<= 76 mm) / POP_L (155+), no MediaEffectsScale (not in the corpus on OnDeath, caliber_fx.py:908)",
+     "fallback path with caliber_fx off (BS_FX_EXT=0): shots.PARTICLES gains 'pen' = [chaingun_shot_overclock_hit] and pen_op MediaEffects = _media('pen', ...) instead of the HitOperational reference",
+     "railgun / PEM follow the same rule (effects.railgun.per_penetrated_part; PEM shells do not penetrate operational parts)"
+    ],
+    "budget": "<= 6 particles per penetrated part (guns particle_budget.per_penetrated_part_max)",
+    "caveat": "if a round that stops inside its FIRST part shows a double impact (HitOperational + the new explicit Finished), give Finished the tier 'struct' preset (sparks + flash) instead of the hull preset",
+    "switch": "art.pen_media = light (default) | full (Phase B behaviour, for an A/B test)",
+    "test": "T-ART-6"
+   },
+   "islight_white_hull": {
+    "problem": "non-plasma shells, tracers and missiles carry ONE IsLight GlowSprite with fancy_light _litReflectiveStrength 24 (caliber_fx.py:630-636 _glow; shots.py:188-194 legacy path; shots.py:550-556 _glow_sprite for missiles; missile_fx.py:67-73 recolours only nuclear/emp). On a white hull (diffuse ~0.85) all three channels saturate -> a white blotch up to the halo size (406: 26x13 tiles).",
+    "model": "fancy_light on a part: L_c = refl x c/255 x D_c + add x c/255; on space: unlit x c/255 (plasma_fx.py:792-803). White wash iff every channel L_c >= 1.",
+    "rule": "split every non-plasma projectile light in two sprites (the plasma_fx recipe, plasma_fx.py:789-811): GlowSprite = space halo, GlowSprite2 = small hull light; hull-light colour must keep its weakest channel c_min <= floor(0.5 x 255 / (0.85 x refl)) (= 25 at refl 6, 15 at refl 10) so at least one channel never saturates -> the hull is tinted, never white",
+    "values": {
+     "GlowSprite (halo)": {
+      "Size": "unchanged Phase B glow size",
+      "VertexColor": "round(glow / 4)",
+      "_litReflectiveStrength": 0,
+      "_litAdditiveStrength": 0,
+      "_unlitAdditiveStrength": "0.8 tracers / 0.5 shells and missiles (same space brightness as Phase B: 0.2 x glow and 0.125 x glow)",
+      "_z": 1,
+      "_nrmlStrengthLimit": 1,
+      "addendum": "HALO SO NO ESPACO: _litReflectiveStrength 0 e _litAdditiveStrength 0 (antes refl 3: o AP estourava 95 % do casco branco - shellart nota a); o brilho no espaco fica pelo _unlitAdditiveStrength (0,8 tracantes / 0,5 granadas e misseis)"
+     },
+     "GlowSprite2 (hull)": {
+      "Size": "shells [1.2 x body L, max(1.2 x body W, 0.5)] at 0; missiles [1.2 x L, 1.2 x W] at the nozzle anchor; slug [3.6, 1.2]; PEM [1.2 x L, 0.6]. TRACERS (<= 30 mm, up to 36 shots/s per gun) get NO GlowSprite2: halo only, so the light count per tracer stays 1 as in Phase B",
+      "VertexColor": "palette[ammo].hull",
+      "_litReflectiveStrength": 6,
+      "_litAdditiveStrength": 0.05,
+      "_unlitAdditiveStrength": 0,
+      "_z": 1,
+      "_nrmlStrengthLimit": 1,
+      "refl_por_municao": {
+       "default": 6,
+       "ac": 4,
+       "slug": 4,
+       "why": "shellart nota c: rail.hull e ac.hull a refl 6 saturavam o casco branco"
+      }
+     },
+     "StartTime": "both sprites: round(clamp((turret_radius_tiles + 1) / speed_tiles_per_s, 0.01, 0.05), 3) so the muzzle frame never washes the own turret (Sprite StartTime as plasma_fx.py:789-791)"
+    },
+    "where": [
+     "NEW fxkit.light_pair(halo_size, halo_color, hull_size, hull_color, x_halo, x_hull, start, unlit) in tools/bsgen/fxkit.py",
+     "caliber_fx._glow (l.630-636) -> light_pair, used at l.666 (tracers) and l.738 (shells)",
+     "shots._sprite_components GlowSprite (l.188-194) and shots._glow_sprite (l.550-556) -> light_pair",
+     "missile_fx.visual_components glow (missile_fx.py:276-279) -> light_pair with palette[missile type].hull (HULL_GLOW nuclear/emp values kept); cluster minis: no light",
+     "railgun / PEM / Boiúna new shots use light_pair from day one"
+    ],
+    "corrections_to_siblings": {
+     "guns": "the guns rule 'red channel <= 35% of the max channel' does not stop the wash for HE (its max channel IS red; G 120 at refl 10 still saturates) - use the c_min rule and palette.*.hull",
+     "newweapons": "slug light {0.30, 0.22, 0.55} = [77,56,140] washes white at refl 8 (c_min 56 > 18); use [96,0,255] at refl 6 for GlowSprite2 and light_blob {0.38, 0.0, 1.0}; PEM {0.05,0.55,0.9} and Boiúna {0.25,0.16,0.04} pass",
+     "newweapons_addendum": "SUBSTITUI a linha 'newweapons': a luz da Tupa agora e AZUL: GlowSprite2 palette.rail.hull [20, 82, 255] refl 4 e light_blob {0.10, 0.32, 1.0}; [96,0,255] / {0.38, 0, 1.0} sao historico (violeta)"
+    },
+    "check_table": [
+     {
+      "light": "Phase B shell/tracer GlowSprite HE (refl 24)",
+      "vertex_color": [
+       255,
+       120,
+       30
+      ],
+      "refl": 24,
+      "add": 0.05,
+      "lit_white_hull": [
+       20.45,
+       9.62,
+       2.41
+      ],
+      "washes_white": true,
+      "c_min": 30,
+      "c_min_limit": 6,
+      "source": "BS caliber_fx.py:630-636"
+     },
+     {
+      "light": "Phase B shell/tracer GlowSprite AP (refl 24)",
+      "vertex_color": [
+       200,
+       225,
+       255
+      ],
+      "refl": 24,
+      "add": 0.05,
+      "lit_white_hull": [
+       16.04,
+       18.04,
+       20.45
+      ],
+      "washes_white": true,
+      "c_min": 200,
+      "c_min_limit": 6,
+      "source": "BS caliber_fx.py:630-636"
+     },
+     {
+      "light": "guns proposal hull light HE glow colour at refl 10",
+      "vertex_color": [
+       255,
+       120,
+       30
+      ],
+      "refl": 10,
+      "add": 0.05,
+      "lit_white_hull": [
+       8.55,
+       4.02,
+       1.01
+      ],
+      "washes_white": true,
+      "c_min": 30,
+      "c_min_limit": 15,
+      "source": "spec_guns visuals.phase_b_fixes"
+     },
+     {
+      "light": "newweapons slug light {0.30,0.22,0.55} at refl 8",
+      "vertex_color": [
+       77,
+       56,
+       140
+      ],
+      "refl": 8,
+      "add": 0.05,
+      "lit_white_hull": [
+       2.07,
+       1.5,
+       3.76
+      ],
+      "washes_white": true,
+      "c_min": 56,
+      "c_min_limit": 18,
+      "source": "spec_newweapons railgun_tupa.visuals.in_flight"
+     },
+     {
+      "light": "newweapons PEM light {0.05,0.55,0.9} at refl 8",
+      "vertex_color": [
+       13,
+       140,
+       230
+      ],
+      "refl": 8,
+      "add": 0.05,
+      "lit_white_hull": [
+       0.35,
+       3.76,
+       6.18
+      ],
+      "washes_white": false,
+      "c_min": 13,
+      "c_min_limit": 18,
+      "source": "spec_newweapons pem_line.visuals.shells"
+     },
+     {
+      "light": "newweapons Boiuna amber {0.25,0.16,0.04} at refl 8",
+      "vertex_color": [
+       64,
+       41,
+       10
+      ],
+      "refl": 8,
+      "add": 0.05,
+      "lit_white_hull": [
+       1.72,
+       1.1,
+       0.27
+      ],
+      "washes_white": false,
+      "c_min": 10,
+      "c_min_limit": 18,
+      "source": "spec_newweapons boiuna.look"
+     },
+     {
+      "light": "2.0 halo (GlowSprite) = glow/4, refl 3, add 0 (HE)",
+      "vertex_color": [
+       64,
+       30,
+       8
+      ],
+      "refl": 3,
+      "add": 0.0,
+      "lit_white_hull": [
+       0.64,
+       0.3,
+       0.08
+      ],
+      "washes_white": false,
+      "c_min": 8,
+      "c_min_limit": 50,
+      "source": "this spec",
+      "addendum": "SUBSTITUIDO: halo refl 0 / add 0 (so no espaco; guns_visuals.light_fixes_addendum.a_halo)"
+     },
+     {
+      "light": "2.0 halo (GlowSprite) = glow/4, refl 3, add 0 (AP)",
+      "vertex_color": [
+       50,
+       56,
+       64
+      ],
+      "refl": 3,
+      "add": 0.0,
+      "lit_white_hull": [
+       0.5,
+       0.56,
+       0.64
+      ],
+      "washes_white": false,
+      "c_min": 50,
+      "c_min_limit": 50,
+      "source": "this spec",
+      "addendum": "SUBSTITUIDO: halo refl 0 / add 0 (so no espaco; guns_visuals.light_fixes_addendum.a_halo)"
+     },
+     {
+      "light": "2.0 hull light he (refl 6)",
+      "vertex_color": [
+       255,
+       96,
+       12
+      ],
+      "refl": 6,
+      "add": 0.05,
+      "lit_white_hull": [
+       5.15,
+       1.94,
+       0.24
+      ],
+      "washes_white": false,
+      "c_min": 12,
+      "c_min_limit": 25,
+      "source": "this spec"
+     },
+     {
+      "light": "2.0 hull light ap (refl 6)",
+      "vertex_color": [
+       24,
+       104,
+       255
+      ],
+      "refl": 6,
+      "add": 0.05,
+      "lit_white_hull": [
+       0.48,
+       2.1,
+       5.15
+      ],
+      "washes_white": false,
+      "c_min": 24,
+      "c_min_limit": 25,
+      "source": "this spec"
+     },
+     {
+      "light": "2.0 hull light sap (refl 6)",
+      "vertex_color": [
+       255,
+       64,
+       8
+      ],
+      "refl": 6,
+      "add": 0.05,
+      "lit_white_hull": [
+       5.15,
+       1.29,
+       0.16
+      ],
+      "washes_white": false,
+      "c_min": 8,
+      "c_min_limit": 25,
+      "source": "this spec"
+     },
+     {
+      "light": "2.0 hull light ac (refl 4) ADDENDUM carmim",
+      "vertex_color": [
+       200,
+       10,
+       40
+      ],
+      "refl": 4,
+      "add": 0.05,
+      "lit_white_hull": [
+       2.71,
+       0.14,
+       0.54
+      ],
+      "washes_white": false,
+      "c_min": 10,
+      "c_min_limit": 37,
+      "source": "this spec",
+      "historico": {
+       "light": "2.0 hull light ac (refl 6)",
+       "vertex_color": [
+        255,
+        16,
+        64
+       ],
+       "refl": 6,
+       "lit_white_hull": [
+        5.15,
+        0.32,
+        1.29
+       ],
+       "c_min": 16,
+       "c_min_limit": 25
+      }
+     },
+     {
+      "light": "2.0 hull light pem (refl 6)",
+      "vertex_color": [
+       8,
+       150,
+       255
+      ],
+      "refl": 6,
+      "add": 0.05,
+      "lit_white_hull": [
+       0.16,
+       3.03,
+       5.15
+      ],
+      "washes_white": false,
+      "c_min": 8,
+      "c_min_limit": 25,
+      "source": "this spec"
+     },
+     {
+      "light": "2.0 hull light rail (refl 4) ADDENDUM azul",
+      "vertex_color": [
+       20,
+       82,
+       255
+      ],
+      "refl": 4,
+      "add": 0.05,
+      "lit_white_hull": [
+       0.27,
+       1.11,
+       3.45
+      ],
+      "washes_white": false,
+      "c_min": 20,
+      "c_min_limit": 37,
+      "source": "this spec",
+      "historico": {
+       "light": "2.0 hull light rail (refl 6)",
+       "vertex_color": [
+        96,
+        0,
+        255
+       ],
+       "refl": 6,
+       "lit_white_hull": [
+        1.94,
+        0.0,
+        5.15
+       ],
+       "c_min": 0,
+       "c_min_limit": 25
+      }
+     },
+     {
+      "light": "2.0 hull light cluster (refl 6)",
+      "vertex_color": [
+       255,
+       110,
+       16
+      ],
+      "refl": 6,
+      "add": 0.05,
+      "lit_white_hull": [
+       5.15,
+       2.22,
+       0.32
+      ],
+      "washes_white": false,
+      "c_min": 16,
+      "c_min_limit": 25,
+      "source": "this spec"
+     },
+     {
+      "light": "2.0 hull light msl_emp (refl 6)",
+      "vertex_color": [
+       0,
+       90,
+       255
+      ],
+      "refl": 6,
+      "add": 0.05,
+      "lit_white_hull": [
+       0.0,
+       1.82,
+       5.15
+      ],
+      "washes_white": false,
+      "c_min": 0,
+      "c_min_limit": 25,
+      "source": "this spec"
+     },
+     {
+      "light": "2.0 hull light nuclear (refl 6)",
+      "vertex_color": [
+       0,
+       255,
+       0
+      ],
+      "refl": 6,
+      "add": 0.05,
+      "lit_white_hull": [
+       0.0,
+       5.15,
+       0.0
+      ],
+      "washes_white": false,
+      "c_min": 0,
+      "c_min_limit": 25,
+      "source": "this spec"
+     }
+    ],
+    "switch": "art.light_split = split (default) | legacy (Phase B single light, for an A/B test)",
+    "test": "T-ART-5"
+   }
+  },
+  "phase_b_reuse": {
+   "kept_as_is": "bullet_strike_vfx.json weapon rows for the 12 guns and 3 defenses: muzzle scaled copies (CG/CGF/CGS/CD/CDF/CDR/CDS/RGD/FF/FS/SHR), hull/struct/shield presets, shake, trails, tracer sizes, flak bursts (FLAK_L/FLAK_H), Pororoca OC cloud art, plasma_fx, Iara nuclear look (fxkit NUKE files)",
+   "renamed": "ammo keys std->he, aphe->(removed), emp->(removed), bullet->he; new keys sap, ac, frag in ammo_colors (= palette) and in each row's impact.hull / impact.he maps (sap uses the HE burster preset scaled by its own burster radius / 4 (laws.he_mes), ac uses AC_BLAST_<tier>)",
+   "boiuna_row": "look 'nuke_shell' -> 'shell' with art_tier 'h'; muzzle drops RADF; smoke_trail tint removed (TSM grey, not TSM_G); impact.hull he = [HE_BIG, 1.375] (r 5.5 / 4), ac = [AC_BLAST_L, 2.25]; NUKE preset, nuke ring/afterglow and shot_down nuke flash removed from the row",
+   "new_rows": "none for PEM guns / railgun: their FX live in fx2.py (effects.pem / effects.railgun) because they are not calibre-scaled copies"
+  },
+  "drop": {
+   "art3d_dirs": [
+    "art3d/bs_factory_mag_emp",
+    "art3d/bs_factory_shell_nuke",
+    "art3d/bs_mag_emp",
+    "art3d/bs_shell_nuke"
+   ],
+   "art3d_items": {
+    "bs_shells": [
+     "he",
+     "ap",
+     "nuke (+bs_shell_band_he/ap, bs_shell_nuke_lights)"
+    ],
+    "bs_missiles": [
+     "napalm_s",
+     "napalm_m",
+     "napalm_l",
+     "limpet_m",
+     "limpet_l",
+     "limpet_charge",
+     "torpedo_m",
+     "torpedo_l",
+     "torpedo_wh_m",
+     "torpedo_wh_l",
+     "torpedo_decoy",
+     "nuclear_decoy",
+     "cluster_child"
+    ]
+   },
+   "launcher_overlays": {
+    "bs_msl_box": "cells_napalm (14)",
+    "bs_msl_twin": "cells_limpet / cells_napalm / cells_torpedo (80)",
+    "bs_msl_quad": "cells_limpet / cells_napalm / cells_torpedo (96)"
+   },
+   "gui": [
+    "gui/ammo_std.png",
+    "gui/ammo_aphe.png",
+    "gui/ammo_emp.png",
+    "gui/missile_limpet.png",
+    "gui/missile_napalm.png",
+    "gui/missile_torpedo.png"
+   ],
+   "fx": [
+    "shots/bs_missile_fx napalm/limpet/torpedo/decoy files (29, missiles section removed.missile_fx)",
+    "caliber_fx NEW_SOURCES RADF and TSM_G and the 'nuke_shell' look (Boiúna); fxkit NUKE files stay for Iara"
+   ],
+   "blender_models": [
+    "parts/bs_mag_emp.py (coils copied into bs_cell_emp + F3)",
+    "parts/bs_shell_nuke.py -> renamed bs_msl_nuke.py",
+    "parts/bs_factory_mag_emp.py (coils -> F3)",
+    "parts/bs_factory_shell_nuke.py -> bs_factory_warhead.py"
+   ],
+   "previews": [
+    "docs/preview/res_bs_mag_emp.png",
+    "res_bs_shell_nuke.png",
+    "bs_factory_mag_emp.png",
+    "bs_factory_shell_nuke.png",
+    "3d/carregadora_emp.*",
+    "3d/fundicao_nuclear.*",
+    "3d/prensa_perfurantes.*",
+    "3d/nuke_* (replaced by Boiúna AC previews)"
+   ]
+  },
+  "previews": {
+   "dir": "docs/preview/2.0/ (pt-BR captions)",
+   "send_first": [
+    "tupa_2_0.gif",
+    "piranha_2_0.gif",
+    "fita_2_0.gif",
+    "paiol_2_0.gif",
+    "escada_granadas_2_0.png"
+   ],
+   "items": [
+    {
+     "file": "escada_granadas_2_0.png",
+     "shows": "S/M/L x HE/AP/SAP/AC + Boiúna he_h/ac_h + PEM + slug at 1x and 3x on white, grey and dark hull plates, with tracer and tinted band",
+     "decision": "shell ladder look (REQ 11)",
+     "made_with": "compose_preview.make_projectiles(lengths=tier body)"
+    },
+    {
+     "file": "municoes_2_0.png",
+     "shows": "12 resources: icon, full stack, nugget, overlay",
+     "decision": "item rework (USER_NOTES)",
+     "made_with": "make_gallery resources sheet"
+    },
+    {
+     "file": "paiol_2_0.gif",
+     "shows": "3 sizes x 4 families, gauge 0->100%, plate switching, digits counting (if enabled)",
+     "decision": "paiol readout (REQ 2)",
+     "made_with": "layered preview"
+    },
+    {
+     "file": "fita_2_0.gif",
+     "shows": "5x5 network (straight/corner/T/cross) moving cartridges; sealed vs corridor with a crew sprite walking over the grating",
+     "decision": "belt look (REQ 3/4, answer c)",
+     "made_with": "layered preview"
+    },
+    {
+     "file": "tupa_2_0.gif",
+     "shows": "loader + 4 canos + ponta: breech load, 2.0 s charge wave, 0.57 s slide, muzzle, flight, per-part punctures, end impact + embers; plus a 1x still",
+     "decision": "railgun showpiece (REQ 8)",
+     "made_with": "PIL composite of layered renders + FX mock (vfx_impl WP preview idiom)"
+    },
+    {
+     "file": "pem_2_0.gif",
+     "shows": "Tuvira / Treme-Treme / Corisco firing, shells, hull + shield hits, pre-shot arcs",
+     "decision": "PEM line (REQ 7)",
+     "made_with": "gun previews + FX mock"
+    },
+    {
+     "file": "piranha_2_0.gif",
+     "shows": "carrier opening: petals + 12 (Caipora) / 20 (Mula) minis fanning out",
+     "decision": "cluster count look (critic: show a GIF before deciding)",
+     "made_with": "FX mock"
+    },
+    {
+     "file": "frag_2_0.gif",
+     "shows": "FRAG airburst + fragment cone vs HE airburst side by side (Tatu/Tamanduá/Pororoca)",
+     "decision": "FRAG own effect (REQ 9)",
+     "made_with": "FX mock"
+    },
+    {
+     "file": "ac_2_0.gif",
+     "shows": "AC vs HE impact at S/M/L and Boiúna",
+     "decision": "premium round look",
+     "made_with": "FX mock"
+    },
+    {
+     "file": "fabricas_2_0.png + fabricas_2_0.gif",
+     "shows": "F1-F6 with mode plates + animation strips",
+     "decision": "factory reskins",
+     "made_with": "make_gallery factories"
+    },
+    {
+     "file": "icones_2_0.png",
+     "shows": "all UI icons at 1x and 3x on the dark UI background",
+     "decision": "icons",
+     "made_with": "ui_icons sheet"
+    },
+    {
+     "file": "casco_branco_2_0.png",
+     "shows": "BEFORE/AFTER light split on white/grey/dark hulls: Furacão tracers, 406 shell, Mula missile, slug",
+     "decision": "leftover 2 fix",
+     "made_with": "PIL light model mock (WP2 light_model idiom)"
+    },
+    {
+     "file": "penetracao_2_0.png",
+     "shows": "BEFORE/AFTER particle count per penetrated part (406 AP through 13 parts)",
+     "decision": "leftover 1 fix",
+     "made_with": "PIL mock + counts from penetration_budget.csv"
+    },
+    {
+     "file": "boiuna_2_0.png",
+     "shows": "turret re-skin before/after (amber, no trefoil)",
+     "decision": "Boiúna repurpose",
+     "made_with": "gun preview"
+    }
+   ]
+  },
+  "generator_switches": {
+   "where": "tools/spec/bullet_strike_spec.json 'art' block; env overrides BS_ART_<NAME>",
+   "art.belt_shapes": "blend (default, ToggledBlendSprites) | arms (Graphics per port, if testkit item 20 = NAO)",
+   "art.light_split": "split (default) | legacy (Phase B single IsLight)",
+   "art.pen_media": "light (default) | full (Phase B)",
+   "art.frag_cone": "cone (default) | radial (if T-ART-7 fails)",
+   "art.cluster_petals": "particles (default) | bullets (missiles section variant; same textures)",
+   "pem.charge_glow": "on (default) | off",
+   "existing_switches_with_art_impact": {
+    "paiol_counter (econ)": "false -> gui/digitos not shipped, digit window stays dark in the roof",
+    "paiol.projeteis_3x3 (newweapons)": "true -> render roof_projeteis_3x3 + icon",
+    "belt_corridor / hopper (econ)": "false -> those art sets not shipped",
+    "logistics.transport (econ)": "tripulacao -> fita, corridor, tremonha and port kit not shipped; paiol art unchanged",
+    "rail.charge_wave (newweapons)": "network = carga as ValueSprites; delay = carga as AnimationFiles; off = not referenced",
+    "BS_SHELL_ART_DIR / BS_MISSILE_ART_DIR / BS_FX_EXT": "existing Phase B overrides"
+   }
+  },
+  "tests": [
+   {
+    "id": "T-ART-1",
+    "what": "belt blend shapes change with neighbours",
+    "source": "testkit item 20",
+    "on_fail": "art.belt_shapes = arms",
+    "status": "RESERVA (so com a esteira fisica)"
+   },
+   {
+    "id": "T-ART-2",
+    "what": "corridor-belt carts visible under the grating with the interior shown",
+    "source": "testkit item 25",
+    "on_fail": "art.corredor_carts = sobre_grade (so arte; a peca Corredor com Fita fica - J3-P1)",
+    "status": "RESERVA (so com a esteira fisica)"
+   },
+   {
+    "id": "T-ART-3",
+    "what": "paiol digits 0007 / 0010 / 0020 / 1839",
+    "source": "testkit items 9-11",
+    "on_fail": "paiol_counter = false"
+   },
+   {
+    "id": "T-ART-4",
+    "what": "railgun charge glow runs loader->muzzle and the slug is seen sliding",
+    "source": "testkit items 37-39",
+    "on_fail": "rail.charge_wave = delay; slug on roof_turrets as a last resort"
+   },
+   {
+    "id": "T-ART-5",
+    "what": "white-hull wash A/B (light_split split vs legacy) on white, grey and dark hulls: no white blotch > 1 tile around a 406 shell, Furacão stream, Mula salvo, slug",
+    "on_fail": "lower refl to 4"
+   },
+   {
+    "id": "T-ART-6",
+    "what": "406 AP salvo into a 13-part armour stack: particles per part <= 6, no hitch",
+    "on_fail": "drop chaingun_hit_flash from PEN_M/PEN_L"
+   },
+   {
+    "id": "T-ART-7",
+    "what": "FRAG cone wedge aligned with the beam direction",
+    "on_fail": "art.frag_cone = radial"
+   },
+   {
+    "id": "T-ART-8",
+    "what": "petal particles load (debris_def copy) and spin/fade",
+    "on_fail": "art.cluster_petals = bullets"
+   },
+   {
+    "id": "T-ART-9",
+    "what": "gauge ResourceSprites 5/8/10 levels track the stock on roof_doodads",
+    "on_fail": "gauge on doodads_low under a windowed roof (thermal_battery pattern)"
+   },
+   {
+    "id": "T-ART-10",
+    "what": "pre-rotated port kit lines up on all 4 edges of a paiol 2x2",
+    "on_fail": "fix offsets in the kit"
+   },
+   {
+    "id": "T-ART-11",
+    "what": "Fita grudada numa F1, num paiol e num Tambor: luz verde acende; cartuchos saindo/entrando aparecem em casco branco e escuro sem lavar o casco",
+    "decides": "art.fita_luz (com o A2) e o brilho do fita_fx"
+   }
+  ],
+  "effort": {
+   "total_agent_days": 41.35,
+   "by_group": {
+    "logistica": 5.4,
+    "railgun": 3.75,
+    "pem": 3.5,
+    "fabricas": 8.25,
+    "recursos": 4.45,
+    "projeteis": 5.75,
+    "torres": 0.5,
+    "ui": 0.75,
+    "fx": 4.5,
+    "kit": 3.0,
+    "previews": 1.5
+   },
+   "critical_path": "layered kind (2.0) -> paiol/fita/railgun in parallel; shells and resources independent; leftovers fixes independent (do first: smallest, user-visible)",
+   "order": [
+    "phase B leftovers (pen presets + light_pair)",
+    "layered kind + port kit",
+    "shells ladder + resources",
+    "paiol + plates + fita",
+    "railgun",
+    "PEM guns + FX",
+    "factories",
+    "missiles + cells",
+    "Boiúna",
+    "UI icons",
+    "previews"
+   ]
+  },
+  "evidence": {
+   "BS": "/home/user/Cosmoteer (commit d149ec3): tools/bsgen/caliber_fx.py, shots.py, fxkit.py, missile_fx.py, plasma_fx.py, factory.py, ui_icons.py, tools/blender/render_part.py, STYLE.md, check_art3d.py",
+   "ART": "/tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/v2/research/art (REPORT.md, asset_inventory_2.0.md, vanilla_sprite_measurements.md, proto/)",
+   "TK": "/tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/v2/testkit/BulletStrike_Teste2 (bs2t_esteira*, bs2t_paiol, bs2t_rail_*, gui/digitos)",
+   "VM": "/tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/v2/research/grid/vanilla_merged (thermal_battery.rules:274-345, debris_def.rules:100-130, particle counts)",
+   "SIBLINGS": "/tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/v2/design/{econ,guns,missiles,newweapons}/spec_*.json",
+   "USER_NOTES": "/tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/v2/design/USER_NOTES.txt"
+  },
+  "ui_editor_group": "['BulletStrike'] para paiol e fita (reserva: esteira/corredor/tremonha)",
+  "resolved_dependencies": {
+   "stacks": "econ: SAP 5, AC 3, FRAG 6 (R05)",
+   "F6": "3,0 s -> 12 quadros x 0,25 s (R07)",
+   "slug_light": "ADDENDUM (paleta azul): luz de casco palette.rail.hull [20, 82, 255] refl 4 + light_blob da Ponta {0.10, 0.32, 1.0} (historico R11 violeta: [96,0,255] refl 6 + light_blob {0.38, 0, 1.0})",
+   "guns_light_rule": "substituida pela regra c_min + palette.*.hull (R11)",
+   "frag_hits": "chaingun_sparks (R12)",
+   "pem_l": "1,15 x 0,40 confirmado",
+   "editor_group": "['BulletStrike'] (R27)",
+   "trails": "bsgen/trails.py: chaves large_/deck_/deckL_{he,ap,sap,ac}; sai *_aphe, *_emp, deck_nuclear (dono: WP03)"
+  },
+  "guns_visuals": {
+   "user_note_2026_10_21": "REWORK of ALL ammo visuals (items, projectiles S/M/L incl. 76 mm, AC guided, slug, PEM); small calibres stay tracers coloured per ammo; UI icons same style",
+   "ammo_colors": {
+    "he": {
+     "tracer": [
+      255,
+      170,
+      60
+     ],
+     "core": [
+      255,
+      235,
+      190
+     ],
+     "glow": [
+      255,
+      120,
+      30
+     ],
+     "band": [
+      255,
+      190,
+      60
+     ]
+    },
+    "ap": {
+     "tracer": [
+      190,
+      215,
+      255
+     ],
+     "core": [
+      240,
+      248,
+      255
+     ],
+     "glow": [
+      200,
+      225,
+      255
+     ],
+     "band": [
+      215,
+      230,
+      255
+     ]
+    },
+    "sap": {
+     "tracer": [
+      255,
+      135,
+      50
+     ],
+     "core": [
+      255,
+      215,
+      180
+     ],
+     "glow": [
+      255,
+      110,
+      40
+     ],
+     "band": [
+      255,
+      140,
+      50
+     ]
+    },
+    "ac": {
+     "tracer": [
+      255,
+      80,
+      110
+     ],
+     "core": [
+      255,
+      225,
+      235
+     ],
+     "glow": [
+      255,
+      60,
+      90
+     ],
+     "band": [
+      230,
+      40,
+      80
+     ],
+     "band2_gold": [
+      255,
+      200,
+      80
+     ]
+    },
+    "frag": {
+     "tracer": [
+      150,
+      230,
+      215
+     ],
+     "core": [
+      225,
+      255,
+      250
+     ],
+     "glow": [
+      110,
+      210,
+      200
+     ],
+     "band": [
+      120,
+      210,
+      200
+     ]
+    },
+    "rule": "substituido por art_assets.palette (mesmas cores + cor 'hull' da luz de casco); linhas std/aphe/emp/bullet/nuclear removidas"
+   },
+   "tracers": "Marimbondo, Mangangá, Carcará, Saci, Cigarra, Furacão: Phase B tracer sizes kept, colour per mode",
+   "shell_ladder": {
+    "S_76mm_Tambor": "NEW (not the current he/ap): composite sleeve with 1 LED band + recessed seeker ring, body 0.72x0.26 tiles; band tinted per mode; lights atlas 2 frames",
+    "M_155mm_Trovao": "chevron armour sleeves + LED ring, body 1.15x0.40, lights atlas 2 frames",
+    "L_406mm_Mapinguari": "segmented sleeves + sensor nose + base glow atlas (4 frames), body 2.05x0.72",
+    "AC_all_tiers": "guided premium round (prototype 'prm': fins + canards + 2-frame seeker blink) at the tier size, crimson band + gold second band",
+    "Boiuna_howitzer": "'prm_l' heavy howitzer shell 2.2x0.86: HE amber band / AC crimson+gold; NO trefoil, NO green, no radiation sprites; turret re-skin to amber (art)",
+    "plasma": "Phase B plasma_fx unchanged"
+   },
+   "impact_presets": {
+    "kept": "Phase B caliber presets (MG, MGH, AC, AC_FAST, L, D, HE_POP, HE, HE_BIG, SH_*) mapped by the new keys (he/ap/sap/ac)",
+    "new_AC_BLAST_S_M_L": "AC burster (FinishedPenetrating* only): white-gold flash + orange-crimson fireball + expanding shock ring + short heat shimmer; MediaEffectsScale = radius / 4 (missile_he drawn for r4); Boiuna AC uses AC_BLAST_L x2.25",
+    "new_FRAG_BURST_L_H": "cold-white pinpoint flash + small teal-grey puff (<= 30 particles), no smoke column",
+    "frag_fragment": "fragment bullet = one additive streak sprite 0.35x0.06 tiles (teal-white), NO IsLight, no particle emitter; on HitBullet: chaingun_sparks (2-4) only (R12)"
+   },
+   "phase_b_fixes": {
+    "penetrating_parts": "PenetratingOperational no longer plays the full HitOperational preset: it plays a light PEN preset (2-3 sparks of chaingun_shot_overclock_hit, 0.3 s, no flash, no smoke, no debris) at pen_mes; the full preset only on HitOperational (first contact) and FinishedPenetratingOperational. 406 AP 'big_part_explode_debris' moves to FinishedPenetratingOperational only. Budget <= 6 particles per penetrated part.",
+    "isLight_white_hull": "SUBSTITUIDO (R11): ver art_assets.phase_b_leftovers.islight_white_hull (fxkit.light_pair, regra c_min, StartTime por formula)"
+   },
+   "particle_budget": {
+    "per_impact_max": "MG 6, AC/20-30 mm 12, L 30, D 45, HE_BIG 70, AC_BLAST_L 90",
+    "per_penetrated_part_max": 6,
+    "frag_live_fragments": "Tatu ~9, Tamanduá ~20, Pororoca ~22",
+    "tamandua_total": "<= 940 live particles (Phase B cap) including FRAG"
+   },
+   "sounds": "NOT now: keep every MediaEffects sound slot and its current reference (Phase B rule R5) so unique sounds per weapon can be dropped in later",
+   "user_note_2026_10_21_r3": "'AC guiada' da nota vale so para a AC da Boiúna (ac_h): a mecanica so guia a AC da Boiúna (boiuna.ac_guided); Tambor/Trovão/Mapinguari AC voam retas",
+   "light_fixes_addendum": {
+    "a_halo": "halo grande so no espaco (light_pair: halo refl 0)",
+    "b_ac": "AC carmim profundo: palette.ac.tracer/glow [220,30,60], hull [200,10,40] refl 4",
+    "c_refl": "luz de casco refl 4 para ac e slug (resto 6)",
+    "d_boiuna_tracante_fino": {
+     "what": "Boiuna (tier h, he_h/ac_h): tracante fino de granada, nao 'chama de foguete'",
+     "values": {
+      "tw": 0.45,
+      "tl": 6.5,
+      "kw": 0.5,
+      "kl": 1.6,
+      "kback": 0.35,
+      "puff": 0.5,
+      "gain": 0.75
+     },
+     "meaning": "tracante 6,5 quadros com 45 % da largura atual; nucleo curto 1,6 quadro com metade da largura comecando 0,35 quadro atras da base; rastro com metade da largura; tracante, nucleo e rastro a 75 % da intensidade",
+     "source": "scratchpad/v2/shellart/make_sheets.py BOIUNA_THIN"
+    },
+    "e_canvases": "tamanho do sprite = meta.items.<chave>.size de art3d/bs_shells2 (telas de 2,0 de comprimento; ac_h [2.0,0.89], pem_s [2.0,0.80], pem_m [2.0,0.75], slug [3.0,0.8]); slug sem trilhos (colares EM); check_art3d aceita a ancora 'tip'",
+    "f_clarao_base": {
+     "what": "Tambor (he_s/ap_s/sap_s/ac_s) e Trovao (_m): clarao branco da base com METADE do diametro e RECUADO para tras da base",
+     "values": {
+      "head_k": 0.5,
+      "head_dx": 0.15
+     },
+     "source": "shellart make_sheets.py (folha projeteis_antes_depois.png)"
+    }
+   }
+  },
+  "seam_tier_map": {
+   "arg": "art_tier do spec (weapons[].art_tier: tracer / s / m / l / h / plasma; 'pem' e 'slug' quando o WP08/WP09 poem s['art_tier'] nos seus tiros)",
+   "pen_effect": {
+    "tracer": "PEN_S",
+    "s": "PEN_M",
+    "m": "PEN_M",
+    "l": "PEN_L",
+    "h": "PEN_L",
+    "plasma": null,
+    "pem": "PEN_S",
+    "slug": "PEN_L"
+   },
+   "pop_effect": {
+    "tracer": "POP_S",
+    "s": "POP_S",
+    "m": "POP_L",
+    "l": "POP_L",
+    "h": "POP_L",
+    "plasma": null,
+    "pem": "POP_S",
+    "slug": "POP_L"
+   },
+   "why": "J2R3-18: o WP02 chama _call(CFX, 'pen_effect', art_tier) e _call(CFX, 'pop_effect', art_tier); o WP03 mapeia por esta tabela (Cigarra/Carcará/Furacão tracer -> PEN_S; Tambor s e Trovão m -> PEN_M; Mapinguari l -> PEN_L; POP_S ate 76 mm)",
+   "null_rule": "R4 (J2R3-18 residual): valor null ou art_tier fora da tabela -> pen_effect/pop_effect devolvem None (nunca KeyError) e o chamador mantem o efeito antigo. Plasma (Boitatá e Curupira, shot_hp 300 / 3000, alvejaveis): o WP02 NAO chama o seam - mantem Targetable.OnDeath = PFX.hit_media(..., 'pop') (shots.py:330-333) e o bolt sem PenetratingOperational (_bolt_kinetic); qualquer outro None -> PARTICLES['pen'] / o OnDeath atual."
+  },
+  "adopted_art_r3": {
+   "shells": {
+    "model": "tools/blender/parts/bs_shells2.py",
+    "art3d": "art3d/bs_shells2/",
+    "id": "rafaeltessaro.bs_shells2",
+    "kind": "shells (128 px/tile)",
+    "items": 18,
+    "status_seen_at_f93762d": "18 itens commitados, 'arte final dos criticos' em af0b0ed; ac_s/ac_m/ac_l ainda guiadas",
+    "status_r4": "commitado (d2ca659..af0b0ed)"
+   },
+   "missiles": {
+    "model": "tools/blender/parts/bs_missiles2.py",
+    "art3d": "art3d/bs_missiles2/",
+    "id": "rafaeltessaro.bs_missiles2",
+    "kind": "missiles (64 px/tile)",
+    "items": "he_s/m/l, cluster_m/l, cluster_mini, emp_m/l, nuclear_l, nuclear_wh_l + atlas bs_petals_m/l",
+    "status_seen_at_f93762d": "modelo e art3d/bs_missiles2 commitados (f93762d), com o atlas das petalas",
+    "status_r4": "commitado (f93762d); bs_missiles2.py com alteracao nao commitada"
+   },
+   "rail": {
+    "model": "tools/blender/parts/bs_rail.py (PARTS loader/barrel/muzzle)",
+    "renderer": "tools/blender/render_layered.py (kind generico 'layered', commitado em af0b0ed)",
+    "art3d": "art3d/bs_rail_loader/, art3d/bs_rail_barrel/, art3d/bs_rail_muzzle/",
+    "status_seen_at_f93762d": "bs_rail.py commitado e ainda em edicao; art3d/bs_rail_* ainda nao commitado",
+    "status_r4": "render_layered.py af0b0ed, bs_rail.py f93762d (ambos alterados de novo); art3d/bs_rail_* nao commitado"
+   },
+   "boiuna": {
+    "model": "tools/blender/parts/bs_boiuna_ac.py (copia 2.0 do bs_nuke_howitzer.py: ambar, sem trevo, crew_pos com 5 postos; id rafaeltessaro.bs_nuke_howitzer)",
+    "status_seen_at_f93762d": "arquivo novo, ainda nao commitado; render a caminho",
+    "art3d": "art3d/bs_boiuna_ac/ (o gerador 2.0 le daqui por weapons[].art3d_dir; art3d/bs_nuke_howitzer = 1.x)",
+    "status_r4": "bs_boiuna_ac.py e art3d/bs_boiuna_ac no disco, nao commitados"
+   },
+   "pem_guns": {
+    "what": "Tuvira, Treme-Treme e PEM pesada (arquivos de peca + renders) e a opcao 'charge_glow' aditiva no tools/blender/render_part.py",
+    "status_seen_at_f93762d": "em andamento (nada commitado ainda)",
+    "status_r4": "bs_pem_light|medium|heavy.py no disco (nao commitados); art3d/bs_pem_* ainda nao existe; charge_glow no render_part.py nao commitado"
+   },
+   "checks_previews": "tools/check_art3d.py e previas docs/preview/3d/v2/armas_* (job ainda nao comecou em R4; dono no plano: WP10 / WP13)",
+   "previews": "docs/preview/3d/v2/ (projeteis_* commitados em af0b0ed -> WP11; misseis_* e railgun_* no disco -> WP13; armas_* a caminho -> WP13)",
+   "rule": "ADOTAR: os pacotes de arte (WP10/WP11/WP13) consomem estes arquivos, so re-renderizam o que faltar ou o que contradiz o spec (ac_s/ac_m/ac_l), nunca refazem do zero; o WP01 so cria o branch depois que esses jobs fizerem commit."
+  },
+  "base_required_outputs": {
+   "rule": "WP01 passo 0 (R4): o BASE so e criado quando TODOS estes caminhos estao no HEAD de claude/laughing-babbage-0pswjv E `git status --porcelain -- art3d tools/blender tools/check_art3d.py docs/preview/3d/v2` esta vazio. 'git status limpo' sozinho NAO basta: entre um job e outro nada esta sujo e os arquivos ainda nao existem.",
+   "paths": [
+    "art3d/bs_shells2/meta.json",
+    "art3d/bs_missiles2/meta.json",
+    "art3d/bs_rail_loader/meta.json",
+    "art3d/bs_rail_barrel/meta.json",
+    "art3d/bs_rail_muzzle/meta.json",
+    "art3d/bs_pem_light/meta.json",
+    "art3d/bs_pem_medium/meta.json",
+    "art3d/bs_pem_heavy/meta.json",
+    "art3d/bs_boiuna_ac/meta.json",
+    "tools/blender/parts/bs_shells2.py",
+    "tools/blender/parts/bs_missiles2.py",
+    "tools/blender/parts/bs_rail.py",
+    "tools/blender/parts/bs_boiuna_ac.py",
+    "tools/blender/parts/bs_pem_light.py",
+    "tools/blender/parts/bs_pem_medium.py",
+    "tools/blender/parts/bs_pem_heavy.py",
+    "tools/blender/render_layered.py",
+    "tools/blender/render_part.py",
+    "art3d/bs_fita/meta.json",
+    "art3d/bs_fita_fx/meta.json",
+    "art3d/bs_placas/meta.json",
+    "art3d/bs_paiol/meta.json",
+    "art3d/bs_ui_icons2/icons.json",
+    "art3d/bs_factory_mag_std/meta.json",
+    "art3d/bs_factory_special/meta.json",
+    "art3d/bs_factory_plasma/meta.json",
+    "art3d/bs_factory_missile/meta.json",
+    "art3d/bs_factory_warhead/meta.json",
+    "art3d/bs_factory_slug/meta.json",
+    "art3d/bs_mag_std/meta.json",
+    "art3d/bs_mag_ap/meta.json",
+    "art3d/bs_mag_sap/meta.json",
+    "art3d/bs_mag_ac/meta.json",
+    "art3d/bs_mag_frag/meta.json",
+    "art3d/bs_plasma_cell/meta.json",
+    "art3d/bs_cell_emp/meta.json",
+    "art3d/bs_msl_he/meta.json",
+    "art3d/bs_msl_cluster/meta.json",
+    "art3d/bs_msl_emp/meta.json",
+    "art3d/bs_msl_nuke/meta.json",
+    "art3d/bs_slug_rail/meta.json",
+    "tools/blender/parts/bs_fita.py",
+    "tools/blender/parts/bs_fita_fx.py",
+    "tools/blender/parts/bs_placas.py",
+    "tools/blender/parts/bs_paiol.py",
+    "tools/blender/parts/bs_factory_special.py",
+    "tools/blender/parts/bs_factory_mag_std.py",
+    "tools/blender/parts/bs_factory_plasma.py",
+    "tools/blender/parts/bs_factory_missile.py",
+    "tools/blender/parts/bs_factory_warhead.py",
+    "tools/blender/parts/bs_factory_slug.py"
+   ],
+   "content_checks": [
+    "`git grep -q charge_glow HEAD -- tools/blender/render_part.py` (charge_glow do job das armas PEM)",
+    "`git ls-tree --name-only HEAD docs/preview/3d/v2/` tem projeteis_*, misseis_*, railgun_* e pelo menos 4 armas_* (as armas_* sao do mesmo job que mexe em tools/check_art3d.py: sao o sinal de que ele terminou)"
+   ],
+   "check_cmd": "for p in <paths>; do git -C $REPO cat-file -e HEAD:$p 2>/dev/null || echo FALTA $p; done; + content_checks; + git -C $REPO status --porcelain -- art3d tools/blender tools/check_art3d.py docs/preview/3d/v2 (vazio)",
+   "if_job_ended_without_output": "job terminado (nenhum processo/sessao dele rodando) e um caminho ausente: anote 'FALTOU <caminho>' em tools/spec/BASE_2_0.txt e siga; o dono em art3d_owner_map faz so isso, sem refazer o resto",
+   "late_commits": "commit de arte que chegar em claude/laughing-babbage-0pswjv depois do BASE: o WP10 (passo 0) e o WP13 (passo 0) trazem com `git merge --no-ff` (ou cherry-pick) os commits de `git log BASE..claude/laughing-babbage-0pswjv` que so tocam art3d/, tools/blender/, tools/check_art3d.py ou docs/preview/3d/v2/ e anotam o hash em BASE_2_0.txt; o WP14b confere que a lista esta vazia ou ja mesclada. Nunca re-renderizar o que um commit tardio trouxe.",
+   "content_checks_addendum": [
+    "art3d/bs_rail_loader/meta.json tem size [5,5] e as camadas culatra_tranco; bs_rail_barrel tambores_tranco; bs_rail_muzzle weapon_tranco + tambor_tranco",
+    "PORTAO TRANCO r2: railart/tranco/spec_patch.json (ou tools/spec/addendum/spec_patch_tranco.json) com meta.round 'tranco-r2' ou mais novo (nao o rascunho v/spec_patch_try.json); o ultimo commit que toca art3d/bs_rail_* ou tools/blender/parts/bs_rail.py e POSTERIOR a 9fba772 (o commit do r1); as tarefas do job do tranco r2 (#114-116 da sessao) concluidas; depois disso apply_addendum_spec.py + make_addendum.py rodados de novo com esse spec_patch",
+    "nenhum job de arte rodando e `git status --porcelain -- art3d tools/blender tools/check_art3d.py docs/preview/3d/v2` vazio",
+    "estado lido por esta geracao (2026-10-21 21:32): portao SATISFEITO; HEAD dccc777 2026-10-21 21:32 Tupa: carregador 5x5 e tranco no disparo (recuo da ponta, dos canos e da culatra), previas em GIF e MP4; ultimo commit da arte do Tupa dccc777 2026-10-21 21:32 Tupa: carregador 5x5 e tranco no disparo (recuo da ponta, dos canos e da culatra), previas em GIF e MP4; 0 caminhos sujos nas pastas de arte; spec_patch tranco-r2 (2026-10-21 21:20)"
+   ]
+  },
+  "art3d_owner_map": {
+   "rule": "dono = o pacote que renderiza/adota a pasta (check_art3d --pacote <dono>); dados = o modulo que poe a peca no DATA - sem ele integrado (API < 2, D.LAUNCHERS == [], sem bsgen.pem/railgun) o check_art3d confere so a arte e AVISA; legado = pasta 1.x que sai (aviso ate sair; erro so com --estrito). Pasta de arma = weapons[].art3d_dir ou o id curto.",
+   "entries": [
+    {
+     "dirs": [
+      "bs_shells2"
+     ],
+     "dono": "WP11",
+     "tipo": "shells",
+     "dados": "-"
+    },
+    {
+     "dirs": [
+      "bs_missiles2"
+     ],
+     "dono": "WP13",
+     "tipo": "missiles",
+     "dados": "-"
+    },
+    {
+     "dirs": [
+      "bs_rail_loader",
+      "bs_rail_barrel",
+      "bs_rail_muzzle"
+     ],
+     "dono": "WP13",
+     "tipo": "layered",
+     "dados": "WP09 bsgen.railgun"
+    },
+    {
+     "dirs": [
+      "bs_pem_light",
+      "bs_pem_medium",
+      "bs_pem_heavy"
+     ],
+     "dono": "WP13",
+     "tipo": "gun",
+     "dados": "WP08 bsgen.pem (SPEC.pem_weapons por id)"
+    },
+    {
+     "dirs": [
+      "bs_boiuna_ac"
+     ],
+     "dono": "WP13",
+     "tipo": "gun",
+     "dados": "WP02 bsgen.guns (D.GUNS Boiúna, art3d_dir; meta id rafaeltessaro.bs_nuke_howitzer)"
+    },
+    {
+     "dirs": [
+      "bs_lmg",
+      "bs_hmg",
+      "bs_autocannon_20",
+      "bs_quad_hmg",
+      "bs_minigun",
+      "bs_naval_76",
+      "bs_rotary_30",
+      "bs_naval_155",
+      "bs_naval_406",
+      "bs_plasma_gatling",
+      "bs_plasma_heavy"
+     ],
+     "dono": "WP10 (so conferir; arte 1.x mantida)",
+     "tipo": "gun",
+     "dados": "WP02 bsgen.guns"
+    },
+    {
+     "dirs": [
+      "bs_flak_light",
+      "bs_ciws",
+      "bs_flak_heavy"
+     ],
+     "dono": "WP10 (so conferir)",
+     "tipo": "gun",
+     "dados": "WP02 bsgen.ciws"
+    },
+    {
+     "dirs": [
+      "bs_msl_box",
+      "bs_msl_twin",
+      "bs_msl_quad"
+     ],
+     "dono": "WP13",
+     "tipo": "launcher",
+     "dados": "WP06 bs_data_missiles + bsgen.launchers (D.LAUNCHERS)"
+    },
+    {
+     "dirs": [
+      "bs_mag_std",
+      "bs_mag_ap",
+      "bs_mag_sap",
+      "bs_mag_ac",
+      "bs_mag_frag",
+      "bs_plasma_cell",
+      "bs_cell_emp",
+      "bs_msl_he",
+      "bs_msl_cluster",
+      "bs_msl_emp",
+      "bs_msl_nuke",
+      "bs_slug_rail"
+     ],
+     "dono": "WP11",
+     "tipo": "resource",
+     "dados": "WP01 (D.RESOURCES)"
+    },
+    {
+     "dirs": [
+      "bs_factory_mag_std",
+      "bs_factory_special",
+      "bs_factory_plasma",
+      "bs_factory_missile",
+      "bs_factory_warhead",
+      "bs_factory_slug"
+     ],
+     "dono": "WP12",
+     "tipo": "factory",
+     "dados": "WP01 D.FACTORIES / WP04 bsgen.factory",
+     "nota": "F2 = art3d/bs_factory_special (meta id rafaeltessaro.bs_factory_mag_ap, 4x3, art3d_dir no meta)"
+    },
+    {
+     "dirs": [
+      "bs_paiol",
+      "bs_fita",
+      "bs_fita_fx",
+      "bs_placas"
+     ],
+     "dono": "WP12",
+     "tipo": "layered",
+     "dados": "WP05 bsgen.logistics",
+     "nota": "bs_paiol = pasta compartilhada (meta shared) publicada como parts/bs_paiol_comum"
+    },
+    {
+     "dirs": [
+      "bs_esteira",
+      "bs_esteira_corredor",
+      "bs_tremonha",
+      "bs_porta_esteira"
+     ],
+     "dono": "WP15",
+     "tipo": "layered",
+     "dados": "WP15 bsgen.belt_net (reserva)"
+    },
+    {
+     "dirs": [
+      "bs_shells",
+      "bs_missiles",
+      "bs_nuke_howitzer"
+     ],
+     "dono": "WP14b",
+     "legado": true,
+     "sai_em": "WP14b (legacy_1x_cleanup)"
+    },
+    {
+     "dirs": [
+      "bs_mag_emp",
+      "bs_shell_nuke"
+     ],
+     "dono": "WP11",
+     "legado": true,
+     "sai_em": "WP11"
+    },
+    {
+     "dirs": [
+      "bs_factory_mag_emp",
+      "bs_factory_shell_nuke"
+     ],
+     "dono": "WP12",
+     "legado": true,
+     "sai_em": "WP12"
+    },
+    {
+     "dirs": [
+      "bs_ui_icons2"
+     ],
+     "dono": "WP11",
+     "tipo": "ui_icons",
+     "dados": "WP10 make_art.misc_art (icons.json -> gui/)"
+    },
+    {
+     "dirs": [
+      "bs_factory_mag_ap"
+     ],
+     "dono": "WP12",
+     "legado": true,
+     "sai_em": "WP12 (1.x 3x3; F2 2.0 = bs_factory_special)"
+    }
+   ]
+  },
+  "check_art3d_scopes": {
+   "owner": "WP10 (tools/check_art3d.py, partindo da versao do job de arte que esta no BASE)",
+   "modes": {
+    "todos": "todas as pastas de art3d/: ERRO so para defeito real de arte (arquivo do meta faltando, px do sprite, normals, alfa, emissivo, conjunto incompleto, id do meta diferente da peca) ou, com o modulo de dados integrado, divergencia com o DATA; AVISO (sai 0) para pasta legado, pasta cujo modulo de dados ainda nao esta integrado (confere so a arte contra o tamanho do SPEC) e bs_factory_mag_ap 3x3 antes do WP12",
+    "--pacote WPxx": "so as pastas com dono = WPxx em art3d_owner_map, com a mesma regra; cada pacote de arte exige 0 erros",
+    "todos --estrito": "WP14b: aviso vira erro (nenhuma pasta legado, todo modulo de dados integrado, nenhum tamanho divergente)",
+    "<id curto> | <pasta>": "como hoje"
+   },
+   "never_exit": "nenhum caso acima usa sys.exit dentro do laco (hoje: 'nao e lancador gerado' com D.LAUNCHERS == [], 'nao e arma/defesa do spec' para PEM/Boiúna, e guns.build_gun com D.GUNS 2.0 antes do WP02); guns.build_gun / ciws.build_ciws / launchers.build_launcher / o builder do pem so sao chamados quando o modulo tem API >= 2; senao so a arte",
+   "lookup": "peca da pasta: D.GUNS/D.DEFENSES por art3d_dir (ou id curto), SPEC.pem_weapons por id, D.LAUNCHERS, D.RESOURCES, D.FACTORIES; o id do meta.json tem de bater com o id da peca (bs_boiuna_ac -> rafaeltessaro.bs_nuke_howitzer); pasta sem entrada em art3d_owner_map -> erro"
+  },
+  "legacy_1x_cleanup": {
+   "owner": "WP14b (ultimo pacote, roda sozinho: por isso pode apagar os blocos marcados de arquivos do WP03)",
+   "delete": [
+    "tools/blender/parts/bs_shells.py",
+    "art3d/bs_shells/",
+    "tools/blender/parts/bs_missiles.py",
+    "art3d/bs_missiles/",
+    "tools/blender/parts/bs_nuke_howitzer.py",
+    "art3d/bs_nuke_howitzer/"
+   ],
+   "fallbacks": "o WP03 escreve os fallbacks 1.x (caliber_fx: chave que falta em art3d/bs_shells2 -> art3d/bs_shells 'he'/'ap'; fxkit: art3d/bs_missiles quando falta art3d/bs_missiles2) SO dentro de blocos `# LEGACY_1X_FALLBACK inicio` / `# LEGACY_1X_FALLBACK fim`, que avisam 'arte 1.x usada: <chave>' no build",
+   "trigger": "WP14b: build final (sem BS_ARTE_PROCEDURAL) sem nenhum aviso 'arte 1.x usada' -> apaga os blocos marcados e os caminhos de 'delete'; depois `git grep -nE \"bs_shells([^2]|$)|bs_missiles([^2]|$)|art3d/bs_nuke_howitzer|bs_nuke_howitzer\\.py\" -- tools` vazio (o ID rafaeltessaro.bs_nuke_howitzer continua: e o ID da Boiúna) e check_art3d todos --estrito 0 erros / 0 avisos. Aviso presente -> o pacote dono da chave faltante (art3d_owner_map) completa a arte antes",
+   "not_here": "bs_mag_emp, bs_shell_nuke (WP11) e bs_factory_mag_emp, bs_factory_shell_nuke (WP12) saem nos seus pacotes: nada no 2.0 os le"
+  },
+  "adopted_addendum": {
+   "rule": "TODA a arte abaixo esta pronta no repo e e ADOTADA: os WP10-WP13 so ligam (wire) e completam lacunas; nunca refazem",
+   "folders": {
+    "bs_shells2": {
+     "files": 68,
+     "kind": "shells"
+    },
+    "bs_missiles2": {
+     "files": 33,
+     "kind": "missiles"
+    },
+    "bs_rail_loader": {
+     "files": 49,
+     "kind": "layered"
+    },
+    "bs_rail_barrel": {
+     "files": 39,
+     "kind": "layered"
+    },
+    "bs_rail_muzzle": {
+     "files": 49,
+     "kind": "layered"
+    },
+    "bs_pem_light": {
+     "files": 19,
+     "kind": "gun"
+    },
+    "bs_pem_medium": {
+     "files": 21,
+     "kind": "gun"
+    },
+    "bs_pem_heavy": {
+     "files": 27,
+     "kind": "gun"
+    },
+    "bs_boiuna_ac": {
+     "files": 43,
+     "kind": "gun"
+    },
+    "bs_fita": {
+     "files": 7,
+     "kind": "layered"
+    },
+    "bs_fita_fx": {
+     "files": 32,
+     "kind": "layered"
+    },
+    "bs_placas": {
+     "files": 12,
+     "kind": "layered"
+    },
+    "bs_paiol": {
+     "files": 78,
+     "kind": "layered"
+    },
+    "bs_factory_mag_std": {
+     "files": 16,
+     "kind": "factory"
+    },
+    "bs_factory_special": {
+     "files": 16,
+     "kind": "factory"
+    },
+    "bs_factory_plasma": {
+     "files": 24,
+     "kind": "factory"
+    },
+    "bs_factory_missile": {
+     "files": 18,
+     "kind": "factory"
+    },
+    "bs_factory_warhead": {
+     "files": 18,
+     "kind": "factory"
+    },
+    "bs_factory_slug": {
+     "files": 18,
+     "kind": "factory"
+    },
+    "bs_mag_std": {
+     "files": 10,
+     "kind": "resource"
+    },
+    "bs_mag_ap": {
+     "files": 8,
+     "kind": "resource"
+    },
+    "bs_mag_sap": {
+     "files": 9,
+     "kind": "resource"
+    },
+    "bs_mag_ac": {
+     "files": 7,
+     "kind": "resource"
+    },
+    "bs_mag_frag": {
+     "files": 10,
+     "kind": "resource"
+    },
+    "bs_plasma_cell": {
+     "files": 8,
+     "kind": "resource"
+    },
+    "bs_cell_emp": {
+     "files": 8,
+     "kind": "resource"
+    },
+    "bs_msl_he": {
+     "files": 14,
+     "kind": "resource"
+    },
+    "bs_msl_cluster": {
+     "files": 14,
+     "kind": "resource"
+    },
+    "bs_msl_emp": {
+     "files": 14,
+     "kind": "resource"
+    },
+    "bs_msl_nuke": {
+     "files": 6,
+     "kind": "resource"
+    },
+    "bs_slug_rail": {
+     "files": 6,
+     "kind": "resource"
+    }
+   },
+   "ui_icons": "art3d/bs_ui_icons2 (13 icones; falta buff_fita)",
+   "gaps": [
+    "ac_s/ac_m/ac_l ainda guiadas (WP11)",
+    "gui/buff_fita.png (WP11)",
+    "celulas cluster8/heavy8 dos lancadores + apagar napalm/limpet/torpedo (WP13)",
+    "previas WP03 (casco_branco/penetracao/ac/frag 2.0) opcionais nesta build",
+    "arte r2 do Tupa (refino 2 do tranco) ainda nao commitada: portao do WP01/WP13 (status_addendum.portao_tranco_r2)",
+    "previas a REGERAR: projeteis_* (WP11), fabricas_2_0.png com 2 defeitos + logistica_fita.png/.gif depois da F1 final (WP12), armas_galeria_2_0.png + armas_casco_branco.png com a Tuvira antiga e 'PEM pesada' (WP13)"
+   ],
+   "previews_adopted": "docs/preview/3d/v2/: municoes_itens.png, icones_2_0.png, logistica_paiois.png, fabricas_2_0.gif, railgun_* (montado, disparo, tranco, tranco_curto, tranco_quadros, pecas, casco, referencia: os do commit r2 do tranco), armas_pem.png, armas_pem_disparo.gif, armas_boiuna_ac.png, misseis_* (cluster abrindo, futuristas, luzes)",
+   "previews_regerar": {
+    "projeteis_futuristas/antes_depois/casco_branco.png + projeteis_luzes.gif": "WP11 (slug azul e AC s/m/l sem guiagem; af0b0ed 11:43 e anterior ao slug azul)",
+    "fabricas_2_0.png": "WP12 (USER_NOTES: 2 defeitos so na folha: a F3 do topo mostra o banco PEM com a placa de plasma; a legenda da F1 sai cortada)",
+    "logistica_fita.png/.gif": "WP12 (be40fcd 20:01, anteriores a F1 final das fabricas r2 em 50c6804 20:37)",
+    "armas_galeria_2_0.png + armas_casco_branco.png": "WP13 (6cc61aa 16:03: Tuvira fixa antiga e rotulo 'PEM pesada · 2.0' em vez de Corisco)"
+   }
+  }
+ }
+}

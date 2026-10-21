@@ -4,11 +4,73 @@ Tudo aqui segue padroes copiados dos arquivos vanilla 0.30.x (cannon_deck, canno
 flak_cannon_large, chaingun, factory_ammo). Comentarios citam a origem quando util.
 """
 
+import importlib
+
 from rules_dsl import Q, VOID, Inh, comment
 
 AUTHOR = "rafaeltessaro"
+# ID e nome do mod vem do perfil do build (SPEC.build_2_0.variants: fita / semfita); bs_data chama set_profile()
 MOD_ID = f"{AUTHOR}.bullet_strike"
+MOD_NAME = "Bullet Strike"
 EDITOR_GROUP = "BulletStrike"
+
+
+def set_profile(mod_id, name):
+    """Perfil do build (variante fita/semfita): ID e Name do mod.rules."""
+    global MOD_ID, MOD_NAME
+    MOD_ID, MOD_NAME = mod_id, name
+
+
+def content_module(name, min_api=2):
+    """Modulo de conteudo opcional (J2R3-15): importlib.import_module(name); devolve None so quando o PROPRIO modulo
+    nao existe (ModuleNotFoundError com e.name == name) ou quando ele declara API < min_api (codigo 1.x ainda nao
+    portado). Nunca olha BS_FX_EXT (esse so desliga o registro FX do build_mod). Um import quebrado DENTRO do
+    modulo continua estourando. Use para INTAKE = content_module('bsgen.intake') e BELTNET = content_module(
+    'bsgen.belt_net')."""
+    try:
+        mod = importlib.import_module(name)
+    except ModuleNotFoundError as e:
+        if e.name != name:
+            raise
+        return None
+    if min_api and int(getattr(mod, "API", 0) or 0) < min_api:
+        return None
+    return mod
+
+
+def call(mod, fn, *a, **k):
+    """mod.fn(*a, **k) se o modulo e a funcao existirem; senao None (seam opcional)."""
+    f = getattr(mod, fn, None) if mod is not None else None
+    return f(*a, **k) if f is not None else None
+
+
+def index_names(i, key=None):
+    """Nomes dos componentes por modo (indice da tabela, nunca a posicao na lista; SPEC.ammo_index_rules):
+    MagStorage_<i>, Splitter_<i>, MagConsumer_<i>, ModeToggle_<i>, FitaEntrada_<i>, Alimentador_<i>, Alimenta_<i>,
+    PaiolAcoplado_<i>, AlimentadorAcoplado_<i>, NaoModo_<i>, Devolve_<i>, Devolucao_<i>; com key tambem
+    FitaEntra_<key> (proxy da fita, por tipo) e Estoque_<key> (estoque do paiol do tipo)."""
+    n = {"storage": f"MagStorage_{i}", "splitter": f"Splitter_{i}", "consumer": f"MagConsumer_{i}",
+         "mode_toggle": f"ModeToggle_{i}", "fita_entrada": f"FitaEntrada_{i}", "alimentador": f"Alimentador_{i}",
+         "alimenta": f"Alimenta_{i}", "paiol_acoplado": f"PaiolAcoplado_{i}",
+         "alimentador_acoplado": f"AlimentadorAcoplado_{i}", "nao_modo": f"NaoModo_{i}", "devolve": f"Devolve_{i}",
+         "devolucao": f"Devolucao_{i}", "reserva": f"ReservaTripulacao_{i}"}
+    if key is not None:
+        n["fita_entra"] = f"FitaEntra_{key}"
+        n["estoque"] = f"Estoque_{key}"
+    return n
+
+
+def half(max_resources):
+    """ResupplyThreshold da tripulacao = floor(MaxResources / 2) em todos os transportes (R04)."""
+    return int(max_resources) // 2
+
+
+def reserva_sem_fita():
+    """True quando a reserva da tripulacao so vale com a maquina SEM fita: logistics.reserva_tripulacao = sem_fita
+    SO com logistics.transport = teleporte E bsgen.intake carregado (J2R3-11: FitaLigada so existe ai)."""
+    import bs_data as D
+    return (D.switch("logistics.transport") == "teleporte" and content_module("bsgen.intake") is not None
+            and D.switch("logistics.reserva_tripulacao") == "sem_fita")
 
 # Categorias de projeteis que as defesas derrubam. "ion_shot" e a categoria dos tiros ionicos do
 # SW:ACD; categorias sao texto livre, entao nao causa erro quando o SW:ACD nao esta instalado.
@@ -139,17 +201,39 @@ def standard_toggles(overclock, command_points, defense=False, fire_pref_default
     return c
 
 
-def mag_consumer(res, storage, toggle, no_min_priority=False):
-    """Consumidor de carregadores da tripulacao (prioridade de arma, botao de consumo no proprio tile)."""
+def mag_consumer(res, storage, toggle, no_min_priority=False, threshold=None, extra_toggle=None, comp=None,
+                 toggle_name=None, fita_gate=True):
+    """Consumidor de carregadores da tripulacao (prioridade de arma, botao de consumo no proprio tile).
+
+    threshold: ResupplyThreshold (use half(MaxResources) = floor(Max/2), regra R04 de todos os transportes).
+    Reserva sem fita (reserva_sem_fita(): logistics.reserva_tripulacao = sem_fita com teleporte + bsgen.intake) ou
+    extra_toggle (nome de outro toggle a somar): o OperationalToggle vira um MultiToggle All [toggle, extra] gravado
+    em comp[toggle_name] (padrao 'Reserva_<storage>'; vanilla engine_room.rules:95 {Toggle; Invert = true}); nesses
+    casos comp e obrigatorio.
+    fita_gate=False: nao soma o FitaLigada mesmo com sem_fita (consumidor que ja nunca recebe, ex. o bloco 'tipo
+    fora de uso' do toggled_consumers); sem extra_toggle, comp deixa de ser obrigatorio."""
+    extras = []
+    if extra_toggle:
+        extras.append(extra_toggle)
+    if fita_gate and reserva_sem_fita():
+        extras.append("{ Toggle=FitaLigada; Invert=true }")
+    tog = toggle
+    if extras:
+        if comp is None:
+            raise ValueError(f"mag_consumer({storage}): reserva sem_fita / extra_toggle exige comp= para o MultiToggle")
+        tog = toggle_name or f"Reserva_{storage}"
+        comp[tog] = {"Type": "MultiToggle", "Toggles": [toggle] + extras, "Mode": "All"}
     c = {"Type": "ResourceConsumer", "ResourceType": res, "Storage": storage,
-         "DefaultPriority": "&/PRIORITIES/Weapon_Supply", "OperationalToggle": toggle}
+         "DefaultPriority": "&/PRIORITIES/Weapon_Supply", "OperationalToggle": tog}
+    if threshold is not None:
+        c["ResupplyThreshold"] = int(threshold)
     if no_min_priority:
         c["AllowNonOperationalMinPriorityDelivery"] = False
     c["ConsumptionToggleButtonOffset"] = [0, -0.4]
     return c
 
 
-def toggled_consumers(comp, cid, uses, res, storage, on_block, off_block):
+def toggled_consumers(comp, cid, uses, res, storage, on_block, off_block, threshold=None):
     """Consumidor de um tipo de municao numa arma com seletor (chaingun.rules l.383-437).
 
     O mesmo ID (cid) em dois ToggledComponents ligados pelo toggle 'uses' (tipo escolhido):
@@ -161,18 +245,25 @@ def toggled_consumers(comp, cid, uses, res, storage, on_block, off_block):
     Manter o mesmo ID mantem viva a chave de prioridade e a reserva de recursos na troca de tipo (o comentario
     do chaingun: "If storage assignments thrash, then that causes resource AI issues")."""
     comp[on_block] = {"Type": "ToggledComponents", "Toggle": uses,
-                      "Components": {cid: mag_consumer(res, storage, "CommandConsumptionToggle")}}
+                      "Components": {cid: mag_consumer(res, storage, "CommandConsumptionToggle", threshold=threshold,
+                                                       comp=comp, toggle_name=f"Reserva_{cid}")}}
+    # bloco fora de uso: OperationalToggle = 'uses' (sempre desligado enquanto este bloco vale) e sem entrega de
+    # prioridade minima, entao nunca recebe; o FitaLigada da reserva sem_fita nao muda nada aqui (fita_gate=False)
     comp[off_block] = {"Type": "ToggledComponents", "Toggle": uses, "Invert": True,
-                       "Components": {cid: mag_consumer(res, storage, uses, no_min_priority=True)}}
+                       "Components": {cid: mag_consumer(res, storage, uses, no_min_priority=True,
+                                                        threshold=threshold, fita_gate=False)}}
 
 
-def overclock_machinery(center, w, h, heat_triggers, has_constant_heat=True, shot_heat=True, port_rows=None):
+def overclock_machinery(center, w, h, heat_triggers, has_constant_heat=True, shot_heat=True, port_rows=None,
+                        skip_down=()):
     """Componentes de overclock (calor por tiro, calor constante, portas termicas).
 
     heat_triggers: lista de nomes de triggers que disparam somente em overclock.
     shot_heat=False: sem calor por tiro (lancadores cobram o calor por missil carregado no autoloader).
     port_rows: fileiras com portas laterais (padrao: todas). As fabricas passam range(1, h): a fileira do
     maquinario fica sem porta (factory_he.rules l.288-318, factory_ammo.rules l.253-270).
+    skip_down: colunas x da fileira de tras SEM Port_Thermal_D<x> (portas da esteira; D.belt_skip_down(g), que so
+    devolve algo com logistics.transport em rede/gemea).
     """
     c = {}
     c["OverclockStateValue"] = {"Type": "ToggleValueSelector", "Toggle": "OverclockModeToggle",
@@ -212,7 +303,10 @@ def overclock_machinery(center, w, h, heat_triggers, has_constant_heat=True, sho
             c[f"{name} : {first}"] = {"Location": [0, y], "Direction": "Left"}
     for y in rows:
         c[f"Port_Thermal_R{y} : {first}"] = {"Location": [w - 1, y], "Direction": "Right"}
+    skip = set(skip_down or ())
     for x in range(w):
+        if x in skip:
+            continue
         c[f"Port_Thermal_D{x} : {first}"] = {"Location": [x, h - 1], "Direction": "Down"}
     return c
 

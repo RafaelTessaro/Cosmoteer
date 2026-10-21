@@ -102,6 +102,18 @@ What is checked
    against vanilla shots) are ERRORs; a registered part/bullet that changes
    its base but inherits the base's ID is flagged too.
 
+5. Bullet Strike 2.0 (mod mode, WP01), on the files mod.rules reaches:
+   every BuffType / ReceivableBuffs / IncomingBuffTypes name is defined in
+   vanilla buffs/buffs.rules or by the mod's Overrides of it; every Category
+   of a PartCriteria / Criteria exists in the TypeCategories of some mod or
+   vanilla part; every ViaBuffs.ComponentIDs name is a component of some mod
+   (or vanilla) part (catches typos in the teleport chain); every UIToggle
+   ToggleID and ToggleChoicesUnlocked toggle exists in PartToggles of the mod
+   or vanilla (`{ ID = X; ToggleID = "IsRunning" }` sub-toggles excluded);
+   every namespaced NetworkPort type (with a '.') is used by >= 2 mod parts.
+   Integer fields also include Amount, ResourcesUsed, Crew, Quantity and
+   GridDistance (never BuffAmount: vanilla uses 25 %, 0.5...).
+
 Important semantic note
 -----------------------
 The game resolves references lazily: a broken reference inside a field the
@@ -181,7 +193,10 @@ ACTION_TARGET_FIELDS = {
 # pode vir num bloco { BaseValue = ... }.
 INT_FIELDS = {'totaldamage', 'maxhealth', 'maxresources', 'maxstacksize', 'toquantity', 'fromquantity',
               'togglequantity', 'toggleonresources', 'toggleoffresources', 'resupplythreshold', 'commandpoints',
-              'crewrequired', 'expandstartradius'}
+              'crewrequired', 'expandstartradius',
+              # 2.0 (WP01): conversores, estoques, emissores, tripulacao e alcance da grade de buffs. NUNCA BuffAmount:
+              # o vanilla usa 25 %, 50 %, 1 e {BaseValue ...} (J2R3-21)
+              'amount', 'resourcesused', 'crew', 'quantity', 'griddistance'}
 _FRACTION_RE = re.compile(r'^-?\d*\.\d*[1-9]\d*$')
 
 
@@ -1599,6 +1614,7 @@ class ModLinter(object):
                     self.drain_queue(unreachable=True)
         self.check_strings()
         self.check_ids()
+        self.check_semantics()
 
     def drain_queue(self, unreachable=False):
         L = self.L
@@ -2047,6 +2063,174 @@ class ModLinter(object):
                 for rf, line, v, par in uniq:
                     self.report.add(ERROR, rf, line, 'id',
                                     "shot ID '%s' clashes with vanilla %s" % (v, vshots[k]))
+
+    # semantica 2.0 (WP01) ----------------------------------------------------
+
+    def _mod_files(self):
+        """Arquivos do mod que o jogo carrega (alcancaveis pelo mod.rules), sem os de textos."""
+        return [rf for rf in self.L.files.values()
+                if rf.origin == 'fs' and rf.linted and not rf.unreachable and not self.is_strings_file(rf.path)]
+
+    @staticmethod
+    def _walk(root):
+        stack = [root]
+        while stack:
+            n = stack.pop()
+            yield n
+            if n.children:
+                stack.extend(reversed(n.children))
+
+    @staticmethod
+    def _plain(v):
+        """Nome simples (sem referencia/expressao) ou None."""
+        if v is None:
+            return None
+        v = v.strip().strip('"')
+        if not v or any(ch in v for ch in '&()<>{}[];= '):
+            return None
+        return v
+
+    def _vanilla_root(self, rel):
+        loc = self.L.vfs.vanilla_lookup(rel)
+        return self.L.get_file(loc).root if loc is not None else None
+
+    def _type_of(self, node):
+        t = self.L.lookup(node, 'Type')
+        return t.value.strip().strip('"').lower() if t is not None and t.kind == 'value' and t.value else None
+
+    def _list_values(self, node):
+        out = []
+        for el in self.L.list_elements(node):
+            el = self.L.deref(el) if el.kind == 'value' and not el.is_str else el
+            if el is not None and el.kind == 'value':
+                out.append((el, el.value))
+        return out
+
+    def _vanilla_part_nodes(self):
+        L = self.L
+        rf = self._vanilla_root('ships/terran/terran.rules')
+        out = []
+        if rf is None:
+            return out
+        t = L.lookup(rf, 'Terran')
+        parts = L.lookup(t, 'Parts') if t is not None else None
+        for el in (parts.children if parts is not None else []):
+            p = L.deref(el)
+            if p is not None:
+                out.append(p)
+        return out
+
+    def _categories_of(self, part):
+        tc = self.L.lookup(part, 'TypeCategories')
+        if tc is None:
+            return set()
+        if tc.kind == 'value':
+            v = self._plain(tc.value)
+            return {v.lower()} if v else set()
+        return {self._plain(v).lower() for _n, v in self._list_values(tc) if self._plain(v)}
+
+    def check_semantics(self):
+        """Checagens de sentido (WP01): BuffType definido, Category de PartCriteria/Criteria existente, ViaBuffs
+        ComponentIDs existentes, ToggleID existente, tipo de NetworkPort do mod com >= 2 pecas."""
+        L = self.L
+        files = self._mod_files()
+        if not files:
+            return
+        # 1) buffs definidos: vanilla buffs/buffs.rules + Overrides do mod (aplicados em ov_children)
+        broot = self._vanilla_root('buffs/buffs.rules')
+        buffs = set(_merged_children(L, broot).keys()) if broot is not None else None
+        # 2) categorias: TypeCategories das pecas do mod (registradas) e do vanilla
+        cats = set()
+        for _el, part, _idn in (self.added_parts or []):
+            cats |= self._categories_of(part)
+        # 3) nomes de componentes: pecas do mod (grupos Components, inclusive aninhados) e do jogo (um ViaBuffs pode
+        # juntar um componente vanilla, ex. EngineHeatCollectionStorage)
+        comps = set()
+        for part in self._vanilla_part_nodes():
+            cats |= self._categories_of(part)
+            cn = L.lookup(part, 'Components')
+            if cn is not None:
+                for nm, ch in _merged_children(L, cn).items():
+                    comps.add(nm)
+                    sub = L.lookup(ch, 'Components') if L.is_grouplike(ch) else None
+                    if sub is not None:
+                        comps.update(_merged_children(L, sub).keys())
+        # 4) ToggleIDs definidos: PartToggles do vanilla e do mod
+        toggles = set()
+        troot = self._vanilla_root('gui/game/parts/part_toggles.rules')
+        for root in ([troot] if troot is not None else []) + [rf.root for rf in files]:
+            pt = L.lookup(root, 'PartToggles') if root is not None else None
+            if pt is None or not L.is_listlike(pt):
+                continue
+            for el in L.list_elements(pt):
+                e = L.deref(el)
+                tid = L.lookup(e, 'ToggleID') if e is not None else None
+                if tid is not None and tid.kind == 'value':
+                    toggles.add(tid.value.strip().strip('"').lower())
+        uses = {'buff': [], 'cat': [], 'via': [], 'toggle': []}
+        ports = {}
+        for rf in files:
+            for n in self._walk(rf.root):
+                nm = (n.name or '').lower()
+                par = (n.parent.name or '').lower() if n.parent is not None else ''
+                if nm == 'components' and n.kind in ('group', 'inherit'):
+                    comps.update(c.name.lower() for c in n.children if c.name)
+                if n.kind == 'value' and nm == 'bufftype':
+                    uses['buff'].append((rf, n, n.value))
+                elif nm in ('receivablebuffs', 'incomingbufftypes') and L.is_listlike(n):
+                    uses['buff'] += [(rf, e, v) for e, v in self._list_values(n)]
+                elif n.kind == 'value' and nm == 'category' and par in ('partcriteria', 'criteria'):
+                    uses['cat'].append((rf, n, n.value))
+                elif nm == 'categories' and par in ('partcriteria', 'criteria') and L.is_listlike(n):
+                    uses['cat'] += [(rf, e, v) for e, v in self._list_values(n)]
+                elif nm == 'componentids' and par == 'viabuffs' and L.is_listlike(n):
+                    uses['via'] += [(rf, e, v) for e, v in self._list_values(n)]
+                elif n.kind == 'value' and nm == 'toggleid':
+                    # definicao dentro de PartToggles nao conta como uso; { ID=<componente>; ToggleID="IsRunning" } e
+                    # um sub-toggle de componente (vanilla railgun_launcher.rules:267), nao uma PartToggle
+                    gp = n.parent.parent if n.parent is not None else None
+                    sub = n.parent is not None and 'id' in n.parent.index and 'partid' not in n.parent.index
+                    if not sub and not (gp is not None and (gp.name or '').lower() == 'parttoggles'):
+                        uses['toggle'].append((rf, n, n.value))
+                elif par == 'togglechoicesunlocked' and n.kind == 'list' and n.children:
+                    first = n.children[0]
+                    if first.kind == 'value':
+                        uses['toggle'].append((rf, first, first.value))
+                if n.kind in ('group', 'inherit') and n.name and n.parent is not None and \
+                        (n.parent.name or '').lower() == 'components' and self._type_of(n) == 'networkport':
+                    ty = L.lookup(n, 'Types')
+                    part = n.parent.parent
+                    for _e, v in (self._list_values(ty) if ty is not None else []):
+                        v = self._plain(v)
+                        if v and '.' in v:
+                            ports.setdefault(v, set()).add((rf.path, id(part)))
+        if buffs is not None:
+            for rf, n, v in uses['buff']:
+                v = self._plain(v)
+                if v and v.lower() not in buffs:
+                    self.report.add(ERROR, rf, n.line, 'buff',
+                                    "BuffType '%s' nao esta definido (buffs/buffs.rules do jogo nem Overrides do mod)" % v)
+        for rf, n, v in uses['cat']:
+            v = self._plain(v)
+            if v and v.lower() not in cats:
+                self.report.add(ERROR, rf, n.line, 'category',
+                                "Category '%s' de PartCriteria/Criteria nao existe em TypeCategories de nenhuma peca "
+                                "do mod nem do jogo" % v)
+        for rf, n, v in uses['via']:
+            v = self._plain(v)
+            if v and v.lower() not in comps:
+                self.report.add(ERROR, rf, n.line, 'viabuffs',
+                                "ViaBuffs.ComponentIDs cita '%s', que nao e componente de nenhuma peca do mod nem do jogo" % v)
+        for rf, n, v in uses['toggle']:
+            v = self._plain(v)
+            if v and v.lower() not in toggles:
+                self.report.add(ERROR, rf, n.line, 'toggle',
+                                "ToggleID '%s' nao existe em PartToggles do mod nem do jogo" % v)
+        for ty, owners in sorted(ports.items()):
+            if len(owners) < 2:
+                self.report.add(ERROR, None, 0, 'network',
+                                "tipo de NetworkPort '%s' so aparece em %d peca (a rede precisa de >= 2)"
+                                % (ty, len(owners)))
 
     def vanilla_part_ids(self):
         L = self.L

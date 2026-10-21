@@ -1,0 +1,1649 @@
+{
+ "meta": {
+  "what": "ADDENDUM 2.0: decisoes posteriores ao plan_final.json (R4) e instrucoes extras/alteradas por pacote para montar o MoD pedido pelo usuario + checklist de testes",
+  "date": "2026-10-21",
+  "user_request": "quando terminar tudo monte o MoD e me forneca um checklist do que eu devo testar",
+  "spec": "design/final/SPEC_2.0.json (atualizado por addendum/apply_addendum_spec.py; backup addendum/SPEC_2.0.before.json)",
+  "plan": "design/final/plan_final.json (continua valendo onde este arquivo nao muda)",
+  "sources": [
+   "design/USER_NOTES.txt (inteiro)",
+   "railart/tranco/tranco_research.json",
+   "spec_patch do tranco lido nesta geracao: spec_patch tranco-r2 (2026-10-21 21:20) = /tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/v2/railart/tranco/spec_patch.json (sha256 cd497b49d015); o job do tranco esta no refino r2: re-gerar com o spec_patch.json FINAL do r2 (execution.blocked_until.WP01)",
+   "teleport/decide (kit TesteFita = /home/user/Cosmoteer/testes/BulletStrike_TesteFita)",
+   "shellart (make_sheets.py: BOIUNA_THIN, clarao da base; notas a-f)",
+   "art3d/*/meta.json no repo (bs_shells2, bs_missiles2, bs_rail_*, bs_pem_*, bs_boiuna_ac, bs_fita, bs_fita_fx, bs_placas, bs_paiol, 6 fabricas, 12 itens, bs_ui_icons2/icons.json)"
+  ]
+ },
+ "global_decisions": {
+  "G0_autoridade": "Este addendum e o SPEC_2.0.json atualizado no mesmo dia SUBSTITUEM o plan_final.json onde divergirem. Ordem de leitura de cada pacote: (1) USER_NOTES.txt, (2) este addendum (global + o seu WP), (3) o plan_final.json do seu WP, (4) tools/spec/SPEC_2.0.json. Os metas de art3d/*/meta.json no repo VENCEM qualquer numero de arte do spec ou deste arquivo, no BASE (o commit da arte r2 do tranco ou mais novo: execution.blocked_until.WP01; 9fba772 = refino r1, NAO serve mais).",
+  "G1_logistica": {
+   "build_fita (BulletStrike/)": "logistics.transport = teleporte: Fita grudavel; fabrica -> paiol pelo JEITO B (GridBuffProvider BulletStrike_FitaFab da fabrica + ParaPaiois_<k> ViaBuffs OutgoingBuffProviders -> EntraPaiol_<k>; precedente vivo SW hypermatter_reactor_2x2.rules:256-292; kit bs2f_fab_bala_b.rules); paiol -> arma EMPURRA (Rede GridBuffProvider BulletStrike_FitaRede + ParaArmas_<k> OutgoingBuffProviders -> FitaEntra_<k>; vanilla engine_room.rules:99-127; kit bs2f_paiol_bala.rules + bs2f_arma.rules); RESERVA DA TRIPULACAO ligada (MagConsumer_<i> floor(Max/2) sempre: reserva_tripulacao = metade); luz da fita 'ack'; alcance 1000; sem devolucao; sem botao de fita embutida; seletor do paiol = botao; contador de 4 digitos DESLIGADO.",
+   "build_semfita (testes/BulletStrike_SemFita/)": "logistics.transport = tripulacao (safe): sem a peca Fita, sem buffs da fita, paiois caminhaveis (components_crew_mode), acoplamento auto (= ligado neste modo).",
+   "esteira": "WP15 = PULAR (o usuario nao quer esteira fisica). Nenhuma peca/porta de esteira, nenhum NetworkResource* em nenhum build.",
+   "testefita": "SEM resposta do usuario. Nao esperar: o CHECKLIST_2_0 secao 2 refaz o TesteFita com as pecas reais."
+  },
+  "G2_tupa": "rail.enabled = true. FIXA e modular: Carregador 5x5 + 1..6 Canos 3x3 + Ponta 3x4. Energia 'Cano B' (o carregador drena N x 500 da PROPRIA bateria pelo buff BulletStrike_RailCount; + 2000 da Ponta = 2500..5000 por tiro). Mais canos = mais dano, alcance, penetracao, velocidade e energia (m(N) = 1 + 0,25 N^0,85, como a vanilla). TRANCO: UM Impulse por tiro (2400 x m(N) = 3000..5152; NUNCA o timer de 1/30 s), BASE_SHAKE 0.2 / 0.7 s, anel de choque azul, quadros de recuo da coroa/tambores/culatra (gatilho 'relay'). O dardo passa por cima da propria nave sem dano (IgnoreSourceShipLOSChecks + IgnoreSourceShipLowLOSChecks na arma + OWN_SHIP_PASS no tiro, como o SH-TT do SW). Paleta AZUL (nunca violeta, nunca cobre): a cor de CADA efeito (claroes, aneis, rastro, faiscas, raios, escudo, interceptado, arcos de carga) esta em SPEC.art_assets.effects.railgun.palette_map_addendum (energia = palette.rail core/glow/blue; so as brasas do ALVO queimando ficam laranja-ouro). Safe nos riders: r2_fallback true, buffed_riders false, overload_rider false; charge_wave atraso. Balanco A_keep (FireInterval 6 s, 24000 cr); a recomendacao r2 do job de arte (B + C) NAO entra neste build (SPEC.railgun.balance_recommendation_r2, quando o spec_patch r2 a trouxer).",
+  "G3_pem": "PEM pesada = 'Corisco' (overclock 'Relâmpago'). Tuvira = TORRE 270 graus: TurretWeapon FiringArc 270d, RotateSpeed 180d, gatilho 1,3889 s (2 tiros), 1,44 tiros/s, 4320 escudo/s, MagStorage_0 22 / limiar 11, CP 2 (sem pedido). Nome de TORRE: 'Canhão PEM Leve' / 'Light EMP Cannon' (nunca mais 'de Proa'/'Bow Gun'); vs_sw e ladder_note da Tuvira = os da torre (0,672x a ancora SW fixa; 2160 escudo/s por CP).",
+  "G4_fabricas": "Vizinhanca LIGADA (econ.factory_adjacency = vanilla): os 4 itens do jogo base (+25 % por fabrica vizinha) e TODOS os intervalos base x1,5 (F1 1,875 s sozinha = 1,25 s com 2 vizinhas). Tabela em SPEC.switches.econ.factory_adjacency.final_intervals_s.",
+  "G5_perfil": "Sem perfil jogo base (resposta 3 = NAO): ninguem implementa --perfil vanilla nem BulletStrike_Vanilla.",
+  "G6_arte": "TODA a arte de municao, missil, projetil, icone, fabrica, paiol, Fita e armas novas JA EXISTE no repo e e ADOTADA (mapa em art_map). Os pacotes de arte so ligam (wire) e fecham as lacunas listadas em art_gaps. Nunca re-renderizar o que existe.",
+  "G7_luzes": "(a) halo grande SO NO ESPACO (light_pair: halo _litReflectiveStrength 0); (b) AC em carmim profundo (tracante/glow [220,30,60], luz de casco [200,10,40]); (c) luz de casco refl 4 para AC e slug (resto 6); (d) Boiuna com tracante FINO (BOIUNA_THIN); (e) tamanho da arte de voo pela tela do meta (aspecto de art3d/bs_shells2); (f) clarao da base menor e recuado no Tambor e no Trovao (head_k 0,5, head_dx 0,15). Valores em SPEC.art_assets.guns_visuals.light_fixes_addendum.",
+  "G8_ruptura_limpa": "Ruptura limpa da 1.x mantida (removed_ids, aviso de save); limpeza 1.x no WP14b.",
+  "G9_switches_sem_resposta": "Todo switch decidido por teste ainda nao feito vai com o 'safe' (lista completa em wp14a_writes.bullet_strike_switches); excecoes decididas: transport teleporte (build), fita_fabrica B, rail.enabled true, rail.power_mode B, art.fita_luz ack, pem.heavy_name Corisco, pem.tuvira_mount torre, econ.factory_adjacency vanilla, paiol_contador false.",
+  "G10_versao": "Build de TESTE: Version = 2.0.0 (so numeros) nos dois builds; a descricao comeca com '[2.0 de TESTE]' (pt) e '[2.0 TEST BUILD]' (en). O portao da 2.0.0 (SPEC.tests.release_gate_addendum) continua pendente: commit no branch, SEM tag/publicacao ate o usuario responder os itens do portao do CHECKLIST_2_0 = respostas_2_0.json portao.falta: 1.1-1.3 e 2.1-2.10 (A1-A7/A3b), 2.11-2.13 (B1-B3), 2.14 (C1), 11.1 (C2) e, COM o SW ativo, 1.7 e 2.15 (C3). O 9.1 NAO e item do portao (e o teste sem SW das defesas pela Fita).",
+  "G11_reduzir_escopo": "Variantes que NENHUM dos dois builds usa podem ser ADIADAS (o switch avisa 'variante <x> nao implementada nesta versao; usando <safe>' e o spec2_check aceita): logistics.paiol_seletor = nenhum, logistics.fita_embutida = botao, logistics.devolucao_arma = on, rail.power_mode = A, rail.charge_wave = rede, --perfil vanilla, Contador_<k>/digitos, tudo de rede/gemea (WP15). As linhas da matriz de validacao dessas variantes caem.",
+  "G12_spec2_check": "Valor gravado em bullet_strike_switches.json e valido se = 'safe' OU = switches.*.answered_addendum.value OU = SPEC.build_2_0.switch_values_fita[chave]. Switches novos: rail.tranco_impulso, rail.tranco_gatilho, rail.recoil_com.",
+  "G13_copias_no_repo": {
+   "por_que": "o scratchpad nao sobrevive a sessao: TUDO que um pacote ainda precisa rodar ou ler vai para o repo no passo 0 do WP01 (no mesmo commit do BASE) e os pacotes usam SO as copias do repo",
+   "spec": [
+    "design/final/SPEC_2.0.json -> tools/spec/SPEC_2.0.json",
+    "design/final/addendum/ADDENDUM_2_0.json -> tools/spec/ADDENDUM_2_0.json",
+    "design/final/scripts/split_spec.py -> tools/spec2_split.py (o split leva build_2_0 para tools/spec/bullet_strike_spec.json)"
+   ],
+   "reaplicar_addendum (tools/spec/addendum/)": [
+    "design/final/addendum/apply_addendum_spec.py e make_addendum.py (rodam no repo sem mudanca: descobrem a pasta; gravam tools/spec/SPEC_2.0.json e tools/spec/ADDENDUM_2_0.json; variaveis BS_ADDENDUM_BASE, BS_TRANCO_PATCH, BS_SPEC_OUT, BS_ADDENDUM_OUT, BS_REPO)",
+    "design/final/addendum/SPEC_2.0.before.json (a base que o script sempre reaplica)",
+    "railart/tranco/spec_patch.json FINAL do r2 -> tools/spec/addendum/spec_patch_tranco.json (+ railart/tranco/tranco_research.json -> tools/spec/addendum/tranco_research.json, referencia)",
+    "uso: `python3 tools/spec/addendum/apply_addendum_spec.py && python3 tools/spec/addendum/make_addendum.py && python3 tools/spec2_split.py` (e conferir SPEC.status_addendum.portao_tranco_r2)"
+   ],
+   "compositores de previa (tools/blender/previews/, MESMOS nomes de arquivo para os imports continuarem valendo)": [
+    "shellart (WP11 lacuna 3, projeteis_*): scratchpad/v2/shellart/make_sheets.py + prev2.py + vfx_impl/WP3/ladder/sheet.py + vfx_design/scripts/fxlib.py",
+    "logistica (WP12, logistica_fita.*): scratchpad/v2/art2/logistica/make_logistica.py + compose_logistica.py",
+    "armas (WP13, armas_galeria_2_0/armas_casco_branco): scratchpad/v2/weaponsart/make_armas.py (importa make_sheets, tools/blender/compose_preview.py e tools/make_gallery.py)",
+    "ADAPTAR so os caminhos: todo sys.path.insert com o scratchpad (SCR/vfx_impl/..., SCR/vfx_design/scripts, SCR/shellart) -> a propria pasta tools/blender/previews; prev2.SPEC/PAL -> art_assets.palette de tools/spec/bullet_strike_art2.json (a paleta AZUL; o spec_art.json do scratchpad ainda e violeta) e, no proj_info('slug'), tracer = PAL['rail']['glow'] e gold = PAL['rail']['core'] (as chaves 'violet'/'gold' nao existem mais); fxlib.TEX e o blob.png do prev2 -> as texturas do JOGO procuradas pelo nome dentro de --vanilla \"$COSMOTEER_DATA\" (blob.png, radiation*.png, spark.png, debris.png, smoke.png, *_hit.png, *_shoot*.png, bullet_*.png: NUNCA commitar texturas do jogo)",
+    "o _bs2_fabricas_previews.py (fabricas_2_0.*) ja esta no repo (tools/blender/parts/)"
+   ],
+   "nao_copiar": "renders de rascunho, crit_*/, backups, pv/, v/, logs, texturas do jogo (vanilla_tex/)"
+  }
+ },
+ "art_map": {
+  "itens (12 recursos)": {
+   "rafaeltessaro.bs_mag_std": "art3d/bs_mag_std/ (stack_1..N.png, icon.png, overlay.png, nugget.png, nugget_normals.png)",
+   "rafaeltessaro.bs_mag_ap": "art3d/bs_mag_ap/ (stack_1..N.png, icon.png, overlay.png, nugget.png, nugget_normals.png)",
+   "rafaeltessaro.bs_mag_sap": "art3d/bs_mag_sap/ (stack_1..N.png, icon.png, overlay.png, nugget.png, nugget_normals.png)",
+   "rafaeltessaro.bs_mag_ac": "art3d/bs_mag_ac/ (stack_1..N.png, icon.png, overlay.png, nugget.png, nugget_normals.png)",
+   "rafaeltessaro.bs_mag_frag": "art3d/bs_mag_frag/ (stack_1..N.png, icon.png, overlay.png, nugget.png, nugget_normals.png)",
+   "rafaeltessaro.bs_plasma_cell": "art3d/bs_plasma_cell/ (stack_1..N.png, icon.png, overlay.png, nugget.png, nugget_normals.png)",
+   "rafaeltessaro.bs_cell_emp": "art3d/bs_cell_emp/ (stack_1..N.png, icon.png, overlay.png, nugget.png, nugget_normals.png)",
+   "rafaeltessaro.bs_msl_he": "art3d/bs_msl_he/ (stack_1..N.png, icon.png, overlay.png, nugget.png, nugget_normals.png)",
+   "rafaeltessaro.bs_msl_cluster": "art3d/bs_msl_cluster/ (stack_1..N.png, icon.png, overlay.png, nugget.png, nugget_normals.png)",
+   "rafaeltessaro.bs_msl_emp": "art3d/bs_msl_emp/ (stack_1..N.png, icon.png, overlay.png, nugget.png, nugget_normals.png)",
+   "rafaeltessaro.bs_msl_nuke": "art3d/bs_msl_nuke/ (stack_1..N.png, icon.png, overlay.png, nugget.png, nugget_normals.png)",
+   "rafaeltessaro.bs_slug_rail": "art3d/bs_slug_rail/ (stack_1..N.png, icon.png, overlay.png, nugget.png, nugget_normals.png)"
+  },
+  "icones de interface": "art3d/bs_ui_icons2/<x>.png -> gui/<x>.png pelo mapa icons.json 'files' (ammo_he/ap/sap/ac/frag, cell_plasma/pem, missile_he/cluster/emp/nuclear, slug_rail, group_bullet_strike; 96x96). FALTA gui/buff_fita.png (WP11).",
+  "projeteis em voo (granadas >= 76 mm)": "art3d/bs_shells2/bs_shell_<chave>.png (+ _normals, _lights atlas, bs_shell_band_<chave>.png mascara tingida): he/ap/sap/ac _s (Tambor), _m (Trovão), _l (Mapinguari); he_h/ac_h (Boiúna); pem_s (Tuvira), pem_m (Treme-Treme), pem_l (Corisco e o overclock Relâmpago); slug (Tupã). Calibres <= 30 mm: tracantes sem arte de granada, cor por municao.",
+  "misseis em voo": "art3d/bs_missiles2/msl_<chave>.png (+ _lights, _normals): he_s (Tocandira), he_m (Caipora), he_l (Mula), cluster_m/l (Piranha), cluster_mini (minimissil), emp_m/l (Poraquê), nuclear_l + nuclear_wh_l (Iara); petalas bs_petals_m/l.png (atlas 4x4 de 64 px + normals)",
+  "armas": {
+   "12 canhoes": "art3d/<id curto>/ (arte 1.x mantida) MENOS a Boiúna -> art3d/bs_boiuna_ac/ (meta id rafaeltessaro.bs_nuke_howitzer)",
+   "PEM": "art3d/bs_pem_light (Tuvira, torre), bs_pem_medium (Treme-Treme), bs_pem_heavy (Corisco, charge_glow1..4)",
+   "defesas": "art3d/bs_flak_light, bs_ciws, bs_flak_heavy (1.x mantida)",
+   "lancadores": "art3d/bs_msl_box, bs_msl_twin, bs_msl_quad (1.x; celulas cluster8/heavy8 = WP13)",
+   "Tupã": "art3d/bs_rail_loader (5x5), bs_rail_barrel (3x3), bs_rail_muzzle (3x4) - kind layered"
+  },
+  "fabricas": {
+   "F1": "art3d/bs_factory_mag_std",
+   "F2": "art3d/bs_factory_special (meta id rafaeltessaro.bs_factory_mag_ap)",
+   "F3": "art3d/bs_factory_plasma (+ overlays banco_pem/banco_pem_luz1..4)",
+   "F4": "art3d/bs_factory_missile",
+   "F5": "art3d/bs_factory_warhead",
+   "F6": "art3d/bs_factory_slug",
+   "placas de modo": "art3d/bs_placas/placa_<modo>.png no rect do meta mode_plate (roof_doodads, Size 0.8)"
+  },
+  "paiois": "art3d/bs_paiol (meta shared) -> parts/bs_paiol_comum/: floor_<n>, walls_<n>, roof_<familia>_<n> (+normals), gauge_<n>_<k>, icon_<familia>_<n>, blueprints_<n>; placa do tipo = art3d/bs_placas/placa_<tipo>.png no rect 'plate' do meta",
+  "fita": "art3d/bs_fita -> parts/bs_fita/ (floor, roof + normals, luz_grudada (lights_add), luz_grudada_teto (roof_doodads), icon 32x32, blueprints); FX = art3d/bs_fita_fx -> parts/bs_fita_fx/ (cartucho_sai/entra1..8 roof_doodads + brilho_sai/entra1..8 lights_add, 0,075 s)"
+ },
+ "art_gaps": [
+  {
+   "gap": "ac_s / ac_m / ac_l ainda desenhadas GUIADAS (meta: ancora 'seeker', luzes 2/4 quadros)",
+   "dono": "WP11",
+   "fazer": "bs_shells2.py: AC dos niveis s/m/l so com aletas de cauda + faixa carmim + faixa dourada, sem canards/janela do sensor, 1 quadro de luz, sem ancora seeker; `render_part.py bs_shells2 --only ac_s,ac_m,ac_l`; ac_h continua guiada"
+  },
+  {
+   "gap": "gui/buff_fita.png (icone do buff da Fita) nao existe em art3d/bs_ui_icons2",
+   "dono": "WP11",
+   "fazer": "icon_buff_fita() em tools/bsgen/ui_icons.py (silhueta da Fita/cassete no estilo 2.0, acento verde [110,230,120] = Rect do buff), gravar art3d/bs_ui_icons2/buff_fita.png e a entrada 'gui/buff_fita.png' no icons.json"
+  },
+  {
+   "gap": "previas docs/preview/3d/v2/projeteis_* (11:3x) sao anteriores ao slug azul (18:06) e mostram a AC guiada",
+   "dono": "WP11",
+   "fazer": "regerar projeteis_futuristas/antes_depois/casco_branco + projeteis_luzes.gif depois do item acima com as COPIAS no repo (G13: tools/blender/previews/make_sheets.py + prev2.py + sheet.py + fxlib.py, paleta azul do bullet_strike_art2.json): `python3 tools/blender/previews/make_sheets.py art3d/bs_shells2 docs/preview/3d/v2 todas --vanilla \"$COSMOTEER_DATA\"` (ou o argumento equivalente que a adaptacao criar)"
+  },
+  {
+   "gap": "celulas dos lancadores: cluster8 (Caipora) / heavy8 (Mula) nao renderizadas; overlays 1.x napalm/limpet/torpedo ainda la (14 + 80 + 96 arquivos)",
+   "dono": "WP13",
+   "fazer": "launcher_layout.py (WP06) + `render_part.py bs_msl_twin|bs_msl_quad --only cells`; apagar cells_napalm/limpet/torpedo"
+  },
+  {
+   "gap": "pastas 1.x que reivindicam ids 2.0 ou sao lixo: art3d/bs_factory_mag_ap (3x3), bs_factory_mag_emp, bs_factory_shell_nuke, bs_mag_emp, bs_shell_nuke (+ .py)",
+   "dono": "WP12 (fabricas) / WP11 (itens)",
+   "fazer": "apagar (git rm) e conferir check_art3d"
+  },
+  {
+   "gap": "PENDENTE: refino r2 do tranco do Tupa (job reaberto depois do addendum de 20:43: tarefas #114-116; rascunho railart/tranco/v/spec_patch_try.json; arte r2 sendo re-renderizada no repo, nao commitada). Fabricas r2 (50c6804): commitadas",
+   "dono": "orquestrador (espera) -> WP01/WP13",
+   "fazer": "esperar o commit r2 e o spec_patch.json final do r2; re-rodar apply_addendum_spec.py + make_addendum.py; so entao o BASE (execution.blocked_until.WP01). Nada de numero de arte do Tupa vindo deste arquivo: ler os metas do BASE"
+  },
+  {
+   "gap": "docs/preview/3d/v2/fabricas_2_0.png com 2 defeitos SO na folha (USER_NOTES, criticas das fabricas r2): a F3 da fileira de cima (visao geral a 1x) mostra o banco PEM com a placa de PLASMA; a legenda da F1 sai cortada",
+   "dono": "WP12",
+   "fazer": "tools/blender/parts/_bs2_fabricas_previews.py: em overview() a F3 com banco usa roof(..., mode='pem', pem=True) (placa_pem junto com o banco PEM; hoje mode=None cai em modes[0] = plasma); no bloco da F1 quebrar a legenda (textwrap) ou alargar a coluna ate caber inteira; `python3 tools/blender/parts/_bs2_fabricas_previews.py folha`; conferir as 6 legendas inteiras e a F3 com placa PEM + banco PEM; fabricas_2_0.gif fica"
+  },
+  {
+   "gap": "docs/preview/3d/v2/logistica_fita.png/.gif (be40fcd 20:01) feitas com a F1 ANTERIOR a final (fabricas r2, 50c6804 20:37)",
+   "dono": "WP12",
+   "fazer": "regerar com a copia do compositor (G13: tools/blender/previews/make_logistica.py + compose_logistica.py): `python3 tools/blender/previews/make_logistica.py fita` e `... gif` (le art3d/ do repo); conferir a Prensa (F1) igual a de fabricas_2_0.png; logistica_paiois.png fica"
+  },
+  {
+   "gap": "docs/preview/3d/v2/armas_galeria_2_0.png e armas_casco_branco.png (6cc61aa 16:03) com a Tuvira FIXA antiga e o rotulo 'PEM pesada · 2.0' (USER_NOTES: 'refazer armas_casco_branco/armas_galeria (Tuvira antiga)')",
+   "dono": "WP13",
+   "fazer": "copia do compositor (G13: tools/blender/previews/make_armas.py): trocar 'PEM pesada' por 'Corisco' em CASCO e em new_by_tier/cabecalho da galeria; `python3 tools/blender/previews/make_armas.py galeria` e `... casco` com a arte atual (art3d/bs_pem_light = torre); conferir: Tuvira de torre, rotulo 'Corisco · 2.0'. Se o orquestrador ja tiver regerado e commitado as duas depois de 50c6804 com a torre e 'Corisco', so ADOTAR"
+  },
+  {
+   "gap": "previas PIL do WP03 (casco_branco_2_0, penetracao_2_0, ac_2_0, frag_2_0)",
+   "dono": "WP03",
+   "fazer": "OPCIONAIS nesta build (nao travam a entrega)"
+  }
+ ],
+ "execution": {
+  "order": [
+   "WP01",
+   "WP02",
+   "WP03",
+   "WP04",
+   "WP05",
+   "WP06",
+   "WP10",
+   "WP07",
+   "WP08",
+   "WP09",
+   "WP11",
+   "WP12",
+   "WP13",
+   "WP14a",
+   "WP14b"
+  ],
+  "skipped": {
+   "WP15": "pular"
+  },
+  "blocked_until": {
+   "WP01": "todos os caminhos de SPEC.art_assets.base_required_outputs.paths (lista AMPLIADA pelo addendum: + Fita, fita_fx, placas, paiol, as 6 fabricas com bs_factory_special, os 12 itens, bs_ui_icons2/icons.json e os .py) no HEAD de claude/laughing-babbage-0pswjv e os content_checks_addendum (carregador 5x5 + camadas do tranco). PORTAO TRANCO r2 (o job do tranco entrou no refino r2 depois do addendum de 20:43: backup_tranco_r1 20:52, criticas crit_r2_1/crit_r2_2 20:42-20:49, tarefas #114-116 da sessao = must_fix do spec_patch, re-render da arte e previas novas; 9fba772 NAO e mais o BASE). Comecar so quando TUDO valer: (1) railart/tranco/spec_patch.json FINAL com meta.round 'tranco-r2' ou mais novo (nao o rascunho v/spec_patch_try.json), as tarefas #114-116 concluidas e NENHUMA revisao aberta depois dele (ex.: as criticas crit_r3_* que comecaram 21:28 revisam o r2: se pedirem um r3, o portao passa a ser o r3); (2) um commit de arte depois de 9fba772 que toca art3d/bs_rail_* ou tools/blender/parts/bs_rail.py (o commit r2); (3) os caminhos de SPEC.art_assets.base_required_outputs.paths no HEAD e os content_checks_addendum ok; (4) NENHUM job de arte rodando e `git status --porcelain -- art3d tools/blender tools/check_art3d.py docs/preview/3d/v2` vazio; (5) RE-RODAR apply_addendum_spec.py e make_addendum.py com esse spec_patch (scratchpad, ou as copias de tools/spec/addendum/ com o spec_patch novo em spec_patch_tranco.json: G13) e conferir que SPEC.status_addendum.portao_tranco_r2 sai SATISFEITO com o hash do commit em 'base'; (6) conferir HEAD e git status DE NOVO logo antes de criar o BASE. BASE = esse commit (ou o HEAD mais novo, conferido). ESTADO NESTA GERACAO (2026-10-21 21:32): SATISFEITO; HEAD dccc777 2026-10-21 21:32 Tupa: carregador 5x5 e tranco no disparo (recuo da ponta, dos canos e da culatra), previas em GIF e MP4; ultimo commit da arte do Tupa dccc777 2026-10-21 21:32 Tupa: carregador 5x5 e tranco no disparo (recuo da ponta, dos canos e da culatra), previas em GIF e MP4; 0 caminhos sujos nas pastas de arte; SPEC gerado com spec_patch tranco-r2 (2026-10-21 21:20)",
+   "WP13": "o mesmo portao do WP01 (arte r2 do Tupa commitada e BASE >= esse commit; ver WP01)",
+   "WP14a": null,
+   "WP15": "nunca (pulado)"
+  },
+  "portao_nesta_geracao": {
+   "estado": "SATISFEITO",
+   "seen_at": "2026-10-21 21:32",
+   "head": "dccc777 2026-10-21 21:32 Tupa: carregador 5x5 e tranco no disparo (recuo da ponta, dos canos e da culatra), previas em GIF e MP4",
+   "spec_patch": "spec_patch tranco-r2 (2026-10-21 21:20)",
+   "falta": [],
+   "base": "dccc777"
+  },
+  "note": "o WP14a pode rodar logo depois do WP05 (nao espera mais o kit); o WP14b roda sozinho por ultimo"
+ },
+ "work_packages": {
+  "WP01": {
+   "status": "EXECUTAR SO DEPOIS DO PORTAO (blocked_until_novo): SATISFEITO nesta geracao",
+   "blocked_until_novo": "todos os caminhos de SPEC.art_assets.base_required_outputs.paths (lista AMPLIADA pelo addendum: + Fita, fita_fx, placas, paiol, as 6 fabricas com bs_factory_special, os 12 itens, bs_ui_icons2/icons.json e os .py) no HEAD de claude/laughing-babbage-0pswjv e os content_checks_addendum (carregador 5x5 + camadas do tranco). PORTAO TRANCO r2 (o job do tranco entrou no refino r2 depois do addendum de 20:43: backup_tranco_r1 20:52, criticas crit_r2_1/crit_r2_2 20:42-20:49, tarefas #114-116 da sessao = must_fix do spec_patch, re-render da arte e previas novas; 9fba772 NAO e mais o BASE). Comecar so quando TUDO valer: (1) railart/tranco/spec_patch.json FINAL com meta.round 'tranco-r2' ou mais novo (nao o rascunho v/spec_patch_try.json), as tarefas #114-116 concluidas e NENHUMA revisao aberta depois dele (ex.: as criticas crit_r3_* que comecaram 21:28 revisam o r2: se pedirem um r3, o portao passa a ser o r3); (2) um commit de arte depois de 9fba772 que toca art3d/bs_rail_* ou tools/blender/parts/bs_rail.py (o commit r2); (3) os caminhos de SPEC.art_assets.base_required_outputs.paths no HEAD e os content_checks_addendum ok; (4) NENHUM job de arte rodando e `git status --porcelain -- art3d tools/blender tools/check_art3d.py docs/preview/3d/v2` vazio; (5) RE-RODAR apply_addendum_spec.py e make_addendum.py com esse spec_patch (scratchpad, ou as copias de tools/spec/addendum/ com o spec_patch novo em spec_patch_tranco.json: G13) e conferir que SPEC.status_addendum.portao_tranco_r2 sai SATISFEITO com o hash do commit em 'base'; (6) conferir HEAD e git status DE NOVO logo antes de criar o BASE. BASE = esse commit (ou o HEAD mais novo, conferido). ESTADO NESTA GERACAO (2026-10-21 21:32): SATISFEITO; HEAD dccc777 2026-10-21 21:32 Tupa: carregador 5x5 e tranco no disparo (recuo da ponta, dos canos e da culatra), previas em GIF e MP4; ultimo commit da arte do Tupa dccc777 2026-10-21 21:32 Tupa: carregador 5x5 e tranco no disparo (recuo da ponta, dos canos e da culatra), previas em GIF e MP4; 0 caminhos sujos nas pastas de arte; SPEC gerado com spec_patch tranco-r2 (2026-10-21 21:20)",
+   "errado_no_plano": [
+    "blocked_until so lista Tupa/PEM/Boiúna/granadas/misseis: faltam logistica, fabricas, itens, icones e os refinos r1 E r2 do tranco",
+    "D.FACTORIES liga a arte pelo id curto: a F2 leria a pasta 1.x art3d/bs_factory_mag_ap (3x3)",
+    "transformacoes: (c) so com econ.factory_adjacency = vanilla (agora e o PADRAO); (d) Tuvira fixa; (f) perfil vanilla exigido",
+    "validacao espera F1 1.25 no build padrao",
+    "spec2_check 'todo valor gravado e decided_by ou safe' reprovaria as decisoes do build",
+    "nao existe build reserva SemFita"
+   ],
+   "fazer": [
+    "0) Depois do portao (SPEC/ADDENDUM ja RE-GERADOS com o spec_patch final do r2) e ao criar o branch: fazer TODAS as copias de global_decisions.G13_copias_no_repo no mesmo commit do BASE: SPEC_2.0.json -> tools/spec/SPEC_2.0.json, ADDENDUM_2_0.json -> tools/spec/ADDENDUM_2_0.json, split_spec.py -> tools/spec2_split.py; tools/spec/addendum/ (apply_addendum_spec.py, make_addendum.py, SPEC_2.0.before.json, spec_patch_tranco.json, tranco_research.json); tools/blender/previews/ (make_sheets.py, prev2.py, sheet.py, fxlib.py, make_logistica.py, compose_logistica.py, make_armas.py, so com os caminhos adaptados). Conferir: `python3 tools/spec/addendum/apply_addendum_spec.py && python3 tools/spec/addendum/make_addendum.py` reproduz os dois JSON copiados (diff vazio fora de seen_at/caminhos) e status_addendum.portao_tranco_r2 = SATISFEITO; rodar o split (a chave build_2_0 vai para bullet_strike_spec.json).",
+    "1) bs_data: f['art3d'] = art3d/<factories[].art3d_dir> (F2 = bs_factory_special) com a guarda meta['size'] == tamanho; r['art3d'] = art3d/<resources[].art.art3d_dir> (as 12 existem); armas/defesas/lancadores por weapons[].art3d_dir (agora preenchido em todas); PEM por pem_weapons.weapons[].art3d_dir; D.PAIOL_ART = {'dir': 'bs_paiol', 'pub': 'bs_paiol_comum', 'meta': <meta shared>}.",
+    "2) Transformacoes: (c) roda no build padrao (adjacency vanilla): todo interval_s_base x1,5 DEPOIS do guns.ac_cost (4x -> F2 AC 1,6667 x 1,5 = 2,5); (d) pem.tuvira_cp = 2; NOVA (d2) pem.tuvira_mount = torre -> copia SPEC.pem_weapons.weapons[0]['torre_numbers_2026-10-21'] para o dict da Tuvira (FiringArc 270d, RotateSpeed 180d, trigger_interval 1,3889, MagStorage_0 22, limiar 11) e o computed para o tooltip; com 'fixa' usa mount_fixa_historico; (f) NAO implementar: --perfil vanilla falha com 'perfil jogo base nao existe na 2.0 (resposta 3 = nao)'.",
+    "3) Nomes sempre do spec: Corisco / overclock 'Relâmpago' (switch pem.heavy_name = Corisco); nenhum 'Mãe-do-Ouro' no mod.",
+    "4) build_mod.py: --variante fita|semfita lendo SPEC.build_2_0.variants (pasta padrao, ID, Name e a 1a linha de CADA metade da Description: description_first_line_ptbr no topo da parte pt-BR e description_first_line_en no topo da parte en, depois do '---'; nenhuma das duas e inventada no codigo); semfita forca logistics.transport = tripulacao (precedencia de CLI). Version = SPEC.version (2.0.0) nos dois.",
+    "5) switch(): aceitar as chaves novas rail.tranco_impulso | rail.tranco_gatilho | rail.recoil_com; spec2_check aceita valor = safe | answered_addendum.value | build_2_0.switch_values_fita (G12). Variante adiada (G11) -> aviso + safe.",
+    "6) placeholder_icons.ensure: os icones reais vem de art3d/bs_ui_icons2 (WP10 make_art.misc_art pelo icons.json); o placeholder so preenche o que faltar (hoje gui/buff_fita.png ate o WP11) e lista; o WP14b exige zero.",
+    "7) LIMITS: bs_limit_railgun entra (rail.enabled = true no build)."
+   ],
+   "owner_files_mudanca": {
+    "add": [
+     "tools/spec/ADDENDUM_2_0.json",
+     "tools/spec/addendum/ (apply_addendum_spec.py, make_addendum.py, SPEC_2.0.before.json, spec_patch_tranco.json, tranco_research.json)",
+     "tools/blender/previews/ (make_sheets.py, prev2.py, sheet.py, fxlib.py, make_logistica.py, compose_logistica.py, make_armas.py; usados pelos WP11/WP12/WP13)"
+    ],
+    "remove": []
+   },
+   "validacao_mudanca": [
+    "portao: SPEC.status_addendum.portao_tranco_r2 = SATISFEITO e status_addendum.base = o commit do BASE (ou ancestral dele); HEAD e git status conferidos de novo",
+    "mod.rules dos dois builds: Description = '<description_first_line_ptbr>\\n...\\n\\n---\\n\\n<description_first_line_en>\\n...' (as duas 1as linhas iguais as do SPEC.build_2_0.variants)",
+    "build padrao: F1 Interval BaseValue 1.875 com {Type Buff; BuffType Factory; ModificationMode Divide}; F2 ac 2.5; `--switch econ.factory_adjacency=off` -> F1 1.25 e nenhum BuffType Factory; `--switch guns.ac_cost=3x` -> F2 ac 1.875",
+    "python -c: D.FACTORIES F2 art3d -> bs_factory_special; os 12 D.RESOURCES com art3d; Tuvira FiringArc 270 e MagStorage_0 22; pem heavy nome 'Corisco'",
+    "`--variante semfita --out /tmp/bs2_wp01_semfita/BulletStrike_SemFita` passa (1)-(5): ID rafaeltessaro.bullet_strike_semfita, nenhum bs_fita, nenhum FitaLigada",
+    "CAEM: `--perfil vanilla` e `spec2_check --perfil vanilla`; as linhas de rede/gemea viram 'aceito, cai em tripulacao com aviso' (sem WP15)"
+   ]
+  },
+  "WP02": {
+   "status": "EXECUTAR como no plano (poucas mudancas)",
+   "errado_no_plano": [
+    "o plano trata simplehit como padrao do FRAG: o build vai com o SAFE volumehit (T-FRAG ainda nao feito)",
+    "Boiúna: a arte de voo 'fina' e do WP03 (nada em shots.py alem de passar art_tier 'h')"
+   ],
+   "fazer": [
+    "Implementar as duas variantes do fragmento; o build usa guns.frag_fragment = volumehit (o fragmento VolumeHit movel com _cloud_filter enemies_only).",
+    "guns.defesa_antilaser = fase_b, guns.small_rounds_targetable = false, guns.ac_cost = 4x, guns.he_further_factor = 0.5, guns.ap_further_factor = sem_reducao (todos safe; as respostas do T3 ficam para o build seguinte).",
+    "Boiúna le art3d/bs_boiuna_ac (5 postos de tripulacao); AC so guiada na Boiúna (boiuna.ac_guided = true); Tambor/Trovão/Mapinguari AC voam retas.",
+    "Seam de logistica pelo intake (WP05) - com a fita, FitaEntra_<chave> por modo; MagConsumer_<i> com floor(Max/2) SEMPRE (reserva metade)."
+   ],
+   "owner_files_mudanca": {
+    "add": [],
+    "remove": []
+   },
+   "validacao_mudanca": [
+    "padrao com BS_FRAG_FRAGMENT=volumehit implicito (do switches.json); acrescentar `BS_FRAG_FRAGMENT=simplehit` como linha extra",
+    "as demais linhas do plano ficam"
+   ]
+  },
+  "WP03": {
+   "status": "EXECUTAR com as correcoes de luz",
+   "errado_no_plano": [
+    "light_pair: halo com _litReflectiveStrength 3 (lava o casco branco: AP 95 %)",
+    "palette.ac rosa e luz de casco refl 6 para todos (AC e slug saturam o branco)",
+    "palette.rail violeta/ouro (agora azul)",
+    "Boiúna sem o tracante fino; clarao da base grande no Tambor/Trovão",
+    "tamanhos de sprite: o plano fala em telas 0,80/0,75/0,70 e corpos do tier; a arte usa telas de 2,0 de largura (meta)",
+    "as 4 previas PIL como validacao obrigatoria"
+   ],
+   "fazer": [
+    "fxkit.light_pair: halo VertexColor round(glow/4), _litReflectiveStrength 0, _litAdditiveStrength 0, _unlitAdditiveStrength 0,8 tracantes / 0,5 granadas e misseis; luz de casco VertexColor palette[k].hull, refl = palette[k].hull_refl ou 6 (AC e slug 4), add 0,05; assert canal mais fraco <= 25 (a refl 4 o limite e 37).",
+    "palette (SPEC atualizado): ac.tracer/glow [220,30,60], ac.hull [200,10,40]; rail.* azul ([20,82,255] casco, glow [100,175,255]); family_chip.projeteis [64,128,255].",
+    "Tamanho em jogo da arte de voo = [comprimento do tier, comprimento x tela_h / tela_w] com a tela de art3d/bs_shells2/meta.json items.<chave>.size (ex.: he_s [2.0,0.7] -> 0,72 x 0,252); slug pela tela [3.0, 0.8]; ancoras 'seeker' (so ac_h) e 'tip' (slug).",
+    "Tambor (tier s) e Trovão (tier m): 'head' (clarao branco da base do tracante) com metade do tamanho e deslocado 0,15 tile para tras da base (head_k 0,5; head_dx 0,15).",
+    "Boiúna (tier h): BOIUNA_THIN = tracante 6,5 tiles com 45 % da largura, nucleo 1,6 tile com metade da largura comecando 0,35 tile atras da base, rastro com metade da largura, tudo a 75 % (gain 0,75).",
+    "AC: luz piscando do sensor SO na ac_h (ancora seeker); ac_s/m/l sem luz de sensor (a arte nova do WP11 nao tem a ancora; ate la ignore a ancora nessas tres).",
+    "art.frag_cone = radial no build (safe); art.pen_media = light; art.light_split = split.",
+    "Previas casco_branco_2_0/penetracao_2_0/ac_2_0/frag_2_0: OPCIONAIS; a referencia visual adotada e docs/preview/3d/v2/projeteis_casco_branco.png."
+   ],
+   "owner_files_mudanca": {
+    "add": [],
+    "remove": [
+     "docs/preview/2.0/* (opcionais)"
+    ]
+   },
+   "validacao_mudanca": [
+    "selfcheck: todo GlowSprite (halo) com _litReflectiveStrength 0; luz de casco de ac/slug com refl 4",
+    "as 4 previas deixam de ser obrigatorias"
+   ]
+  },
+  "WP04": {
+   "status": "EXECUTAR",
+   "errado_no_plano": [
+    "vizinhanca off como padrao (agora LIGADA: o caminho 'vanilla' e o do build)",
+    "F2 com arte do WP12 'ate la placeholder' (a arte esta pronta em art3d/bs_factory_special)",
+    "nao fala dos overlays do banco PEM da F3 nem das placas do meta"
+   ],
+   "fazer": [
+    "Padrao: emitir ReceivableBuffs [Factory], os modificadores {Type Buff; BuffType Factory; ModificationMode Divide} nos intervalos, o GridBuffProvider Factory (25 %, GridDistance 1) e a estatistica FactoryBuff; intervalos ja x1,5 vindos do WP01. 'off' continua funcionando.",
+    "Arte por f['art3d'] (WP01): machine_on1..N/off, floor, walls, roof(+normals), lights do meta; F2 de art3d/bs_factory_special.",
+    "Placa de modo: um ToggledComponents por modo (ModeToggle do seletor) com '../bs_placas/placa_<modo>.png' no meta.mode_plate.rect_centre, Size [0.8, 0.8], roof_doodads (F2 [2.0,0.5] ap/sap/ac/frag; F3 [0.5,0.5] plasma/pem; F4 [1.5,0.5] msl_he/msl_cluster/msl_emp).",
+    "F3: overlay banco_pem.png (+normals) em roof_doodads rect [2.0,0.1,0.9,1.0] ligado pelo ModeToggle PEM; banco_pem_luz1..4 (0,1 s) ligado por PEM E produzindo, na camada roof_lights_fancy (lights_add some sob o teto - nota do meta).",
+    "strings: ritmo de factories[].rhythm_ptbr_addendum (sozinha / com 2 vizinhas).",
+    "Grades conferidas: as do meta batem com o spec (F1-F6)."
+   ],
+   "owner_files_mudanca": {
+    "add": [],
+    "remove": []
+   },
+   "validacao_mudanca": [
+    "padrao: F1 Interval 1.875 + Factory em ReceivableBuffs + GridBuffProvider Factory; `--switch econ.factory_adjacency=off`: nenhum item Factory",
+    "F2 usa art3d/bs_factory_special (sem aviso de tamanho)"
+   ]
+  },
+  "WP05": {
+   "status": "EXECUTAR (caminho principal do build)",
+   "errado_no_plano": [
+    "fita_fabrica padrao A (agora B, com precedente vivo no SW)",
+    "matriz de validacao com ~15 variantes (G11: varias adiadas)",
+    "arte do paiol em art3d/bs_paiol_comum (a arte esta em art3d/bs_paiol, meta shared, publicada como parts/bs_paiol_comum)",
+    "Contador_<k> (contador desligado)",
+    "FX da fita no centro de toda maquina (nas armas fica sob a torre)",
+    "AvisaFita do Carregador para 3x4"
+   ],
+   "fazer": [
+    "FABRICA (jeito B): RedeFab GridBuffProvider {BuffType BulletStrike_FitaFab; BuffAmount 1; GridDistance = fita_alcance (1000); OperationalToggle FitaLigada}; por receita k: AncoraSaida_<k> (ResourceStorageProxy Desligado), ParaPaiois_<k> MultiResourceStorage {ResourceStorages [AncoraSaida_<k>]; ViaBuffs {OutgoingBuffProviders [RedeFab]; ComponentIDs [EntraPaiol_<k>]}}, Envio_<k> ResourceConverter Saida_<k> -> ParaPaiois_<k> (q de factories[].logistica, Interval 0.1, OperationalToggle FitaLigada); animacao 'cartuchos saindo' (Timer 0,6 s) no centro. Molde: testes/BulletStrike_TesteFita/parts/bs2f_fab/bs2f_fab_bala_b.rules.",
+    "PAIOL: ReceivableBuffs [BulletStrike_FitaLink, BulletStrike_FitaFab]; Estoque_<k>; EntraPaiol_<k> (ProxyToggle Aceita_<k> = EhTipo_<k> E FitaLigada); Rede GridBuffProvider FitaRede; Empurra_<k> -> ParaArmas_<k> (OutgoingBuffProviders [Rede], ComponentIDs [FitaEntra_<k>]) com q de teleporte_push_table para TODO tipo guardado; selado; seletor = botao (UIToggle da familia).",
+    "ARMA/DEFESA/PEM/LANCADOR/CARREGADOR: ReceivableBuffs [FitaLink, FitaRede]; FitaGrudada/FitaLigada; FitaEntra_<chave> (ResourceStorageProxy -> MagStorage_<i>, ProxyToggle Alimenta_<i> = MultiToggle All [ModeToggle_<i>, FitaLigada]); MagConsumer_<i> floor(Max/2) SEMPRE (reserva metade); 'puxa' continua implementado mas fora do build.",
+    "LUZ (ack): AvisaFitaHorizontal/Vertical em toda maquina (Carregador 5x5: [-1,0,7,5] e [0,-1,5,7]); na peca Fita BuffToggle Grudada + DUAS Graphics no OperationalToggle Grudada: luz_grudada.png (lights_add) e luz_grudada_teto.png (roof_doodads, alfa).",
+    "PECA FITA: arte art3d/bs_fita via bsgen.layered (floor, roof+normals, sem walls, icon 32x32 com EditorIcon Size [32,32], blueprints 64x64); AreaBuffProvider em cruz [-1,0,3,1] + [0,-1,1,3] Criteria Category bs_fita_maquina; nao giratoria.",
+    "ARTE DO PAIOL: meta shared art3d/bs_paiol publicado em parts/bs_paiol_comum/: teto roof_<familia>_<n>, medidor gauge_<n>_<k> (ResourceSprites roof_doodads, Round Up, HasZeroResourceSprite false) no rect do meta, placa MostradorTipo_<k> com '../bs_placas/placa_<tipo>.png' no rect 'plate' do meta, icone icon_<familia>_<n>; SEM digitos/Contador_<k>.",
+    "FX da fita (cartucho_sai/entra + brilho_*) por tipo de peca: fabricas no centro; paiois no fita_fx do meta (1x1 [0.32,0.5] Size 0.8; 2x2 [0.54,1.16] Size 0.7; 3x3 [2.03,2.36] Size 0.8); armas/lancadores com torre no centro da fileira de TRAS [w/2, h-0.5]; Tuvira [0.5,1.5]; Carregador do Tupã [1.0,3.5].",
+    "TRIPULACAO (build SemFita): components_crew_mode; acoplamento auto (= ligado): PaiolAcoplado_<i> nas armas (acoplamento_cell), EntregaAcoplada_<k> nas fabricas; Carregador do Tupã PartLocation [0,5].",
+    "ADIAVEIS (G11): paiol_seletor = nenhum (33 pecas por tipo), fita_embutida = botao, devolucao_arma = on."
+   ],
+   "owner_files_mudanca": {
+    "add": [],
+    "remove": []
+   },
+   "validacao_mudanca": [
+    "matriz minima (cada uma passa (1)-(5) + intake.selfcheck): padrao (teleporte B/empurra/metade/ack/1000); `--variante semfita`; `--switch logistics.fita_fabrica=A`; `--switch logistics.fita_arma=puxa`; `--switch art.fita_luz=sempre`; `--switch logistics.fita_alcance=12`; `--switch logistics.reserva_tripulacao=sem_fita`; `--variante semfita --acoplamento off`; BS_SWITCHES='rail.enabled=false'",
+    "selfcheck B: toda fabrica tem RedeFab + ParaPaiois_<k> com OutgoingBuffProviders e Envio_<k>; todo paiol recebe FitaFab; nenhum Contador_<k>; `grep -rl NetworkResource parts` vazio"
+   ]
+  },
+  "WP06": {
+   "status": "EXECUTAR como no plano",
+   "errado_no_plano": [
+    "nada de estrutural; a arte das celulas e do WP13"
+   ],
+   "fazer": [
+    "Logistica pelo intake (fita empurra; q = 2 na Mula HE/submunicao so no 'puxa', fora do build).",
+    "FX da fita no centro da fileira de tras (Tocandira 2x2 [1,1.5]; Caipora 3x3 [1.5,2.5]; Mula 5x6 [2.5,5.5]).",
+    "Arte: art3d/bs_msl_box|twin|quad (turret 1.x) com as celulas do WP13 quando chegarem (ate la as celulas atuais de he/emp/cluster)."
+   ],
+   "owner_files_mudanca": {
+    "add": [],
+    "remove": []
+   },
+   "validacao_mudanca": [
+    "sem mudanca"
+   ]
+  },
+  "WP07": {
+   "status": "EXECUTAR",
+   "errado_no_plano": [
+    "o plano trata particles como padrao das petalas: o build vai com o SAFE 'bullets'",
+    "luz dos misseis com halo refl 3"
+   ],
+   "fazer": [
+    "missiles.cluster_petals = bullets no build: 4 tiros-petala por portador com Sprite cortado do atlas bs_petals_m/l (UV de 1 celula de 64 px) + Spin; 'particles' tambem implementado.",
+    "missiles.poraque_overload = false, iara_hp = 12000, cluster_randomize_target = on, cluster_lite = false (safe).",
+    "Arte de voo: art3d/bs_missiles2 (ADOTADA): he_s/m/l, cluster_m/l, cluster_mini, emp_m/l, nuclear_l, nuclear_wh_l; nada de VANILLA_BODY se a pasta existe.",
+    "light_pair com halo refl 0 (G7a); cor de casco palette[tipo].hull."
+   ],
+   "owner_files_mudanca": {
+    "add": [],
+    "remove": []
+   },
+   "validacao_mudanca": [
+    "padrao (bullets) + `BS_SWITCHES='missiles.cluster_petals=particles'` como linha extra"
+   ]
+  },
+  "WP08": {
+   "status": "EXECUTAR com os nomes e a torre",
+   "errado_no_plano": [
+    "nome da pesada 'Mãe-do-Ouro'/overclock 'Corisco'",
+    "Tuvira TurretWeapon FiringArc 30d (fixa)",
+    "pem.overload_rider padrao true (build: safe false)",
+    "nome da Tuvira de canhao FIXO ('Canhão PEM Leve de Proa' / 'Light EMP Bow Gun'), vs_sw 1,12x e ladder 3600/CP da fixa (corrigidos no SPEC)"
+   ],
+   "fazer": [
+    "Nomes do spec: codinome 'Corisco', overclock 'Relâmpago' (en 'Lightning'); Tuvira = 'Canhão PEM Leve' / 'Light EMP Cannon' (pem_weapons.weapons[0].name_ptbr/name_en ja corrigidos; com pem.tuvira_mount = fixa usar mount_fixa_historico.name_*); tooltip/strings sem 'Mãe-do-Ouro', 'de Proa' ou 'Bow Gun'.",
+    "Tuvira: numeros prontos do WP01 (d2): TurretWeapon FiringArc 270d, RotateSpeed 180d, gatilho 1,3889 s com 2 tiros sincronizados, MagStorage_0 22 / limiar 11, divisor 1 -> 4; arte art3d/bs_pem_light (torre: pivo [0.5,0.5], turret_size 1.0, canos ys [-0.15, 0.15], recuo 3 quadros + repouso a 0,06 s; crew_pos [0.5,1.55]).",
+    "pem.overload_rider = false no build (AreaShieldStatusApplication nao escrito); pem.charge_glow = true (charge_glow1..4 no Corisco).",
+    "light_pair com halo refl 0; casco palette.pem.hull [8,150,255] refl 6."
+   ],
+   "owner_files_mudanca": {
+    "add": [],
+    "remove": []
+   },
+   "validacao_mudanca": [
+    "padrao: Tuvira FiringArc 270d, gatilho 1.3889 e MagStorage_0 22; strings com 'Corisco', 'Relâmpago' e 'Canhão PEM Leve' / 'Light EMP Cannon'; nenhum 'Proa'/'Bow Gun'",
+    "`--switch pem.tuvira_mount=fixa` (FiringArc 30d, MagStorage_0 36) como linha extra",
+    "cai: `--switch pem.heavy_name=Corisco` (agora padrao)"
+   ]
+  },
+  "WP09": {
+   "status": "EXECUTAR (o pacote que mais mudou)",
+   "errado_no_plano": [
+    "carregador 3x4 (20000 HP, bateria 10000/5000, portas [-1,1],[-1,2],[3,1],[3,2],[1,4], corrente em [0,-1] com Left 0 Right 3)",
+    "cano com UMA criteria {bs_rail_municao; Top 3} nos proxies e nos providers de volta (com o carregador 5x5 centrado o carregador nunca recebe RailReverseOperation e fica desligado)",
+    "implementar power_mode A|B|fixo e charge_wave rede|atraso|off (A e rede adiados)",
+    "rail.enabled podia sair false (agora true)",
+    "recuo 'RecoilProjectile + Timer 1/30 s Impulse 3000' (8-24 empurroes por tiro = 6-18x o vanilla, e desync se encadeado no Projectile)",
+    "sem tranco, sem tremor, sem anel, sem quadros de recuo; sem passar sobre a propria nave",
+    "paleta violeta/ouro (light_pair [96,0,255], light_blob {0.38,0,1.0}); contagem de arquivos 30/23/17",
+    "railgun.power.variants.B: ContagemProvider com UMA criteria {bs_rail_municao; Top 3} (corrigido no SPEC: 2 entradas, como loader_5x5_links)",
+    "fallback do acoplamento com a porta [1,4] do 3x4 (no 5x5: portas de tras [1,5]/[3,5]; paiol 1x1 em [0,5] ou 2x2/3x3 crescendo para a esquerda)"
+   ],
+   "fazer": [
+    "CARREGADOR 5x5 (SPEC.railgun.parts.carregador + geometry_5x5): Size [5,5]; MaxHealth 33000; 2 tripulantes em CrewLocation/CrewDestinations [1.5,2.0] e [3.5,2.0]; AllowedDoorLocations [[-1,1],[5,1],[1,5],[3,5]]; BlockedTravelCells [[0,0],[1,0],[2,0],[3,0],[4,0],[2,1],[2,2],[2,3],[2,4],[0,2],[0,3],[0,4],[4,2],[4,3],[4,4]]; ForceManhattanPathInPart; LoaderBattery 15000 + BatteryConsumer 7500; SlugMagazine 12 + SlugConsumer 6; LoadedSlug 1 (UITileRect [2 + 7/64, 7/64, 1 - 14/64, 1 - 14/64]); AmmoLoader 1,2 s; Graphics Location [2.5,2.5]; Blueprints Size [5,5]; EditorIcon Size [115,115]; CapacitorDischarge/DestroyedEffects/Indicators em [2.5,2.5].",
+    "CORRENTE para a frente (carregador): RailBuffProvider e OperationBuffProvider BuffArea [1,-1,3,1] Criteria {Category bs_rail_energia; Rot 0; Left 1; Right 4; Bottom 0}; TriggerProxies WeaponTrigger/ProjectileStartTrigger/EmitTrigger PartLocation [1,-1] com a mesma PartCriteria (ComponentIDs Weapon/ProjectileStartTrigger/EmissionTriggered). Porta_Trilho [2,0] Up so com charge_wave rede (adiado).",
+    "CANO olhando para tras (CRITICO): LoadedSlug e LoaderBattery = ResourceStorageProxy PartLocation [0,3] ProxyableComponents [ {PartCriteria {Category bs_rail_municao; Rot 0; Left 0; Right 3; Top 3}; ComponentID X} {PartCriteria {IDs [rafaeltessaro.bs_rail_loader]; Rot 0; Left -1; Right 4; Top 3}; ComponentID X} ]; ReverseBuffOperationProvider e ContagemProvider (B): BuffArea [0,3,3,1] com Criterias [as mesmas duas entradas] (formas de lista vivas no SW chaingun_magazine.rules). Ponta sem mudanca.",
+    "ENERGIA 'Cano B': ContagemProvider no cano (BulletStrike_RailCount, BuffAmount {1 + recebido}, ChainsFromBuffType RailCount), ContagemInicio na Ponta (BuffAmount 0 para [0,4]), DrenoB no carregador {ResourceChange; Trigger EmitTrigger; LoaderBattery; Amount {BaseValue 0; Modifiers [{ScaledBuff RailCount; Scale -500; Add}]}}; BulletEmitter da Ponta usa 2000 da BatteryProxy; 'fixo' (4000 na Ponta) como emergencia; 'A' NAO implementado.",
+    "TRANCO - impulso (rail.tranco_impulso = impulso): Ponta TrancoImpulso {Type TriggeredEffects; Trigger BulletEmitter; Location [1.5,2]; Rotation 90d; sem ChainedTo; HitEffects [{Type Impulse; Impulse {BaseValue 2400; BuffType BulletStrike_RailShot; BuffMode Multiply}; ApplyToCenterOfMass = rail.recoil_com}]}; 'recoil' = Recoil 4000 no BulletEmitter; NUNCA RecoilProjectile/Timer 1/30 s.",
+    "TRANCO - tremor e anel: FireEffect da Ponta ganha ': /BASE_SHAKE {ShakeAmount 0.2; Duration 0.7}'; TrancoAnel TriggeredEffects {Trigger BulletEmitter; Location [1.5,0]; AnchorMediaEffects false; MediaEffects [rail_fx shock_ring (textura vanilla shockwave.png pelo fxkit, azul [100,175,255] -> [205,228,255], 1,0 -> 6,5 tiles, 0,32 s, x MediaEffectsScale RailShot), railgun_shoot + railgun_shoot_distortion vanilla]}.",
+    "TRANCO - quadros (SPEC.railgun.tranco.pieces, do spec_patch tranco-r2 (2026-10-21 21:20); NO BASE os rects/Location/Size/arquivos vem de art3d/bs_rail_*/meta.json e vencem estes: TrancoCulatra (carregador, roof_turrets, rect [0.375, 0.0, 4.25, 4.75], Location [2.5, 2.375], Size [4.25, 4.75], gatilho TrancoRelay); TrancoTambores (cano, roof_turrets, rect [0.0, 0.0, 3.0, 3.0], Location [1.5, 1.5], Size [3.0, 3.0], gatilho TrancoRelay); TrancoCoroa (ponta, weapons, rect [0.0, 0.0, 3.0, 3.5625], Location [1.5, 1.78125], Size [3.0, 3.5625], gatilho BulletEmitter); TrancoTambor (ponta, roof_turrets, rect [0.875, 3.0, 1.25, 1.0], Location [1.5, 3.5], Size [1.25, 1.0], gatilho BulletEmitter)): TrancoCoroa SUBSTITUI a Graphics estatica de weapon.png da ponta (nunca as duas; weapon.png = o repouso); cada uma: OperationalToggle IsOperational, AnimationFiles [X2..X8, X1] + NormalsAnimationFiles na mesma ordem, AnimationInterval do meta (0,05), AnimationStartTime MinValue, ClampAnimation true, NonOperationalDoodad X1. Gatilho (rail.tranco_gatilho = relay): no carregador e em cada cano TrancoRelay {Type Timer; StartTrigger = EmitTrigger (carregador) / EmissionTriggered (cano); Duration 0.5; TriggerWhenStarted true} e ResetAnimationTrigger = TrancoRelay; na PONTA (TrancoCoroa e TrancoTambor) ResetAnimationTrigger = BulletEmitter direto (o emissor e da propria ponta; sem relay). Os roof.png novos NAO tem as pecas que andam: sem estas Graphics a peca fica sem tambores/coroa/culatra. Se o T-TR-3 (checklist 8.8) mostrar roof_turrets cobrindo o interior, usar a variante_roof_doodads de cada peca (so troca a Layer).",
+    "RESTO DA ARTE pelos metas (layered): culatra_abre1..3 e culatra_carrega1..6 em walls, mesma posicao, NUNCA juntas (toggle); culatra_projetil ResourceSprites de LoadedSlug dentro de ToggledComponents com AmmoHideToggle invertido; projeteis1..6 ResourceSprites do SlugMagazine; capacitores1..3 ResourceSprites da LoaderBattery; consola1..4 nos 2 rects; luz_culatra1..2 ValueSprites; cano trilhos1..9 + carga1..8; ponta trilhos, carga1..6, slug.png (walls) + slug_glow.png (lights_add) ChainedTo Projectile, light_blob VertexColor {0.10, 0.32, 1.0} em roof_lights_fancy.",
+    "CARGA (rail.charge_wave = atraso): subida: luz_culatra no inicio da carga; em cada cano carga/trilhos como AnimationFiles (0,03 s, Clamp) iniciados por DelayTrigger 0,3 s x indice i (6 DelayTriggers, cada um ligado por BuffToggle BulletStrike_Rail Min i Max i); ponta carga1..6 depois do ultimo cano. Descida: tabela do meta (Delay_i por i e N, CargaRetida) OU o minimo aceito pelo meta: tudo aceso ate o EmissionTriggered e apaga junto com o clarao. Nunca reacender depois do tiro.",
+    "PASSA SOBRE A PROPRIA NAVE: FixedWeapon da Ponta IgnoreSourceShipLOSChecks = true e IgnoreSourceShipLowLOSChecks = true (SW turbolaser_huge01.rules:73, fixedlaser.rules:671-672); tiro com shots.OWN_SHIP_PASS (FriendlyShipLowCollisions/HighCollisions false) no PenetratingHit.",
+    "TIRO: SPEC.railgun.shot com r2_fallback = true (6700 x m(N) por peca, DoPooledDamageFirst true, FinishedPenetratingOperational = &PenetratingOperational), buffed_riders = false (drenos com os valores de N=4), overload_rider = false.",
+    "rail_fx AZUL elemento por elemento = SPEC.art_assets.effects.railgun (split tools/spec/bullet_strike_art2.json; ja recolorido pelo addendum) com a tabela palette_map_addendum: claroes (boca, perfuracao, impacto, escudo) core [205,228,255] -> glow [100,175,255]; aneis EM, aneis do rastro, chiado, raios do impacto, arcos de carga, interceptado = glow [100,175,255] com franja blue [45,115,255]; particulas do rastro e faiscas = core -> glow (branco-azuladas); anel de choque do tranco glow -> core; luzes palette.rail.hull [20,82,255] refl 4 e halo glow/4 [25,44,64] so no espaco; UNICA cor quente: rail_embers [215,145,40] -> [120,45,10] (o alvo queimando). fx_tex.py: bs_rail_streak assado com core/blue/glow; bs_ring_thin tingido glow. Nada de ouro-branco [255,225,150] nem violeta em nenhum arquivo do rail.",
+    "LOGISTICA: o Carregador e maquina da fita: FitaEntra_slug -> SlugMagazine (rail.loader_intake auto); AvisaFita [-1,0,7,5]/[0,-1,5,7]; FX [1.0,3.5]; SemFita: PaiolAcoplado_0 PartLocation [0,5] + tripulacao (portas de tras [1,5]/[3,5]: um paiol 1x1 em [0,5] deixa as duas livres; 2x2/3x3 com [0,5] na coluna da direita dele; texto inteiro em railgun.parts.carregador.belt_intake.fallback_adjacency).",
+    "TOOLTIP: 'Canos: N (1-6) | Bonus +25..+115 % | CP total = 6 + 2N' e a tabela por N (dano por tiro, alcance, penetracao, velocidade, energia, impulso) do scaling_table."
+   ],
+   "owner_files_mudanca": {
+    "add": [],
+    "remove": []
+   },
+   "validacao_mudanca": [
+    "matriz: padrao (B, atraso, relay, impulso); `--switch rail.power_mode=fixo`; `--switch rail.tranco_gatilho=proxy`; `--switch rail.tranco_impulso=recoil`; `--switch rail.recoil_com=true`; `--switch rail.enabled=false` (nenhuma peca bs_rail_*, nenhuma F6, nenhum bs_slug_rail)",
+    "spec2_check railgun: carregador Size [5,5] e MaxHealth 33000; todo cano com 2 entradas em ProxyableComponents/Criterias; exatamente 1 TrancoImpulso por Ponta e nenhum Timer de 1/30 s dirigindo Impulse; IgnoreSourceShipLOSChecks true; OWN_SHIP_PASS no tiro; 4 Graphics de tranco com AnimationStartTime MinValue; ContagemProvider (B) do cano com as 2 entradas de Criterias (railgun.power.variants.B.component); nenhuma cor violeta ([150,105,255], [96,0,255], {0.38,0,1}) nem ouro-branco [255,225,150] nos arquivos do rail; as unicas cores quentes do rail_fx sao as de rail_embers ([215,145,40] -> [120,45,10])",
+    "cai: BS_RAIL_ENERGIA=A e BS_RAIL_CARGA=rede"
+   ]
+  },
+  "WP10": {
+   "status": "EXECUTAR (so completar o pipeline para LIGAR a arte pronta)",
+   "errado_no_plano": [
+    "dono das pastas: bs_paiol_comum e F2 bs_factory_mag_ap (agora bs_paiol e bs_factory_special); nao conhece bs_ui_icons2",
+    "check_art3d nao aceita meta shared, ancora 'tip', 'rects', 'overlays', 'mode_plate' nem kind ui_icons",
+    "previas novas a fazer"
+   ],
+   "fazer": [
+    "bsgen/layered.py: graphics(meta, name, ...) com suporte a 'rects' (uma Graphics por rect), 'variants' (teto por familia, placas), 'levels' (ResourceSprites/ValueSprites), 'frames' (AnimationFiles + normals na ordem), meta shared (parts.<n>) e pasta publicada diferente da pasta de arte (art3d/bs_paiol -> parts/bs_paiol_comum).",
+    "art3d.py copy_files/load_meta para layered e shared; make_art.misc_art copia art3d/bs_ui_icons2/<x>.png para gui/<x>.png pelo icons.json 'files' (o placeholder do WP01 so para o que faltar); make_art.resource_art le art3d/<id curto> dos 12 itens.",
+    "check_art3d: owner map do SPEC atualizado (bs_paiol, bs_factory_special, bs_ui_icons2; bs_factory_mag_ap 1.x = legado ate o WP12 apagar); aceitar ancoras seeker/tip/warhead/radiation, 'art3d_dir'/'grid'/'mode_plate'/'overlays' nos metas de fabrica, meta shared, kind ui_icons (arquivos do icons.json existem, 96x96).",
+    "Previas: ADOTAR docs/preview/3d/v2/ (nenhuma nova obrigatoria)."
+   ],
+   "owner_files_mudanca": {
+    "add": [],
+    "remove": [
+     "tools/blender/render_layered.py (so mexer se faltar algo; ja completo para Tupa/Fita/paiol)"
+    ]
+   },
+   "validacao_mudanca": [
+    "check_art3d todos -> 0 erros cobrindo bs_paiol, bs_factory_special, bs_ui_icons2, bs_rail_* 5x5 com camadas de tranco",
+    "render de teste 'layered' minimo continua"
+   ]
+  },
+  "WP11": {
+   "status": "EXECUTAR (ADOTAR + 3 lacunas)",
+   "errado_no_plano": [
+    "refazer os 12 itens e os icones (ja feitos: art3d/bs_mag_* etc. e art3d/bs_ui_icons2)",
+    "previas escada_granadas_2_0/municoes_2_0/icones_2_0 em docs/preview/2.0 (existem em docs/preview/3d/v2 com outros nomes)",
+    "bs_shell_nuke.py -> bs_msl_nuke.py (bs_msl_nuke.py ja existe)"
+   ],
+   "fazer": [
+    "ADOTAR: 12 pastas de itens (stack 6/4/5/3/6, 4, 4, 10/10/10, 2, 2 - batem com max_stack_size) e art3d/bs_ui_icons2 (13 icones).",
+    "LACUNA 1: AC dos niveis s/m/l sem guiagem (ver art_gaps); conferir meta: lights.frames == 1 e sem 'seeker'.",
+    "LACUNA 2: gui/buff_fita.png (icon_buff_fita no ui_icons.py -> art3d/bs_ui_icons2/buff_fita.png + icons.json).",
+    "LACUNA 3: regerar docs/preview/3d/v2/projeteis_* (slug azul, AC dos canhoes sem aletas) com as COPIAS do repo (G13: tools/blender/previews/make_sheets.py + prev2.py + sheet.py + fxlib.py; paleta azul de bullet_strike_art2.json; texturas do jogo via $COSMOTEER_DATA). O 'ou copia no repo' do addendum antigo nao existia: a copia e feita pelo WP01 (passo 0).",
+    "Apagar art3d/bs_mag_emp, art3d/bs_shell_nuke, tools/blender/parts/bs_mag_emp.py, bs_shell_nuke.py.",
+    "Docstring de bs_shells2.py: trocar 'ponta dourada' do slug pela paleta azul."
+   ],
+   "owner_files_mudanca": {
+    "add": [
+     "art3d/bs_ui_icons2/ (ADOTADO + buff_fita.png)",
+     "tools/blender/parts/_bs2_itens_helpers.py, _bs2_itens_check.py, _bs2_itens_previews.py (ADOTADOS)"
+    ],
+    "remove": [
+     "docs/preview/2.0/escada_granadas_2_0.png, municoes_2_0.png, icones_2_0.png (substituidas por docs/preview/3d/v2/projeteis_futuristas.png, municoes_itens.png, icones_2_0.png)"
+    ]
+   },
+   "validacao_mudanca": [
+    "check_art3d --pacote WP11: bs_shells2 com ac_s/m/l de 1 quadro e sem seeker; bs_ui_icons2 com buff_fita"
+   ]
+  },
+  "WP12": {
+   "status": "EXECUTAR (ADOTAR + limpeza)",
+   "errado_no_plano": [
+    "modelar e renderizar paiois/Fita/fita_fx/placas/fabricas (ja feitos e revisados: logistica r2, fabricas r2)",
+    "pasta art3d/bs_paiol_comum e F2 em bs_factory_mag_ap.py/art3d/bs_factory_mag_ap",
+    "digitos do paiol 'para paiol_contador' (contador desligado)",
+    "previas paiol_2_0/fita_2_0/fabricas_2_0 em docs/preview/2.0",
+    "o addendum de 20:43 mandava ADOTAR fabricas_2_0.png e logistica_fita.* como estao: a folha das fabricas tem 2 defeitos e a logistica_fita e anterior a F1 final"
+   ],
+   "fazer": [
+    "ADOTAR art3d/bs_paiol (shared), bs_fita, bs_fita_fx, bs_placas e as 6 fabricas (F2 = bs_factory_special) - depois do commit do job 'Fabricas r2' (codigo de cor das saidas da F4 = placas).",
+    "Apagar art3d/bs_factory_mag_ap (1.x 3x3) e tools/blender/parts/bs_factory_mag_ap.py; apagar bs_factory_mag_emp e bs_factory_shell_nuke (art3d + .py).",
+    "Digitos: nao publicar (contador desligado); a janela pintada no teto fica escura.",
+    "Previas: ADOTAR logistica_paiois.png e fabricas_2_0.gif. REGERAR fabricas_2_0.png corrigindo os 2 defeitos da folha (USER_NOTES: 'corrigir no WP12 ao regerar fabricas_2_0.png'): (1) a F3 da visao geral do topo com o banco PEM tem de usar a placa PEM (overview() chama roof(..., pem=True) sem mode -> placa de plasma: passar mode='pem'); (2) a legenda da F1 cortada (quebrar a linha ou alargar). `python3 tools/blender/parts/_bs2_fabricas_previews.py folha`.",
+    "REGERAR logistica_fita.png e logistica_fita.gif depois da F1 final (USER_NOTES: 'logistica_fita.* apos F1 final'; as atuais sao de be40fcd 20:01, a F1 final e de 50c6804 20:37) com a copia tools/blender/previews/make_logistica.py (G13): `make_logistica.py fita` e `make_logistica.py gif`; a Prensa nas duas igual a de fabricas_2_0.png."
+   ],
+   "owner_files_mudanca": {
+    "add": [
+     "art3d/bs_paiol/",
+     "art3d/bs_factory_special/",
+     "tools/blender/parts/bs_factory_special.py",
+     "tools/blender/parts/_bs2_fabricas_helpers.py, _bs2_fabricas_itens.py, _bs2_fabricas_previews.py, _bs2_logistica_helpers.py"
+    ],
+    "remove": [
+     "art3d/bs_paiol_comum/",
+     "tools/blender/parts/bs_factory_mag_ap.py (apagar)",
+     "docs/preview/2.0/paiol_2_0.gif, fita_2_0.gif, fabricas_2_0.png/.gif"
+    ],
+    "regerar": [
+     "docs/preview/3d/v2/fabricas_2_0.png (2 defeitos)",
+     "docs/preview/3d/v2/logistica_fita.png",
+     "docs/preview/3d/v2/logistica_fita.gif"
+    ]
+   },
+   "validacao_mudanca": [
+    "check_art3d --pacote WP12 -> 0 erros e nenhuma pasta reivindicando rafaeltessaro.bs_factory_mag_ap alem de bs_factory_special",
+    "fabricas_2_0.png: F3 do topo com placa PEM + banco PEM; as 6 legendas inteiras; logistica_fita.png/.gif com a Prensa F1 final"
+   ]
+  },
+  "WP13": {
+   "status": "EXECUTAR (ADOTAR + celulas dos lancadores)",
+   "errado_no_plano": [
+    "Tupa 3x4 com 30/23/17 arquivos e paleta violeta ('grafite + ouro-branco + violeta'); e o addendum de 20:43 dava o r1 (9fba772) como BASE: o tranco entrou no r2",
+    "Tuvira 'fixa na proa' (a arte ja e torre)",
+    "previas tupa_2_0/pem_2_0/piranha_2_0/boiuna_2_0 em docs/preview/2.0"
+   ],
+   "fazer": [
+    "Passo 0 (PORTAO = o mesmo do WP01, execution.blocked_until.WP13): so com a arte r2 do Tupa commitada e o BASE >= esse commit. ADOTAR o que estiver no BASE: carregador 5x5 com culatra_tranco, cano com tambores_tranco, ponta com weapon_tranco (a frente anda com as bochechas brancas) + tambor_tranco. Rects, quadros e a LISTA de arquivos = layers/files de art3d/bs_rail_loader|barrel|muzzle/meta.json do BASE (nesta geracao, so referencia: weapon_tranco rect [0.0, 0.0, 3.0, 3.5625], 49/39/49 arquivos + meta; o r2 pode mudar). Conferir check_rail/check_art3d no BASE.",
+    "ADOTAR bs_pem_light (torre), bs_pem_medium, bs_pem_heavy (charge_glow), bs_boiuna_ac, bs_missiles2.",
+    "UNICO trabalho: celulas cluster8 (Caipora) e heavy8 (Mula) com `render_part.py bs_msl_twin|bs_msl_quad --only cells` e apagar cells_napalm/limpet/torpedo (14 + 80 + 96 arquivos).",
+    "Previas: ADOTAR docs/preview/3d/v2/railgun_* do commit r2 (montado, disparo, tranco, tranco_curto, tranco_quadros, pecas, casco_branco, referencia), armas_pem.png, armas_pem_disparo.gif (a cadencia da Tuvira no GIF e a da fixa, ~0,84 s: so ilustrativo; regerar e opcional), armas_boiuna_ac.png, misseis_*.",
+    "REGERAR (pendencia do orquestrador em USER_NOTES: 'refazer armas_casco_branco/armas_galeria (Tuvira antiga)'): armas_galeria_2_0.png e armas_casco_branco.png com a copia tools/blender/previews/make_armas.py (G13): rotulos 'PEM pesada' -> 'Corisco' (CASCO, new_by_tier e o cabecalho da galeria), Tuvira = a torre atual de art3d/bs_pem_light; `make_armas.py galeria` e `make_armas.py casco`. Se ja regeradas e commitadas depois de 50c6804 com a torre e 'Corisco', so ADOTAR (art_gaps)."
+   ],
+   "owner_files_mudanca": {
+    "add": [
+     "docs/preview/3d/v2/armas_galeria_2_0.png (regerada)",
+     "docs/preview/3d/v2/armas_casco_branco.png (regerada)"
+    ],
+    "remove": [
+     "docs/preview/2.0/tupa_2_0.gif, pem_2_0.gif, piranha_2_0.gif, boiuna_2_0.png"
+    ]
+   },
+   "validacao_mudanca": [
+    "check_art3d --pacote WP13: bs_rail_loader size [5,5] com as camadas de tranco (lista de arquivos = meta do BASE); nenhuma celula napalm/limpet/torpedo",
+    "armas_galeria_2_0.png e armas_casco_branco.png: nenhum 'PEM pesada', Tuvira de torre"
+   ]
+  },
+  "WP14a": {
+   "status": "EXECUTAR AGORA (nao espera o TesteFita)",
+   "errado_no_plano": [
+    "blocked_until = respostas do TesteFita",
+    "regra de transporte pelo kit"
+   ],
+   "fazer": [
+    "Gravar exatamente os dois arquivos de wp14a_writes (valores fixos); nada de docs/builds.",
+    "respostas_2_0.json registra: TesteFita/Teste2 sem resposta, as 3 perguntas respondidas, o pedido 'monte o MoD', transport 'teleporte' por decisao de build, wp15 'pular', portao 'pendente'."
+   ],
+   "owner_files_mudanca": {
+    "add": [],
+    "remove": []
+   },
+   "validacao_mudanca": [
+    "spec2_check aceita os valores (G12); 'wp15' = 'pular' e transport em {teleporte, tripulacao}; portao 'pendente' permitido para builds de teste"
+   ]
+  },
+  "WP15": {
+   "status": "PULAR (wp15 = 'pular' em respostas_2_0.json; o usuario nao quer esteira fisica)",
+   "errado_no_plano": [],
+   "fazer": [],
+   "owner_files_mudanca": {
+    "add": [],
+    "remove": []
+   },
+   "validacao_mudanca": []
+  },
+  "WP14b": {
+   "status": "EXECUTAR por ultimo (entrega ao usuario)",
+   "errado_no_plano": [
+    "build de teste em testes/BulletStrike_2_0_Teste com ID de teste + ROTEIRO_TESTE.txt",
+    "liberacao/publicacao da 2.0.0 (portao pendente)",
+    "BulletStrike_Vanilla condicional (resposta 3 = nao: nunca)",
+    "docs com 'Mãe-do-Ouro', vizinhanca off e Tupa 3x4"
+   ],
+   "fazer": [
+    "BUILD COM FITA: `python3 tools/build_mod.py --variante fita --vanilla \"$COSMOTEER_DATA\" --out BulletStrike` SEM BS_ARTE_PROCEDURAL (ID rafaeltessaro.bullet_strike, Version 2.0.0, Description comecando por '[2.0 de TESTE]').",
+    "BUILD RESERVA: `python3 tools/build_mod.py --variante semfita --vanilla \"$COSMOTEER_DATA\" --out testes/BulletStrike_SemFita` (ID rafaeltessaro.bullet_strike_semfita, Name 'Bullet Strike (reserva sem Fita)', mesma versao, mesmas pecas menos a Fita).",
+    "CHECKLIST: gerar docs/CHECKLIST_2_0.md (pt-BR) por make_docs.py a partir de tools/spec/ADDENDUM_2_0.json 'checklist' (secoes na ordem, cada item com 'O que fazer', 'O que olhar', [ ] sim [ ] nao e 'Se nao'; os itens com com_sw ja trazem '(com SW)' no inicio e a abertura lista esses itens: TODOS os outros sao so com o Bullet Strike); gerar CHECKLIST_2_0_CURTO.txt (itens 'curto': true, com o mesmo '(com SW)').",
+    "ZIPS: testes/BulletStrike_2_0.zip = BulletStrike/ + CHECKLIST_2_0_CURTO.txt na raiz; testes/BulletStrike_SemFita.zip = BulletStrike_SemFita/ + o mesmo txt.",
+    "Docs (make_docs.py): ARMAS.md (Corisco/Relâmpago, Tuvira torre 4320, Tupa 5x5 com tranco e tabela por N com tiles 46..91, vizinhanca ligada com ritmo sozinha/2 vizinhas, Fita com jeito B), MISSEIS_PROJETO.md, COMO_TESTAR.md (aponta para CHECKLIST_2_0.md), README.md (novidades + aviso de ruptura + '[2.0 de TESTE]' + qual pasta instalar + nunca ativar os dois), docs/preview/2.0/LEIA.md apontando para docs/preview/3d/v2/.",
+    "Respostas dos testes do build (T3, T-FITA-1, T-F2-SPLIT, T-FRAG, T11, R-*, T-MSL-*, T-ART-*, T-TR-*): SEM resposta -> os safe ja gravados; nada novo no switches.json.",
+    "Limpeza 1.x (legacy_1x_cleanup) com o build final sem aviso 'arte 1.x usada'.",
+    "Commit pt-BR no branch; SEM tag nem publicacao da 2.0.0 (portao pendente ate as respostas do checklist)."
+   ],
+   "owner_files_mudanca": {
+    "add": [
+     "testes/BulletStrike_SemFita/",
+     "docs/CHECKLIST_2_0.md",
+     "testes/BulletStrike_2_0.zip",
+     "testes/BulletStrike_SemFita.zip"
+    ],
+    "remove": [
+     "testes/BulletStrike_2_0_Teste/ (substituido pelos 2 builds + checklist)",
+     "BulletStrike_Vanilla/"
+    ]
+   },
+   "validacao_mudanca": [
+    "os dois builds passam (1)-(6) sem BS_ARTE_PROCEDURAL; spec2_check zero placeholders (buff_fita do WP11); check_art3d todos --estrito 0/0",
+    "BulletStrike/: tem parts/bs_fita e buffs/bs_fita_buffs.rules; SemFita: nao tem; os dois sem NetworkResource*",
+    "unzip -l dos 2 zips mostra a pasta do mod e CHECKLIST_2_0_CURTO.txt; docs/CHECKLIST_2_0.md tem as 14 secoes na ordem",
+    "nenhuma ocorrencia de 'Mãe-do-Ouro' nos mods e docs gerados"
+   ]
+  }
+ },
+ "wp14a_writes": {
+  "tools/spec/bullet_strike_switches.json": {
+   "_meta": {
+    "gravado_por": "WP14a (ADDENDUM 2.0, 2026-10-21)",
+    "regra": "valores do build de teste: safe, respostas do usuario ou decisoes de build (SPEC.build_2_0); so switches com decided_by (os outros ficam no padrao do spec)",
+    "fonte": "SPEC.build_2_0.switch_values_fita"
+   },
+   "logistics.transport": "teleporte",
+   "logistics.fita_fabrica": "B",
+   "logistics.fita_arma": "empurra",
+   "logistics.reserva_tripulacao": "metade",
+   "logistics.fita_alcance": 1000,
+   "logistics.fita_embutida": "off",
+   "logistics.devolucao_arma": "off",
+   "logistics.acoplamento": "auto",
+   "logistics.paiol_seletor": "botao",
+   "logistics.paiol_contador": false,
+   "logistics.recurso_cookoff": "off",
+   "art.fita_luz": "ack",
+   "rail.enabled": true,
+   "rail.power_mode": "B",
+   "rail.charge_wave": "atraso",
+   "rail.buffed_riders": false,
+   "rail.overload_rider": false,
+   "rail.loader_intake": "auto",
+   "rail.r2_fallback": true,
+   "rail.tranco_impulso": "impulso",
+   "rail.tranco_gatilho": "relay",
+   "rail.recoil_com": false,
+   "pem.heavy_name": "Corisco",
+   "pem.tuvira_mount": "torre",
+   "pem.tuvira_cp": 2,
+   "pem.overload_rider": false,
+   "boiuna.ac_guided": true,
+   "missiles.cluster_randomize_target": "on",
+   "missiles.cluster_petals": "bullets",
+   "missiles.cluster_lite": false,
+   "missiles.iara_hp": 12000,
+   "missiles.poraque_overload": false,
+   "guns.small_rounds_targetable": false,
+   "guns.frag_fragment": "volumehit",
+   "guns.ap_further_factor": "sem_reducao",
+   "guns.ac_cost": "4x",
+   "guns.defesa_antilaser": "fase_b",
+   "guns.he_further_factor": 0.5,
+   "art.light_split": "split",
+   "art.pen_media": "light",
+   "art.frag_cone": "radial",
+   "balance.perfil": "sw",
+   "balance.perfil_extra": false,
+   "econ.factory_adjacency": "vanilla"
+  },
+  "tools/spec/respostas_2_0.json": {
+   "data": "2026-10-21",
+   "TesteFita": null,
+   "TesteFita_nota": "sem resposta; substituido pelo CHECKLIST_2_0 secao 2 com as pecas reais",
+   "Teste2": null,
+   "perguntas": {
+    "1": {
+     "pem.heavy_name": "Corisco",
+     "overclock": "Relâmpago",
+     "pem.tuvira_mount": "torre",
+     "pem.tuvira_cp": "sem pedido -> 2"
+    },
+    "2": {
+     "econ.factory_adjacency": "vanilla"
+    },
+    "3": {
+     "balance.perfil_extra": false
+    }
+   },
+   "outras_escolhas": {
+    "guns.small_rounds_targetable": false,
+    "logistics.fita_embutida": "off",
+    "guns.defesa_antilaser": "fase_b",
+    "missiles.iara_hp": 12000,
+    "guns.ac_cost": "4x",
+    "nota": "usuario: 'outras escolhas sem pedido de mudanca' -> safe"
+   },
+   "pedido": "quando terminar tudo monte o MoD e me forneca um checklist do que eu devo testar",
+   "esteira": "nao (usuario nao quer esteira fisica)",
+   "transport": "teleporte",
+   "transport_motivo": "decisao de build antes do TesteFita (pedido 'monte o MoD'); build reserva em tripulacao (testes/BulletStrike_SemFita)",
+   "wp15": "pular",
+   "portao": {
+    "estado": "pendente",
+    "caminho": "teleporte",
+    "falta": [
+     "CHECKLIST 1.1-1.3 e 2.1-2.10 (substituem A1-A7/A3b)",
+     "2.11-2.13 (B1-B3)",
+     "2.14 (C1)",
+     "11.1 (C2)",
+     "1.7 e 2.15 (C3, com SW)"
+    ],
+    "regra": "a 2.0.0 so e liberada com as respostas; ate la so builds de teste",
+    "com_sw": "1.7 e 2.15 sao feitos com o Star Wars: A Cosmos Divided ativo junto (os outros itens do portao: so o Bullet Strike)"
+   },
+   "builds": {
+    "fita": "BulletStrike/ (rafaeltessaro.bullet_strike)",
+    "semfita": "testes/BulletStrike_SemFita/ (rafaeltessaro.bullet_strike_semfita)"
+   },
+   "nota_wp14b": "testes do build 2.0 (T3, T-FITA-1, T-F2-SPLIT, T-FRAG, T11, R-*, T-MSL-*, T-ART-*, T-TR-*) sem resposta -> safe; o checklist coleta"
+  }
+ },
+ "deliverable": {
+  "build_fita": {
+   "path": "/home/user/Cosmoteer/BulletStrike",
+   "id": "rafaeltessaro.bullet_strike",
+   "name": "Bullet Strike",
+   "version": "2.0.0",
+   "transport": "teleporte (B + empurra + reserva da tripulacao abaixo da metade)",
+   "cmd": "python3 tools/build_mod.py --variante fita --vanilla \"$COSMOTEER_DATA\" --out BulletStrike",
+   "description_first_line": "[2.0 de TESTE] Versão com a Fita de Alimentação (teletransporte). Se não carregar, use a reserva 'Bullet Strike (reserva sem Fita)'. Nunca ative as duas juntas."
+  },
+  "build_semfita": {
+   "path": "/home/user/Cosmoteer/testes/BulletStrike_SemFita",
+   "id": "rafaeltessaro.bullet_strike_semfita",
+   "name": "Bullet Strike (reserva sem Fita)",
+   "version": "2.0.0",
+   "transport": "tripulacao (acoplamento ligado)",
+   "cmd": "python3 tools/build_mod.py --variante semfita --vanilla \"$COSMOTEER_DATA\" --out testes/BulletStrike_SemFita",
+   "description_first_line": "[2.0 de TESTE - RESERVA SEM FITA] Mesmas armas, paióis e fábricas; sem a peça Fita (tripulação + paiol acoplado). Nunca ative junto com o 'Bullet Strike'.",
+   "why_other_id": "as duas pastas podem ficar em Mods (so uma ativa); as pecas tem os MESMOS ids, entao naves passam de uma para a outra (as Fitas somem na reserva)"
+  },
+  "zips": {
+   "testes/BulletStrike_2_0.zip": [
+    "BulletStrike/",
+    "CHECKLIST_2_0_CURTO.txt"
+   ],
+   "testes/BulletStrike_SemFita.zip": [
+    "BulletStrike_SemFita/",
+    "CHECKLIST_2_0_CURTO.txt"
+   ]
+  },
+  "checklist_md": "/home/user/Cosmoteer/docs/CHECKLIST_2_0.md (gerado por make_docs.py de tools/spec/ADDENDUM_2_0.json 'checklist')",
+  "checklist_curto": "CHECKLIST_2_0_CURTO.txt (pt-BR, so os itens com 'curto': true + como mandar as respostas) na raiz dos 2 zips",
+  "never": [
+   "BulletStrike_Vanilla/",
+   "tag/publicacao 2.0.0 antes do portao",
+   "esteira fisica",
+   "Version com sufixo (-rc/-teste)"
+  ]
+ },
+ "checklist": {
+  "file": "docs/CHECKLIST_2_0.md",
+  "short_copy": "CHECKLIST_2_0_CURTO.txt (itens com 'curto': true, na ordem, + secao 13) na raiz dos 2 zips",
+  "language": "pt-BR",
+  "format_md": "titulo '# Bullet Strike 2.0 - o que testar'; um paragrafo de abertura (build de teste com a Fita; se nao carregar use a reserva; os itens marcados '(com SW)' sao feitos com o Star Wars: A Cosmos Divided ativo junto, TODOS os outros so com o Bullet Strike - sugestao: primeiro todos os sem SW, depois os '(com SW)' de uma vez; lista dos '(com SW)' no fim do paragrafo, gerada dos itens com com_sw = true); por secao '## <n>. <titulo>' + o 'preparo' (se houver) + cada item como '- [ ] **<id>** <faca> - **Olhe:** <olhe> - **Se não:** <se_nao>' (e '(decide: <decide>)' em italico quando houver); o texto '(com SW)' ja vem no inicio do <faca> dos itens com com_sw",
+  "required_order": [
+   "0 instalacao",
+   "1 carregamento + log de erro",
+   "2 fita/teletransporte (primeiro)",
+   "3 cada familia de armas",
+   "4 fabricas",
+   "5 paiois",
+   "6 misseis",
+   "7 PEM",
+   "8 Tupa com tranco",
+   "9 defesas contra lasers do SW",
+   "10 balanco contra o SW",
+   "11 desempenho",
+   "12 reserva sem Fita",
+   "13 como mandar"
+  ],
+  "maps_tests": {
+   "TesteFita": "A1->1.1/1.3, A2->2.1/2.2, A3/A3b->2.3/2.4, A4->2.5, A6->2.6, A7->2.7, B1->2.11, B2->2.12, B3->2.13, C1->2.14, C2->11.1, C3->1.7/2.15",
+   "build": "T-FITA-1->2.7-2.9, T-F2-SPLIT->4.6, T-FRAG->9.4, T11->3.10/5.5, T3->10.1/10.2, R-1..R-4->8.1/8.3/8.11-8.13, T-MSL-*->6.4-6.7/11.2, T-ART-5->3.2, T-ART-6->11.4, T-TR-1..6->8.2/8.6-8.10/8.15, B-1->3.7, T-ACOPLA->12.3/12.4"
+  },
+  "sections": [
+   {
+    "n": 0,
+    "titulo": "Antes de começar (instalação)",
+    "itens": [
+     {
+      "id": "0.1",
+      "faca": "Guarde uma cópia da sua pasta Mods/BulletStrike 1.x e da carreira 1.x. Copie a pasta BulletStrike do zip para Mods (substitui a 1.x).",
+      "olhe": "Abrir um save da 1.x com a 2.0 pode fechar o jogo; naves da 1.x precisam ser refeitas.",
+      "resposta": "sim / nao",
+      "se_nao": "Se apagou sem querer, me avise antes de testar.",
+      "curto": true
+     },
+     {
+      "id": "0.2",
+      "faca": "Copie também BulletStrike_SemFita (do outro zip) para Mods, mas deixe DESATIVADO. Nunca ative os dois juntos (as peças são as mesmas).",
+      "olhe": "Na lista de mods aparecem 'Bullet Strike' e 'Bullet Strike (reserva sem Fita)'.",
+      "resposta": "sim / nao",
+      "se_nao": "Me diga o que aparece na lista.",
+      "curto": true
+     },
+     {
+      "id": "0.3",
+      "faca": "Jogo 0.30.4c, Novo jogo > Criativo com 'Modo Construção Livre' MARCADO. Itens marcados '(com SW)': com o Star Wars: A Cosmos Divided ativo JUNTO com o Bullet Strike. Todos os outros: SÓ o Bullet Strike ativo. Dica: faça primeiro todos os itens sem a marca (seção por seção) e depois, com o SW ativo, todos os '(com SW)' de uma vez (estão nas seções 1, 2, 6, 7, 8, 9, 10 e 11).",
+      "olhe": "O log fica na pasta Logs do Cosmoteer (a mesma de onde você tirou logs antes; normalmente em Jogos Salvos/Saved Games > Cosmoteer).",
+      "resposta": "sim / nao",
+      "se_nao": "-"
+     }
+    ]
+   },
+   {
+    "n": 1,
+    "titulo": "Carregamento e log de erro",
+    "itens": [
+     {
+      "id": "1.1",
+      "faca": "Abra o jogo com o 'Bullet Strike' ativo.",
+      "olhe": "Chega ao menu sem tela de erro e sem fechar.",
+      "resposta": "sim / nao",
+      "se_nao": "Mande o log mais recente da pasta Logs e passe para a seção 12 (reserva sem Fita).",
+      "curto": true
+     },
+     {
+      "id": "1.2",
+      "faca": "Veja a descrição do mod na lista.",
+      "olhe": "Versão 2.0.0 e a 1ª linha '[2.0 de TESTE] ...'.",
+      "resposta": "sim / nao",
+      "se_nao": "Me diga a versão/descrição que aparece."
+     },
+     {
+      "id": "1.3",
+      "faca": "Novo jogo Criativo > construir nave > aba do Bullet Strike.",
+      "olhe": "43 peças, todas com ícone (nenhum quadrado branco/rosa): 12 canhões, 3 defesas, 3 PEM (Tuvira, Treme-Treme, Corisco), 3 lança-mísseis, 3 peças do Tupã, 6 fábricas, 12 paióis e a Fita.",
+      "resposta": "sim / nao",
+      "se_nao": "Diga quais faltam ou estão sem ícone.",
+      "curto": true
+     },
+     {
+      "id": "1.4",
+      "faca": "Ponha uma de cada peça na nave (pode ser num navio grande de Estrutura).",
+      "olhe": "Nenhuma trava; nenhuma textura xadrez/roxa (= arquivo faltando).",
+      "resposta": "sim / nao",
+      "se_nao": "Print da peça + log."
+     },
+     {
+      "id": "1.5",
+      "faca": "Em 'Gerenciar recursos' / numa Baia de armazenamento, procure os itens novos.",
+      "olhe": "12 itens com visual futurista: carregadores HE, AP, SAP, AC e FRAG, células de Plasma e PEM, cargas de míssil HE, Submunição e PEM, Ogiva Nuclear e Projétil de Railgun.",
+      "resposta": "sim / nao",
+      "se_nao": "Diga quais estão com visual antigo ou sem ícone."
+     },
+     {
+      "id": "1.6",
+      "faca": "Salve a nave e o jogo, saia e carregue de novo.",
+      "olhe": "Tudo volta igual, sem erro.",
+      "resposta": "sim / nao",
+      "se_nao": "Mande o log."
+     },
+     {
+      "id": "1.7",
+      "faca": "(com SW) Feche, ative o SW:ACD junto com o Bullet Strike e abra (Criativo).",
+      "olhe": "Carrega; as peças do SW e do Bullet Strike aparecem.",
+      "resposta": "sim / nao",
+      "se_nao": "Mande o log (isto trava a liberação da 2.0.0).",
+      "com_sw": true,
+      "curto": true
+     }
+    ]
+   },
+   {
+    "n": 2,
+    "titulo": "Fita de Alimentação e teletransporte (faça PRIMEIRO)",
+    "preparo": "Como no TesteFita: Criativo, Construção Livre, uma linha reta de Estrutura de ~50 quadrados. Cada máquina encostada na Estrutura e afastada das outras (5 quadrados ou mais). Cada Fita encosta de lado (não na quina) só na sua máquina e também na Estrutura. DIFERENTE do kit: as fábricas reais precisam de energia e matéria-prima. Ponha um reator e, ligados SÓ às fábricas por corredor/porta, um Beliche e uma Baia de armazenamento com Enxofre (Gerenciar recursos; para a F6, tristeel e coil2); use 'Reabastecer todos os recursos' só para encher essa baia. Deixe paióis e armas SEM corredor até a tripulação (assim só a Fita pode abastecê-los) até o item 2.11. Para as armas atirarem, crie uma nave inimiga no menu do Criativo. Luz verde e grade da fábrica: com o interior ligado; cartuchos andando: com o interior desligado.",
+    "itens": [
+     {
+      "id": "2.1",
+      "faca": "Ponha um 'Paiol de Cartuchos 1x1' (HE) e grude uma Fita nele.",
+      "olhe": "A luz verde da Fita acende (interior ligado: 4 LEDs no piso; desligado: 4 lentes no teto). Antes da Fita a barra do paiol estava vazia (preta).",
+      "resposta": "sim / nao",
+      "se_nao": "A Fita não está ligando: mande print e log.",
+      "curto": true,
+      "decide": "art.fita_luz"
+     },
+     {
+      "id": "2.2",
+      "faca": "Modo construção, mouse sobre o paiol.",
+      "olhe": "O paiol mostra o ícone da Fita (buff).",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (só aviso visual)."
+     },
+     {
+      "id": "2.3",
+      "faca": "No meio da linha, ponha uma 'Prensa HE' (F1) com Fita, ligada ao reator e à baia de enxofre (preparo acima).",
+      "olhe": "Em ~20 s a barra do paiol sobe; aparecem cartuchos saindo da Prensa e entrando no paiol; a pilha na grade de saída da Prensa sobe e desce (não fica parada cheia).",
+      "resposta": "sim / nao",
+      "se_nao": "O teletransporte fábrica -> paiol não funciona: me mande o resultado e teste a reserva (seção 12).",
+      "curto": true,
+      "decide": "logistics.transport / fita_fabrica"
+     },
+     {
+      "id": "2.4",
+      "faca": "Tire a Fita da Prensa.",
+      "olhe": "A grade de saída da Prensa enche e para; com a Fita de volta ela volta a mandar.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote."
+     },
+     {
+      "id": "2.5",
+      "faca": "Na outra ponta, um 'Tambor' (canhão naval 76 mm) com Fita, em HE, sem corredor até a tripulação, atirando na nave inimiga.",
+      "olhe": "A barra de HE do Tambor enche em ~10-20 s e fica cheia atirando; cartuchos entrando no Tambor.",
+      "resposta": "sim / nao",
+      "se_nao": "O paiol não está empurrando para a arma: mande o resultado.",
+      "curto": true,
+      "decide": "logistics.fita_arma"
+     },
+     {
+      "id": "2.6",
+      "faca": "Tire a Fita do Tambor (continuando a atirar).",
+      "olhe": "A barra para de encher e vai esvaziando.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote."
+     },
+     {
+      "id": "2.7",
+      "faca": "Com o Tambor sem Fita e a barra de HE vazia, mude o Tambor para AP e SÓ DEPOIS grude a Fita de volta.",
+      "olhe": "A barra de AP continua vazia (o paiol só tem HE: um tipo nunca vira outro). Depois ponha uma 'Fábrica de Munição Especial' (F2) em AP + outro paiol de cartuchos 1x1 trocado para AP, ambos com Fita: a barra de AP do Tambor sobe e o paiol de HE nunca recebe AP.",
+      "resposta": "sim / nao",
+      "se_nao": "Mistura de tipos: me avise (isso trava a fita).",
+      "curto": true,
+      "decide": "logistics.transport (A7)"
+     },
+     {
+      "id": "2.8",
+      "faca": "Troque o paiol de HE (cheio) para AP no botão do paiol.",
+      "olhe": "A Prensa HE para de mandar para ele; o HE que já estava nele continua indo para armas em HE.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote."
+     },
+     {
+      "id": "2.9",
+      "faca": "Um-para-muitos: 2 Prensas HE + 2 paióis de cartuchos em HE + 2 Tambores em HE, todos com Fita e longe uns dos outros.",
+      "olhe": "Os 2 paióis enchem e os 2 Tambores ficam cheios atirando.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote qual não recebeu."
+     },
+     {
+      "id": "2.10",
+      "faca": "Carregador do Tupã + 1 Cano + Ponta, um 'Paiol de Projéteis 1x1' e uma 'Forja de Projéteis' (F6), cada máquina com Fita (no carregador, de lado).",
+      "olhe": "As cápsulas azuis aparecem na janela do carregador (até 12) e o paiol de projéteis enche.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (a reserva pela tripulação continua valendo)."
+     },
+     {
+      "id": "2.11",
+      "faca": "Reserva da tripulação: perto das armas, um Beliche e uma Baia de armazenamento com Munição HE (Gerenciar recursos + 'Reabastecer todos os recursos'), tudo ligado por Corredor/Porta. Tire TODAS as Fitas e deixe o Tambor atirando 1 minuto.",
+      "olhe": "Quando a barra do Tambor passa da metade para baixo, um tripulante traz carregador HE.",
+      "resposta": "sim / nao",
+      "se_nao": "A reserva por tripulação quebrou: me avise.",
+      "decide": "logistics.reserva_tripulacao (B1)"
+     },
+     {
+      "id": "2.12",
+      "faca": "Ponha as Fitas de volta (Prensa ligada).",
+      "olhe": "O Tambor fica cheio pela Fita e a tripulação quase nunca leva munição a ele (só se cair abaixo da metade).",
+      "resposta": "sim / nao",
+      "se_nao": "Anote o que a tripulação fez (B2)."
+     },
+     {
+      "id": "2.13",
+      "faca": "Com as Fitas no lugar, desligue a Prensa e espere o paiol esvaziar.",
+      "olhe": "Quando o Tambor passa da metade, a tripulação volta a abastecer.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (B3: com fita a arma dependeria só do paiol)."
+     },
+     {
+      "id": "2.14",
+      "faca": "Nave sem tripulação: paiol + Prensa numa metade, Tambor com Fita na outra. Selecione as Estruturas do meio e use Autodestruição.",
+      "olhe": "Em ~15 s o Tambor da metade separada esvazia (a fita não atravessa para outro navio).",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (C1)."
+     },
+     {
+      "id": "2.15",
+      "faca": "(com SW) Monte um 'Heavy Reinforced Reactor' ou 'WIP! Light Hypermatter Reactor' do SW com Overclock perto das peças com Fita.",
+      "olhe": "As peças do SW continuam com energia e as barras das peças da Fita não mudam.",
+      "resposta": "sim / nao",
+      "se_nao": "Isto trava a liberação: mande o resultado e o log.",
+      "com_sw": true,
+      "curto": true,
+      "decide": "portao (C3)"
+     }
+    ]
+   },
+   {
+    "n": 3,
+    "titulo": "Famílias de armas",
+    "itens": [
+     {
+      "id": "3.1",
+      "faca": "Metralhadoras e canhões leves (Marimbondo, Mangangá, Carcará, Saci, Cigarra, Furacão): troque o tipo no botão de munição.",
+      "olhe": "Só aparecem os tipos de cada arma (Marimbondo HE/AP; Carcará e Furacão HE/AP/SAP); trocar o tipo troca a barra que enche.",
+      "resposta": "sim / nao",
+      "se_nao": "Diga qual arma/tipo falhou."
+     },
+     {
+      "id": "3.2",
+      "faca": "Atire com elas perto de um casco branco e no espaço.",
+      "olhe": "Traçantes com a cor da munição (HE âmbar, AP branco-azulado, SAP laranja); o brilho grande aparece só no espaço, sem mancha branca no casco.",
+      "resposta": "sim / nao",
+      "se_nao": "Print do casco lavado."
+     },
+     {
+      "id": "3.3",
+      "faca": "Canhões navais (Tambor 76, Trovão 155, Mapinguari 406) em HE, AP, SAP e AC.",
+      "olhe": "4 tipos no botão; granadas futuristas: HE âmbar, AP branco-azul, SAP laranja, AC carmim com faixa dourada e SEM aletas de guiagem (voa reta).",
+      "resposta": "sim / nao",
+      "se_nao": "Diga qual granada está errada.",
+      "curto": true
+     },
+     {
+      "id": "3.4",
+      "faca": "Olhe a traseira das granadas do Tambor e do Trovão em voo.",
+      "olhe": "O clarão branco da base é pequeno e fica atrás da granada (não cobre a granada).",
+      "resposta": "sim / nao",
+      "se_nao": "Print."
+     },
+     {
+      "id": "3.5",
+      "faca": "AP contra uma pilha de blindagem (várias peças).",
+      "olhe": "Em cada peça atravessada só faísca; a explosão cheia só onde a granada para.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote se cada peça faz a explosão inteira."
+     },
+     {
+      "id": "3.6",
+      "faca": "AC contra o casco.",
+      "olhe": "Explosão dourada grande com anel de pressão (nunca verde).",
+      "resposta": "sim / nao",
+      "se_nao": "Print."
+     },
+     {
+      "id": "3.7",
+      "faca": "Boiúna (obuseiro 5x6) em HE e AC.",
+      "olhe": "Torre âmbar sem trevo; traçante FINO (parece granada, não foguete); a AC curva atrás de um alvo andando a ~600 m.",
+      "resposta": "sim / nao",
+      "se_nao": "Diga o que falhou.",
+      "decide": "boiuna.ac_guided (B-1)"
+     },
+     {
+      "id": "3.8",
+      "faca": "Ponha 3 armas entre Mapinguari e Boiúna na mesma nave.",
+      "olhe": "A 3ª é recusada (máximo 2 somados).",
+      "resposta": "sim / nao",
+      "se_nao": "Anote."
+     },
+     {
+      "id": "3.9",
+      "faca": "Boitatá e Curupira (plasma) com células de plasma (F3 em Plasma + paiol de células, com Fita).",
+      "olhe": "Recebem células e atiram com os efeitos de plasma de sempre.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote."
+     },
+     {
+      "id": "3.10",
+      "faca": "Destrua um Tambor cheio de HE e outro vazio.",
+      "olhe": "O cheio explode como na 1.x; o vazio quase não.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (T11)."
+     }
+    ]
+   },
+   {
+    "n": 4,
+    "titulo": "Fábricas",
+    "itens": [
+     {
+      "id": "4.1",
+      "faca": "Ponha as 6 fábricas.",
+      "olhe": "Arte nova: F1 Prensa HE 2x2, F2 Munição Especial 4x3, F3 Células 3x3, F4 Mísseis 3x3, F5 Ogivas Nucleares 4x4, F6 Forja de Projéteis 3x4; a animação só roda produzindo.",
+      "resposta": "sim / nao",
+      "se_nao": "Diga qual está errada.",
+      "curto": true
+     },
+     {
+      "id": "4.2",
+      "faca": "Abasteça as entradas (com tripulação, sem Construção Livre se precisar).",
+      "olhe": "F1 enxofre; F2 enxofre + tristeel; F3 enxofre + bobina (plasma) e cobre na grade do meio de baixo (PEM); F4 ferro + enxofre; F5 ferro + urânio bruto; F6 tristeel + coil2. A tripulação alcança todas as grades.",
+      "resposta": "sim / nao",
+      "se_nao": "Diga qual grade não recebe."
+     },
+     {
+      "id": "4.3",
+      "faca": "Troque o modo: F2 (AP/SAP/AC/FRAG, começa em AP), F3 (Plasma/PEM), F4 (HE/Submunição/PEM).",
+      "olhe": "A placa do teto troca e a saída certa produz; F3 em PEM mostra o banco PEM aceso só produzindo.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote."
+     },
+     {
+      "id": "4.4",
+      "faca": "Vizinhança: uma Prensa HE sozinha e outra encostada em 2 fábricas (do Bullet Strike ou do jogo base).",
+      "olhe": "A estatística mostra o bônus de fábrica (+25 % por vizinha); sozinha faz 1 carregador a cada ~1,9 s; com 2 vizinhas a cada ~1,25 s.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote os tempos.",
+      "curto": true,
+      "decide": "econ.factory_adjacency"
+     },
+     {
+      "id": "4.5",
+      "faca": "Overclock nas fábricas.",
+      "olhe": "Produz ~3x mais rápido e esquenta.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote."
+     },
+     {
+      "id": "4.6",
+      "faca": "F2 em AC por 2 minutos seguidos.",
+      "olhe": "Não trava (a saída de AC continua andando).",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (T-F2-SPLIT)."
+     },
+     {
+      "id": "4.7",
+      "faca": "Destrua uma fábrica com estoque na grade de saída.",
+      "olhe": "Explosão moderada (por saída), não maior que a fábrica do jogo base equivalente.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote."
+     },
+     {
+      "id": "4.8",
+      "faca": "Sem Fita: a tripulação recolhe da grade de saída.",
+      "olhe": "Igual a uma fábrica do jogo base.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote."
+     }
+    ]
+   },
+   {
+    "n": 5,
+    "titulo": "Paióis",
+    "itens": [
+     {
+      "id": "5.1",
+      "faca": "Ponha os 12 paióis (cartuchos, células, mísseis, projéteis; 1x1, 2x2, 3x3).",
+      "olhe": "Teto com a cor da família, placa do tipo, medidor lateral; selados (sem porta) nesta versão com Fita.",
+      "resposta": "sim / nao",
+      "se_nao": "Diga qual está errado."
+     },
+     {
+      "id": "5.2",
+      "faca": "Troque o tipo no botão do paiol.",
+      "olhe": "A placa troca e ele passa a aceitar só o tipo escolhido.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote."
+     },
+     {
+      "id": "5.3",
+      "faca": "Encha um paiol pela Fita.",
+      "olhe": "A barra sob a vida e o medidor do teto sobem juntos (5 / 8 / 10 níveis). Não há contador de números (desligado nesta versão).",
+      "resposta": "sim / nao",
+      "se_nao": "Anote."
+     },
+     {
+      "id": "5.4",
+      "faca": "Encha até parar.",
+      "olhe": "Capacidade (cartuchos HE): 60 no 1x1, 276 no 2x2, 702 no 3x3; projéteis 20 / 92 / 234.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote o número."
+     },
+     {
+      "id": "5.5",
+      "faca": "Destrua um paiol 1x1 de HE cheio e outro vazio.",
+      "olhe": "O cheio explode bem mais que o vazio.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (itens 14-16 do kit antigo)."
+     },
+     {
+      "id": "5.6",
+      "faca": "O painel de recursos da nave.",
+      "olhe": "Conta o estoque dos paióis (anote se conta ou não).",
+      "resposta": "sim / nao",
+      "se_nao": "-"
+     }
+    ]
+   },
+   {
+    "n": 6,
+    "titulo": "Mísseis",
+    "itens": [
+     {
+      "id": "6.1",
+      "faca": "Tocandira, Caipora e Mula: botão de tipo.",
+      "olhe": "Tocandira só HE; Caipora HE / Submunição / PEM; Mula HE / Submunição / PEM / Nuclear.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote."
+     },
+     {
+      "id": "6.2",
+      "faca": "Alimente pela Fita (F4 + paiol de mísseis) e, sem Fita, pela tripulação abaixo da metade.",
+      "olhe": "Os carregadores enchem nos dois casos.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote."
+     },
+     {
+      "id": "6.3",
+      "faca": "Atire cada tipo.",
+      "olhe": "Mísseis com visual novo; a Iara inconfundível (verde, trevo).",
+      "resposta": "sim / nao",
+      "se_nao": "Print."
+     },
+     {
+      "id": "6.4",
+      "faca": "Submunição (Piranha) contra uma nave.",
+      "olhe": "O portador abre a ~300 m (Caipora) / ~400 m (Mula) e solta 12 / 20 minimísseis que acertam peças DIFERENTES; as pétalas do nariz aparecem e somem; nunca acertam o próprio convés.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote.",
+      "curto": true,
+      "decide": "missiles.cluster_randomize_target (T-MSL-CLUSTER)"
+     },
+     {
+      "id": "6.5",
+      "faca": "(com SW) Poraquê contra bolha do SW, com e sem overclock do escudo.",
+      "olhe": "Tira ~10.000 (Caipora) / ~18.750 (Mula) de escudo por acerto, igual com e sem overclock.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote os números (T-MSL-EMP).",
+      "com_sw": true
+     },
+     {
+      "id": "6.6",
+      "faca": "Iara (Mula em Nuclear).",
+      "olhe": "2 estágios, sem iscas, explosão nuclear grande; a 3ª Mula é recusada; o overclock não acelera a recarga da nuclear.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (T-MSL-NUKE)."
+     },
+     {
+      "id": "6.7",
+      "faca": "Destrua uma Mula cheia de HE + Submunição.",
+      "olhe": "Explosão grande mas não maior que na 1.x.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (T-MSL-COOK)."
+     }
+    ]
+   },
+   {
+    "n": 7,
+    "titulo": "Linha PEM",
+    "itens": [
+     {
+      "id": "7.1",
+      "faca": "Tuvira (1x2) com Células PEM (F3 em PEM + paiol de células em PEM, com Fita).",
+      "olhe": "É uma TORRE que gira 270° (não só para a frente), com 2 canos; atira ~1,4 tiro/s.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote.",
+      "curto": true
+     },
+     {
+      "id": "7.2",
+      "faca": "Treme-Treme e a PEM pesada.",
+      "olhe": "A pesada se chama 'Corisco' e o overclock dela 'Relâmpago'; arcos/brilho azul antes do tiro.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote o nome que aparece."
+     },
+     {
+      "id": "7.3",
+      "faca": "(com SW) Contra bolha média do SW (20.000).",
+      "olhe": "Quebra em ~4,6 s (Tuvira), ~3,2 s (Treme-Treme), ~1,1 s (Corisco); igual com overclock do escudo.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote os tempos (T1).",
+      "com_sw": true
+     },
+     {
+      "id": "7.4",
+      "faca": "(com SW) Acertos no casco/torres do SW.",
+      "olhe": "Quase não fazem dano; peças do SW drenadas apagam; armas do Bullet Strike não são afetadas por íons do SW.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (T5).",
+      "com_sw": true
+     },
+     {
+      "id": "7.5",
+      "faca": "Corisco com overclock (Relâmpago).",
+      "olhe": "O tiro atravessa peças e drena por ~10 s.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote."
+     }
+    ]
+   },
+   {
+    "n": 8,
+    "titulo": "Tupã com tranco",
+    "itens": [
+     {
+      "id": "8.1",
+      "faca": "Monte Carregador 5x5 + 1 Cano + Ponta em linha (canos encaixam no MEIO da borda de cima do carregador).",
+      "olhe": "A Ponta fica operacional; com 0 canos (Ponta direto no carregador) ou 7 canos ela mostra peça faltando e não atira.",
+      "resposta": "sim / nao",
+      "se_nao": "Print do montado.",
+      "curto": true,
+      "decide": "rail.enabled (R-1)"
+     },
+     {
+      "id": "8.2",
+      "faca": "Desloque o carregador 1 quadro para o lado.",
+      "olhe": "Nada conecta (ícone de peça faltando).",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (T-TR-5)."
+     },
+     {
+      "id": "8.3",
+      "faca": "Tooltip da Ponta com 1, 4 e 6 canos.",
+      "olhe": "Bônus +25 % / +81 % / +115 %; pontos de comando 8 / 14 / 18.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote."
+     },
+     {
+      "id": "8.4",
+      "faca": "Energia (Cano B): veja a bateria do carregador a cada tiro.",
+      "olhe": "Cai ~2.500 (1 cano), ~4.000 (4), ~5.000 (6); com 6 canos a bateria cheia (15.000) dá 3 tiros; a tripulação traz bateria ao carregador.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote os números."
+     },
+     {
+      "id": "8.5",
+      "faca": "Antes do tiro, olhe os canos.",
+      "olhe": "A carga azul acende do carregador para a ponta; o dardo azul desliza pelo canal; nada reacende depois do tiro.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote."
+     },
+     {
+      "id": "8.6",
+      "faca": "TRANCO: nave pequena parada, Tupã no centro, 1 tiro.",
+      "olhe": "A nave dá um tranco PARA TRÁS; com 6 canos empurra mais que com 1.",
+      "resposta": "sim / nao",
+      "se_nao": "Se for para a frente ou não mexer, anote.",
+      "curto": true,
+      "decide": "rail.tranco_impulso (T-TR-1)"
+     },
+     {
+      "id": "8.7",
+      "faca": "Tupã fora do centro da nave.",
+      "olhe": "A nave gira um pouco (normal, como a railgun do jogo base).",
+      "resposta": "sim / nao",
+      "se_nao": "Anote se gira demais (T-TR-2).",
+      "decide": "rail.recoil_com"
+     },
+     {
+      "id": "8.8",
+      "faca": "Olhe de perto vários tiros, com o teto e com o interior ligado.",
+      "olhe": "A cada tiro a frente da ponta (com as bochechas brancas), os tambores de CADA cano e, logo depois, o bloco da culatra com as molas recuam e voltam; parados, tudo em repouso (nada faltando nem desenhado em dobro); com o interior ligado o bloco da culatra não cobre os tripulantes.",
+      "resposta": "sim / nao",
+      "se_nao": "Diga qual peça não mexe ou o que cobre o interior (T-TR-3, T-TR-A2).",
+      "curto": true,
+      "decide": "rail.tranco_gatilho / camada do tranco"
+     },
+     {
+      "id": "8.9",
+      "faca": "Tremor e anel.",
+      "olhe": "A tela treme a cada tiro (some com 'Tremor de tela' desligado nas opções); anel azul na boca que fica no lugar enquanto a nave recua.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (T-TR-4)."
+     },
+     {
+      "id": "8.10",
+      "faca": "Ponha peças da própria nave na frente do Tupã e mande atirar num inimigo.",
+      "olhe": "A IA atira e o dardo passa POR CIMA da própria nave sem dano.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote o dano na própria nave.",
+      "curto": true
+     },
+     {
+      "id": "8.11",
+      "faca": "(com SW) Números: 1 / 4 / 6 canos contra bolhas de escudo do SW (média e grande).",
+      "olhe": "Alcance ~500 / 700 / 700 m; com 1 cano fura a bolha média do SW e continua; com 4 a bolha grande cai em 2 tiros.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (R-1/R-3).",
+      "com_sw": true
+     },
+     {
+      "id": "8.12",
+      "faca": "(com SW) 4 canos contra 3 fileiras de durasteel do SW + interior.",
+      "olhe": "Tira 60.000 de HP ou mais; fogo/calor onde o dardo para; peças com energia atravessadas chiam ~4 s.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (R-2).",
+      "com_sw": true
+     },
+     {
+      "id": "8.13",
+      "faca": "Limite.",
+      "olhe": "A 3ª Ponta é recusada; 2 Mapinguari + 2 Tupã são aceitos.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (R-4)."
+     },
+     {
+      "id": "8.14",
+      "faca": "Cores.",
+      "olhe": "Tudo AZUL (carregador, canos, ponta, dardo, rastro, faíscas, raios e clarões do impacto, escudo atingido): nada violeta e nada dourado na energia. Só as brasas laranja que ficam queimando no alvo depois do impacto são quentes (de propósito).",
+      "resposta": "sim / nao",
+      "se_nao": "Print (e diga se prefere as brasas azuis também)."
+     },
+     {
+      "id": "8.15",
+      "faca": "(opcional) Multijogador ou replay com muitos tiros.",
+      "olhe": "Sem dessincronizar.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (T-TR-6)."
+     }
+    ]
+   },
+   {
+    "n": 9,
+    "titulo": "Defesas contra os lasers do SW",
+    "itens": [
+     {
+      "id": "9.1",
+      "faca": "Tatu, Tamanduá e Pororoca: botão HE / FRAG, alimentados pela Fita (cartuchos HE e FRAG).",
+      "olhe": "Recebem e atiram nos dois modos.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote."
+     },
+     {
+      "id": "9.2",
+      "faca": "(com SW) Contra mísseis do SW.",
+      "olhe": "Derrubam vários de uma vez.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote.",
+      "com_sw": true
+     },
+     {
+      "id": "9.3",
+      "faca": "(com SW) Contra tiros de laser/íon do SW.",
+      "olhe": "Derrubam parte dos tiros: úteis, mas mais fracas que a defesa do SW contra lasers (como na Fase B: 0,55-0,80x).",
+      "resposta": "sim / nao",
+      "se_nao": "Se achar fraco demais, diga: dá para subir para 1,15x.",
+      "com_sw": true,
+      "curto": true,
+      "decide": "guns.defesa_antilaser"
+     },
+     {
+      "id": "9.4",
+      "faca": "Tamanduá em FRAG contra uma salva de Piranhas e contra um casco a 30 m.",
+      "olhe": "Os fragmentos destroem os minimísseis; no casco só faísca, sem dano e sem travar.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (T-FRAG).",
+      "decide": "guns.frag_fragment"
+     },
+     {
+      "id": "9.5",
+      "faca": "(com SW) Defesas do SW contra nossas balas pequenas (até 30 mm).",
+      "olhe": "Não derrubam as balas pequenas (como a chaingun do jogo base).",
+      "resposta": "sim / nao",
+      "se_nao": "Anote.",
+      "com_sw": true
+     }
+    ]
+   },
+   {
+    "n": 10,
+    "titulo": "Balanço contra o SW",
+    "itens": [
+     {
+      "id": "10.1",
+      "faca": "(com SW) T3 etapa 1: Trovão HE e Mapinguari HE contra o Turbolaser Imperial do SW, num bloco interior 2x2 sem blindagem (10 tiros cada).",
+      "olhe": "O que entra depois do primeiro contato fica no máximo ~1,5x o do turbolaser.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote o HP tirado por cada um.",
+      "com_sw": true,
+      "decide": "guns.he_further_factor"
+     },
+     {
+      "id": "10.2",
+      "faca": "(com SW) T3 etapa 2: 10 tiros AP e 10 HE de Furacão, Trovão e Mapinguari (e SAP x HE de Trovão e Mapinguari) contra 1 durasteel do SW + interior 2x2 + corredores.",
+      "olhe": "AP tira no máximo 0,9x o HP que o HE tira; SAP no máximo 0,95x.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote os HPs.",
+      "com_sw": true,
+      "decide": "guns.ap_further_factor"
+     },
+     {
+      "id": "10.3",
+      "faca": "(com SW) Combate geral.",
+      "olhe": "Por nível as armas do Bullet Strike ficam ~15 % acima das do SW (Marimbondo x laser de teto, Tambor x turbolaser médio, Trovão x turbolaser de facção; Boitatá e PEM x íons).",
+      "resposta": "sim / nao",
+      "se_nao": "Diga quais parecem fortes ou fracas demais.",
+      "com_sw": true
+     },
+     {
+      "id": "10.4",
+      "faca": "(com SW) Tupã contra o Siege Turbolaser.",
+      "olhe": "O Tupã bate mais por tiro (2,4x com 4 canos), mas por espaço rende menos (o carregador 5x5 é o preço).",
+      "resposta": "sim / nao",
+      "se_nao": "Diga se ficou forte ou fraco demais (se fraco: dá para atirar a cada 5,4 s em vez de 6 s).",
+      "com_sw": true
+     },
+     {
+      "id": "10.5",
+      "faca": "Logística.",
+      "olhe": "Com fábricas encostadas umas nas outras o custo de fábricas parece razoável para manter as armas atirando.",
+      "resposta": "sim / nao",
+      "se_nao": "Diga se as fábricas parecem lentas demais."
+     }
+    ]
+   },
+   {
+    "n": 11,
+    "titulo": "Desempenho",
+    "itens": [
+     {
+      "id": "11.1",
+      "faca": "10 paióis, 20 armas e 5 fábricas, todos com Fita.",
+      "olhe": "O jogo não fica lento; ao selecionar um paiol aparece só uma cruzinha verde, nenhum retângulo do tamanho do navio.",
+      "resposta": "sim / nao",
+      "se_nao": "Descreva (se lento: troco a Fita para alcance de ~12 blocos).",
+      "curto": true,
+      "decide": "logistics.fita_alcance (C2)"
+     },
+     {
+      "id": "11.2",
+      "faca": "2 Mulas + 2 Caiporas em Submunição juntas contra um alvo de ~150 peças.",
+      "olhe": "Fica jogável.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote o FPS (T-MSL-PERF)."
+     },
+     {
+      "id": "11.3",
+      "faca": "(com SW) 2 Tupã de 6 canos atirando 30 s contra uma nave do SW de ~40 peças.",
+      "olhe": "Fica jogável.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (P-1).",
+      "com_sw": true
+     },
+     {
+      "id": "11.4",
+      "faca": "Mapinguari AP numa pilha de 13 blindagens.",
+      "olhe": "Sem engasgo a cada tiro.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (T-ART-6)."
+     },
+     {
+      "id": "11.5",
+      "faca": "(com SW) Uma batalha grande de 10 minutos.",
+      "olhe": "Sem fechar.",
+      "resposta": "sim / nao",
+      "se_nao": "Mande o log se fechar.",
+      "com_sw": true
+     }
+    ]
+   },
+   {
+    "n": 12,
+    "titulo": "Reserva sem Fita (só se a seção 1 ou 2 falhar, ou para comparar)",
+    "itens": [
+     {
+      "id": "12.1",
+      "faca": "Desative 'Bullet Strike', ative 'Bullet Strike (reserva sem Fita)' (nunca os dois) e abra o jogo.",
+      "olhe": "Carrega; a Fita não existe; o resto é igual.",
+      "resposta": "sim / nao",
+      "se_nao": "Mande o log.",
+      "curto": true
+     },
+     {
+      "id": "12.2",
+      "faca": "Ponha paióis.",
+      "olhe": "Têm portas e a tripulação entra (sala de munição caminhável).",
+      "resposta": "sim / nao",
+      "se_nao": "Anote."
+     },
+     {
+      "id": "12.3",
+      "faca": "Paiol de cartuchos 1x1 encostado atrás de um Marimbondo, sem tripulação.",
+      "olhe": "A arma enche e atira sozinha (paiol acoplado).",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (T-ACOPLA arma).",
+      "decide": "logistics.acoplamento"
+     },
+     {
+      "id": "12.4",
+      "faca": "Prensa HE com um paiol 1x1 encostado embaixo da saída.",
+      "olhe": "O paiol enche sem tripulação.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote (T-ACOPLA fábrica)."
+     },
+     {
+      "id": "12.5",
+      "faca": "Tripulação + Baia.",
+      "olhe": "A tripulação leva munição dos paióis para as armas abaixo da metade.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote."
+     },
+     {
+      "id": "12.6",
+      "faca": "Paiol de projéteis 1x1 encostado atrás do canto de trás esquerdo do carregador do Tupã (um 2x2/3x3 também serve, crescendo para a esquerda, para não tampar a porta de trás).",
+      "olhe": "Alimenta o carregador sem tripulação; a tripulação ainda entra pelas portas de trás.",
+      "resposta": "sim / nao",
+      "se_nao": "Anote."
+     }
+    ]
+   },
+   {
+    "n": 13,
+    "titulo": "Como me mandar as respostas",
+    "itens": [
+     {
+      "id": "13.1",
+      "faca": "Mande uma linha por item: número + sim/não + o que viu (ex.: '2.3 sim', '8.6 não: andou para a frente').",
+      "olhe": "Pode pular o que não deu para testar (diga 'não testei').",
+      "resposta": "sim / nao",
+      "se_nao": "-",
+      "curto": true
+     },
+     {
+      "id": "13.2",
+      "faca": "Se travou: o log mais recente da pasta Logs e, se puder, um print.",
+      "olhe": "-",
+      "resposta": "sim / nao",
+      "se_nao": "-",
+      "curto": true
+     },
+     {
+      "id": "13.3",
+      "faca": "Se já tinha respostas do TesteFita (A1-A7, A3b, B1-B3, C1-C3), mande também.",
+      "olhe": "Não é mais obrigatório: a seção 2 cobre o kit.",
+      "resposta": "sim / nao",
+      "se_nao": "-"
+     }
+    ]
+   }
+  ]
+ },
+ "open_risks": [
+  "TesteFita sem resposta: o teleporte (jeito B + empurra) vai para o build sem prova no jogo; a reserva SemFita (tripulacao) cobre falha de carga ou de funcionamento.",
+  "Gatilho do tranco por TriggerProxy de outra peca e inferido: o padrao 'relay' (Timer local) e todo verificado; 'proxy' so como alternativa.",
+  "IgnoreSourceShipLOSChecks/LowLOSChecks numa FixedWeapon nao tem exemplo (SW usa em TurretWeapon); OWN_SHIP_PASS no tiro garante o 'sem dano'.",
+  "Sinal do impulso (Rotation 90d) nao verificado: checklist 8.6 (T-TR-1).",
+  "roof_turrets pode nao sumir na vista do interior: o bloco da culatra e os tambores cobririam o interior (variante_roof_doodads pronta; checklist 8.8 / T-TR-3, T-TR-A2).",
+  "GridBuffProvider GridDistance 1000 em toda fabrica e paiol (jeito B) pode pesar: checklist 11.1 (C2); alternativa alcance 12.",
+  "Version 2.0.0 num build de teste (o portao continua pendente); sem sufixo porque o parser de Version pode nao aceitar.",
+  "Dois mods com as mesmas pecas (ids diferentes de mod): o usuario nao pode ativar os dois juntos.",
+  "Balanço decidido aqui sem confirmacao do usuario: carregador 33000 HP e bateria 15000; Tuvira torre com 22 celulas (regra 60 s) e 0,67x a ancora SW fixa.",
+  "Vizinhanca ligada: fabricas do jogo base tambem dao/recebem +25 % das BS.",
+  "Lacunas de arte: AC s/m/l ainda guiadas, gui/buff_fita.png, celulas cluster8/heavy8, previas projeteis_* antigas.",
+  "Descarga por cano (charge_wave atraso) tem tabela por (i, N); o minimo aceito (apaga tudo junto com o clarao) e permitido.",
+  "Portao do tranco r2: este addendum/SPEC foi gerado com spec_patch tranco-r2 (2026-10-21 21:20) e o estado do repo de 2026-10-21 21:32 (SATISFEITO); se o r2 mudar nomes/rects/arquivos/gatilhos do tranco, so a re-geracao com o spec_patch final pega (WP01 passo 0 e G13).",
+  "Balanco do Tupa: o job de arte r2 recomenda B (FireInterval 6,0 -> 5,4 s) + C (custo 30000 cr) no lugar do A_keep; NAO adotado neste build (decisao do usuario/orquestrador; CHECKLIST 10.4 pergunta se ficou fraco).",
+  "rail_fx: as brasas do impacto (rail_embers) ficam laranja-ouro (o alvo queimando) e todo o resto azul; o usuario pode pedir as brasas azuis (CHECKLIST 8.14).",
+  "Compositores de previa copiados do scratchpad (G13) dependem de texturas do jogo lidas de $COSMOTEER_DATA; sem a pasta do jogo as previas projeteis_*/armas_* nao regeram (nao trava o build)."
+ ]
+}

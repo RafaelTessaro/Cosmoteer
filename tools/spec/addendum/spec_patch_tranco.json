@@ -1,0 +1,4379 @@
+{
+ "meta": {
+  "what": "Proposta de patch do SPEC_2.0 depois da arte do TRANCO e do carregador 5x5 do Tupa (nada aplicado: o spec e o gerador sao de outro dono).",
+  "date": "2026-10-21",
+  "base_spec": "/tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/v2/design/final/addendum/SPEC_2.0.before.json",
+  "round": "tranco-r2 (refino 2 do tranco)",
+  "research": "/tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/v2/railart/tranco/tranco_research.json",
+  "art": "art3d/bs_rail_loader, art3d/bs_rail_barrel, art3d/bs_rail_muzzle (tools/blender/parts/bs_rail.py)",
+  "check": "tranco/check_rail.py: OK (contrato, quadros, deslocamentos, repouso = desenho aprovado; r2: X2..X8 = X1 deslocado bit a bit, alfa 241-254 = 0, buracos das bochechas cobertos em todos os quadros, nenhum pixel cor de pintura fora do teto)",
+  "previews": [
+   "docs/preview/3d/v2/railgun_tranco_curto.gif",
+   "docs/preview/3d/v2/railgun_tranco_curto.mp4",
+   "docs/preview/3d/v2/railgun_tranco_quadros.png",
+   "docs/preview/3d/v2/railgun_tranco.gif",
+   "docs/preview/3d/v2/railgun_tranco.mp4",
+   "docs/preview/3d/v2/railgun_disparo.gif",
+   "docs/preview/3d/v2/railgun_disparo.mp4",
+   "docs/preview/3d/v2/railgun_montado.png",
+   "docs/preview/3d/v2/railgun_referencia.png",
+   "docs/preview/3d/v2/railgun_pecas.png",
+   "docs/preview/3d/v2/railgun_casco_branco.png"
+  ],
+  "format": "ops = JSON Patch RFC 6902 sobre base_spec (o SPEC_2.0 SEM o addendum), com os valores por extenso (sem referencias '<...>'); aplicavel em ordem (conferido: rfc6902_check). ops_balance_derived so se o balanço ficar como esta (aplicavel depois de ops); ops_balance_option_B / ops_balance_option_C = a recomendacao r2 (balance.recommendation_r2), cada uma aplicavel depois de ops. ops_on_current_spec = so o que o tranco-r1 mudou, sobre o SPEC_2.0.json atual (com o addendum; rfc6902_check_current). Os blocos tranco/art_contract/chain_offsets_5x5/balance/tests abaixo repetem os valores (o apply_addendum_spec.py le estes blocos).",
+  "rfc6902_check": "OK: 50 ops + 12 ops_balance_derived aplicadas em ordem sobre /tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/v2/design/final/addendum/SPEC_2.0.before.json (replace so em caminhos que existem; art_assets.railgun.* mantem id/render_kind/crew/files/count e ganha layers); ops_balance_option_B (1) e _C (8) aplicaveis depois de ops; conferido: acoplamento cell/PaiolAcoplado_0.PartLocation = [0,5], fallback_adjacency e o switch sem [0,4]/[1,4], effects.railgun.muzzle azul com o anel de choque, TrancoCoroa Location [1.5, 1.78125]",
+  "current_spec": "/tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/v2/design/final/SPEC_2.0.json",
+  "rfc6902_check_current": "OK: 9 ops_on_current_spec aplicadas em ordem sobre /tmp/claude-0/-home-user/f8886d0a-a310-5d28-bdb1-569b20620ed3/scratchpad/v2/design/final/SPEC_2.0.json (o SPEC com o ADDENDUM 2.0 e o refino r1 ja aplicados pelo dono; so o que ainda difere: 12 alvos ja iguais em ops_on_current_spec_unchanged); conferido: acoplamento [0,5], switch e fallback_adjacency sem [0,4]/[1,4], portas [1,5]/[3,5], effects.railgun.muzzle azul com o anel de choque; ops_balance_option_B/_C tambem aplicaveis depois. Alternativa equivalente: rodar de novo o apply_addendum_spec.py (ele le os blocos tranco/art_contract deste arquivo) E aplicar as ops do switch, do fallback_adjacency e do effects.railgun.muzzle (o script nao as faz)."
+ },
+ "summary_ptbr": [
+  "Carregador 3x4 -> 5x5 (canal no centro, canos nos quadros x 1..3), 2 tripulantes, 12 capsulas (1 dardo cada; projeteis1..6 continuam 6 niveis de 2 dardos), capacitores maiores (3 niveis, 1 celula grande por lado por nivel), placas brancas e molas de recuo fora do cano. Todos os arquivos antigos do carregador continuam com o mesmo nome e numero de niveis/quadros; mudaram os rects (tabela art_contract) e entrou culatra_tranco1..8.",
+  "Cano e ponta: contrato antigo igual (nomes, rects, quadros, emendas). Entram tambores_tranco1..8 (cano), weapon_tranco1..8 e tambor_tranco1..8 (ponta). roof.png do cano e da ponta NAO tem mais os tambores, o da ponta tem os buracos das bochechas brancas (que andam em weapon_tranco) e o roof.png do carregador nao tem a culatra: as Graphics do tranco sao obrigatorias junto com a arte nova; weapon.png da ponta e so o repouso (nunca junto com weapon_tranco).",
+  "Tranco (refino r1, o usuario: 'e que pra mim esta parado'): 8 quadros de 0,05 s, arquivo 1 = repouso (lista [2..8, 1]); TUDO o que anda bate 13 px = 0,203 quadro (era 0,12-0,18) e segura 2 quadros; a frente da ponta anda COM as bochechas brancas; a culatra bate 1 quadro depois da boca e as molas gordas comprimem 13 px. Impulso UNICO 2400 x m(N) no BulletEmitter (corrige o bug do impulso a cada 1/30 s), BASE_SHAKE 0.2 / 0.7 s, anel de choque azul.",
+  "Balanço: +13 quadros -> DPS por quadro 253..183 vira 181..157 se nada mudar. Recomendacao r2: B (FireInterval 6.0 -> 5.4 s, ou DamagePool +10%) + C (custo 30000 cr; vida 33000 ja no SPEC) no lugar de A_keep: o usuario pediu o carregador maior pelo visual, nao uma arma mais fraca (balance.recommendation_r2).",
+  "Refino r2 do spec: paiol acoplado em [0,5] no 5x5 (cell, PaiolAcoplado_0.PartLocation, fallback_adjacency e o texto do switch; em [0,4] o proxy olharia a propria celula do carregador e o acoplamento falharia calado); portas de tras [1,5]/[3,5]; pieces seguem o padrao relay do rail.tranco_gatilho; TrancoCoroa Location [1.5, 1.78125]; art_assets.effects.railgun.muzzle azul com o anel de choque."
+ ],
+ "ops": [
+  {
+   "op": "replace",
+   "path": "/railgun/parts/carregador/size",
+   "value": [
+    5,
+    5
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/parts/carregador/layout_unrotated",
+   "value": "5x5, canal no CENTRO: os canos (3 de largura) encaixam nos quadros x 1..3 da borda de cima. Fileira 0 = culatra (x 1..3 sob o 1o cano; bloco da culatra com o tranco) com os garfos das hastes de recuo nas colunas x 0 e 4; fileiras 1-2 = fenda de alimentacao (x 2) + 2 postos da tripulacao (crew [1.5,2.0] e [3.5,2.0]); fileiras 2-4 = janela do paiol (12 capsulas, x 2) + molas de recuo nos canais laterais (x 0.855 e 4.145) + placas brancas por fora; capacitores grandes nas colunas x 0 e 4 (fileiras 2-4); portas da fita so nos 2 cantos de tras"
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/parts/carregador/doors",
+   "value": "AllowedDoorLocations [[-1,1],[5,1],[1,5],[3,5]] (lados na fileira 1 + atras das 2 colunas dos postos; o meio de tras e o paiol); BlockedTravelCells [[0,0],[1,0],[2,0],[3,0],[4,0],[2,1],[2,2],[2,3],[2,4],[0,2],[0,3],[0,4],[4,2],[4,3],[4,4]] (culatra, bandeja, coluna do paiol, bancos de capacitores; livres: (0,1),(4,1) e as colunas 1 e 3 das fileiras 1-4); ForceManhattanPathInPart; CrewLocation/CrewDestinations [1.5,2.0] e [3.5,2.0] (meta.json crew_pos)"
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/parts/carregador/chains_start",
+   "value": "RailBuffProvider (BulletStrike_Rail, BuffAmount 0, BuffArea [1,-1,3,1], Criteria {Category bs_rail_energia; Rot 0; Left 1; Right 4; Bottom 0}); OperationBuffProvider (BulletStrike_RailOperation, OperationalToggle BuffOperational, mesma BuffArea/Criteria); TriggerProxies WeaponTrigger/ProjectileStartTrigger/EmitTrigger -> PartLocation [1,-1] PartCriteria {Category bs_rail_energia; Rot 0; Left 1; Right 4; Bottom 0} ComponentIDs Weapon/ProjectileStartTrigger/EmissionTriggered; Porta_Trilho [2,0] Up (pesquisa tranco q4)"
+  },
+  {
+   "op": "add",
+   "path": "/railgun/parts/carregador/geometry_5x5",
+   "value": {
+    "Graphics_Location": [
+     2.5,
+     2.5
+    ],
+    "Blueprints_Size": [
+     5,
+     5
+    ],
+    "EditorIcon_Size": [
+     115,
+     115
+    ],
+    "LoadedSlug_UITileRect": "[2 + 7/64, 7/64, 1 - 14/64, 1 - 14/64]",
+    "CapacitorDischarge_DestroyedEffects_Indicators_Location": [
+     2.5,
+     2.5
+    ],
+    "walls": "walls.png 320x320, aberta em cima so em x 2.0-3.0 (a culatra encosta no canal do cano)"
+   }
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/parts/carregador/belt_intake/ports",
+   "value": "rafaeltessaro.bs_belt at [0,4] Left, [0,4] Down, [4,4] Down, [4,4] Right (cantos de tras do 5x5; o piso traz as molduras das portas nesses lugares)"
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/belt/ports",
+   "value": [
+    [
+     0,
+     4,
+     "Left"
+    ],
+    [
+     0,
+     4,
+     "Down"
+    ],
+    [
+     4,
+     4,
+     "Down"
+    ],
+    [
+     4,
+     4,
+     "Right"
+    ]
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/logistica/teleporte/host/AvisaFitaHorizontal/BuffArea",
+   "value": [
+    -1,
+    0,
+    7,
+    5
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/logistica/teleporte/host/AvisaFitaVertical/BuffArea",
+   "value": [
+    0,
+    -1,
+    5,
+    7
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/parts/cano/proxies",
+   "value": "LoadedSlug + LoaderBattery = ResourceStorageProxy PartLocation [0,3] ProxyableComponents [ {PartCriteria {Category bs_rail_municao; Rot 0; Left 0; Right 3; Top 3}; ComponentID = LoadedSlug (LoaderBattery)} {PartCriteria {IDs [rafaeltessaro.bs_rail_loader]; Rot 0; Left -1; Right 4; Top 3}; ComponentID = LoadedSlug (LoaderBattery)} ] (o cano de tras OU o carregador 5x5 centrado; arestas exatas: um carregador deslocado de lado nao conecta nada); Weapon/ProjectileStartTrigger/EmissionTriggered = TriggerProxy PartLocation [0,-1] Criteria {bs_rail_energia; Bottom 0} (igual)"
+  },
+  {
+   "op": "add",
+   "path": "/railgun/parts/cano/loader_5x5_links",
+   "value": "ReverseBuffOperationProvider (BulletStrike_RailReverseOperation) e, so na variante B, ContagemProvider (BulletStrike_RailCount): BuffArea [0,3,3,1] (igual) com Criterias [ {Category bs_rail_municao; Rot 0; Left 0; Right 3; Top 3} {IDs [rafaeltessaro.bs_rail_loader]; Rot 0; Left -1; Right 4; Top 3} ]. CRITICO: sem a 2a entrada o carregador nunca recebe RailReverseOperation e fica desligado. Ponta: sem mudanca (so encaixa num cano)."
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/firing_timeline/sequence/4",
+   "value": "4. ProjectileFinished (TriggerProxy of Projectile) fires the BulletEmitter: 1 slug + POWER_BASE from the loader through proxies, EmissionTriggered -> canos/loader drains (variant A/B), muzzle FX + TRANCO: ONE kick per shot = TriggeredEffects TrancoImpulso {Trigger = BulletEmitter; Location [1.5,2]; Rotation 90d; no ChainedTo; HitEffects [{Type = Impulse; Impulse = {BaseValue = 2400; BuffType = BulletStrike_RailShot; BuffMode = Multiply}}]} (3000 N=1 .. 5150 N=6, vanilla railgun ~4000 at N=4); BASE_SHAKE 0.2 / 0.7 s; blue shock ring; crown+cheeks/drums/breech recoil frames, 13 px (railgun.tranco). BUG FIXED: the old 'RecoilProjectile + 1/30 s Timer Impulse 3000' fired every 1/30 s while our slug crawls the barrel (0.25-0.79 s) = 8-24 pushes = 24000-72000 per shot (6-18x vanilla); and never chain the kick to the Projectile (Interpolate = true: multiplayer desync)."
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/visuals/muzzle",
+   "value": "own bs_rail_muzzle_flash: blue-white flash (palette rail: azul [45,115,255], nucleo [205,228,255]) + expanding blue EM ring + vanilla railgun_shoot_distortion (colourless) x MediaEffectsScale BulletStrike_RailShot; TRANCO: one Impulse 2400 x m(N) (railgun.tranco.impulse), BASE_SHAKE 0.2 / 0.7 s, blue SHOCK RING in space (railgun.tranco.shock_ring), crown+cheeks/drum/breech recoil frames (13 px = 0.203 tile, full stroke held 2 frames)"
+  },
+  {
+   "op": "add",
+   "path": "/railgun/tranco",
+   "value": {
+    "pedido_ptbr": "gostei da rail gun, só acho que o carregador poderia ser maior e poderia ter um efeito de 'tranco' quando ela disparasse, ia ficar muito mais foda",
+    "anim": {
+     "frames": 8,
+     "interval_s": 0.05,
+     "duration_s": 0.4,
+     "file_1_is_rest": true,
+     "AnimationFiles_order": "[X2, X3, X4, X5, X6, X7, X8, X1] (padrao barrel1 dos canhoes de convés: tools/bsgen/guns.py deck_graphics; vanilla cannon_deck.rules:1173-1272)",
+     "AnimationStartTime": "MinValue",
+     "ClampAnimation": true,
+     "offset_px_by_file": {
+      "crown": {
+       "X1": 0,
+       "X2": 13,
+       "X3": 13,
+       "X4": 10,
+       "X5": 6,
+       "X6": 3,
+       "X7": 1,
+       "X8": 0
+      },
+      "drum": {
+       "X1": 0,
+       "X2": 13,
+       "X3": 13,
+       "X4": 10,
+       "X5": 6,
+       "X6": 2,
+       "X7": -1,
+       "X8": 0
+      },
+      "breech": {
+       "X1": 0,
+       "X2": 6,
+       "X3": 13,
+       "X4": 13,
+       "X5": 9,
+       "X6": 5,
+       "X7": 2,
+       "X8": 0
+      }
+     },
+     "offset_px_play_order": {
+      "crown": [
+       13,
+       13,
+       10,
+       6,
+       3,
+       1,
+       0,
+       0
+      ],
+      "drum": [
+       13,
+       13,
+       10,
+       6,
+       2,
+       -1,
+       0,
+       0
+      ],
+      "breech": [
+       6,
+       13,
+       13,
+       9,
+       5,
+       2,
+       0,
+       0
+      ]
+     },
+     "curve_by_layer": {
+      "weapon_tranco": "crown",
+      "tambor_tranco": "drum",
+      "tambores_tranco": "drum",
+      "culatra_tranco": "breech"
+     },
+     "meaning": "px a 64 px/quadro, + = para tras (para a culatra). Critica tranco-r1 (o usuario: 'e que pra mim esta parado'): o curso inteiro foi para o TOPO da faixa (13 px = 0,203 quadro em tudo o que anda; era 0,12-0,18) e e SEGURADO 2 quadros (0,1 s: le na escala do jogo); a culatra bate 1 quadro depois da boca (o tranco corre da boca para a culatra); px inteiros (sem meio pixel borrado); sem sobre-curso para a frente na coroa e na culatra (ficam rentes a borda), 1 px nos tambores. Refino r2: em weapon_tranco, tambores_tranco e tambor_tranco os arquivos X2..X8 SAO o X1 deslocado bit a bit (cor e normais; sem o ruido de render que dava um brilho tremido); culatra_tranco e um render por quadro (as molas mudam de forma)."
+    },
+    "strokes_tiles": {
+     "ponta_coroa + bochechas brancas": 0.2031,
+     "tambores (canos e ponta)": 0.2031,
+     "bloco da culatra": 0.2031,
+     "molas de recuo (comprimem)": 0.2031
+    },
+    "strokes_px_at_64": 13,
+    "pieces": [
+     {
+      "part": "carregador",
+      "component": "TrancoCulatra",
+      "Type": "Graphics",
+      "what": "o BLOCO DA CULATRA (colar, fenda, ombros, barra de tras), os 2 garfos, as hastes e as cruzetas batem para tras 1 quadro depois da boca; as 2 MOLAS laranja-ouro gordas comprimem 13 px entre a cruzeta e o batente fixo (batente, guias e guia interna parados no sprite)",
+      "Layer": "roof_turrets",
+      "rect_unrotated": [
+       0.375,
+       0.0,
+       4.25,
+       4.75
+      ],
+      "Location": [
+       2.5,
+       2.375
+      ],
+      "Size": [
+       4.25,
+       4.75
+      ],
+      "stroke_tiles": 0.2031,
+      "stroke_px_at_64": 13,
+      "offset_px_by_file": [
+       0,
+       6,
+       13,
+       13,
+       9,
+       5,
+       2,
+       0
+      ],
+      "offset_px_play_order": [
+       6,
+       13,
+       13,
+       9,
+       5,
+       2,
+       0,
+       0
+      ],
+      "OperationalToggle": "IsOperational",
+      "ResetAnimationTrigger": "TrancoRelay",
+      "trigger_switch": "rail.tranco_gatilho (padrao relay)",
+      "OperationalDoodad": {
+       "AnimationFiles": [
+        "culatra_tranco2.png",
+        "culatra_tranco3.png",
+        "culatra_tranco4.png",
+        "culatra_tranco5.png",
+        "culatra_tranco6.png",
+        "culatra_tranco7.png",
+        "culatra_tranco8.png",
+        "culatra_tranco1.png"
+       ],
+       "NormalsAnimationFiles": [
+        "culatra_tranco2_normals.png",
+        "culatra_tranco3_normals.png",
+        "culatra_tranco4_normals.png",
+        "culatra_tranco5_normals.png",
+        "culatra_tranco6_normals.png",
+        "culatra_tranco7_normals.png",
+        "culatra_tranco8_normals.png",
+        "culatra_tranco1_normals.png"
+       ],
+       "AnimationInterval": 0.05,
+       "AnimationStartTime": "MinValue",
+       "ClampAnimation": true
+      },
+      "NonOperationalDoodad": {
+       "File": "culatra_tranco1.png",
+       "NormalsFile": "culatra_tranco1_normals.png"
+      },
+      "TrancoRelay": {
+       "Type": "Timer",
+       "StartTrigger": "EmitTrigger (o TriggerProxy do carregador -> EmissionTriggered, ja existe: TK bs2t_rail_carregador.rules:345-348; no 5x5 PartLocation [1,-1])",
+       "Duration": 0.5,
+       "TriggerWhenStarted": true,
+       "why": "padrao rail.tranco_gatilho = relay: Timer local como gatilho (vanilla factory_diamond.rules:272; TriggerWhenStarted: railgun_launcher.rules:522-530)"
+      },
+      "variante_proxy": {
+       "quando": "rail.tranco_gatilho = proxy (so se o T-TR-3 mostrar que o TriggerProxy de outra peca reinicia a animacao)",
+       "ResetAnimationTrigger": "EmitTrigger",
+       "resto": "sem o TrancoRelay"
+      },
+      "required_with_new_roof": "roof.png NOVO nao tem a fileira da culatra (so o leito escuro com os trilhos-guia e a fenda): sem esta Graphics o carregador fica sem o bloco.",
+      "why_roof_turrets": "weapons fica SOB o teto (so a borda da fenda apareceria); o bloco tem de ficar por cima do teto para o tranco aparecer com o teto visivel. Se roof_turrets continuar visivel na vista do interior e atrapalhar, variante_roof_doodads.",
+      "variante_roof_doodads": {
+       "quando": "se o teste T-TR-3 mostrar que roof_turrets NAO some na vista do interior",
+       "troca": {
+        "Layer": "roof_doodads"
+       },
+       "resto": "igual (mesmos arquivos, Location, Size, gatilho, ClampAnimation)",
+       "cuidado": "roof_doodads tambem guarda cabecas de torre em pecas vanilla: conferir no T-TR-3 se ela some no interior; se nenhuma das duas sumir, aceitar o desenho por cima (o interior do carregador fica coberto entre x 0.375 e 4.625) - previa: railgun_montado.png, coluna 'se roof_turrets aparecer'"
+      }
+     },
+     {
+      "part": "cano",
+      "component": "TrancoTambores",
+      "Type": "Graphics",
+      "what": "os 3 tambores EM + a garra lateral do tambor do meio (sairam de roof.png)",
+      "Layer": "roof_turrets",
+      "rect_unrotated": [
+       0.0,
+       0.0,
+       3.0,
+       3.0
+      ],
+      "Location": [
+       1.5,
+       1.5
+      ],
+      "Size": [
+       3.0,
+       3.0
+      ],
+      "stroke_tiles": 0.2031,
+      "stroke_px_at_64": 13,
+      "offset_px_by_file": [
+       0,
+       13,
+       13,
+       10,
+       6,
+       2,
+       -1,
+       0
+      ],
+      "offset_px_play_order": [
+       13,
+       13,
+       10,
+       6,
+       2,
+       -1,
+       0,
+       0
+      ],
+      "OperationalToggle": "IsOperational",
+      "ResetAnimationTrigger": "TrancoRelay",
+      "trigger_switch": "rail.tranco_gatilho (padrao relay)",
+      "OperationalDoodad": {
+       "AnimationFiles": [
+        "tambores_tranco2.png",
+        "tambores_tranco3.png",
+        "tambores_tranco4.png",
+        "tambores_tranco5.png",
+        "tambores_tranco6.png",
+        "tambores_tranco7.png",
+        "tambores_tranco8.png",
+        "tambores_tranco1.png"
+       ],
+       "NormalsAnimationFiles": [
+        "tambores_tranco2_normals.png",
+        "tambores_tranco3_normals.png",
+        "tambores_tranco4_normals.png",
+        "tambores_tranco5_normals.png",
+        "tambores_tranco6_normals.png",
+        "tambores_tranco7_normals.png",
+        "tambores_tranco8_normals.png",
+        "tambores_tranco1_normals.png"
+       ],
+       "AnimationInterval": 0.05,
+       "AnimationStartTime": "MinValue",
+       "ClampAnimation": true
+      },
+      "NonOperationalDoodad": {
+       "File": "tambores_tranco1.png",
+       "NormalsFile": "tambores_tranco1_normals.png"
+      },
+      "TrancoRelay": {
+       "Type": "Timer",
+       "StartTrigger": "EmissionTriggered (o TriggerProxy do cano -> ponta, ja existe: TK bs2t_rail_cano.rules:178-181)",
+       "Duration": 0.5,
+       "TriggerWhenStarted": true,
+       "why": "padrao rail.tranco_gatilho = relay: Timer local como gatilho (vanilla factory_diamond.rules:272; TriggerWhenStarted: railgun_launcher.rules:522-530)"
+      },
+      "variante_proxy": {
+       "quando": "rail.tranco_gatilho = proxy (so se o T-TR-3 mostrar que o TriggerProxy de outra peca reinicia a animacao)",
+       "ResetAnimationTrigger": "EmissionTriggered",
+       "resto": "sem o TrancoRelay"
+      },
+      "required_with_new_roof": "roof.png NOVO nao tem mais o(s) tambor(es): sem esta Graphics o cano/ponta fica sem eles. Mandar roof.png e a Graphics juntos.",
+      "variante_roof_doodads": {
+       "quando": "se o teste T-TR-3 mostrar que roof_turrets NAO some na vista do interior",
+       "troca": {
+        "Layer": "roof_doodads"
+       },
+       "resto": "igual (mesmos arquivos, Location, Size, gatilho, ClampAnimation)",
+       "cuidado": "roof_doodads tambem guarda cabecas de torre em pecas vanilla: conferir no T-TR-3 se ela some no interior; se nenhuma das duas sumir, aceitar o desenho por cima (o interior do carregador fica coberto entre x 0.375 e 4.625) - previa: railgun_montado.png, coluna 'se roof_turrets aparecer'"
+      }
+     },
+     {
+      "part": "ponta",
+      "component": "TrancoCoroa",
+      "Type": "Graphics",
+      "what": "a frente em escudo inteira da ponta (boca, paredes, tiras, pontas das cunhas) E as grandes BOCHECHAS BRANCAS em cunha com o fundo escuro delas (sairam de roof.png: tranco-r1)",
+      "Layer": "weapons",
+      "rect_unrotated": [
+       0.0,
+       0.0,
+       3.0,
+       3.5625
+      ],
+      "Location": [
+       1.5,
+       1.78125
+      ],
+      "Size": [
+       3.0,
+       3.5625
+      ],
+      "stroke_tiles": 0.2031,
+      "stroke_px_at_64": 13,
+      "offset_px_by_file": [
+       0,
+       13,
+       13,
+       10,
+       6,
+       3,
+       1,
+       0
+      ],
+      "offset_px_play_order": [
+       13,
+       13,
+       10,
+       6,
+       3,
+       1,
+       0,
+       0
+      ],
+      "OperationalToggle": "IsOperational",
+      "ResetAnimationTrigger": "BulletEmitter",
+      "trigger_switch": "nenhum: o BulletEmitter e da propria ponta (direto nos dois valores do switch)",
+      "OperationalDoodad": {
+       "AnimationFiles": [
+        "weapon_tranco2.png",
+        "weapon_tranco3.png",
+        "weapon_tranco4.png",
+        "weapon_tranco5.png",
+        "weapon_tranco6.png",
+        "weapon_tranco7.png",
+        "weapon_tranco8.png",
+        "weapon_tranco1.png"
+       ],
+       "NormalsAnimationFiles": [
+        "weapon_tranco2_normals.png",
+        "weapon_tranco3_normals.png",
+        "weapon_tranco4_normals.png",
+        "weapon_tranco5_normals.png",
+        "weapon_tranco6_normals.png",
+        "weapon_tranco7_normals.png",
+        "weapon_tranco8_normals.png",
+        "weapon_tranco1_normals.png"
+       ],
+       "AnimationInterval": 0.05,
+       "AnimationStartTime": "MinValue",
+       "ClampAnimation": true
+      },
+      "NonOperationalDoodad": {
+       "File": "weapon_tranco1.png",
+       "NormalsFile": "weapon_tranco1_normals.png"
+      },
+      "replaces": "a Graphics estatica de weapon.png: NUNCA desenhar as duas (mesma camada weapons, mesmo lugar: coroa dobrada/fantasma). NonOperationalDoodad = weapon_tranco1 (nao weapon.png: weapon.png so tem a coroa e o teto novo tem os buracos das bochechas).",
+      "required_with_new_roof": "roof.png NOVO da ponta tem 2 BURACOS onde ficam as bochechas brancas: sem esta Graphics a ponta fica com o teto furado.",
+      "interior_view": "camada weapons: na vista do interior (sem teto) a frente E as bochechas brancas aparecem (antes so a frente): le como a cabeca de uma torre e e aceitavel; conferir no T-TR-3 junto com a pergunta do roof_turrets"
+     },
+     {
+      "part": "ponta",
+      "component": "TrancoTambor",
+      "Type": "Graphics",
+      "what": "o tambor EM da emenda da ponta (saiu de roof.png)",
+      "Layer": "roof_turrets",
+      "rect_unrotated": [
+       0.875,
+       3.0,
+       1.25,
+       1.0
+      ],
+      "Location": [
+       1.5,
+       3.5
+      ],
+      "Size": [
+       1.25,
+       1.0
+      ],
+      "stroke_tiles": 0.2031,
+      "stroke_px_at_64": 13,
+      "offset_px_by_file": [
+       0,
+       13,
+       13,
+       10,
+       6,
+       2,
+       -1,
+       0
+      ],
+      "offset_px_play_order": [
+       13,
+       13,
+       10,
+       6,
+       2,
+       -1,
+       0,
+       0
+      ],
+      "OperationalToggle": "IsOperational",
+      "ResetAnimationTrigger": "BulletEmitter",
+      "trigger_switch": "nenhum: o BulletEmitter e da propria ponta (direto nos dois valores do switch)",
+      "OperationalDoodad": {
+       "AnimationFiles": [
+        "tambor_tranco2.png",
+        "tambor_tranco3.png",
+        "tambor_tranco4.png",
+        "tambor_tranco5.png",
+        "tambor_tranco6.png",
+        "tambor_tranco7.png",
+        "tambor_tranco8.png",
+        "tambor_tranco1.png"
+       ],
+       "NormalsAnimationFiles": [
+        "tambor_tranco2_normals.png",
+        "tambor_tranco3_normals.png",
+        "tambor_tranco4_normals.png",
+        "tambor_tranco5_normals.png",
+        "tambor_tranco6_normals.png",
+        "tambor_tranco7_normals.png",
+        "tambor_tranco8_normals.png",
+        "tambor_tranco1_normals.png"
+       ],
+       "AnimationInterval": 0.05,
+       "AnimationStartTime": "MinValue",
+       "ClampAnimation": true
+      },
+      "NonOperationalDoodad": {
+       "File": "tambor_tranco1.png",
+       "NormalsFile": "tambor_tranco1_normals.png"
+      },
+      "required_with_new_roof": "roof.png NOVO nao tem mais o(s) tambor(es): sem esta Graphics o cano/ponta fica sem eles. Mandar roof.png e a Graphics juntos.",
+      "variante_roof_doodads": {
+       "quando": "se o teste T-TR-3 mostrar que roof_turrets NAO some na vista do interior",
+       "troca": {
+        "Layer": "roof_doodads"
+       },
+       "resto": "igual (mesmos arquivos, Location, Size, gatilho, ClampAnimation)",
+       "cuidado": "roof_doodads tambem guarda cabecas de torre em pecas vanilla: conferir no T-TR-3 se ela some no interior; se nenhuma das duas sumir, aceitar o desenho por cima (o interior do carregador fica coberto entre x 0.375 e 4.625) - previa: railgun_montado.png, coluna 'se roof_turrets aparecer'"
+      }
+     }
+    ],
+    "triggers_build": "rail.tranco_gatilho = relay (PADRAO): TrancoRelay {Type = Timer; StartTrigger = EmitTrigger (carregador) / EmissionTriggered (cano); Duration = 0.5; TriggerWhenStarted = true} e ResetAnimationTrigger = TrancoRelay; a ponta usa o BulletEmitter direto (e dela mesma)",
+    "triggers_fallback": "VARIANTE rail.tranco_gatilho = proxy (inferida, sem exemplo vanilla; so se o T-TR-3 mostrar que funciona): ResetAnimationTrigger = o TriggerProxy de outra peca direto (EmitTrigger no carregador, EmissionTriggered no cano), sem o TrancoRelay (pesquisa tranco q3.cross_part_trigger). O padrao e o relay (triggers_build e pieces[].TrancoRelay).",
+    "glow_rule": "os quadros do tranco sao so blindagem/tambores andando (nenhum plano de carga reacende); a luz do tiro e o clarao + o anel de choque",
+    "impulse": {
+     "component": "TrancoImpulso (ponta)",
+     "Type": "TriggeredEffects",
+     "Trigger": "BulletEmitter",
+     "ChainedTo": "nenhum (ou Weapon com Rotation 180d); NUNCA o Projectile (Interpolate = true)",
+     "Location": [
+      1.5,
+      2.0
+     ],
+     "Rotation": "90d (para tras; se a nave andar para a frente no teste T-TR-1, -90d)",
+     "HitEffects": [
+      {
+       "Type": "Impulse",
+       "Impulse": {
+        "BaseValue": 2400,
+        "BuffType": "BulletStrike_RailShot",
+        "BuffMode": "Multiply"
+       }
+      }
+     ],
+     "ApplyToCenterOfMass": "switch rail.recoil_com (padrao false = como o vanilla: Tupa fora do centro gira a nave um pouco; true = so empurra)",
+     "by_N": {
+      "1": 3000,
+      "2": 3482,
+      "3": 3927,
+      "4": 4349,
+      "5": 4757,
+      "6": 5152
+     },
+     "vanilla_ref": "railgun vanilla ~4000 por tiro com 4 aceleradores (2000 x 1/30 s ao longo do projetil curto); canhao de convés Recoil 240",
+     "alternative": "Recoil do BulletEmitter (numero fixo, ex. 300-400; nao se sabe se aceita buff)",
+     "rejected": "Feedback (so quando o dardo acerta) e AreaImpulse na propria nave (sem exemplo vanilla)"
+    },
+    "shake": {
+     "where": "ponta FireEffect MediaEffects (Trigger = BulletEmitter)",
+     "rules": ": /BASE_SHAKE { ShakeAmount = 0.2; Duration = 0.7 }",
+     "note": "numero fixo (buff em media effect de peca nao verificado); o jogador pode desligar o tremor nas opcoes, entao o tranco nunca depende so dele; vanilla: canhao de convés 0.1 / 1 s"
+    },
+    "shock_ring": {
+     "where": "TriggeredEffects proprio na boca (Location [1.5, 0]) com AnchorMediaEffects = false: o anel fica no espaco enquanto a nave recua (le mais forte junto com o impulso)",
+     "texture": "./Data/common_effects/particles/shockwave.png (vanilla) via fxkit (tools/bsgen/fxkit.py blob/ring com tex = SHOCKWAVE, crescimento linear, bucket Upper2)",
+     "color": "borda azul clara [100,175,255] -> nucleo branco-azulado [205,228,255], sem cobre",
+     "size_tiles": "1.0 -> 6.5",
+     "life_s": 0.32,
+     "alpha": "1 -> 0 (ease-out)",
+     "scale": "x MediaEffectsScale BulletStrike_RailShot",
+     "plus": "o railgun_shoot vanilla + railgun_shoot_distortion que o kit ja usa (TK bs2t_rail_ponta.rules:425-437)",
+     "preview": "docs/preview/3d/v2/railgun_tranco_curto.gif/.mp4, railgun_disparo.gif/.mp4 e railgun_tranco.gif simulam este anel (nasce junto com o dardo)"
+    }
+   }
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/palette",
+   "value": "user reference (r4): WHITE fixed armour plates (double bevel) over dark gunmetal, deep electric BLUE energy [45,115,255] with a blue-white core [205,228,255], small ORANGE-GOLD paint details [215,145,40] (hue ~36, never copper = PEM family) and golden springs [235,185,50]; see bs_rail meta.json notes"
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/carregador/size",
+   "value": [
+    5,
+    5
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/carregador/files/walls.png",
+   "value": "walls 320x320, open on the top edge x 2.0-3.0 (the breech meets the cano channel; canos sit on x 1..4)"
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/carregador/files/roof.png + roof_normals.png",
+   "value": "crew roof 5x5, FIXED: transparent breech slot (x 2.0-3.0, under the moving breech block), narrow feed slit (x 2.34-2.66) and the magazine window (x 2.0-3.0, y 2.7-4.78, 12 capsules); the breech block, rods, crossheads and recoil springs are NOT here: they are culatra_tranco1..8 (roof_turrets), required with this roof"
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/carregador/files/weapon.png + weapon_normals.png",
+   "value": "weapons, rect [1,0,3,1]: inner breech block (under the roof and under culatra_tranco; seen through the slot and in the interior)"
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/carregador/files/consola1..4.png",
+   "value": "walls layer, 1x1, the SAME sprite at the 2 crew cells (rects [1,1.5] and [3,1.5]; crew_pos [1.5,2] and [3.5,2]), loop 0.1 s"
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/carregador/files/culatra_abre1..3.png",
+   "value": "walls, rect [2,0,1,1]: breech opening, 0.0666 s, ClampAnimation, reversed ToggleOffDoodad"
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/carregador/files/culatra_carrega1..6.png",
+   "value": "walls, rect [2,0,1,2]: slug rising from the lift and rammed into the chamber, 0.2 s/frame"
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/carregador/files/projeteis1..6.png",
+   "value": "doodads_low ResourceSprites (SlugMagazine 12 -> 2 slugs per level), rect [1.75,2.625,1.5,2.25]: the capsule column seen through the magazine window"
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/carregador/files/capacitores1..3.png",
+   "value": "doodads_high ResourceSprites (LoaderBattery levels), rect [0,2.625,5,2]: k big cells per side"
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/carregador/files/luz_culatra1..2.png",
+   "value": "lights_add ValueSprites, rect [1,0,3,1]: first segment of the charge wave (masked to the breech)"
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/carregador/files/icon.png",
+   "value": "EditorIcon 115x115"
+  },
+  {
+   "op": "add",
+   "path": "/art_assets/assets/railgun/carregador/files/culatra_projetil.png",
+   "value": "doodads_low, rect [2,0,1,2]: the chambered slug under the breech leaves (LoadedAmmo ResourceSprites)"
+  },
+  {
+   "op": "add",
+   "path": "/art_assets/assets/railgun/carregador/files/culatra_tranco1..8.png",
+   "value": "roof_turrets [0.375,0,4.25,4.75] + culatra_tranco{1..8}_normals.png: breech block, yokes, rods and crossheads kick 13 px (1 frame after the muzzle) and the fat golden recoil springs compress; file 1 = rest; REQUIRED with the new roof.png"
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/carregador/count",
+   "value": 49
+  },
+  {
+   "op": "add",
+   "path": "/art_assets/assets/railgun/carregador/crew_pos",
+   "value": [
+    [
+     1.5,
+     2.0
+    ],
+    [
+     3.5,
+     2.0
+    ]
+   ]
+  },
+  {
+   "op": "add",
+   "path": "/art_assets/assets/railgun/carregador/layers",
+   "value": {
+    "floor": {
+     "game_layer": "floors",
+     "rect": [
+      0,
+      0,
+      5,
+      5
+     ],
+     "files": [
+      "floor.png"
+     ],
+     "normals": null,
+     "status": "MUDOU so o rect (carregador 5x5)",
+     "was": {
+      "rect": [
+       0,
+       0,
+       3,
+       4
+      ]
+     }
+    },
+    "projeteis": {
+     "game_layer": "doodads_low",
+     "rect": [
+      1.75,
+      2.625,
+      1.5,
+      2.25
+     ],
+     "files": [
+      "projeteis1.png",
+      "projeteis2.png",
+      "projeteis3.png",
+      "projeteis4.png",
+      "projeteis5.png",
+      "projeteis6.png"
+     ],
+     "normals": null,
+     "levels": 6,
+     "status": "MUDOU so o rect (carregador 5x5)",
+     "was": {
+      "rect": [
+       0.6,
+       2.8,
+       1.8,
+       1.0
+      ]
+     }
+    },
+    "culatra_projetil": {
+     "game_layer": "doodads_low",
+     "rect": [
+      2.0,
+      0.0,
+      1.0,
+      2.0
+     ],
+     "files": [
+      "culatra_projetil.png"
+     ],
+     "normals": null,
+     "status": "MUDOU so o rect (carregador 5x5)",
+     "was": {
+      "rect": [
+       1.0,
+       0.0,
+       1.0,
+       2.0
+      ]
+     }
+    },
+    "consola": {
+     "game_layer": "walls",
+     "rect": [
+      1.0,
+      1.5,
+      1.0,
+      1.0
+     ],
+     "files": [
+      "consola1.png",
+      "consola2.png",
+      "consola3.png",
+      "consola4.png"
+     ],
+     "normals": null,
+     "rects": [
+      [
+       1.0,
+       1.5,
+       1.0,
+       1.0
+      ],
+      [
+       3.0,
+       1.5,
+       1.0,
+       1.0
+      ]
+     ],
+     "frames": 4,
+     "interval": 0.1,
+     "status": "MUDOU so o rect (carregador 5x5)",
+     "was": {
+      "rect": [
+       0.1,
+       1.1,
+       1.0,
+       1.0
+      ],
+      "rects": [
+       [
+        0.1,
+        1.1,
+        1.0,
+        1.0
+       ],
+       [
+        1.9,
+        1.1,
+        1.0,
+        1.0
+       ]
+      ]
+     }
+    },
+    "culatra_abre": {
+     "game_layer": "walls",
+     "rect": [
+      2.0,
+      0.0,
+      1.0,
+      1.0
+     ],
+     "files": [
+      "culatra_abre1.png",
+      "culatra_abre2.png",
+      "culatra_abre3.png"
+     ],
+     "normals": null,
+     "frames": 3,
+     "interval": 0.0666,
+     "status": "MUDOU so o rect (carregador 5x5)",
+     "was": {
+      "rect": [
+       1.0,
+       0.0,
+       1.0,
+       1.0
+      ]
+     }
+    },
+    "culatra_carrega": {
+     "game_layer": "walls",
+     "rect": [
+      2.0,
+      0.0,
+      1.0,
+      2.0
+     ],
+     "files": [
+      "culatra_carrega1.png",
+      "culatra_carrega2.png",
+      "culatra_carrega3.png",
+      "culatra_carrega4.png",
+      "culatra_carrega5.png",
+      "culatra_carrega6.png"
+     ],
+     "normals": null,
+     "frames": 6,
+     "interval": 0.2,
+     "status": "MUDOU so o rect (carregador 5x5)",
+     "was": {
+      "rect": [
+       1.0,
+       0.0,
+       1.0,
+       2.0
+      ]
+     }
+    },
+    "weapon": {
+     "game_layer": "weapons",
+     "rect": [
+      1.0,
+      0.0,
+      3.0,
+      1.0
+     ],
+     "files": [
+      "weapon.png"
+     ],
+     "normals": [
+      "weapon_normals.png"
+     ],
+     "status": "MUDOU so o rect (carregador 5x5)",
+     "was": {
+      "rect": [
+       0.0,
+       0.0,
+       3.0,
+       1.0
+      ]
+     }
+    },
+    "capacitores": {
+     "game_layer": "doodads_high",
+     "rect": [
+      0.0,
+      2.625,
+      5.0,
+      2.0
+     ],
+     "files": [
+      "capacitores1.png",
+      "capacitores2.png",
+      "capacitores3.png"
+     ],
+     "normals": null,
+     "levels": 3,
+     "status": "MUDOU so o rect (carregador 5x5)",
+     "was": {
+      "rect": [
+       0.0,
+       2.1,
+       3.0,
+       1.0
+      ]
+     }
+    },
+    "luz_culatra": {
+     "game_layer": "lights_add",
+     "rect": [
+      1.0,
+      0.0,
+      3.0,
+      1.0
+     ],
+     "files": [
+      "luz_culatra1.png",
+      "luz_culatra2.png"
+     ],
+     "normals": null,
+     "levels": 2,
+     "blend": "add",
+     "status": "MUDOU so o rect (carregador 5x5)",
+     "was": {
+      "rect": [
+       0.0,
+       0.0,
+       3.0,
+       1.0
+      ]
+     }
+    },
+    "roof": {
+     "game_layer": "roofs",
+     "rect": [
+      0,
+      0,
+      5,
+      5
+     ],
+     "files": [
+      "roof.png"
+     ],
+     "normals": [
+      "roof_normals.png"
+     ],
+     "status": "MUDOU (5x5); a fileira da culatra saiu para culatra_tranco",
+     "was": {
+      "rect": [
+       0,
+       0,
+       3,
+       4
+      ]
+     }
+    },
+    "culatra_tranco": {
+     "game_layer": "roof_turrets",
+     "rect": [
+      0.375,
+      0.0,
+      4.25,
+      4.75
+     ],
+     "files": [
+      "culatra_tranco1.png",
+      "culatra_tranco2.png",
+      "culatra_tranco3.png",
+      "culatra_tranco4.png",
+      "culatra_tranco5.png",
+      "culatra_tranco6.png",
+      "culatra_tranco7.png",
+      "culatra_tranco8.png"
+     ],
+     "normals": [
+      "culatra_tranco1_normals.png",
+      "culatra_tranco2_normals.png",
+      "culatra_tranco3_normals.png",
+      "culatra_tranco4_normals.png",
+      "culatra_tranco5_normals.png",
+      "culatra_tranco6_normals.png",
+      "culatra_tranco7_normals.png",
+      "culatra_tranco8_normals.png"
+     ],
+     "frames": 8,
+     "interval": 0.05,
+     "status": "NOVO (tranco)",
+     "tranco": {
+      "curve": "breech",
+      "stroke_px_at_64": 13,
+      "stroke_tiles": 0.2031,
+      "offset_px_by_file": [
+       0,
+       6,
+       13,
+       13,
+       9,
+       5,
+       2,
+       0
+      ],
+      "offset_px_play_order": [
+       6,
+       13,
+       13,
+       9,
+       5,
+       2,
+       0,
+       0
+      ],
+      "AnimationFiles_order": [
+       "culatra_tranco2.png",
+       "culatra_tranco3.png",
+       "culatra_tranco4.png",
+       "culatra_tranco5.png",
+       "culatra_tranco6.png",
+       "culatra_tranco7.png",
+       "culatra_tranco8.png",
+       "culatra_tranco1.png"
+      ],
+      "positive": "para tras (para a culatra)"
+     }
+    }
+   }
+  },
+  {
+   "op": "add",
+   "path": "/art_assets/assets/railgun/carregador/layer_flags",
+   "value": {
+    "culatra_tranco": {
+     "required_with": "roof"
+    }
+   }
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/cano/files/roof.png + roof_normals.png",
+   "value": "open channel x 1.10-1.90 for the full length, white rails, cheeks, seam half-clamps; it has NO drums any more: the 3 EM drums + the middle bracket are tambores_tranco1..8 (roof_turrets). roof.png without the tambores_tranco Graphics = a cano with NO drums"
+  },
+  {
+   "op": "add",
+   "path": "/art_assets/assets/railgun/cano/files/tambores_tranco1..8.png",
+   "value": "roof_turrets [0,0,3,3] + tambores_tranco{1..8}_normals.png: the 3 EM drums + the middle bracket kick 13 px back, hold 2 frames, 1 px spring overshoot (file 1 = rest); REQUIRED with the new roof.png"
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/cano/count",
+   "value": 39
+  },
+  {
+   "op": "add",
+   "path": "/art_assets/assets/railgun/cano/layers",
+   "value": {
+    "floor": {
+     "game_layer": "floors",
+     "rect": [
+      0,
+      0,
+      3,
+      3
+     ],
+     "files": [
+      "floor.png"
+     ],
+     "normals": null,
+     "status": "igual"
+    },
+    "trilhos": {
+     "game_layer": "doodads_low",
+     "rect": [
+      0,
+      0,
+      3,
+      3
+     ],
+     "files": [
+      "trilhos1.png",
+      "trilhos2.png",
+      "trilhos3.png",
+      "trilhos4.png",
+      "trilhos5.png",
+      "trilhos6.png",
+      "trilhos7.png",
+      "trilhos8.png",
+      "trilhos9.png"
+     ],
+     "normals": null,
+     "levels": 9,
+     "status": "igual"
+    },
+    "carga": {
+     "game_layer": "lights_add",
+     "rect": [
+      0,
+      0,
+      3,
+      3
+     ],
+     "files": [
+      "carga1.png",
+      "carga2.png",
+      "carga3.png",
+      "carga4.png",
+      "carga5.png",
+      "carga6.png",
+      "carga7.png",
+      "carga8.png"
+     ],
+     "normals": null,
+     "levels": 8,
+     "blend": "add",
+     "status": "igual"
+    },
+    "roof": {
+     "game_layer": "roofs",
+     "rect": [
+      0,
+      0,
+      3,
+      3
+     ],
+     "files": [
+      "roof.png"
+     ],
+     "normals": [
+      "roof_normals.png"
+     ],
+     "status": "igual (nome/rect); CONTEUDO mudou: os tambores sairam para a camada do tranco; o teto leva a sombra de contato FRACA (50%) deles em repouso (r2)"
+    },
+    "tambores_tranco": {
+     "game_layer": "roof_turrets",
+     "rect": [
+      0.0,
+      0.0,
+      3.0,
+      3.0
+     ],
+     "files": [
+      "tambores_tranco1.png",
+      "tambores_tranco2.png",
+      "tambores_tranco3.png",
+      "tambores_tranco4.png",
+      "tambores_tranco5.png",
+      "tambores_tranco6.png",
+      "tambores_tranco7.png",
+      "tambores_tranco8.png"
+     ],
+     "normals": [
+      "tambores_tranco1_normals.png",
+      "tambores_tranco2_normals.png",
+      "tambores_tranco3_normals.png",
+      "tambores_tranco4_normals.png",
+      "tambores_tranco5_normals.png",
+      "tambores_tranco6_normals.png",
+      "tambores_tranco7_normals.png",
+      "tambores_tranco8_normals.png"
+     ],
+     "frames": 8,
+     "interval": 0.05,
+     "status": "NOVO (tranco)",
+     "tranco": {
+      "curve": "drum",
+      "stroke_px_at_64": 13,
+      "stroke_tiles": 0.2031,
+      "offset_px_by_file": [
+       0,
+       13,
+       13,
+       10,
+       6,
+       2,
+       -1,
+       0
+      ],
+      "offset_px_play_order": [
+       13,
+       13,
+       10,
+       6,
+       2,
+       -1,
+       0,
+       0
+      ],
+      "AnimationFiles_order": [
+       "tambores_tranco2.png",
+       "tambores_tranco3.png",
+       "tambores_tranco4.png",
+       "tambores_tranco5.png",
+       "tambores_tranco6.png",
+       "tambores_tranco7.png",
+       "tambores_tranco8.png",
+       "tambores_tranco1.png"
+      ],
+      "positive": "para tras (para a culatra)"
+     }
+    }
+   }
+  },
+  {
+   "op": "add",
+   "path": "/art_assets/assets/railgun/cano/layer_flags",
+   "value": {
+    "tambores_tranco": {
+     "required_with": "roof"
+    }
+   }
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/ponta/files/weapon.png + weapon_normals.png",
+   "value": "weapons rect [0,0,3,1.5]: REST / NonOperational image of the crown ONLY (= the top 96 rows of weapon_tranco1, pixel for pixel). NEVER draw it together with weapon_tranco (same layer and place: a doubled, ghosting crown); the Graphics of the ponta is weapon_tranco1..8 (NonOperationalDoodad = weapon_tranco1)"
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/ponta/files/roof.png + roof_normals.png",
+   "value": "open channel up to the crown; NO EM drum at the seam (tambor_tranco) and 2 HOLES where the big white cheeks are (they are in weapon_tranco since tranco-r1). roof.png without weapon_tranco + tambor_tranco = a holed roof and no drum"
+  },
+  {
+   "op": "add",
+   "path": "/art_assets/assets/railgun/ponta/files/weapon_tranco1..8.png",
+   "value": "weapons [0,0,3,3.5625] + weapon_tranco{1..8}_normals.png: the shield front AND the big white cheeks kick 13 px back and hold 2 frames, no forward overshoot (file 1 = rest; its top 96 rows = weapon.png); REQUIRED with the new roof.png"
+  },
+  {
+   "op": "add",
+   "path": "/art_assets/assets/railgun/ponta/files/tambor_tranco1..8.png",
+   "value": "roof_turrets [0.875,3.0,1.25,1.0] + tambor_tranco{1..8}_normals.png: the seam EM drum kicks 13 px with the cano drums; REQUIRED with the new roof.png"
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/ponta/count",
+   "value": 49
+  },
+  {
+   "op": "add",
+   "path": "/art_assets/assets/railgun/ponta/layers",
+   "value": {
+    "floor": {
+     "game_layer": "floors",
+     "rect": [
+      0,
+      0,
+      3,
+      4
+     ],
+     "files": [
+      "floor.png"
+     ],
+     "normals": null,
+     "status": "igual"
+    },
+    "trilhos": {
+     "game_layer": "doodads_low",
+     "rect": [
+      0,
+      0,
+      3,
+      4
+     ],
+     "files": [
+      "trilhos.png"
+     ],
+     "normals": null,
+     "status": "igual"
+    },
+    "weapon": {
+     "game_layer": "weapons",
+     "rect": [
+      0.0,
+      0.0,
+      3.0,
+      1.5
+     ],
+     "files": [
+      "weapon.png"
+     ],
+     "normals": [
+      "weapon_normals.png"
+     ],
+     "status": "igual (nome/rect [0,0,3,1.5]); = as 96 linhas de cima de weapon_tranco1 pixel a pixel (so a coroa em repouso): imagem de repouso/icone; NUNCA desenhar junto com weapon_tranco (meta.layer_flags)"
+    },
+    "weapon_tranco": {
+     "game_layer": "weapons",
+     "rect": [
+      0.0,
+      0.0,
+      3.0,
+      3.5625
+     ],
+     "files": [
+      "weapon_tranco1.png",
+      "weapon_tranco2.png",
+      "weapon_tranco3.png",
+      "weapon_tranco4.png",
+      "weapon_tranco5.png",
+      "weapon_tranco6.png",
+      "weapon_tranco7.png",
+      "weapon_tranco8.png"
+     ],
+     "normals": [
+      "weapon_tranco1_normals.png",
+      "weapon_tranco2_normals.png",
+      "weapon_tranco3_normals.png",
+      "weapon_tranco4_normals.png",
+      "weapon_tranco5_normals.png",
+      "weapon_tranco6_normals.png",
+      "weapon_tranco7_normals.png",
+      "weapon_tranco8_normals.png"
+     ],
+     "frames": 8,
+     "interval": 0.05,
+     "status": "NOVO (tranco): a frente em escudo + as bochechas brancas (sairam do teto)",
+     "tranco": {
+      "curve": "crown",
+      "stroke_px_at_64": 13,
+      "stroke_tiles": 0.2031,
+      "offset_px_by_file": [
+       0,
+       13,
+       13,
+       10,
+       6,
+       3,
+       1,
+       0
+      ],
+      "offset_px_play_order": [
+       13,
+       13,
+       10,
+       6,
+       3,
+       1,
+       0,
+       0
+      ],
+      "AnimationFiles_order": [
+       "weapon_tranco2.png",
+       "weapon_tranco3.png",
+       "weapon_tranco4.png",
+       "weapon_tranco5.png",
+       "weapon_tranco6.png",
+       "weapon_tranco7.png",
+       "weapon_tranco8.png",
+       "weapon_tranco1.png"
+      ],
+      "positive": "para tras (para a culatra)"
+     }
+    },
+    "carga": {
+     "game_layer": "lights_add",
+     "rect": [
+      0,
+      0,
+      3,
+      4
+     ],
+     "files": [
+      "carga1.png",
+      "carga2.png",
+      "carga3.png",
+      "carga4.png",
+      "carga5.png",
+      "carga6.png"
+     ],
+     "normals": null,
+     "levels": 6,
+     "blend": "add",
+     "status": "igual"
+    },
+    "roof": {
+     "game_layer": "roofs",
+     "rect": [
+      0,
+      0,
+      3,
+      4
+     ],
+     "files": [
+      "roof.png"
+     ],
+     "normals": [
+      "roof_normals.png"
+     ],
+     "status": "igual (nome/rect); CONTEUDO mudou: sem o tambor da emenda (tambor_tranco) e com 2 BURACOS onde ficam as bochechas brancas (weapon_tranco); r2: sombra de contato FRACA das bochechas e do tambor em repouso + um calco escuro de 2 px no topo da borda de fora de cada buraco (no tranco o piso nao aparece na quina da coroa)"
+    },
+    "slug": {
+     "game_layer": "walls",
+     "rect": [
+      1.1,
+      0.5,
+      0.8,
+      3.0
+     ],
+     "files": [
+      "slug.png"
+     ],
+     "normals": null,
+     "status": "igual"
+    },
+    "slug_glow": {
+     "game_layer": "lights_add",
+     "rect": [
+      0.9,
+      0.3,
+      1.2,
+      3.4
+     ],
+     "files": [
+      "slug_glow.png"
+     ],
+     "normals": null,
+     "blend": "add",
+     "status": "igual"
+    },
+    "tambor_tranco": {
+     "game_layer": "roof_turrets",
+     "rect": [
+      0.875,
+      3.0,
+      1.25,
+      1.0
+     ],
+     "files": [
+      "tambor_tranco1.png",
+      "tambor_tranco2.png",
+      "tambor_tranco3.png",
+      "tambor_tranco4.png",
+      "tambor_tranco5.png",
+      "tambor_tranco6.png",
+      "tambor_tranco7.png",
+      "tambor_tranco8.png"
+     ],
+     "normals": [
+      "tambor_tranco1_normals.png",
+      "tambor_tranco2_normals.png",
+      "tambor_tranco3_normals.png",
+      "tambor_tranco4_normals.png",
+      "tambor_tranco5_normals.png",
+      "tambor_tranco6_normals.png",
+      "tambor_tranco7_normals.png",
+      "tambor_tranco8_normals.png"
+     ],
+     "frames": 8,
+     "interval": 0.05,
+     "status": "NOVO (tranco)",
+     "tranco": {
+      "curve": "drum",
+      "stroke_px_at_64": 13,
+      "stroke_tiles": 0.2031,
+      "offset_px_by_file": [
+       0,
+       13,
+       13,
+       10,
+       6,
+       2,
+       -1,
+       0
+      ],
+      "offset_px_play_order": [
+       13,
+       13,
+       10,
+       6,
+       2,
+       -1,
+       0,
+       0
+      ],
+      "AnimationFiles_order": [
+       "tambor_tranco2.png",
+       "tambor_tranco3.png",
+       "tambor_tranco4.png",
+       "tambor_tranco5.png",
+       "tambor_tranco6.png",
+       "tambor_tranco7.png",
+       "tambor_tranco8.png",
+       "tambor_tranco1.png"
+      ],
+      "positive": "para tras (para a culatra)"
+     }
+    }
+   }
+  },
+  {
+   "op": "add",
+   "path": "/art_assets/assets/railgun/ponta/layer_flags",
+   "value": {
+    "weapon": {
+     "rest_only": true,
+     "exclusive_with": "weapon_tranco",
+     "use": "so a coroa em repouso (icone / contrato antigo); com o roof.png novo o NonOperationalDoodad e weapon_tranco1; NUNCA junto com weapon_tranco"
+    },
+    "weapon_tranco": {
+     "exclusive_with": "weapon",
+     "required_with": "roof",
+     "use": "Graphics animada da frente + bochechas (o roof.png novo tem o buraco delas)"
+    },
+    "tambor_tranco": {
+     "required_with": "roof"
+    }
+   }
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/source_r3",
+   "value": "ADOTADA: tools/blender/parts/bs_rail.py (PARTS loader/barrel/muzzle) renderizado por tools/blender/render_layered.py -> art3d/bs_rail_loader|bs_rail_barrel|bs_rail_muzzle/ (feito, com o tranco e o carregador 5x5). Listas de arquivos: 49/39/49 (carregador/cano/ponta, meta.json files)."
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/logistica/acoplamento (logistics.acoplamento; so tripulacao)/cell",
+   "value": [
+    0,
+    5
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/logistica/acoplamento (logistics.acoplamento; so tripulacao)/per_mode/0/PaiolAcoplado_0/PartLocation",
+   "value": [
+    0,
+    5
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/parts/carregador/belt_intake/fallback_adjacency",
+   "value": "switch logistics.acoplamento no Carregador: PaiolAcoplado_0 = ResourceStorageProxy ResourceType rafaeltessaro.bs_slug_rail, PartLocation [0,5] (cell behind the rear-left corner), PartCriteria { Category = bs_paiol_slug } (R2: categoria do tipo), ComponentID = Estoque_slug (the paiol's store) + AlimentadorAcoplado_0 ResourceConverter -> SlugMagazine 1 per 0.1 s: a projéteis paiol docked behind the loader feeds it with no network (vanilla AmmoProxy pattern RAIL303/railgun_launcher.rules:220-235); the rear doors [1,5] and [3,5] stay free with a 1x1 paiol at [0,5] (5x5: the rear middle is the magazine, not a door; a 2-wide paiol docked there covers [1,5], so use [3,5])"
+  },
+  {
+   "op": "replace",
+   "path": "/switches/rail/loader_intake/values/acoplamento",
+   "value": "paiol de projeteis encostado atras do canto de tras-esquerdo do Carregador 5x5 (ResourceStorageProxy [0,5]; era [0,4] no 3x4)"
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/effects/railgun/muzzle",
+   "value": {
+    "file": "bs_rail_fx/rail_muzzle_flash",
+    "parts": [
+     "blue-white flash: fxkit.blob additive 6 tiles 0.12 s, palette rail azul [45,115,255] -> nucleo [205,228,255] (was gold-white)",
+     "blue EM ring: fxkit.blob tex bs_ring_thin.png 8 tiles, scale 0.2->1, 0.35 s, colour [100,175,255] (was violet)",
+     "TRANCO shock ring (railgun.tranco.shock_ring): own TriggeredEffects at the muzzle (Location [1.5, 0]), AnchorMediaEffects = false (stays in space while the ship recoils), vanilla shockwave.png via fxkit ring, 1.0 -> 6.5 tiles in 0.32 s (ease-out), edge [100,175,255] -> core [205,228,255], alpha 1 -> 0, bucket Upper2",
+     "vanilla railgun_shoot_distortion (colourless)",
+     "light: fxkit.blob light=True 10 tiles 0.2 s colour palette.rail.hull"
+    ],
+    "shake": "BASE_SHAKE 0.2 / 0.7 s (railgun.tranco.shake; FireEffect MediaEffects of the ponta)",
+    "scale": "MediaEffectsScale BulletStrike_RailShot",
+    "budget_particles": 5,
+    "palette_debt": "in_flight.trail_core/trail_rings, per_penetrated_part and end_of_path_impact still say gold/violet (pre-tranco palette, USER_NOTES: 'Efeitos da Tupa (rail_fx) em azul'): recolour them with the same rail palette when rail_fx is written"
+   }
+  }
+ ],
+ "ops_balance_derived": [
+  {
+   "op": "replace",
+   "path": "/railgun/scaling_table/0/tiles",
+   "value": 46
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/scaling_table/0/dps_per_tile",
+   "value": 181,
+   "note": "so se o DPS ficar como esta (decisao de balanço)"
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/scaling_table/1/tiles",
+   "value": 55
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/scaling_table/1/dps_per_tile",
+   "value": 176,
+   "note": "so se o DPS ficar como esta (decisao de balanço)"
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/scaling_table/2/tiles",
+   "value": 64
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/scaling_table/2/dps_per_tile",
+   "value": 170,
+   "note": "so se o DPS ficar como esta (decisao de balanço)"
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/scaling_table/3/tiles",
+   "value": 73
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/scaling_table/3/dps_per_tile",
+   "value": 166,
+   "note": "so se o DPS ficar como esta (decisao de balanço)"
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/scaling_table/4/tiles",
+   "value": 82
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/scaling_table/4/dps_per_tile",
+   "value": 161,
+   "note": "so se o DPS ficar como esta (decisao de balanço)"
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/scaling_table/5/tiles",
+   "value": 91
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/scaling_table/5/dps_per_tile",
+   "value": 157,
+   "note": "so se o DPS ficar como esta (decisao de balanço)"
+  }
+ ],
+ "ops_balance_option_B": [
+  {
+   "op": "replace",
+   "path": "/railgun/parts/ponta/weapon/FireInterval",
+   "value": 5.4,
+   "note": "opcao B (recommendation_r2); a scaling_table (dps, dps_per_tile, dps_per_cp, slugs_per_s, power_per_s) tem de ser recalculada pela ferramenta do balanço (x 6.0/5.4)"
+  }
+ ],
+ "ops_balance_option_C": [
+  {
+   "op": "replace",
+   "path": "/railgun/parts/carregador/build_cost_credits",
+   "value": 30000,
+   "note": "opcao C (recommendation_r2)"
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/parts/carregador/build_cost",
+   "value": [
+    [
+     "steel",
+     180
+    ],
+    [
+     "coil2",
+     50
+    ],
+    [
+     "tristeel",
+     20
+    ],
+    [
+     "processor",
+     2
+    ]
+   ],
+   "note": "opcao C: steel 120 -> 180, coil2 40 -> 50 (resto igual)"
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/scaling_table/0/build_cost_credits",
+   "value": 60750,
+   "note": "opcao C: +6000 cr do carregador"
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/scaling_table/1/build_cost_credits",
+   "value": 72250,
+   "note": "opcao C: +6000 cr do carregador"
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/scaling_table/2/build_cost_credits",
+   "value": 83750,
+   "note": "opcao C: +6000 cr do carregador"
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/scaling_table/3/build_cost_credits",
+   "value": 95250,
+   "note": "opcao C: +6000 cr do carregador"
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/scaling_table/4/build_cost_credits",
+   "value": 106750,
+   "note": "opcao C: +6000 cr do carregador"
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/scaling_table/5/build_cost_credits",
+   "value": 118250,
+   "note": "opcao C: +6000 cr do carregador"
+  }
+ ],
+ "tranco": {
+  "pedido_ptbr": "gostei da rail gun, só acho que o carregador poderia ser maior e poderia ter um efeito de 'tranco' quando ela disparasse, ia ficar muito mais foda",
+  "anim": {
+   "frames": 8,
+   "interval_s": 0.05,
+   "duration_s": 0.4,
+   "file_1_is_rest": true,
+   "AnimationFiles_order": "[X2, X3, X4, X5, X6, X7, X8, X1] (padrao barrel1 dos canhoes de convés: tools/bsgen/guns.py deck_graphics; vanilla cannon_deck.rules:1173-1272)",
+   "AnimationStartTime": "MinValue",
+   "ClampAnimation": true,
+   "offset_px_by_file": {
+    "crown": {
+     "X1": 0,
+     "X2": 13,
+     "X3": 13,
+     "X4": 10,
+     "X5": 6,
+     "X6": 3,
+     "X7": 1,
+     "X8": 0
+    },
+    "drum": {
+     "X1": 0,
+     "X2": 13,
+     "X3": 13,
+     "X4": 10,
+     "X5": 6,
+     "X6": 2,
+     "X7": -1,
+     "X8": 0
+    },
+    "breech": {
+     "X1": 0,
+     "X2": 6,
+     "X3": 13,
+     "X4": 13,
+     "X5": 9,
+     "X6": 5,
+     "X7": 2,
+     "X8": 0
+    }
+   },
+   "offset_px_play_order": {
+    "crown": [
+     13,
+     13,
+     10,
+     6,
+     3,
+     1,
+     0,
+     0
+    ],
+    "drum": [
+     13,
+     13,
+     10,
+     6,
+     2,
+     -1,
+     0,
+     0
+    ],
+    "breech": [
+     6,
+     13,
+     13,
+     9,
+     5,
+     2,
+     0,
+     0
+    ]
+   },
+   "curve_by_layer": {
+    "weapon_tranco": "crown",
+    "tambor_tranco": "drum",
+    "tambores_tranco": "drum",
+    "culatra_tranco": "breech"
+   },
+   "meaning": "px a 64 px/quadro, + = para tras (para a culatra). Critica tranco-r1 (o usuario: 'e que pra mim esta parado'): o curso inteiro foi para o TOPO da faixa (13 px = 0,203 quadro em tudo o que anda; era 0,12-0,18) e e SEGURADO 2 quadros (0,1 s: le na escala do jogo); a culatra bate 1 quadro depois da boca (o tranco corre da boca para a culatra); px inteiros (sem meio pixel borrado); sem sobre-curso para a frente na coroa e na culatra (ficam rentes a borda), 1 px nos tambores. Refino r2: em weapon_tranco, tambores_tranco e tambor_tranco os arquivos X2..X8 SAO o X1 deslocado bit a bit (cor e normais; sem o ruido de render que dava um brilho tremido); culatra_tranco e um render por quadro (as molas mudam de forma)."
+  },
+  "strokes_tiles": {
+   "ponta_coroa + bochechas brancas": 0.2031,
+   "tambores (canos e ponta)": 0.2031,
+   "bloco da culatra": 0.2031,
+   "molas de recuo (comprimem)": 0.2031
+  },
+  "strokes_px_at_64": 13,
+  "pieces": [
+   {
+    "part": "carregador",
+    "component": "TrancoCulatra",
+    "Type": "Graphics",
+    "what": "o BLOCO DA CULATRA (colar, fenda, ombros, barra de tras), os 2 garfos, as hastes e as cruzetas batem para tras 1 quadro depois da boca; as 2 MOLAS laranja-ouro gordas comprimem 13 px entre a cruzeta e o batente fixo (batente, guias e guia interna parados no sprite)",
+    "Layer": "roof_turrets",
+    "rect_unrotated": [
+     0.375,
+     0.0,
+     4.25,
+     4.75
+    ],
+    "Location": [
+     2.5,
+     2.375
+    ],
+    "Size": [
+     4.25,
+     4.75
+    ],
+    "stroke_tiles": 0.2031,
+    "stroke_px_at_64": 13,
+    "offset_px_by_file": [
+     0,
+     6,
+     13,
+     13,
+     9,
+     5,
+     2,
+     0
+    ],
+    "offset_px_play_order": [
+     6,
+     13,
+     13,
+     9,
+     5,
+     2,
+     0,
+     0
+    ],
+    "OperationalToggle": "IsOperational",
+    "ResetAnimationTrigger": "TrancoRelay",
+    "trigger_switch": "rail.tranco_gatilho (padrao relay)",
+    "OperationalDoodad": {
+     "AnimationFiles": [
+      "culatra_tranco2.png",
+      "culatra_tranco3.png",
+      "culatra_tranco4.png",
+      "culatra_tranco5.png",
+      "culatra_tranco6.png",
+      "culatra_tranco7.png",
+      "culatra_tranco8.png",
+      "culatra_tranco1.png"
+     ],
+     "NormalsAnimationFiles": [
+      "culatra_tranco2_normals.png",
+      "culatra_tranco3_normals.png",
+      "culatra_tranco4_normals.png",
+      "culatra_tranco5_normals.png",
+      "culatra_tranco6_normals.png",
+      "culatra_tranco7_normals.png",
+      "culatra_tranco8_normals.png",
+      "culatra_tranco1_normals.png"
+     ],
+     "AnimationInterval": 0.05,
+     "AnimationStartTime": "MinValue",
+     "ClampAnimation": true
+    },
+    "NonOperationalDoodad": {
+     "File": "culatra_tranco1.png",
+     "NormalsFile": "culatra_tranco1_normals.png"
+    },
+    "TrancoRelay": {
+     "Type": "Timer",
+     "StartTrigger": "EmitTrigger (o TriggerProxy do carregador -> EmissionTriggered, ja existe: TK bs2t_rail_carregador.rules:345-348; no 5x5 PartLocation [1,-1])",
+     "Duration": 0.5,
+     "TriggerWhenStarted": true,
+     "why": "padrao rail.tranco_gatilho = relay: Timer local como gatilho (vanilla factory_diamond.rules:272; TriggerWhenStarted: railgun_launcher.rules:522-530)"
+    },
+    "variante_proxy": {
+     "quando": "rail.tranco_gatilho = proxy (so se o T-TR-3 mostrar que o TriggerProxy de outra peca reinicia a animacao)",
+     "ResetAnimationTrigger": "EmitTrigger",
+     "resto": "sem o TrancoRelay"
+    },
+    "required_with_new_roof": "roof.png NOVO nao tem a fileira da culatra (so o leito escuro com os trilhos-guia e a fenda): sem esta Graphics o carregador fica sem o bloco.",
+    "why_roof_turrets": "weapons fica SOB o teto (so a borda da fenda apareceria); o bloco tem de ficar por cima do teto para o tranco aparecer com o teto visivel. Se roof_turrets continuar visivel na vista do interior e atrapalhar, variante_roof_doodads.",
+    "variante_roof_doodads": {
+     "quando": "se o teste T-TR-3 mostrar que roof_turrets NAO some na vista do interior",
+     "troca": {
+      "Layer": "roof_doodads"
+     },
+     "resto": "igual (mesmos arquivos, Location, Size, gatilho, ClampAnimation)",
+     "cuidado": "roof_doodads tambem guarda cabecas de torre em pecas vanilla: conferir no T-TR-3 se ela some no interior; se nenhuma das duas sumir, aceitar o desenho por cima (o interior do carregador fica coberto entre x 0.375 e 4.625) - previa: railgun_montado.png, coluna 'se roof_turrets aparecer'"
+    }
+   },
+   {
+    "part": "cano",
+    "component": "TrancoTambores",
+    "Type": "Graphics",
+    "what": "os 3 tambores EM + a garra lateral do tambor do meio (sairam de roof.png)",
+    "Layer": "roof_turrets",
+    "rect_unrotated": [
+     0.0,
+     0.0,
+     3.0,
+     3.0
+    ],
+    "Location": [
+     1.5,
+     1.5
+    ],
+    "Size": [
+     3.0,
+     3.0
+    ],
+    "stroke_tiles": 0.2031,
+    "stroke_px_at_64": 13,
+    "offset_px_by_file": [
+     0,
+     13,
+     13,
+     10,
+     6,
+     2,
+     -1,
+     0
+    ],
+    "offset_px_play_order": [
+     13,
+     13,
+     10,
+     6,
+     2,
+     -1,
+     0,
+     0
+    ],
+    "OperationalToggle": "IsOperational",
+    "ResetAnimationTrigger": "TrancoRelay",
+    "trigger_switch": "rail.tranco_gatilho (padrao relay)",
+    "OperationalDoodad": {
+     "AnimationFiles": [
+      "tambores_tranco2.png",
+      "tambores_tranco3.png",
+      "tambores_tranco4.png",
+      "tambores_tranco5.png",
+      "tambores_tranco6.png",
+      "tambores_tranco7.png",
+      "tambores_tranco8.png",
+      "tambores_tranco1.png"
+     ],
+     "NormalsAnimationFiles": [
+      "tambores_tranco2_normals.png",
+      "tambores_tranco3_normals.png",
+      "tambores_tranco4_normals.png",
+      "tambores_tranco5_normals.png",
+      "tambores_tranco6_normals.png",
+      "tambores_tranco7_normals.png",
+      "tambores_tranco8_normals.png",
+      "tambores_tranco1_normals.png"
+     ],
+     "AnimationInterval": 0.05,
+     "AnimationStartTime": "MinValue",
+     "ClampAnimation": true
+    },
+    "NonOperationalDoodad": {
+     "File": "tambores_tranco1.png",
+     "NormalsFile": "tambores_tranco1_normals.png"
+    },
+    "TrancoRelay": {
+     "Type": "Timer",
+     "StartTrigger": "EmissionTriggered (o TriggerProxy do cano -> ponta, ja existe: TK bs2t_rail_cano.rules:178-181)",
+     "Duration": 0.5,
+     "TriggerWhenStarted": true,
+     "why": "padrao rail.tranco_gatilho = relay: Timer local como gatilho (vanilla factory_diamond.rules:272; TriggerWhenStarted: railgun_launcher.rules:522-530)"
+    },
+    "variante_proxy": {
+     "quando": "rail.tranco_gatilho = proxy (so se o T-TR-3 mostrar que o TriggerProxy de outra peca reinicia a animacao)",
+     "ResetAnimationTrigger": "EmissionTriggered",
+     "resto": "sem o TrancoRelay"
+    },
+    "required_with_new_roof": "roof.png NOVO nao tem mais o(s) tambor(es): sem esta Graphics o cano/ponta fica sem eles. Mandar roof.png e a Graphics juntos.",
+    "variante_roof_doodads": {
+     "quando": "se o teste T-TR-3 mostrar que roof_turrets NAO some na vista do interior",
+     "troca": {
+      "Layer": "roof_doodads"
+     },
+     "resto": "igual (mesmos arquivos, Location, Size, gatilho, ClampAnimation)",
+     "cuidado": "roof_doodads tambem guarda cabecas de torre em pecas vanilla: conferir no T-TR-3 se ela some no interior; se nenhuma das duas sumir, aceitar o desenho por cima (o interior do carregador fica coberto entre x 0.375 e 4.625) - previa: railgun_montado.png, coluna 'se roof_turrets aparecer'"
+    }
+   },
+   {
+    "part": "ponta",
+    "component": "TrancoCoroa",
+    "Type": "Graphics",
+    "what": "a frente em escudo inteira da ponta (boca, paredes, tiras, pontas das cunhas) E as grandes BOCHECHAS BRANCAS em cunha com o fundo escuro delas (sairam de roof.png: tranco-r1)",
+    "Layer": "weapons",
+    "rect_unrotated": [
+     0.0,
+     0.0,
+     3.0,
+     3.5625
+    ],
+    "Location": [
+     1.5,
+     1.78125
+    ],
+    "Size": [
+     3.0,
+     3.5625
+    ],
+    "stroke_tiles": 0.2031,
+    "stroke_px_at_64": 13,
+    "offset_px_by_file": [
+     0,
+     13,
+     13,
+     10,
+     6,
+     3,
+     1,
+     0
+    ],
+    "offset_px_play_order": [
+     13,
+     13,
+     10,
+     6,
+     3,
+     1,
+     0,
+     0
+    ],
+    "OperationalToggle": "IsOperational",
+    "ResetAnimationTrigger": "BulletEmitter",
+    "trigger_switch": "nenhum: o BulletEmitter e da propria ponta (direto nos dois valores do switch)",
+    "OperationalDoodad": {
+     "AnimationFiles": [
+      "weapon_tranco2.png",
+      "weapon_tranco3.png",
+      "weapon_tranco4.png",
+      "weapon_tranco5.png",
+      "weapon_tranco6.png",
+      "weapon_tranco7.png",
+      "weapon_tranco8.png",
+      "weapon_tranco1.png"
+     ],
+     "NormalsAnimationFiles": [
+      "weapon_tranco2_normals.png",
+      "weapon_tranco3_normals.png",
+      "weapon_tranco4_normals.png",
+      "weapon_tranco5_normals.png",
+      "weapon_tranco6_normals.png",
+      "weapon_tranco7_normals.png",
+      "weapon_tranco8_normals.png",
+      "weapon_tranco1_normals.png"
+     ],
+     "AnimationInterval": 0.05,
+     "AnimationStartTime": "MinValue",
+     "ClampAnimation": true
+    },
+    "NonOperationalDoodad": {
+     "File": "weapon_tranco1.png",
+     "NormalsFile": "weapon_tranco1_normals.png"
+    },
+    "replaces": "a Graphics estatica de weapon.png: NUNCA desenhar as duas (mesma camada weapons, mesmo lugar: coroa dobrada/fantasma). NonOperationalDoodad = weapon_tranco1 (nao weapon.png: weapon.png so tem a coroa e o teto novo tem os buracos das bochechas).",
+    "required_with_new_roof": "roof.png NOVO da ponta tem 2 BURACOS onde ficam as bochechas brancas: sem esta Graphics a ponta fica com o teto furado.",
+    "interior_view": "camada weapons: na vista do interior (sem teto) a frente E as bochechas brancas aparecem (antes so a frente): le como a cabeca de uma torre e e aceitavel; conferir no T-TR-3 junto com a pergunta do roof_turrets"
+   },
+   {
+    "part": "ponta",
+    "component": "TrancoTambor",
+    "Type": "Graphics",
+    "what": "o tambor EM da emenda da ponta (saiu de roof.png)",
+    "Layer": "roof_turrets",
+    "rect_unrotated": [
+     0.875,
+     3.0,
+     1.25,
+     1.0
+    ],
+    "Location": [
+     1.5,
+     3.5
+    ],
+    "Size": [
+     1.25,
+     1.0
+    ],
+    "stroke_tiles": 0.2031,
+    "stroke_px_at_64": 13,
+    "offset_px_by_file": [
+     0,
+     13,
+     13,
+     10,
+     6,
+     2,
+     -1,
+     0
+    ],
+    "offset_px_play_order": [
+     13,
+     13,
+     10,
+     6,
+     2,
+     -1,
+     0,
+     0
+    ],
+    "OperationalToggle": "IsOperational",
+    "ResetAnimationTrigger": "BulletEmitter",
+    "trigger_switch": "nenhum: o BulletEmitter e da propria ponta (direto nos dois valores do switch)",
+    "OperationalDoodad": {
+     "AnimationFiles": [
+      "tambor_tranco2.png",
+      "tambor_tranco3.png",
+      "tambor_tranco4.png",
+      "tambor_tranco5.png",
+      "tambor_tranco6.png",
+      "tambor_tranco7.png",
+      "tambor_tranco8.png",
+      "tambor_tranco1.png"
+     ],
+     "NormalsAnimationFiles": [
+      "tambor_tranco2_normals.png",
+      "tambor_tranco3_normals.png",
+      "tambor_tranco4_normals.png",
+      "tambor_tranco5_normals.png",
+      "tambor_tranco6_normals.png",
+      "tambor_tranco7_normals.png",
+      "tambor_tranco8_normals.png",
+      "tambor_tranco1_normals.png"
+     ],
+     "AnimationInterval": 0.05,
+     "AnimationStartTime": "MinValue",
+     "ClampAnimation": true
+    },
+    "NonOperationalDoodad": {
+     "File": "tambor_tranco1.png",
+     "NormalsFile": "tambor_tranco1_normals.png"
+    },
+    "required_with_new_roof": "roof.png NOVO nao tem mais o(s) tambor(es): sem esta Graphics o cano/ponta fica sem eles. Mandar roof.png e a Graphics juntos.",
+    "variante_roof_doodads": {
+     "quando": "se o teste T-TR-3 mostrar que roof_turrets NAO some na vista do interior",
+     "troca": {
+      "Layer": "roof_doodads"
+     },
+     "resto": "igual (mesmos arquivos, Location, Size, gatilho, ClampAnimation)",
+     "cuidado": "roof_doodads tambem guarda cabecas de torre em pecas vanilla: conferir no T-TR-3 se ela some no interior; se nenhuma das duas sumir, aceitar o desenho por cima (o interior do carregador fica coberto entre x 0.375 e 4.625) - previa: railgun_montado.png, coluna 'se roof_turrets aparecer'"
+    }
+   }
+  ],
+  "triggers_build": "rail.tranco_gatilho = relay (PADRAO): TrancoRelay {Type = Timer; StartTrigger = EmitTrigger (carregador) / EmissionTriggered (cano); Duration = 0.5; TriggerWhenStarted = true} e ResetAnimationTrigger = TrancoRelay; a ponta usa o BulletEmitter direto (e dela mesma)",
+  "triggers_fallback": "VARIANTE rail.tranco_gatilho = proxy (inferida, sem exemplo vanilla; so se o T-TR-3 mostrar que funciona): ResetAnimationTrigger = o TriggerProxy de outra peca direto (EmitTrigger no carregador, EmissionTriggered no cano), sem o TrancoRelay (pesquisa tranco q3.cross_part_trigger). O padrao e o relay (triggers_build e pieces[].TrancoRelay).",
+  "glow_rule": "os quadros do tranco sao so blindagem/tambores andando (nenhum plano de carga reacende); a luz do tiro e o clarao + o anel de choque",
+  "impulse": {
+   "component": "TrancoImpulso (ponta)",
+   "Type": "TriggeredEffects",
+   "Trigger": "BulletEmitter",
+   "ChainedTo": "nenhum (ou Weapon com Rotation 180d); NUNCA o Projectile (Interpolate = true)",
+   "Location": [
+    1.5,
+    2.0
+   ],
+   "Rotation": "90d (para tras; se a nave andar para a frente no teste T-TR-1, -90d)",
+   "HitEffects": [
+    {
+     "Type": "Impulse",
+     "Impulse": {
+      "BaseValue": 2400,
+      "BuffType": "BulletStrike_RailShot",
+      "BuffMode": "Multiply"
+     }
+    }
+   ],
+   "ApplyToCenterOfMass": "switch rail.recoil_com (padrao false = como o vanilla: Tupa fora do centro gira a nave um pouco; true = so empurra)",
+   "by_N": {
+    "1": 3000,
+    "2": 3482,
+    "3": 3927,
+    "4": 4349,
+    "5": 4757,
+    "6": 5152
+   },
+   "vanilla_ref": "railgun vanilla ~4000 por tiro com 4 aceleradores (2000 x 1/30 s ao longo do projetil curto); canhao de convés Recoil 240",
+   "alternative": "Recoil do BulletEmitter (numero fixo, ex. 300-400; nao se sabe se aceita buff)",
+   "rejected": "Feedback (so quando o dardo acerta) e AreaImpulse na propria nave (sem exemplo vanilla)"
+  },
+  "shake": {
+   "where": "ponta FireEffect MediaEffects (Trigger = BulletEmitter)",
+   "rules": ": /BASE_SHAKE { ShakeAmount = 0.2; Duration = 0.7 }",
+   "note": "numero fixo (buff em media effect de peca nao verificado); o jogador pode desligar o tremor nas opcoes, entao o tranco nunca depende so dele; vanilla: canhao de convés 0.1 / 1 s"
+  },
+  "shock_ring": {
+   "where": "TriggeredEffects proprio na boca (Location [1.5, 0]) com AnchorMediaEffects = false: o anel fica no espaco enquanto a nave recua (le mais forte junto com o impulso)",
+   "texture": "./Data/common_effects/particles/shockwave.png (vanilla) via fxkit (tools/bsgen/fxkit.py blob/ring com tex = SHOCKWAVE, crescimento linear, bucket Upper2)",
+   "color": "borda azul clara [100,175,255] -> nucleo branco-azulado [205,228,255], sem cobre",
+   "size_tiles": "1.0 -> 6.5",
+   "life_s": 0.32,
+   "alpha": "1 -> 0 (ease-out)",
+   "scale": "x MediaEffectsScale BulletStrike_RailShot",
+   "plus": "o railgun_shoot vanilla + railgun_shoot_distortion que o kit ja usa (TK bs2t_rail_ponta.rules:425-437)",
+   "preview": "docs/preview/3d/v2/railgun_tranco_curto.gif/.mp4, railgun_disparo.gif/.mp4 e railgun_tranco.gif simulam este anel (nasce junto com o dardo)"
+  }
+ },
+ "chain_offsets_5x5": {
+  "geometry": "carregador nao girado, a arma atira para -y; quadros x 0..4, y 0..4; fileira da culatra y = 0. Cano no carregador: Left 1, Right 4, Top -3, Bottom 0. Carregador no cano: Left -1, Right 4, Top 3, Bottom 8.",
+  "carregador": {
+   "RailBuffProvider/OperationBuffProvider": {
+    "BuffArea": [
+     1,
+     -1,
+     3,
+     1
+    ],
+    "Criteria": "{Category bs_rail_energia; Rot 0; Left 1; Right 4; Bottom 0}"
+   },
+   "TriggerProxies (WeaponTrigger, ProjectileStartTrigger, EmitTrigger)": {
+    "PartLocation": [
+     1,
+     -1
+    ],
+    "PartCriteria": "{Category bs_rail_energia; Rot 0; Left 1; Right 4; Bottom 0}"
+   },
+   "Porta_Trilho": "[2,0] Up",
+   "PaiolAcoplado_0 (fallback_adjacency)": "PartLocation [0,5]"
+  },
+  "cano": "ver ops /railgun/parts/cano/proxies e /railgun/parts/cano/loader_5x5_links",
+  "ponta": "sem mudanca",
+  "why_exact_edges": "com so {Category; Top 3} um carregador deslocado 1 quadro de lado ainda alimentaria pelo proxy [0,3] e falharia nos buffs; com as arestas exatas fica todo desconectado"
+ },
+ "art_contract": {
+  "carregador": {
+   "id": "rafaeltessaro.bs_rail_loader",
+   "folder": "art3d/bs_rail_loader",
+   "size": [
+    5,
+    5
+   ],
+   "size_was": [
+    3,
+    4
+   ],
+   "files_new": [
+    "culatra_tranco1.png",
+    "culatra_tranco1_normals.png",
+    "culatra_tranco2.png",
+    "culatra_tranco2_normals.png",
+    "culatra_tranco3.png",
+    "culatra_tranco3_normals.png",
+    "culatra_tranco4.png",
+    "culatra_tranco4_normals.png",
+    "culatra_tranco5.png",
+    "culatra_tranco5_normals.png",
+    "culatra_tranco6.png",
+    "culatra_tranco6_normals.png",
+    "culatra_tranco7.png",
+    "culatra_tranco7_normals.png",
+    "culatra_tranco8.png",
+    "culatra_tranco8_normals.png"
+   ],
+   "files_removed": [],
+   "files_total": 49,
+   "files_total_was": 33,
+   "icon": {
+    "file": "icon.png",
+    "size_px": [
+     115,
+     115
+    ]
+   },
+   "crew_pos": [
+    [
+     1.5,
+     2.0
+    ],
+    [
+     3.5,
+     2.0
+    ]
+   ],
+   "walls": "walls.png",
+   "layer_flags": {
+    "culatra_tranco": {
+     "required_with": "roof"
+    }
+   },
+   "layers": {
+    "floor": {
+     "game_layer": "floors",
+     "rect": [
+      0,
+      0,
+      5,
+      5
+     ],
+     "files": [
+      "floor.png"
+     ],
+     "normals": null,
+     "status": "MUDOU so o rect (carregador 5x5)",
+     "was": {
+      "rect": [
+       0,
+       0,
+       3,
+       4
+      ]
+     }
+    },
+    "projeteis": {
+     "game_layer": "doodads_low",
+     "rect": [
+      1.75,
+      2.625,
+      1.5,
+      2.25
+     ],
+     "files": [
+      "projeteis1.png",
+      "projeteis2.png",
+      "projeteis3.png",
+      "projeteis4.png",
+      "projeteis5.png",
+      "projeteis6.png"
+     ],
+     "normals": null,
+     "levels": 6,
+     "status": "MUDOU so o rect (carregador 5x5)",
+     "was": {
+      "rect": [
+       0.6,
+       2.8,
+       1.8,
+       1.0
+      ]
+     }
+    },
+    "culatra_projetil": {
+     "game_layer": "doodads_low",
+     "rect": [
+      2.0,
+      0.0,
+      1.0,
+      2.0
+     ],
+     "files": [
+      "culatra_projetil.png"
+     ],
+     "normals": null,
+     "status": "MUDOU so o rect (carregador 5x5)",
+     "was": {
+      "rect": [
+       1.0,
+       0.0,
+       1.0,
+       2.0
+      ]
+     }
+    },
+    "consola": {
+     "game_layer": "walls",
+     "rect": [
+      1.0,
+      1.5,
+      1.0,
+      1.0
+     ],
+     "files": [
+      "consola1.png",
+      "consola2.png",
+      "consola3.png",
+      "consola4.png"
+     ],
+     "normals": null,
+     "rects": [
+      [
+       1.0,
+       1.5,
+       1.0,
+       1.0
+      ],
+      [
+       3.0,
+       1.5,
+       1.0,
+       1.0
+      ]
+     ],
+     "frames": 4,
+     "interval": 0.1,
+     "status": "MUDOU so o rect (carregador 5x5)",
+     "was": {
+      "rect": [
+       0.1,
+       1.1,
+       1.0,
+       1.0
+      ],
+      "rects": [
+       [
+        0.1,
+        1.1,
+        1.0,
+        1.0
+       ],
+       [
+        1.9,
+        1.1,
+        1.0,
+        1.0
+       ]
+      ]
+     }
+    },
+    "culatra_abre": {
+     "game_layer": "walls",
+     "rect": [
+      2.0,
+      0.0,
+      1.0,
+      1.0
+     ],
+     "files": [
+      "culatra_abre1.png",
+      "culatra_abre2.png",
+      "culatra_abre3.png"
+     ],
+     "normals": null,
+     "frames": 3,
+     "interval": 0.0666,
+     "status": "MUDOU so o rect (carregador 5x5)",
+     "was": {
+      "rect": [
+       1.0,
+       0.0,
+       1.0,
+       1.0
+      ]
+     }
+    },
+    "culatra_carrega": {
+     "game_layer": "walls",
+     "rect": [
+      2.0,
+      0.0,
+      1.0,
+      2.0
+     ],
+     "files": [
+      "culatra_carrega1.png",
+      "culatra_carrega2.png",
+      "culatra_carrega3.png",
+      "culatra_carrega4.png",
+      "culatra_carrega5.png",
+      "culatra_carrega6.png"
+     ],
+     "normals": null,
+     "frames": 6,
+     "interval": 0.2,
+     "status": "MUDOU so o rect (carregador 5x5)",
+     "was": {
+      "rect": [
+       1.0,
+       0.0,
+       1.0,
+       2.0
+      ]
+     }
+    },
+    "weapon": {
+     "game_layer": "weapons",
+     "rect": [
+      1.0,
+      0.0,
+      3.0,
+      1.0
+     ],
+     "files": [
+      "weapon.png"
+     ],
+     "normals": [
+      "weapon_normals.png"
+     ],
+     "status": "MUDOU so o rect (carregador 5x5)",
+     "was": {
+      "rect": [
+       0.0,
+       0.0,
+       3.0,
+       1.0
+      ]
+     }
+    },
+    "capacitores": {
+     "game_layer": "doodads_high",
+     "rect": [
+      0.0,
+      2.625,
+      5.0,
+      2.0
+     ],
+     "files": [
+      "capacitores1.png",
+      "capacitores2.png",
+      "capacitores3.png"
+     ],
+     "normals": null,
+     "levels": 3,
+     "status": "MUDOU so o rect (carregador 5x5)",
+     "was": {
+      "rect": [
+       0.0,
+       2.1,
+       3.0,
+       1.0
+      ]
+     }
+    },
+    "luz_culatra": {
+     "game_layer": "lights_add",
+     "rect": [
+      1.0,
+      0.0,
+      3.0,
+      1.0
+     ],
+     "files": [
+      "luz_culatra1.png",
+      "luz_culatra2.png"
+     ],
+     "normals": null,
+     "levels": 2,
+     "blend": "add",
+     "status": "MUDOU so o rect (carregador 5x5)",
+     "was": {
+      "rect": [
+       0.0,
+       0.0,
+       3.0,
+       1.0
+      ]
+     }
+    },
+    "roof": {
+     "game_layer": "roofs",
+     "rect": [
+      0,
+      0,
+      5,
+      5
+     ],
+     "files": [
+      "roof.png"
+     ],
+     "normals": [
+      "roof_normals.png"
+     ],
+     "status": "MUDOU (5x5); a fileira da culatra saiu para culatra_tranco",
+     "was": {
+      "rect": [
+       0,
+       0,
+       3,
+       4
+      ]
+     }
+    },
+    "culatra_tranco": {
+     "game_layer": "roof_turrets",
+     "rect": [
+      0.375,
+      0.0,
+      4.25,
+      4.75
+     ],
+     "files": [
+      "culatra_tranco1.png",
+      "culatra_tranco2.png",
+      "culatra_tranco3.png",
+      "culatra_tranco4.png",
+      "culatra_tranco5.png",
+      "culatra_tranco6.png",
+      "culatra_tranco7.png",
+      "culatra_tranco8.png"
+     ],
+     "normals": [
+      "culatra_tranco1_normals.png",
+      "culatra_tranco2_normals.png",
+      "culatra_tranco3_normals.png",
+      "culatra_tranco4_normals.png",
+      "culatra_tranco5_normals.png",
+      "culatra_tranco6_normals.png",
+      "culatra_tranco7_normals.png",
+      "culatra_tranco8_normals.png"
+     ],
+     "frames": 8,
+     "interval": 0.05,
+     "status": "NOVO (tranco)",
+     "tranco": {
+      "curve": "breech",
+      "stroke_px_at_64": 13,
+      "stroke_tiles": 0.2031,
+      "offset_px_by_file": [
+       0,
+       6,
+       13,
+       13,
+       9,
+       5,
+       2,
+       0
+      ],
+      "offset_px_play_order": [
+       6,
+       13,
+       13,
+       9,
+       5,
+       2,
+       0,
+       0
+      ],
+      "AnimationFiles_order": [
+       "culatra_tranco2.png",
+       "culatra_tranco3.png",
+       "culatra_tranco4.png",
+       "culatra_tranco5.png",
+       "culatra_tranco6.png",
+       "culatra_tranco7.png",
+       "culatra_tranco8.png",
+       "culatra_tranco1.png"
+      ],
+      "positive": "para tras (para a culatra)"
+     }
+    }
+   }
+  },
+  "cano": {
+   "id": "rafaeltessaro.bs_rail_barrel",
+   "folder": "art3d/bs_rail_barrel",
+   "size": [
+    3,
+    3
+   ],
+   "size_was": [
+    3,
+    3
+   ],
+   "files_new": [
+    "tambores_tranco1.png",
+    "tambores_tranco1_normals.png",
+    "tambores_tranco2.png",
+    "tambores_tranco2_normals.png",
+    "tambores_tranco3.png",
+    "tambores_tranco3_normals.png",
+    "tambores_tranco4.png",
+    "tambores_tranco4_normals.png",
+    "tambores_tranco5.png",
+    "tambores_tranco5_normals.png",
+    "tambores_tranco6.png",
+    "tambores_tranco6_normals.png",
+    "tambores_tranco7.png",
+    "tambores_tranco7_normals.png",
+    "tambores_tranco8.png",
+    "tambores_tranco8_normals.png"
+   ],
+   "files_removed": [],
+   "files_total": 39,
+   "files_total_was": 23,
+   "icon": {
+    "file": "icon.png",
+    "size_px": [
+     69,
+     69
+    ]
+   },
+   "crew_pos": null,
+   "walls": "walls.png",
+   "layer_flags": {
+    "tambores_tranco": {
+     "required_with": "roof"
+    }
+   },
+   "layers": {
+    "floor": {
+     "game_layer": "floors",
+     "rect": [
+      0,
+      0,
+      3,
+      3
+     ],
+     "files": [
+      "floor.png"
+     ],
+     "normals": null,
+     "status": "igual"
+    },
+    "trilhos": {
+     "game_layer": "doodads_low",
+     "rect": [
+      0,
+      0,
+      3,
+      3
+     ],
+     "files": [
+      "trilhos1.png",
+      "trilhos2.png",
+      "trilhos3.png",
+      "trilhos4.png",
+      "trilhos5.png",
+      "trilhos6.png",
+      "trilhos7.png",
+      "trilhos8.png",
+      "trilhos9.png"
+     ],
+     "normals": null,
+     "levels": 9,
+     "status": "igual"
+    },
+    "carga": {
+     "game_layer": "lights_add",
+     "rect": [
+      0,
+      0,
+      3,
+      3
+     ],
+     "files": [
+      "carga1.png",
+      "carga2.png",
+      "carga3.png",
+      "carga4.png",
+      "carga5.png",
+      "carga6.png",
+      "carga7.png",
+      "carga8.png"
+     ],
+     "normals": null,
+     "levels": 8,
+     "blend": "add",
+     "status": "igual"
+    },
+    "roof": {
+     "game_layer": "roofs",
+     "rect": [
+      0,
+      0,
+      3,
+      3
+     ],
+     "files": [
+      "roof.png"
+     ],
+     "normals": [
+      "roof_normals.png"
+     ],
+     "status": "igual (nome/rect); CONTEUDO mudou: os tambores sairam para a camada do tranco; o teto leva a sombra de contato FRACA (50%) deles em repouso (r2)"
+    },
+    "tambores_tranco": {
+     "game_layer": "roof_turrets",
+     "rect": [
+      0.0,
+      0.0,
+      3.0,
+      3.0
+     ],
+     "files": [
+      "tambores_tranco1.png",
+      "tambores_tranco2.png",
+      "tambores_tranco3.png",
+      "tambores_tranco4.png",
+      "tambores_tranco5.png",
+      "tambores_tranco6.png",
+      "tambores_tranco7.png",
+      "tambores_tranco8.png"
+     ],
+     "normals": [
+      "tambores_tranco1_normals.png",
+      "tambores_tranco2_normals.png",
+      "tambores_tranco3_normals.png",
+      "tambores_tranco4_normals.png",
+      "tambores_tranco5_normals.png",
+      "tambores_tranco6_normals.png",
+      "tambores_tranco7_normals.png",
+      "tambores_tranco8_normals.png"
+     ],
+     "frames": 8,
+     "interval": 0.05,
+     "status": "NOVO (tranco)",
+     "tranco": {
+      "curve": "drum",
+      "stroke_px_at_64": 13,
+      "stroke_tiles": 0.2031,
+      "offset_px_by_file": [
+       0,
+       13,
+       13,
+       10,
+       6,
+       2,
+       -1,
+       0
+      ],
+      "offset_px_play_order": [
+       13,
+       13,
+       10,
+       6,
+       2,
+       -1,
+       0,
+       0
+      ],
+      "AnimationFiles_order": [
+       "tambores_tranco2.png",
+       "tambores_tranco3.png",
+       "tambores_tranco4.png",
+       "tambores_tranco5.png",
+       "tambores_tranco6.png",
+       "tambores_tranco7.png",
+       "tambores_tranco8.png",
+       "tambores_tranco1.png"
+      ],
+      "positive": "para tras (para a culatra)"
+     }
+    }
+   }
+  },
+  "ponta": {
+   "id": "rafaeltessaro.bs_rail_muzzle",
+   "folder": "art3d/bs_rail_muzzle",
+   "size": [
+    3,
+    4
+   ],
+   "size_was": [
+    3,
+    4
+   ],
+   "files_new": [
+    "tambor_tranco1.png",
+    "tambor_tranco1_normals.png",
+    "tambor_tranco2.png",
+    "tambor_tranco2_normals.png",
+    "tambor_tranco3.png",
+    "tambor_tranco3_normals.png",
+    "tambor_tranco4.png",
+    "tambor_tranco4_normals.png",
+    "tambor_tranco5.png",
+    "tambor_tranco5_normals.png",
+    "tambor_tranco6.png",
+    "tambor_tranco6_normals.png",
+    "tambor_tranco7.png",
+    "tambor_tranco7_normals.png",
+    "tambor_tranco8.png",
+    "tambor_tranco8_normals.png",
+    "weapon_tranco1.png",
+    "weapon_tranco1_normals.png",
+    "weapon_tranco2.png",
+    "weapon_tranco2_normals.png",
+    "weapon_tranco3.png",
+    "weapon_tranco3_normals.png",
+    "weapon_tranco4.png",
+    "weapon_tranco4_normals.png",
+    "weapon_tranco5.png",
+    "weapon_tranco5_normals.png",
+    "weapon_tranco6.png",
+    "weapon_tranco6_normals.png",
+    "weapon_tranco7.png",
+    "weapon_tranco7_normals.png",
+    "weapon_tranco8.png",
+    "weapon_tranco8_normals.png"
+   ],
+   "files_removed": [],
+   "files_total": 49,
+   "files_total_was": 17,
+   "icon": {
+    "file": "icon.png",
+    "size_px": [
+     69,
+     92
+    ]
+   },
+   "crew_pos": null,
+   "walls": "walls.png",
+   "layer_flags": {
+    "weapon": {
+     "rest_only": true,
+     "exclusive_with": "weapon_tranco",
+     "use": "so a coroa em repouso (icone / contrato antigo); com o roof.png novo o NonOperationalDoodad e weapon_tranco1; NUNCA junto com weapon_tranco"
+    },
+    "weapon_tranco": {
+     "exclusive_with": "weapon",
+     "required_with": "roof",
+     "use": "Graphics animada da frente + bochechas (o roof.png novo tem o buraco delas)"
+    },
+    "tambor_tranco": {
+     "required_with": "roof"
+    }
+   },
+   "layers": {
+    "floor": {
+     "game_layer": "floors",
+     "rect": [
+      0,
+      0,
+      3,
+      4
+     ],
+     "files": [
+      "floor.png"
+     ],
+     "normals": null,
+     "status": "igual"
+    },
+    "trilhos": {
+     "game_layer": "doodads_low",
+     "rect": [
+      0,
+      0,
+      3,
+      4
+     ],
+     "files": [
+      "trilhos.png"
+     ],
+     "normals": null,
+     "status": "igual"
+    },
+    "weapon": {
+     "game_layer": "weapons",
+     "rect": [
+      0.0,
+      0.0,
+      3.0,
+      1.5
+     ],
+     "files": [
+      "weapon.png"
+     ],
+     "normals": [
+      "weapon_normals.png"
+     ],
+     "status": "igual (nome/rect [0,0,3,1.5]); = as 96 linhas de cima de weapon_tranco1 pixel a pixel (so a coroa em repouso): imagem de repouso/icone; NUNCA desenhar junto com weapon_tranco (meta.layer_flags)"
+    },
+    "weapon_tranco": {
+     "game_layer": "weapons",
+     "rect": [
+      0.0,
+      0.0,
+      3.0,
+      3.5625
+     ],
+     "files": [
+      "weapon_tranco1.png",
+      "weapon_tranco2.png",
+      "weapon_tranco3.png",
+      "weapon_tranco4.png",
+      "weapon_tranco5.png",
+      "weapon_tranco6.png",
+      "weapon_tranco7.png",
+      "weapon_tranco8.png"
+     ],
+     "normals": [
+      "weapon_tranco1_normals.png",
+      "weapon_tranco2_normals.png",
+      "weapon_tranco3_normals.png",
+      "weapon_tranco4_normals.png",
+      "weapon_tranco5_normals.png",
+      "weapon_tranco6_normals.png",
+      "weapon_tranco7_normals.png",
+      "weapon_tranco8_normals.png"
+     ],
+     "frames": 8,
+     "interval": 0.05,
+     "status": "NOVO (tranco): a frente em escudo + as bochechas brancas (sairam do teto)",
+     "tranco": {
+      "curve": "crown",
+      "stroke_px_at_64": 13,
+      "stroke_tiles": 0.2031,
+      "offset_px_by_file": [
+       0,
+       13,
+       13,
+       10,
+       6,
+       3,
+       1,
+       0
+      ],
+      "offset_px_play_order": [
+       13,
+       13,
+       10,
+       6,
+       3,
+       1,
+       0,
+       0
+      ],
+      "AnimationFiles_order": [
+       "weapon_tranco2.png",
+       "weapon_tranco3.png",
+       "weapon_tranco4.png",
+       "weapon_tranco5.png",
+       "weapon_tranco6.png",
+       "weapon_tranco7.png",
+       "weapon_tranco8.png",
+       "weapon_tranco1.png"
+      ],
+      "positive": "para tras (para a culatra)"
+     }
+    },
+    "carga": {
+     "game_layer": "lights_add",
+     "rect": [
+      0,
+      0,
+      3,
+      4
+     ],
+     "files": [
+      "carga1.png",
+      "carga2.png",
+      "carga3.png",
+      "carga4.png",
+      "carga5.png",
+      "carga6.png"
+     ],
+     "normals": null,
+     "levels": 6,
+     "blend": "add",
+     "status": "igual"
+    },
+    "roof": {
+     "game_layer": "roofs",
+     "rect": [
+      0,
+      0,
+      3,
+      4
+     ],
+     "files": [
+      "roof.png"
+     ],
+     "normals": [
+      "roof_normals.png"
+     ],
+     "status": "igual (nome/rect); CONTEUDO mudou: sem o tambor da emenda (tambor_tranco) e com 2 BURACOS onde ficam as bochechas brancas (weapon_tranco); r2: sombra de contato FRACA das bochechas e do tambor em repouso + um calco escuro de 2 px no topo da borda de fora de cada buraco (no tranco o piso nao aparece na quina da coroa)"
+    },
+    "slug": {
+     "game_layer": "walls",
+     "rect": [
+      1.1,
+      0.5,
+      0.8,
+      3.0
+     ],
+     "files": [
+      "slug.png"
+     ],
+     "normals": null,
+     "status": "igual"
+    },
+    "slug_glow": {
+     "game_layer": "lights_add",
+     "rect": [
+      0.9,
+      0.3,
+      1.2,
+      3.4
+     ],
+     "files": [
+      "slug_glow.png"
+     ],
+     "normals": null,
+     "blend": "add",
+     "status": "igual"
+    },
+    "tambor_tranco": {
+     "game_layer": "roof_turrets",
+     "rect": [
+      0.875,
+      3.0,
+      1.25,
+      1.0
+     ],
+     "files": [
+      "tambor_tranco1.png",
+      "tambor_tranco2.png",
+      "tambor_tranco3.png",
+      "tambor_tranco4.png",
+      "tambor_tranco5.png",
+      "tambor_tranco6.png",
+      "tambor_tranco7.png",
+      "tambor_tranco8.png"
+     ],
+     "normals": [
+      "tambor_tranco1_normals.png",
+      "tambor_tranco2_normals.png",
+      "tambor_tranco3_normals.png",
+      "tambor_tranco4_normals.png",
+      "tambor_tranco5_normals.png",
+      "tambor_tranco6_normals.png",
+      "tambor_tranco7_normals.png",
+      "tambor_tranco8_normals.png"
+     ],
+     "frames": 8,
+     "interval": 0.05,
+     "status": "NOVO (tranco)",
+     "tranco": {
+      "curve": "drum",
+      "stroke_px_at_64": 13,
+      "stroke_tiles": 0.2031,
+      "offset_px_by_file": [
+       0,
+       13,
+       13,
+       10,
+       6,
+       2,
+       -1,
+       0
+      ],
+      "offset_px_play_order": [
+       13,
+       13,
+       10,
+       6,
+       2,
+       -1,
+       0,
+       0
+      ],
+      "AnimationFiles_order": [
+       "tambor_tranco2.png",
+       "tambor_tranco3.png",
+       "tambor_tranco4.png",
+       "tambor_tranco5.png",
+       "tambor_tranco6.png",
+       "tambor_tranco7.png",
+       "tambor_tranco8.png",
+       "tambor_tranco1.png"
+      ],
+      "positive": "para tras (para a culatra)"
+     }
+    }
+   }
+  }
+ },
+ "balance": {
+  "fact": "o carregador ganhou 13 quadros (12 -> 25); o resto da arma nao muda: tiles = 25 + 9N + 12 (N=1 46, N=4 73, N=6 91)",
+  "table": [
+   {
+    "canos": 1,
+    "tiles_was": 33,
+    "tiles": 46,
+    "dps": 8333,
+    "dps_per_tile_was": 253,
+    "dps_option_B": 9259,
+    "dps_per_tile_option_B": 201,
+    "ratio_option_B_over_old": 0.796,
+    "dps_per_tile": 181,
+    "ratio_new_over_old": 0.716,
+    "vs_mapinguari_dps_per_tile_was": 0.88,
+    "vs_mapinguari_dps_per_tile": 0.63,
+    "vs_sw_late_line_353_per_tile_was": 0.72,
+    "vs_sw_late_line_353_per_tile": 0.51,
+    "impulse_per_shot": 3000
+   },
+   {
+    "canos": 2,
+    "tiles_was": 42,
+    "tiles": 55,
+    "dps": 9671,
+    "dps_per_tile_was": 230,
+    "dps_option_B": 10746,
+    "dps_per_tile_option_B": 195,
+    "ratio_option_B_over_old": 0.849,
+    "dps_per_tile": 176,
+    "ratio_new_over_old": 0.765,
+    "vs_mapinguari_dps_per_tile_was": 0.81,
+    "vs_mapinguari_dps_per_tile": 0.61,
+    "vs_sw_late_line_353_per_tile_was": 0.65,
+    "vs_sw_late_line_353_per_tile": 0.5,
+    "impulse_per_shot": 3482
+   },
+   {
+    "canos": 3,
+    "tiles_was": 51,
+    "tiles": 64,
+    "dps": 10907,
+    "dps_per_tile_was": 214,
+    "dps_option_B": 12119,
+    "dps_per_tile_option_B": 189,
+    "ratio_option_B_over_old": 0.885,
+    "dps_per_tile": 170,
+    "ratio_new_over_old": 0.796,
+    "vs_mapinguari_dps_per_tile_was": 0.75,
+    "vs_mapinguari_dps_per_tile": 0.6,
+    "vs_sw_late_line_353_per_tile_was": 0.61,
+    "vs_sw_late_line_353_per_tile": 0.48,
+    "impulse_per_shot": 3927
+   },
+   {
+    "canos": 4,
+    "tiles_was": 60,
+    "tiles": 73,
+    "dps": 12082,
+    "dps_per_tile_was": 201,
+    "dps_option_B": 13424,
+    "dps_per_tile_option_B": 184,
+    "ratio_option_B_over_old": 0.915,
+    "dps_per_tile": 166,
+    "ratio_new_over_old": 0.823,
+    "vs_mapinguari_dps_per_tile_was": 0.7,
+    "vs_mapinguari_dps_per_tile": 0.58,
+    "vs_sw_late_line_353_per_tile_was": 0.57,
+    "vs_sw_late_line_353_per_tile": 0.47,
+    "impulse_per_shot": 4349
+   },
+   {
+    "canos": 5,
+    "tiles_was": 69,
+    "tiles": 82,
+    "dps": 13213,
+    "dps_per_tile_was": 191,
+    "dps_option_B": 14681,
+    "dps_per_tile_option_B": 179,
+    "ratio_option_B_over_old": 0.937,
+    "dps_per_tile": 161,
+    "ratio_new_over_old": 0.844,
+    "vs_mapinguari_dps_per_tile_was": 0.67,
+    "vs_mapinguari_dps_per_tile": 0.56,
+    "vs_sw_late_line_353_per_tile_was": 0.54,
+    "vs_sw_late_line_353_per_tile": 0.46,
+    "impulse_per_shot": 4757
+   },
+   {
+    "canos": 6,
+    "tiles_was": 78,
+    "tiles": 91,
+    "dps": 14310,
+    "dps_per_tile_was": 183,
+    "dps_option_B": 15900,
+    "dps_per_tile_option_B": 175,
+    "ratio_option_B_over_old": 0.955,
+    "dps_per_tile": 157,
+    "ratio_new_over_old": 0.859,
+    "vs_mapinguari_dps_per_tile_was": 0.64,
+    "vs_mapinguari_dps_per_tile": 0.55,
+    "vs_sw_late_line_353_per_tile_was": 0.52,
+    "vs_sw_late_line_353_per_tile": 0.45,
+    "impulse_per_shot": 5152
+   }
+  ],
+  "reading": "com o DPS de hoje, o DPS por quadro cai 14-28% (N=1 253 -> 181, N=6 183 -> 157): o imposto de arma de alfa fica maior (0.63-0.55x do Mapinguari 2.0 por quadro, era 0.88-0.64x). Os numeros por tiro, penetracao, alcance e escudo NAO mudam.",
+  "options": {
+   "A_keep": "manter o DPS (o carregador maior e o preco do visual; o Tupa continua a melhor arma de tiro unico); so atualizar tiles e dps_per_tile da tabela (ops_balance_derived)",
+   "B_compensate": "devolver parte do DPS por quadro: FireInterval 6.0 -> 5.4 s (+11%) ou DamagePool +10%",
+   "C_cost": "custo por quadro do carregador: hoje 24000 cr / 12 = 2000 por quadro; 5x5 no mesmo custo = 960 por quadro (fica barato por quadro); sugestao 24000 -> 30000 cr (steel 120 -> 180, coil2 40 -> 50)"
+  },
+  "recommendation_r2": {
+   "pick": "B + C (no lugar de A_keep)",
+   "why": "o usuario pediu o carregador MAIOR pelo visual ('poderia ser maior ... ia ficar muito mais foda'), nao uma arma mais fraca; com A_keep os 13 quadros a mais cortam 14-28% do DPS por quadro (N=1 253 -> 181). A frase 'o tamanho e a energia balanceiam' (USER_NOTES, DECISAO FINAL) fala de MAIS CANOS = mais dano, alcance e energia por tiro, nao do tamanho do carregador.",
+   "B": "FireInterval 6.0 -> 5.4 s (+11% DPS; DPS por quadro N=1 181 -> 201, N=6 157 -> 175: corte de 20-14% em vez de 28-14%); ou DamagePool +10% (40000 -> 44000) se o ritmo de 6 s for intocavel. ops_balance_option_B",
+   "C": "custo e vida escalados para 25 quadros: build_cost 24000 -> 30000 cr (steel 120 -> 180, coil2 40 -> 50), MaxHealth 33000 (o SPEC atual ja tem); ops_balance_option_C",
+   "decision": "do dono do spec/balanço (nada aplicado aqui); a tabela 'table' traz dps_per_tile_option_B"
+  },
+  "loader_health": {
+   "was": "20000 para 12 quadros (1667 por quadro; cano e ponta 2000 por quadro)",
+   "proposal": "MaxHealth 33000 (1320 por quadro: a parte de fora sao placas e molas, o miolo continua denso) - decisao de balanço",
+   "keep_20000": "800 por quadro: o carregador vira o ponto fraco da arma (mais facil de desligar)"
+  },
+  "loader_mass": "Density: a massa por quadro igual da 25/12 = 2,1x a massa do carregador (pesquisa: 4 x 25 = 100 vs 48) -> o mesmo impulso acelera um pouco menos a nave; com o impulso 2400 x m(N) isso e desprezivel na nave inteira",
+  "crew": "2 (igual), command_points 4 (igual)"
+ },
+ "tests": [
+  {
+   "id": "T-TR-1",
+   "what": "Criativo, um Tupa N=4 numa nave pequena parada, centrado: 1 tiro. A nave tem de andar para TRAS (senao Rotation -90d). Comparar N=1 e N=6 (buff) e a variante Recoil fixo."
+  },
+  {
+   "id": "T-TR-2",
+   "what": "Mesmo canhao fora do centro: a nave gira um pouco; com ApplyToCenterOfMass = true nao gira."
+  },
+  {
+   "id": "T-TR-3",
+   "what": "Cada tiro toca a frente + bochechas (weapon_tranco), o tambor da ponta, os tambores de CADA cano e o bloco da culatra com as molas; ao carregar/construir tudo mostra o arquivo 1 (repouso). Se canos/carregador nao repetirem: TrancoRelay (triggers_fallback). VISTA DO INTERIOR: conferir se roof_turrets some (bloco da culatra, molas, tambores); se nao sumir, trocar TrancoCulatra/TrancoTambores/TrancoTambor para a variante_roof_doodads e conferir de novo (railgun_montado.png mostra o interior com roof_turrets por cima). Na mesma vista: as bochechas brancas da ponta (weapon_tranco, camada weapons) aparecem por cima do interior como a cabeca de uma torre - aceitavel; so confirmar."
+  },
+  {
+   "id": "T-TR-4",
+   "what": "Tremor a cada tiro e some com Opcoes > Tremor de tela desligado."
+  },
+  {
+   "id": "T-TR-5",
+   "what": "Corrente do carregador 5x5 para N=1..6: CanosOk, BulletStrike_Rail = N, carregador operacional (RailReverseOperation chega), slug/bateria chegam na ponta, a onda de carga sai da porta [2,0]. Carregador deslocado 1 quadro de lado: nada conecta."
+  },
+  {
+   "id": "T-TR-6",
+   "what": "Multijogador/replay: sem desync depois de muitos tiros."
+  },
+  {
+   "id": "T-TR-A1",
+   "what": "Arte: em repouso o cano/ponta montados ficam iguais a versao aprovada (weapon_tranco1 + teto + tambores X1 = weapon + teto antigos; check_rail.py), o teto da ponta nao aparece furado (weapon_tranco sempre junto) e a coroa nao aparece dobrada (weapon.png e weapon_tranco nunca juntos)."
+  },
+  {
+   "id": "T-TR-A2",
+   "what": "Arte: o bloco da culatra abre uma fresta de 13 px na emenda com o 1o cano no tranco e fecha sem salto; as molas comprimem e voltam; as bochechas brancas da ponta entram sob os blocos de tras do teto e voltam; na vista do interior o bloco nao cobre os postos (se cobrir, variante_roof_doodads)."
+  }
+ ],
+ "open_questions": [
+  "roof_turrets e escondido na vista do interior? (se nao, o bloco da culatra e as molas cobrem o interior do carregador entre x 0.375 e 4.625 e os tambores cobrem o canal; variante_roof_doodads pronta em cada peca do tranco; roof_doodads tambem guarda cabecas de torre, entao pode nao sumir tambem: T-TR-3)",
+  "TriggerProxy de outra peca como ResetAnimationTrigger (sem exemplo vanilla): T-TR-3, fallback TrancoRelay",
+  "sinal do impulso sem ChainedTo (T-TR-1)",
+  "balanço: impulso 2400 x m(N), DPS por quadro com +13 quadros, MaxHealth/custo/Density do carregador 5x5 (recomendacao r2: B + C, balance.recommendation_r2)",
+  "tools/check_art3d.py (de outro dono) recusa kind 'layered' nas 3 pastas do Tupa (bs_rail_loader/barrel/muzzle; ja era assim nos metas aprovados do ref-r2, nao e regressao): o dono do check_art3d.py precisa aceitar 'layered' para o Tupa entrar no checker comum; ate la vale o tranco/check_rail.py",
+  "art_assets.effects.railgun: o muzzle fica azul com o anel de choque (ops); in_flight/per_penetrated_part/end_of_path_impact ainda dizem ouro/violeta (divida de paleta antiga, MUZZLE_FX.palette_debt)"
+ ],
+ "art_changes_r2": {
+  "contract_same": true,
+  "files_new": [],
+  "files_removed": [],
+  "rects_changed": [],
+  "content_changed": {
+   "carregador": [
+    "blueprints.png (282 px)",
+    "culatra_tranco1.png (145 px)",
+    "culatra_tranco1_normals.png (145 px)",
+    "culatra_tranco2.png (140 px)",
+    "culatra_tranco2_normals.png (140 px)",
+    "culatra_tranco3.png (154 px)",
+    "culatra_tranco3_normals.png (154 px)",
+    "culatra_tranco4.png (154 px)",
+    "culatra_tranco4_normals.png (154 px)",
+    "culatra_tranco5.png (175 px)",
+    "culatra_tranco5_normals.png (175 px)",
+    "culatra_tranco6.png (154 px)",
+    "culatra_tranco6_normals.png (154 px)",
+    "culatra_tranco7.png (144 px)",
+    "culatra_tranco7_normals.png (144 px)",
+    "culatra_tranco8.png (145 px)",
+    "culatra_tranco8_normals.png (145 px)",
+    "icon.png (544 px)"
+   ],
+   "cano": [
+    "blueprints.png (4713 px)",
+    "icon.png (1769 px)",
+    "roof.png (13582 px)",
+    "roof_normals.png (26 px)",
+    "tambores_tranco1.png (2 px)",
+    "tambores_tranco1_normals.png (2 px)",
+    "tambores_tranco2.png (7103 px)",
+    "tambores_tranco2_normals.png (7269 px)",
+    "tambores_tranco3.png (7103 px)",
+    "tambores_tranco3_normals.png (7269 px)",
+    "tambores_tranco4.png (7106 px)",
+    "tambores_tranco4_normals.png (7209 px)",
+    "tambores_tranco5.png (7127 px)",
+    "tambores_tranco5_normals.png (7191 px)",
+    "tambores_tranco6.png (7132 px)",
+    "tambores_tranco6_normals.png (7234 px)",
+    "tambores_tranco7.png (7040 px)",
+    "tambores_tranco7_normals.png (7160 px)",
+    "tambores_tranco8.png (2 px)",
+    "tambores_tranco8_normals.png (2 px)"
+   ],
+   "ponta": [
+    "blueprints.png (4875 px)",
+    "icon.png (1636 px)",
+    "roof.png (10437 px)",
+    "roof_normals.png (233 px)",
+    "tambor_tranco2.png (1587 px)",
+    "tambor_tranco2_normals.png (1646 px)",
+    "tambor_tranco3.png (1587 px)",
+    "tambor_tranco3_normals.png (1646 px)",
+    "tambor_tranco4.png (1595 px)",
+    "tambor_tranco4_normals.png (1630 px)",
+    "tambor_tranco5.png (1609 px)",
+    "tambor_tranco5_normals.png (1632 px)",
+    "tambor_tranco6.png (1573 px)",
+    "tambor_tranco6_normals.png (1651 px)",
+    "tambor_tranco7.png (1567 px)",
+    "tambor_tranco7_normals.png (1645 px)",
+    "weapon.png (17 px)",
+    "weapon_normals.png (17 px)",
+    "weapon_tranco1.png (30 px)",
+    "weapon_tranco1_normals.png (30 px)",
+    "weapon_tranco2.png (15525 px)",
+    "weapon_tranco2_normals.png (15034 px)",
+    "weapon_tranco3.png (15525 px)",
+    "weapon_tranco3_normals.png (15034 px)",
+    "weapon_tranco4.png (15518 px)",
+    "weapon_tranco4_normals.png (15091 px)",
+    "weapon_tranco5.png (15569 px)",
+    "weapon_tranco5_normals.png (15029 px)",
+    "weapon_tranco6.png (15484 px)",
+    "weapon_tranco6_normals.png (14928 px)",
+    "weapon_tranco7.png (14792 px)",
+    "weapon_tranco7_normals.png (14645 px)",
+    "weapon_tranco8.png (30 px)",
+    "weapon_tranco8_normals.png (30 px)"
+   ]
+  },
+  "why": "refino r2 (critica): X2..X8 das camadas que andam inteiras = X1 deslocado bit a bit; alfa 241-254 -> 255 e <= 4 -> 0 (culatra_tranco, tambores, coroa; e o ruido 'verde' de alfa 1-4 das camadas fixas fora do teto: capacitores3 e outras); tetos do cano e da ponta com a sombra de contato fraca das pecas que andam; calco de 2 px no topo da borda de fora dos buracos das bochechas; icon/blueprints refeitos a partir disso. Nenhum arquivo novo, nenhum rect novo."
+ },
+ "ops_on_current_spec_unchanged": [
+  "/railgun/tranco/strokes_tiles",
+  "/railgun/tranco/strokes_px_at_64",
+  "/railgun/tranco/shock_ring/preview",
+  "/railgun/firing_timeline/sequence/4",
+  "/railgun/visuals/muzzle",
+  "/art_assets/assets/railgun/carregador/layers",
+  "/art_assets/assets/railgun/carregador/layer_flags",
+  "/art_assets/assets/railgun/carregador/count_now",
+  "/art_assets/assets/railgun/cano/layer_flags",
+  "/art_assets/assets/railgun/cano/count_now",
+  "/art_assets/assets/railgun/ponta/layer_flags",
+  "/art_assets/assets/railgun/ponta/count_now"
+ ],
+ "ops_on_current_spec": [
+  {
+   "op": "replace",
+   "path": "/railgun/tranco/anim",
+   "value": {
+    "frames": 8,
+    "interval_s": 0.05,
+    "duration_s": 0.4,
+    "file_1_is_rest": true,
+    "AnimationFiles_order": "[X2, X3, X4, X5, X6, X7, X8, X1] (padrao barrel1 dos canhoes de convés: tools/bsgen/guns.py deck_graphics; vanilla cannon_deck.rules:1173-1272)",
+    "AnimationStartTime": "MinValue",
+    "ClampAnimation": true,
+    "offset_px_by_file": {
+     "crown": {
+      "X1": 0,
+      "X2": 13,
+      "X3": 13,
+      "X4": 10,
+      "X5": 6,
+      "X6": 3,
+      "X7": 1,
+      "X8": 0
+     },
+     "drum": {
+      "X1": 0,
+      "X2": 13,
+      "X3": 13,
+      "X4": 10,
+      "X5": 6,
+      "X6": 2,
+      "X7": -1,
+      "X8": 0
+     },
+     "breech": {
+      "X1": 0,
+      "X2": 6,
+      "X3": 13,
+      "X4": 13,
+      "X5": 9,
+      "X6": 5,
+      "X7": 2,
+      "X8": 0
+     }
+    },
+    "offset_px_play_order": {
+     "crown": [
+      13,
+      13,
+      10,
+      6,
+      3,
+      1,
+      0,
+      0
+     ],
+     "drum": [
+      13,
+      13,
+      10,
+      6,
+      2,
+      -1,
+      0,
+      0
+     ],
+     "breech": [
+      6,
+      13,
+      13,
+      9,
+      5,
+      2,
+      0,
+      0
+     ]
+    },
+    "curve_by_layer": {
+     "weapon_tranco": "crown",
+     "tambor_tranco": "drum",
+     "tambores_tranco": "drum",
+     "culatra_tranco": "breech"
+    },
+    "meaning": "px a 64 px/quadro, + = para tras (para a culatra). Critica tranco-r1 (o usuario: 'e que pra mim esta parado'): o curso inteiro foi para o TOPO da faixa (13 px = 0,203 quadro em tudo o que anda; era 0,12-0,18) e e SEGURADO 2 quadros (0,1 s: le na escala do jogo); a culatra bate 1 quadro depois da boca (o tranco corre da boca para a culatra); px inteiros (sem meio pixel borrado); sem sobre-curso para a frente na coroa e na culatra (ficam rentes a borda), 1 px nos tambores. Refino r2: em weapon_tranco, tambores_tranco e tambor_tranco os arquivos X2..X8 SAO o X1 deslocado bit a bit (cor e normais; sem o ruido de render que dava um brilho tremido); culatra_tranco e um render por quadro (as molas mudam de forma)."
+   }
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/tranco/pieces",
+   "value": [
+    {
+     "part": "carregador",
+     "component": "TrancoCulatra",
+     "Type": "Graphics",
+     "what": "o BLOCO DA CULATRA (colar, fenda, ombros, barra de tras), os 2 garfos, as hastes e as cruzetas batem para tras 1 quadro depois da boca; as 2 MOLAS laranja-ouro gordas comprimem 13 px entre a cruzeta e o batente fixo (batente, guias e guia interna parados no sprite)",
+     "Layer": "roof_turrets",
+     "rect_unrotated": [
+      0.375,
+      0.0,
+      4.25,
+      4.75
+     ],
+     "Location": [
+      2.5,
+      2.375
+     ],
+     "Size": [
+      4.25,
+      4.75
+     ],
+     "stroke_tiles": 0.2031,
+     "stroke_px_at_64": 13,
+     "offset_px_by_file": [
+      0,
+      6,
+      13,
+      13,
+      9,
+      5,
+      2,
+      0
+     ],
+     "offset_px_play_order": [
+      6,
+      13,
+      13,
+      9,
+      5,
+      2,
+      0,
+      0
+     ],
+     "OperationalToggle": "IsOperational",
+     "ResetAnimationTrigger": "TrancoRelay",
+     "trigger_switch": "rail.tranco_gatilho (padrao relay)",
+     "OperationalDoodad": {
+      "AnimationFiles": [
+       "culatra_tranco2.png",
+       "culatra_tranco3.png",
+       "culatra_tranco4.png",
+       "culatra_tranco5.png",
+       "culatra_tranco6.png",
+       "culatra_tranco7.png",
+       "culatra_tranco8.png",
+       "culatra_tranco1.png"
+      ],
+      "NormalsAnimationFiles": [
+       "culatra_tranco2_normals.png",
+       "culatra_tranco3_normals.png",
+       "culatra_tranco4_normals.png",
+       "culatra_tranco5_normals.png",
+       "culatra_tranco6_normals.png",
+       "culatra_tranco7_normals.png",
+       "culatra_tranco8_normals.png",
+       "culatra_tranco1_normals.png"
+      ],
+      "AnimationInterval": 0.05,
+      "AnimationStartTime": "MinValue",
+      "ClampAnimation": true
+     },
+     "NonOperationalDoodad": {
+      "File": "culatra_tranco1.png",
+      "NormalsFile": "culatra_tranco1_normals.png"
+     },
+     "TrancoRelay": {
+      "Type": "Timer",
+      "StartTrigger": "EmitTrigger (o TriggerProxy do carregador -> EmissionTriggered, ja existe: TK bs2t_rail_carregador.rules:345-348; no 5x5 PartLocation [1,-1])",
+      "Duration": 0.5,
+      "TriggerWhenStarted": true,
+      "why": "padrao rail.tranco_gatilho = relay: Timer local como gatilho (vanilla factory_diamond.rules:272; TriggerWhenStarted: railgun_launcher.rules:522-530)"
+     },
+     "variante_proxy": {
+      "quando": "rail.tranco_gatilho = proxy (so se o T-TR-3 mostrar que o TriggerProxy de outra peca reinicia a animacao)",
+      "ResetAnimationTrigger": "EmitTrigger",
+      "resto": "sem o TrancoRelay"
+     },
+     "required_with_new_roof": "roof.png NOVO nao tem a fileira da culatra (so o leito escuro com os trilhos-guia e a fenda): sem esta Graphics o carregador fica sem o bloco.",
+     "why_roof_turrets": "weapons fica SOB o teto (so a borda da fenda apareceria); o bloco tem de ficar por cima do teto para o tranco aparecer com o teto visivel. Se roof_turrets continuar visivel na vista do interior e atrapalhar, variante_roof_doodads.",
+     "variante_roof_doodads": {
+      "quando": "se o teste T-TR-3 mostrar que roof_turrets NAO some na vista do interior",
+      "troca": {
+       "Layer": "roof_doodads"
+      },
+      "resto": "igual (mesmos arquivos, Location, Size, gatilho, ClampAnimation)",
+      "cuidado": "roof_doodads tambem guarda cabecas de torre em pecas vanilla: conferir no T-TR-3 se ela some no interior; se nenhuma das duas sumir, aceitar o desenho por cima (o interior do carregador fica coberto entre x 0.375 e 4.625) - previa: railgun_montado.png, coluna 'se roof_turrets aparecer'"
+     }
+    },
+    {
+     "part": "cano",
+     "component": "TrancoTambores",
+     "Type": "Graphics",
+     "what": "os 3 tambores EM + a garra lateral do tambor do meio (sairam de roof.png)",
+     "Layer": "roof_turrets",
+     "rect_unrotated": [
+      0.0,
+      0.0,
+      3.0,
+      3.0
+     ],
+     "Location": [
+      1.5,
+      1.5
+     ],
+     "Size": [
+      3.0,
+      3.0
+     ],
+     "stroke_tiles": 0.2031,
+     "stroke_px_at_64": 13,
+     "offset_px_by_file": [
+      0,
+      13,
+      13,
+      10,
+      6,
+      2,
+      -1,
+      0
+     ],
+     "offset_px_play_order": [
+      13,
+      13,
+      10,
+      6,
+      2,
+      -1,
+      0,
+      0
+     ],
+     "OperationalToggle": "IsOperational",
+     "ResetAnimationTrigger": "TrancoRelay",
+     "trigger_switch": "rail.tranco_gatilho (padrao relay)",
+     "OperationalDoodad": {
+      "AnimationFiles": [
+       "tambores_tranco2.png",
+       "tambores_tranco3.png",
+       "tambores_tranco4.png",
+       "tambores_tranco5.png",
+       "tambores_tranco6.png",
+       "tambores_tranco7.png",
+       "tambores_tranco8.png",
+       "tambores_tranco1.png"
+      ],
+      "NormalsAnimationFiles": [
+       "tambores_tranco2_normals.png",
+       "tambores_tranco3_normals.png",
+       "tambores_tranco4_normals.png",
+       "tambores_tranco5_normals.png",
+       "tambores_tranco6_normals.png",
+       "tambores_tranco7_normals.png",
+       "tambores_tranco8_normals.png",
+       "tambores_tranco1_normals.png"
+      ],
+      "AnimationInterval": 0.05,
+      "AnimationStartTime": "MinValue",
+      "ClampAnimation": true
+     },
+     "NonOperationalDoodad": {
+      "File": "tambores_tranco1.png",
+      "NormalsFile": "tambores_tranco1_normals.png"
+     },
+     "TrancoRelay": {
+      "Type": "Timer",
+      "StartTrigger": "EmissionTriggered (o TriggerProxy do cano -> ponta, ja existe: TK bs2t_rail_cano.rules:178-181)",
+      "Duration": 0.5,
+      "TriggerWhenStarted": true,
+      "why": "padrao rail.tranco_gatilho = relay: Timer local como gatilho (vanilla factory_diamond.rules:272; TriggerWhenStarted: railgun_launcher.rules:522-530)"
+     },
+     "variante_proxy": {
+      "quando": "rail.tranco_gatilho = proxy (so se o T-TR-3 mostrar que o TriggerProxy de outra peca reinicia a animacao)",
+      "ResetAnimationTrigger": "EmissionTriggered",
+      "resto": "sem o TrancoRelay"
+     },
+     "required_with_new_roof": "roof.png NOVO nao tem mais o(s) tambor(es): sem esta Graphics o cano/ponta fica sem eles. Mandar roof.png e a Graphics juntos.",
+     "variante_roof_doodads": {
+      "quando": "se o teste T-TR-3 mostrar que roof_turrets NAO some na vista do interior",
+      "troca": {
+       "Layer": "roof_doodads"
+      },
+      "resto": "igual (mesmos arquivos, Location, Size, gatilho, ClampAnimation)",
+      "cuidado": "roof_doodads tambem guarda cabecas de torre em pecas vanilla: conferir no T-TR-3 se ela some no interior; se nenhuma das duas sumir, aceitar o desenho por cima (o interior do carregador fica coberto entre x 0.375 e 4.625) - previa: railgun_montado.png, coluna 'se roof_turrets aparecer'"
+     }
+    },
+    {
+     "part": "ponta",
+     "component": "TrancoCoroa",
+     "Type": "Graphics",
+     "what": "a frente em escudo inteira da ponta (boca, paredes, tiras, pontas das cunhas) E as grandes BOCHECHAS BRANCAS em cunha com o fundo escuro delas (sairam de roof.png: tranco-r1)",
+     "Layer": "weapons",
+     "rect_unrotated": [
+      0.0,
+      0.0,
+      3.0,
+      3.5625
+     ],
+     "Location": [
+      1.5,
+      1.78125
+     ],
+     "Size": [
+      3.0,
+      3.5625
+     ],
+     "stroke_tiles": 0.2031,
+     "stroke_px_at_64": 13,
+     "offset_px_by_file": [
+      0,
+      13,
+      13,
+      10,
+      6,
+      3,
+      1,
+      0
+     ],
+     "offset_px_play_order": [
+      13,
+      13,
+      10,
+      6,
+      3,
+      1,
+      0,
+      0
+     ],
+     "OperationalToggle": "IsOperational",
+     "ResetAnimationTrigger": "BulletEmitter",
+     "trigger_switch": "nenhum: o BulletEmitter e da propria ponta (direto nos dois valores do switch)",
+     "OperationalDoodad": {
+      "AnimationFiles": [
+       "weapon_tranco2.png",
+       "weapon_tranco3.png",
+       "weapon_tranco4.png",
+       "weapon_tranco5.png",
+       "weapon_tranco6.png",
+       "weapon_tranco7.png",
+       "weapon_tranco8.png",
+       "weapon_tranco1.png"
+      ],
+      "NormalsAnimationFiles": [
+       "weapon_tranco2_normals.png",
+       "weapon_tranco3_normals.png",
+       "weapon_tranco4_normals.png",
+       "weapon_tranco5_normals.png",
+       "weapon_tranco6_normals.png",
+       "weapon_tranco7_normals.png",
+       "weapon_tranco8_normals.png",
+       "weapon_tranco1_normals.png"
+      ],
+      "AnimationInterval": 0.05,
+      "AnimationStartTime": "MinValue",
+      "ClampAnimation": true
+     },
+     "NonOperationalDoodad": {
+      "File": "weapon_tranco1.png",
+      "NormalsFile": "weapon_tranco1_normals.png"
+     },
+     "replaces": "a Graphics estatica de weapon.png: NUNCA desenhar as duas (mesma camada weapons, mesmo lugar: coroa dobrada/fantasma). NonOperationalDoodad = weapon_tranco1 (nao weapon.png: weapon.png so tem a coroa e o teto novo tem os buracos das bochechas).",
+     "required_with_new_roof": "roof.png NOVO da ponta tem 2 BURACOS onde ficam as bochechas brancas: sem esta Graphics a ponta fica com o teto furado.",
+     "interior_view": "camada weapons: na vista do interior (sem teto) a frente E as bochechas brancas aparecem (antes so a frente): le como a cabeca de uma torre e e aceitavel; conferir no T-TR-3 junto com a pergunta do roof_turrets"
+    },
+    {
+     "part": "ponta",
+     "component": "TrancoTambor",
+     "Type": "Graphics",
+     "what": "o tambor EM da emenda da ponta (saiu de roof.png)",
+     "Layer": "roof_turrets",
+     "rect_unrotated": [
+      0.875,
+      3.0,
+      1.25,
+      1.0
+     ],
+     "Location": [
+      1.5,
+      3.5
+     ],
+     "Size": [
+      1.25,
+      1.0
+     ],
+     "stroke_tiles": 0.2031,
+     "stroke_px_at_64": 13,
+     "offset_px_by_file": [
+      0,
+      13,
+      13,
+      10,
+      6,
+      2,
+      -1,
+      0
+     ],
+     "offset_px_play_order": [
+      13,
+      13,
+      10,
+      6,
+      2,
+      -1,
+      0,
+      0
+     ],
+     "OperationalToggle": "IsOperational",
+     "ResetAnimationTrigger": "BulletEmitter",
+     "trigger_switch": "nenhum: o BulletEmitter e da propria ponta (direto nos dois valores do switch)",
+     "OperationalDoodad": {
+      "AnimationFiles": [
+       "tambor_tranco2.png",
+       "tambor_tranco3.png",
+       "tambor_tranco4.png",
+       "tambor_tranco5.png",
+       "tambor_tranco6.png",
+       "tambor_tranco7.png",
+       "tambor_tranco8.png",
+       "tambor_tranco1.png"
+      ],
+      "NormalsAnimationFiles": [
+       "tambor_tranco2_normals.png",
+       "tambor_tranco3_normals.png",
+       "tambor_tranco4_normals.png",
+       "tambor_tranco5_normals.png",
+       "tambor_tranco6_normals.png",
+       "tambor_tranco7_normals.png",
+       "tambor_tranco8_normals.png",
+       "tambor_tranco1_normals.png"
+      ],
+      "AnimationInterval": 0.05,
+      "AnimationStartTime": "MinValue",
+      "ClampAnimation": true
+     },
+     "NonOperationalDoodad": {
+      "File": "tambor_tranco1.png",
+      "NormalsFile": "tambor_tranco1_normals.png"
+     },
+     "required_with_new_roof": "roof.png NOVO nao tem mais o(s) tambor(es): sem esta Graphics o cano/ponta fica sem eles. Mandar roof.png e a Graphics juntos.",
+     "variante_roof_doodads": {
+      "quando": "se o teste T-TR-3 mostrar que roof_turrets NAO some na vista do interior",
+      "troca": {
+       "Layer": "roof_doodads"
+      },
+      "resto": "igual (mesmos arquivos, Location, Size, gatilho, ClampAnimation)",
+      "cuidado": "roof_doodads tambem guarda cabecas de torre em pecas vanilla: conferir no T-TR-3 se ela some no interior; se nenhuma das duas sumir, aceitar o desenho por cima (o interior do carregador fica coberto entre x 0.375 e 4.625) - previa: railgun_montado.png, coluna 'se roof_turrets aparecer'"
+     }
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/tranco/triggers_fallback",
+   "value": "VARIANTE rail.tranco_gatilho = proxy (inferida, sem exemplo vanilla; so se o T-TR-3 mostrar que funciona): ResetAnimationTrigger = o TriggerProxy de outra peca direto (EmitTrigger no carregador, EmissionTriggered no cano), sem o TrancoRelay (pesquisa tranco q3.cross_part_trigger). O padrao e o relay (triggers_build e pieces[].TrancoRelay)."
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/tranco/triggers_build",
+   "value": "rail.tranco_gatilho = relay (PADRAO): TrancoRelay {Type = Timer; StartTrigger = EmitTrigger (carregador) / EmissionTriggered (cano); Duration = 0.5; TriggerWhenStarted = true} e ResetAnimationTrigger = TrancoRelay; a ponta usa o BulletEmitter direto (e dela mesma)"
+  },
+  {
+   "op": "replace",
+   "path": "/switches/rail/loader_intake/values/acoplamento",
+   "value": "paiol de projeteis encostado atras do canto de tras-esquerdo do Carregador 5x5 (ResourceStorageProxy [0,5]; era [0,4] no 3x4)"
+  },
+  {
+   "op": "replace",
+   "path": "/railgun/parts/carregador/belt_intake/fallback_adjacency",
+   "value": "switch logistics.acoplamento no Carregador: PaiolAcoplado_0 = ResourceStorageProxy ResourceType rafaeltessaro.bs_slug_rail, PartLocation [0,5] (cell behind the rear-left corner), PartCriteria { Category = bs_paiol_slug } (R2: categoria do tipo), ComponentID = Estoque_slug (the paiol's store) + AlimentadorAcoplado_0 ResourceConverter -> SlugMagazine 1 per 0.1 s: a projéteis paiol docked behind the loader feeds it with no network (vanilla AmmoProxy pattern RAIL303/railgun_launcher.rules:220-235); the rear doors [1,5] and [3,5] stay free with a 1x1 paiol at [0,5] (5x5: the rear middle is the magazine, not a door; a 2-wide paiol docked there covers [1,5], so use [3,5])"
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/effects/railgun/muzzle",
+   "value": {
+    "file": "bs_rail_fx/rail_muzzle_flash",
+    "parts": [
+     "blue-white flash: fxkit.blob additive 6 tiles 0.12 s, palette rail azul [45,115,255] -> nucleo [205,228,255] (was gold-white)",
+     "blue EM ring: fxkit.blob tex bs_ring_thin.png 8 tiles, scale 0.2->1, 0.35 s, colour [100,175,255] (was violet)",
+     "TRANCO shock ring (railgun.tranco.shock_ring): own TriggeredEffects at the muzzle (Location [1.5, 0]), AnchorMediaEffects = false (stays in space while the ship recoils), vanilla shockwave.png via fxkit ring, 1.0 -> 6.5 tiles in 0.32 s (ease-out), edge [100,175,255] -> core [205,228,255], alpha 1 -> 0, bucket Upper2",
+     "vanilla railgun_shoot_distortion (colourless)",
+     "light: fxkit.blob light=True 10 tiles 0.2 s colour palette.rail.hull"
+    ],
+    "shake": "BASE_SHAKE 0.2 / 0.7 s (railgun.tranco.shake; FireEffect MediaEffects of the ponta)",
+    "scale": "MediaEffectsScale BulletStrike_RailShot",
+    "budget_particles": 5,
+    "palette_debt": "in_flight.trail_core/trail_rings, per_penetrated_part and end_of_path_impact still say gold/violet (pre-tranco palette, USER_NOTES: 'Efeitos da Tupa (rail_fx) em azul'): recolour them with the same rail palette when rail_fx is written"
+   }
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/cano/layers",
+   "value": {
+    "floor": {
+     "game_layer": "floors",
+     "rect": [
+      0,
+      0,
+      3,
+      3
+     ],
+     "files": [
+      "floor.png"
+     ],
+     "normals": null,
+     "status": "igual"
+    },
+    "trilhos": {
+     "game_layer": "doodads_low",
+     "rect": [
+      0,
+      0,
+      3,
+      3
+     ],
+     "files": [
+      "trilhos1.png",
+      "trilhos2.png",
+      "trilhos3.png",
+      "trilhos4.png",
+      "trilhos5.png",
+      "trilhos6.png",
+      "trilhos7.png",
+      "trilhos8.png",
+      "trilhos9.png"
+     ],
+     "normals": null,
+     "levels": 9,
+     "status": "igual"
+    },
+    "carga": {
+     "game_layer": "lights_add",
+     "rect": [
+      0,
+      0,
+      3,
+      3
+     ],
+     "files": [
+      "carga1.png",
+      "carga2.png",
+      "carga3.png",
+      "carga4.png",
+      "carga5.png",
+      "carga6.png",
+      "carga7.png",
+      "carga8.png"
+     ],
+     "normals": null,
+     "levels": 8,
+     "blend": "add",
+     "status": "igual"
+    },
+    "roof": {
+     "game_layer": "roofs",
+     "rect": [
+      0,
+      0,
+      3,
+      3
+     ],
+     "files": [
+      "roof.png"
+     ],
+     "normals": [
+      "roof_normals.png"
+     ],
+     "status": "igual (nome/rect); CONTEUDO mudou: os tambores sairam para a camada do tranco; o teto leva a sombra de contato FRACA (50%) deles em repouso (r2)"
+    },
+    "tambores_tranco": {
+     "game_layer": "roof_turrets",
+     "rect": [
+      0.0,
+      0.0,
+      3.0,
+      3.0
+     ],
+     "files": [
+      "tambores_tranco1.png",
+      "tambores_tranco2.png",
+      "tambores_tranco3.png",
+      "tambores_tranco4.png",
+      "tambores_tranco5.png",
+      "tambores_tranco6.png",
+      "tambores_tranco7.png",
+      "tambores_tranco8.png"
+     ],
+     "normals": [
+      "tambores_tranco1_normals.png",
+      "tambores_tranco2_normals.png",
+      "tambores_tranco3_normals.png",
+      "tambores_tranco4_normals.png",
+      "tambores_tranco5_normals.png",
+      "tambores_tranco6_normals.png",
+      "tambores_tranco7_normals.png",
+      "tambores_tranco8_normals.png"
+     ],
+     "frames": 8,
+     "interval": 0.05,
+     "status": "NOVO (tranco)",
+     "tranco": {
+      "curve": "drum",
+      "stroke_px_at_64": 13,
+      "stroke_tiles": 0.2031,
+      "offset_px_by_file": [
+       0,
+       13,
+       13,
+       10,
+       6,
+       2,
+       -1,
+       0
+      ],
+      "offset_px_play_order": [
+       13,
+       13,
+       10,
+       6,
+       2,
+       -1,
+       0,
+       0
+      ],
+      "AnimationFiles_order": [
+       "tambores_tranco2.png",
+       "tambores_tranco3.png",
+       "tambores_tranco4.png",
+       "tambores_tranco5.png",
+       "tambores_tranco6.png",
+       "tambores_tranco7.png",
+       "tambores_tranco8.png",
+       "tambores_tranco1.png"
+      ],
+      "positive": "para tras (para a culatra)"
+     }
+    }
+   }
+  },
+  {
+   "op": "replace",
+   "path": "/art_assets/assets/railgun/ponta/layers",
+   "value": {
+    "floor": {
+     "game_layer": "floors",
+     "rect": [
+      0,
+      0,
+      3,
+      4
+     ],
+     "files": [
+      "floor.png"
+     ],
+     "normals": null,
+     "status": "igual"
+    },
+    "trilhos": {
+     "game_layer": "doodads_low",
+     "rect": [
+      0,
+      0,
+      3,
+      4
+     ],
+     "files": [
+      "trilhos.png"
+     ],
+     "normals": null,
+     "status": "igual"
+    },
+    "weapon": {
+     "game_layer": "weapons",
+     "rect": [
+      0.0,
+      0.0,
+      3.0,
+      1.5
+     ],
+     "files": [
+      "weapon.png"
+     ],
+     "normals": [
+      "weapon_normals.png"
+     ],
+     "status": "igual (nome/rect [0,0,3,1.5]); = as 96 linhas de cima de weapon_tranco1 pixel a pixel (so a coroa em repouso): imagem de repouso/icone; NUNCA desenhar junto com weapon_tranco (meta.layer_flags)"
+    },
+    "weapon_tranco": {
+     "game_layer": "weapons",
+     "rect": [
+      0.0,
+      0.0,
+      3.0,
+      3.5625
+     ],
+     "files": [
+      "weapon_tranco1.png",
+      "weapon_tranco2.png",
+      "weapon_tranco3.png",
+      "weapon_tranco4.png",
+      "weapon_tranco5.png",
+      "weapon_tranco6.png",
+      "weapon_tranco7.png",
+      "weapon_tranco8.png"
+     ],
+     "normals": [
+      "weapon_tranco1_normals.png",
+      "weapon_tranco2_normals.png",
+      "weapon_tranco3_normals.png",
+      "weapon_tranco4_normals.png",
+      "weapon_tranco5_normals.png",
+      "weapon_tranco6_normals.png",
+      "weapon_tranco7_normals.png",
+      "weapon_tranco8_normals.png"
+     ],
+     "frames": 8,
+     "interval": 0.05,
+     "status": "NOVO (tranco): a frente em escudo + as bochechas brancas (sairam do teto)",
+     "tranco": {
+      "curve": "crown",
+      "stroke_px_at_64": 13,
+      "stroke_tiles": 0.2031,
+      "offset_px_by_file": [
+       0,
+       13,
+       13,
+       10,
+       6,
+       3,
+       1,
+       0
+      ],
+      "offset_px_play_order": [
+       13,
+       13,
+       10,
+       6,
+       3,
+       1,
+       0,
+       0
+      ],
+      "AnimationFiles_order": [
+       "weapon_tranco2.png",
+       "weapon_tranco3.png",
+       "weapon_tranco4.png",
+       "weapon_tranco5.png",
+       "weapon_tranco6.png",
+       "weapon_tranco7.png",
+       "weapon_tranco8.png",
+       "weapon_tranco1.png"
+      ],
+      "positive": "para tras (para a culatra)"
+     }
+    },
+    "carga": {
+     "game_layer": "lights_add",
+     "rect": [
+      0,
+      0,
+      3,
+      4
+     ],
+     "files": [
+      "carga1.png",
+      "carga2.png",
+      "carga3.png",
+      "carga4.png",
+      "carga5.png",
+      "carga6.png"
+     ],
+     "normals": null,
+     "levels": 6,
+     "blend": "add",
+     "status": "igual"
+    },
+    "roof": {
+     "game_layer": "roofs",
+     "rect": [
+      0,
+      0,
+      3,
+      4
+     ],
+     "files": [
+      "roof.png"
+     ],
+     "normals": [
+      "roof_normals.png"
+     ],
+     "status": "igual (nome/rect); CONTEUDO mudou: sem o tambor da emenda (tambor_tranco) e com 2 BURACOS onde ficam as bochechas brancas (weapon_tranco); r2: sombra de contato FRACA das bochechas e do tambor em repouso + um calco escuro de 2 px no topo da borda de fora de cada buraco (no tranco o piso nao aparece na quina da coroa)"
+    },
+    "slug": {
+     "game_layer": "walls",
+     "rect": [
+      1.1,
+      0.5,
+      0.8,
+      3.0
+     ],
+     "files": [
+      "slug.png"
+     ],
+     "normals": null,
+     "status": "igual"
+    },
+    "slug_glow": {
+     "game_layer": "lights_add",
+     "rect": [
+      0.9,
+      0.3,
+      1.2,
+      3.4
+     ],
+     "files": [
+      "slug_glow.png"
+     ],
+     "normals": null,
+     "blend": "add",
+     "status": "igual"
+    },
+    "tambor_tranco": {
+     "game_layer": "roof_turrets",
+     "rect": [
+      0.875,
+      3.0,
+      1.25,
+      1.0
+     ],
+     "files": [
+      "tambor_tranco1.png",
+      "tambor_tranco2.png",
+      "tambor_tranco3.png",
+      "tambor_tranco4.png",
+      "tambor_tranco5.png",
+      "tambor_tranco6.png",
+      "tambor_tranco7.png",
+      "tambor_tranco8.png"
+     ],
+     "normals": [
+      "tambor_tranco1_normals.png",
+      "tambor_tranco2_normals.png",
+      "tambor_tranco3_normals.png",
+      "tambor_tranco4_normals.png",
+      "tambor_tranco5_normals.png",
+      "tambor_tranco6_normals.png",
+      "tambor_tranco7_normals.png",
+      "tambor_tranco8_normals.png"
+     ],
+     "frames": 8,
+     "interval": 0.05,
+     "status": "NOVO (tranco)",
+     "tranco": {
+      "curve": "drum",
+      "stroke_px_at_64": 13,
+      "stroke_tiles": 0.2031,
+      "offset_px_by_file": [
+       0,
+       13,
+       13,
+       10,
+       6,
+       2,
+       -1,
+       0
+      ],
+      "offset_px_play_order": [
+       13,
+       13,
+       10,
+       6,
+       2,
+       -1,
+       0,
+       0
+      ],
+      "AnimationFiles_order": [
+       "tambor_tranco2.png",
+       "tambor_tranco3.png",
+       "tambor_tranco4.png",
+       "tambor_tranco5.png",
+       "tambor_tranco6.png",
+       "tambor_tranco7.png",
+       "tambor_tranco8.png",
+       "tambor_tranco1.png"
+      ],
+      "positive": "para tras (para a culatra)"
+     }
+    }
+   }
+  }
+ ]
+}
