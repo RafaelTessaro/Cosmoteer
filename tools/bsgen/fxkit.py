@@ -372,6 +372,12 @@ def ref_media(dir_rel, name, frm):
 NUKE_DIR = "shots/bs_nuke_fx"
 NUKE_GREEN_LIGHT = [90, 255, 60]     # VertexColor da luz de radiacao IsLight da Iara (missiles_design 2, Iara)
 NUKE_GREEN_TINT = [120, 255, 60]     # VertexColor dos trevos aditivos da Boiuna (caliber_design item 13)
+# Verde de UM canal so para a luz IsLight grande do trevo (RadiationLight), o mesmo idioma do vermelho puro
+# [255, 0, 0] do vanilla (missile_nuke_stage1.rules l.99). A luz de casco multiplica a cor pela forca do shader
+# (fancy_light: _litReflectiveStrength 10) e pelo difuso do casco (base.shader multiplyAdditiveLightValue): com
+# NUKE_GREEN_LIGHT / NUKE_GREEN_TINT o R e o B da lamina do trevo tambem estouram e o trevo sai BRANCO sobre casco
+# branco, cinza ou escuro (conta em SCR/vfx_impl/WP2/light_model.py); com R = B = 0 so o verde satura.
+NUKE_GREEN_HULL = [0, 255, 0]
 NUKE_RING_COLOR = (0.45, 1, 0.25)    # cor float do anel (caliber_design 1.B: [.45, 1, .25])
 SHOCKWAVE = f"{D}/common_effects/particles/shockwave.png"
 RADIATION = f"{D}/shots/missile_nuke/radiation.png"
@@ -385,8 +391,13 @@ FANCY_LIGHT = f"{D}/common_effects/fancy_light.shader"
 # (ExplosiveDamage ExpandStartRadius 2 / ExpandDuration 0,8, tambem linear). O tamanho passa por
 # ScaleToWorldSpace: o MediaEffectsScale do bloco de impacto multiplica o anel (Boiuna 1,15 = borda a ~8,8 tiles).
 # Brilho residual: luz particle_light (LightQuadRenderer) de 14 tiles que acende em ~0,6 s e apaga em 3 s: o casco
-# em volta do impacto fica verde depois que o clarao vanilla (missile_nuke_flash_light, 0,5 s) some. Alfa 0,6 (o
-# clarao vanilla usa ~2 por 0,5 s): luz forte e demorada sobre casco branco vira nevoa clara (licao do plasma).
+# em volta do impacto fica verde depois que o clarao vanilla (missile_nuke_flash_light, 0,5 s) some.
+# Intensidade (licao do plasma, X3: luz forte sobre casco branco vira nevoa clara): particle_light.shader devolve
+# 24 * cor * (difuso do casco + 0,25) * alfa e o SCREEN soma isso por cima do casco ja desenhado. Com a cor
+# [90, 255, 60] e alfa 0,6 o R e o B tambem estouram: o centro sai BRANCO puro ate ~1,8 s em casco branco, cinza
+# ou escuro. Verde quase puro (0,12; 1; 0,08) com alfa 0,1 deixa so o verde saturar: le verde nos tres cascos de
+# 0 a 1,8 s e some palido no fim (light_model.py do WP2 refaz a conta; no casco branco o maximo possivel e um
+# verde-menta, a folga do SCREEN sobre branco e so ~0,15).
 NUKE = {
     "bs_nuke_ring": {"size": 18, "start": 2, "life": 0.8, "bucket": "Upper2",
                      "ramp": [(1.4, 1.4, 1.4, 1), (1.1, 1.1, 1.1, 0.95), (1, 1, 1, 0.7), (1, 1, 1, 0)],
@@ -396,7 +407,7 @@ NUKE = {
                            "ramp": [(1.3, 1.3, 1.3, 1), (1, 1, 1, 0.8), (1, 1, 1, 0.45), (1, 1, 1, 0)],
                            "note": "Anel verde pequeno do nuclear abatido no ar (Boiuna e Iara): 2 -> 6 tiles em "
                                    "0,5 s"},
-    "bs_nuke_afterglow": {"size": 14, "life": 3, "bucket": "Upper5", "color": (0.353, 1, 0.235, 0.6),
+    "bs_nuke_afterglow": {"size": 14, "life": 3, "bucket": "Upper5", "color": (0.12, 1, 0.08, 0.1),
                           "ramp": [(1, 1, 1, 0.35), (1, 1, 1, 1), (1, 1, 1, 0.65), (1, 1, 1, 0.38),
                                    (1, 1, 1, 0.16), (1, 1, 1, 0)],
                           "scale": (0.85, 1.1),
@@ -509,7 +520,9 @@ def radiation_components(big_size, big_spin_deg, small_size, small_spin_deg, sma
         / "warhead" do meta da arte); color: VertexColor dos dois (small_color troca so o do trevo pequeno);
       big_z: Z da luz (vanilla .25); light: troca parametros do shader (padrao RADIATION_LIGHT, os do vanilla).
     Iara: radiation_components(7, 120, 0.7, <giro>, <ancora>, NUKE_GREEN_LIGHT, ...);
-    Boiuna: radiation_components(8, 180, 0.75, 360, <ancora>, NUKE_GREEN_TINT)."""
+    Boiuna: radiation_components(8, 180, 0.75, 360, <ancora>, NUKE_GREEN_TINT).
+    Para a luz grande ler VERDE sobre casco (e nao branca) passe color=NUKE_GREEN_HULL e a cor de desenho no trevo
+    pequeno: radiation_components(..., NUKE_GREEN_HULL, small_color=NUKE_GREEN_LIGHT | NUKE_GREEN_TINT)."""
     big = {"Type": "Sprite", "RenderBucket": big_bucket, "Spin": _deg(big_spin_deg), "Z": _r(big_z),
            "IsLight": True}
     bo = _vec(big_offset, "big_offset")

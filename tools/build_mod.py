@@ -129,28 +129,18 @@ def shot_file(out, s):
 
 # ----------------------------------------------------------------------------- main
 def _is_mod_dir(root):
-    """Pasta que o gerador pode limpar: tem mod.rules, ou e um build nosso interrompido antes do mod.rules
-    (algum .rules comeca com o cabecalho HEADER). Protege --out apontado para uma pasta qualquer."""
-    if os.path.isfile(os.path.join(root, "mod.rules")):
-        return True
-    mark = f"// {HEADER}"
-    for dp, _dn, fn in os.walk(root):
-        for f in fn:
-            if f.endswith(".rules"):
-                try:
-                    with open(os.path.join(dp, f), encoding="utf-8") as fh:
-                        if fh.readline().rstrip("\n") == mark:
-                            return True
-                except (OSError, UnicodeDecodeError):
-                    pass
-    return False
+    """Pasta que o gerador pode limpar: so a que tem mod.rules no primeiro nivel (CONTRATOS B1). Protege --out
+    apontado para uma pasta qualquer: nao procura arquivos nossos mais fundo, senao o proprio repositorio (que tem
+    BulletStrike/ dentro) ou uma pasta acima de um build seria apagada inteira."""
+    return os.path.isfile(os.path.join(root, "mod.rules"))
 
 
 def build(args):
     root = os.path.abspath(getattr(args, "out", None) or os.environ.get("BS_OUT") or ROOT)
     if os.path.isdir(root) and not args.keep and os.listdir(root) and not _is_mod_dir(root):
         sys.exit(f"ERRO: {root} nao esta vazia e nao tem mod.rules; nao apago uma pasta que nao e do mod "
-                 "(use uma pasta vazia ou nova em --out / BS_OUT)")
+                 "(use uma pasta vazia ou nova em --out / BS_OUT; build interrompido antes do mod.rules: apague "
+                 "a pasta a mao)")
     if os.path.isdir(root) and not args.keep:
         if args.no_art:
             # sem arte: apaga so os .rules (as imagens ja geradas continuam valendo)
