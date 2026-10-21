@@ -1,15 +1,18 @@
 {
- "version": 1,
+ "version": 2,
  "px_per_tile": 64,
- "note": "Efeitos por calibre do Bullet Strike, lidos por tools/bsgen/caliber_fx.py (copia da tabela aprovada vfx_design/caliber/caliber_vfx_table.json + extensoes do gerador). muzzle = [fonte, escala, opcoes] por cano/disparo (copias escaladas por Renderer.BaseSize em shots/bs_cal_fx/); impact = [preset, MediaEffectsScale]; tamanhos em quadros (1 quadro = 1 m = 64 px). Linhas com mm = null (plasma) sao puladas. Campos 'now' = como era antes desta tabela (so documentacao). Tracante 7,62 mm (bs_lmg, bs_minigun): risco 0,18 de largura (o design dizia 0,14; os mocks aprovados desenhavam os riscos 2,2x mais largos que o Size do jogo, ~0,31, e o 0,14 no jogo ficava um fio; 0,18 segue c^0,6 a partir do 12,7 mm e fica abaixo dos 0,22 dele).",
+ "note": "Efeitos por calibre do Bullet Strike 2.0, lidos por tools/bsgen/caliber_fx.py (tabela da Fase B re-chaveada pelas municoes 2.0 he/ap/sap/ac/frag + os efeitos 2.0 do WP03: PEN/POP, AC_BLAST, FRAG_BURST). muzzle = [fonte, escala, opcoes] por cano/disparo (copias escaladas por Renderer.BaseSize em shots/bs_cal_fx/); impact.hull/struct/shield/he = [preset, MediaEffectsScale] ('r/4' = raio da carga / 4, a lei he_mes: o missile_he vanilla e desenhado para r4); impact.pen = preset das pecas ATRAVESSADAS (PEN_*, <= 6 particulas; escala pen_mes); tamanhos em quadros (1 quadro = 1 m = 64 px). Linhas com mm = null (plasma) sao puladas. Campos 'now' = como era antes da tabela da Fase B (so documentacao). A paleta (ammo_colors) e copia de SPEC.art_assets.palette: o caliber_fx le a paleta de tools/spec/bullet_strike_art2.json e avisa se esta copia divergir. A tabela da 1.x (linhas std/aphe/emp/bullet/nuclear e a Boiuna nuclear) fica so em historico_1x, para as previas 'antes' (tools/blender/previews).",
  "laws": {
   "body_width": "c^0.6",
   "cannon_flame": "sqrt(c/155) x cannon_shoot_deck",
   "mg_flame": "(c/27)^0.75 x chaingun_shoot",
-  "he_mes": "raio/4 (missile_he = r4)"
+  "he_mes": "raio/4 (missile_he = r4)",
+  "light_split": "luz do projetil = halo SO NO ESPACO (glow/4, refl 0, add 0, unlit 0,8 tracante / 0,5 granada) + luz de casco (palette.hull, refl 6; AC e slug 4; canal mais fraco <= floor(0,5 x 255 / (0,85 x refl))): fxkit.light_pair",
+  "pen_media": "pecas atravessadas = PEN_S/M/L (seam_tier_map) a pen_mes, sem tremor; preset cheio so no primeiro acerto e onde a granada para",
+  "start_time": "StartTime das luzes = clamp((raio da torre + 1) / velocidade, 0,01, 0,05) s"
  },
  "ammo_colors": {
-  "std": {
+  "he": {
    "tracer": [
     255,
     170,
@@ -29,6 +32,11 @@
     255,
     190,
     60
+   ],
+   "hull": [
+    255,
+    96,
+    12
    ]
   },
   "ap": {
@@ -51,95 +59,95 @@
     215,
     230,
     255
+   ],
+   "hull": [
+    24,
+    104,
+    255
    ]
   },
-  "aphe": {
+  "sap": {
    "tracer": [
     255,
-    95,
-    45
+    135,
+    50
    ],
    "core": [
     255,
-    205,
-    170
+    215,
+    180
    ],
    "glow": [
     255,
-    80,
+    110,
     40
    ],
    "band": [
-    255,
-    80,
-    40
-   ]
-  },
-  "emp": {
-   "tracer": [
-    100,
-    170,
-    255
-   ],
-   "core": [
-    200,
-    225,
-    255
-   ],
-   "glow": [
-    80,
-    150,
-    255
-   ],
-   "band": [
-    80,
-    150,
-    255
-   ]
-  },
-  "bullet": {
-   "tracer": [
-    255,
-    170,
-    60
-   ],
-   "core": [
-    255,
-    235,
-    190
-   ],
-   "glow": [
     255,
     140,
-    40
+    50
    ],
-   "band": [
+   "hull": [
     255,
-    190,
-    60
+    64,
+    8
    ]
   },
-  "nuclear": {
+  "ac": {
    "tracer": [
-    160,
-    255,
-    90
+    220,
+    30,
+    60
    ],
    "core": [
-    230,
     255,
-    200
+    225,
+    235
    ],
    "glow": [
-    0,
+    220,
+    30,
+    60
+   ],
+   "band": [
+    230,
+    40,
+    80
+   ],
+   "hull": [
+    200,
+    10,
+    40
+   ],
+   "band2_gold": [
     255,
-    0
+    200,
+    80
+   ],
+   "hull_refl": 4
+  },
+  "frag": {
+   "tracer": [
+    150,
+    230,
+    215
+   ],
+   "core": [
+    225,
+    255,
+    250
+   ],
+   "glow": [
+    110,
+    210,
+    200
    ],
    "band": [
     120,
-    255,
-    60
-   ]
+    210,
+    200
+   ],
+   "hull": null
   }
  },
  "sources": {
@@ -239,21 +247,148 @@
    "knob": "base_scale 4..8",
    "count": "EmitPerSecond 300",
    "what": "rastro quente (bsgen/trails.py)"
+  },
+  "FLS": {
+   "file": "shots/flak_large/particles/flak_large_smoke.rules",
+   "vendor": "ammo2",
+   "bucket": "FlakHitSmoke (Upper)",
+   "knob": "Renderer.BaseSize 1x1 (base_scale 4..6, x1 -> x3 na vida)",
+   "dist": "SetRandomCircle raio 2,5; SetRandomVelocity 0..0,5",
+   "count": "EmitPerOneShot 10..15",
+   "life": "lifetime 1..1,75",
+   "what": "baforada cinza da flak (copia em tools/vanilla_fx/ammo2/): base da baforada cinza-azulada da FRAG"
   }
  },
  "new_sources": {
-  "RADF": "copia do cannon_shoot_deck_flash com Texture = ./Data/shots/missile_nuke/radiation.png e cor verde [0.45, 1, 0.25]: o clarao da Boiuna desenha um trevo de luz no casco (0,6 s)",
   "SHR_L": "copia do flak_large_shrapnel com EmitPerOneShot 30..40 (Tatu, Tamandua)",
   "SHR_H": "copia do flak_large_shrapnel com EmitPerOneShot 100..120 (Pororoca)",
-  "bs_nuke_ring": "anel verde (shockwave.png vanilla, cor [0.45,1,0.25], 2 -> 18 quadros em 0,8 s, Upper2) - compartilhado com a Iara (missil nuclear)",
-  "bs_nuke_afterglow": "brilho residual verde (blob.png, 14x14, 3 s, LightQuadRenderer) - compartilhado com a Iara"
+  "FLS_L": "copia do flak_large_smoke com BaseSize x0,25, EmitPerOneShot 4..6, vida x0,36 (~0,5 s) e a rampa de cor tingida (0,8; 1; 0,95): baforada cinza-azulada pequena da FRAG (Tatu, Tamandua), sem coluna de fumaca",
+  "FLS_H": "a mesma com BaseSize x0,35 e EmitPerOneShot 8..10 (Pororoca)"
+ },
+ "own_fx": {
+  "_note": "efeitos proprios do WP03 (tijolos do fxkit), em shots/bs_ac_fx/ e shots/bs_frag_fx/; texturas proprias de shots/bs_fx_tex/ (bsgen/fx_tex.py). Nos presets: 'fx:<pasta>/<nome>'. color = cor float RGBA.",
+  "ac/ac_flash_light": {
+   "kind": "light",
+   "size": 8,
+   "life": 0.2,
+   "color": [
+    1,
+    0.72,
+    0.3,
+    0.25
+   ],
+   "what": "clarao dourado no casco (particle_light; alfa baixo: o casco fica dourado, nao branco)"
+  },
+  "ac/ac_ring": {
+   "kind": "ring",
+   "tex": "bs_ring_thin.png",
+   "size": 12,
+   "life": 0.55,
+   "scale": [
+    0.15,
+    1
+   ],
+   "color": [
+    1,
+    0.78,
+    0.3,
+    1
+   ],
+   "delay": 0.05,
+   "what": "anel de pressao termobarico DOURADO (nunca verde), 12 tiles x MediaEffectsScale (o aro do bs_ring_thin fica a 0,86 do raio do quadro: borda final ~1,3 x o raio da carga, por fora da bola de fogo; o spec pedia 7,3, que ficava escondido dentro dela - previa ac_2_0.gif)"
+  },
+  "ac/ac_embers": {
+   "kind": "embers",
+   "n": [
+    8,
+    11
+   ],
+   "life": [
+    1.0,
+    1.5
+   ],
+   "speed": [
+    2.5,
+    6
+   ],
+   "from": [
+    0.86,
+    0.12,
+    0.24,
+    1
+   ],
+   "to": [
+    1,
+    0.78,
+    0.31,
+    1
+   ],
+   "what": "brasas carmim-ouro que freiam e apagam em 1-1,5 s"
+  },
+  "frag/frag_flash_l": {
+   "kind": "flash",
+   "size": 1.4,
+   "life": 0.07,
+   "color": [
+    0.85,
+    1,
+    0.97,
+    1
+   ],
+   "what": "clarao branco-frio pontual (Tatu, Tamandua)"
+  },
+  "frag/frag_flash_h": {
+   "kind": "flash",
+   "size": 2.2,
+   "life": 0.07,
+   "color": [
+    0.85,
+    1,
+    0.97,
+    1
+   ],
+   "what": "clarao branco-frio pontual (Pororoca)"
+  },
+  "frag/frag_shape_l": {
+   "kind": "frag_shape",
+   "size": 3,
+   "life": 0.12,
+   "scale": [
+    0.6,
+    1
+   ],
+   "color": [
+    0.6,
+    0.92,
+    0.86,
+    1
+   ],
+   "cone_tex": "bs_frag_cone.png",
+   "ring_tex": "bs_ring_thin.png",
+   "what": "art.frag_cone = cone: leque a frente (bs_frag_cone, vertice no ponto da rajada); radial: anel bs_ring_thin verde-azulado do mesmo tamanho"
+  },
+  "frag/frag_shape_h": {
+   "kind": "frag_shape",
+   "size": 5,
+   "life": 0.12,
+   "scale": [
+    0.6,
+    1
+   ],
+   "color": [
+    0.6,
+    0.92,
+    0.86,
+    1
+   ],
+   "cone_tex": "bs_frag_cone.png",
+   "ring_tex": "bs_ring_thin.png",
+   "what": "o mesmo, Pororoca"
+  }
  },
  "textures": {
-  "bs_shell_he.png / _normals.png": "granada de ponta de espoleta (Padrao, P.E.M.), corpo de aco escuro, cinta de cobre, base com tracante; 256x64 px (nariz para +x), render Blender (bs3d)",
-  "bs_shell_ap.png / _normals.png": "granada perfurante de ogiva longa e capuz balistico (Perfurante, Perfurante-Explosiva); 256x64 px",
-  "bs_shell_band_he.png / bs_shell_band_ap.png": "mascara branca so da faixa da ogiva (aditiva/lit, tingida pela cor da municao via VertexColor)",
-  "bs_shell_nuke.png / _normals.png": "granada nuclear gorda: corpo branco-acinzentado igual ao recurso bs_shell_nuke, 2 faixas verdes, trevo na ogiva, listras amarelo/preto; 256x96",
-  "bs_shell_nuke_lights.png": "atlas 4 quadros (1 linha) das faixas verdes acesas (pulso 6 qps, aditivo)"
+  "art3d/bs_shells2 (ADOTADA)": "granadas 2.0: he/ap/sap/ac _s (Tambor), _m (Trovao), _l (Mapinguari), he_h/ac_h (Boiuna), pem_s/m/l (linha PEM), slug (Tupa); corpo + normais + mascara da faixa (tingida com palette.<municao>.band) + atlas de luzes; copiada para shots/bs_shell_art/ pelo caliber_fx.copy_art",
+  "shots/bs_fx_tex/ (bsgen/fx_tex.py)": "bs_ring_thin, bs_rail_streak, bs_pem_sheath, bs_pem_trail, bs_frag_cone"
  },
  "hit_presets": {
   "MG": [
@@ -311,12 +446,6 @@
    "disruptor_bolt/particles/disruptor_bolt_hit_bolts",
    "disruptor_bolt/particles/disruptor_bolt_flash"
   ],
-  "NUKE": [
-   "missile_nuke/particles/missile_nuke_flash_light",
-   "missile_nuke/particles/missile_nuke_flash",
-   "missile_nuke/particles/missile_nuke_shockwave",
-   "missile_nuke/particles/missile_nuke_hit"
-  ],
   "SH_MG": [
    "chaingun_shot/particles/chaingun_sparks",
    "chaingun_shot/particles/chaingun_hit_flash"
@@ -346,7 +475,113 @@
    "flak_large/particles/flak_large_flash",
    "flak_large/particles/flak_large_smoke",
    "bs:SHR_H"
+  ],
+  "PEN_S": [
+   "chaingun_shot/overclock/particles/chaingun_shot_overclock_hit"
+  ],
+  "PEN_M": [
+   "chaingun_shot/overclock/particles/chaingun_shot_overclock_hit",
+   "chaingun_shot/particles/chaingun_hit_flash"
+  ],
+  "PEN_L": [
+   "chaingun_shot/overclock/particles/chaingun_shot_overclock_hit",
+   "chaingun_shot/particles/chaingun_hit_flash",
+   "bullet_railgun/particles/bullet_penetrate_railgun"
+  ],
+  "POP_S": [
+   "chaingun_shot/particles/chaingun_hit_flash",
+   "chaingun_shot/overclock/particles/chaingun_shot_overclock_hit"
+  ],
+  "POP_L": [
+   "bullet_large/particles/bullet_flash_large",
+   "chaingun_shot/overclock/particles/chaingun_shot_overclock_hit"
+  ],
+  "AC_BLAST_S": [
+   "missile_he/particles/missile_he_flash",
+   "missile_he/particles/missile_he_hit",
+   "fx:ac/ac_flash_light",
+   "fx:ac/ac_ring",
+   "fx:ac/ac_embers"
+  ],
+  "AC_BLAST_M": [
+   "missile_he/particles/missile_he_flash",
+   "missile_he/particles/missile_he_hit",
+   "fx:ac/ac_flash_light",
+   "fx:ac/ac_ring",
+   "fx:ac/ac_embers"
+  ],
+  "AC_BLAST_L": [
+   "missile_he/particles/missile_he_flash",
+   "missile_he/particles/missile_he_hit",
+   "fx:ac/ac_flash_light",
+   "fx:ac/ac_ring",
+   "fx:ac/ac_embers",
+   "missile_he/particles/missile_he_smoke"
+  ],
+  "FRAG_BURST_L": [
+   "fx:frag/frag_flash_l",
+   "fx:frag/frag_shape_l",
+   "bs:FLS_L"
+  ],
+  "FRAG_BURST_H": [
+   "fx:frag/frag_flash_h",
+   "fx:frag/frag_shape_h",
+   "bs:FLS_H"
   ]
+ },
+ "particle_counts": {
+  "_note": "particulas por disparo (EmitPerOneShot Max) dos arquivos usados nos presets 2.0 (texto vanilla 0.30.2 = 0.30.5); o selfcheck do caliber_fx soma: PEN_* <= 6, AC_BLAST_S/M <= 17, L <= 37, Boiuna <= 49, FRAG L/H <= 8/12",
+  "chaingun_shot/overclock/particles/chaingun_shot_overclock_hit": 3,
+  "chaingun_shot/particles/chaingun_hit_flash": 1,
+  "bullet_railgun/particles/bullet_penetrate_railgun": 1,
+  "bullet_large/particles/bullet_flash_large": 1,
+  "missile_he/particles/missile_he_flash": 1,
+  "missile_he/particles/missile_he_hit": 3,
+  "missile_he/particles/missile_he_smoke": 20,
+  "../common_effects/particles/explosions/big_part_explode_debris": 12,
+  "fx:ac/ac_flash_light": 1,
+  "fx:ac/ac_ring": 1,
+  "fx:ac/ac_embers": 11,
+  "fx:frag/frag_flash_l": 1,
+  "fx:frag/frag_flash_h": 1,
+  "fx:frag/frag_shape_l": 1,
+  "fx:frag/frag_shape_h": 1,
+  "bs:FLS_L": 6,
+  "bs:FLS_H": 10,
+  "budgets": {
+   "PEN_S": 6,
+   "PEN_M": 6,
+   "PEN_L": 6,
+   "AC_BLAST_S": 17,
+   "AC_BLAST_M": 17,
+   "AC_BLAST_L": 37,
+   "AC_BLAST_L+debris": 49,
+   "FRAG_BURST_L": 8,
+   "FRAG_BURST_H": 12
+  }
+ },
+ "seam_tier_map": {
+  "_note": "copia de SPEC.art_assets.seam_tier_map (pen_effect / pop_effect por art_tier); o caliber_fx le o spec",
+  "pen_effect": {
+   "tracer": "PEN_S",
+   "s": "PEN_M",
+   "m": "PEN_M",
+   "l": "PEN_L",
+   "h": "PEN_L",
+   "plasma": null,
+   "pem": "PEN_S",
+   "slug": "PEN_L"
+  },
+  "pop_effect": {
+   "tracer": "POP_S",
+   "s": "POP_S",
+   "m": "POP_L",
+   "l": "POP_L",
+   "h": "POP_L",
+   "plasma": null,
+   "pem": "POP_S",
+   "slug": "POP_L"
+  }
  },
  "order": [
   "bs_lmg",
@@ -435,7 +670,11 @@
    },
    "impact": {
     "hull": {
-     "bullet": [
+     "he": [
+      "MG",
+      0.6
+     ],
+     "ap": [
       "MG",
       0.6
      ]
@@ -454,7 +693,8 @@
      0,
      0
     ],
-    "now": "MG x1 (chaingun_sparks + bullet_flash_med)"
+    "now": "MG x1 (chaingun_sparks + bullet_flash_med)",
+    "pen": "PEN_S"
    },
    "budget": "muzzle 2 part./tiro (~3 vivas), impacto ~2,5 vivas/acerto -> ~19 vivas por arma"
   },
@@ -545,21 +785,13 @@
    },
    "impact": {
     "hull": {
-     "std": [
+     "he": [
       "MG",
       0.6
      ],
      "ap": [
       "MG",
       0.6
-     ],
-     "aphe": [
-      "MG",
-      0.6
-     ],
-     "emp": [
-      "EMP_FAST",
-      0.35
      ]
     },
     "struct": [
@@ -568,7 +800,7 @@
     ],
     "pen_mes": 0.45,
     "he": {
-     "aphe": [
+     "he": [
       "HE_POP",
       0.35
      ]
@@ -581,7 +813,8 @@
      0,
      0
     ],
-    "now": "MG x1; APHE so chaingun_overclock_hit x1"
+    "now": "MG x1; APHE so chaingun_overclock_hit x1",
+    "pen": "PEN_S"
    },
    "budget": "OC 36/s: muzzle ~1,5 vivas/tiro (fumaca 1 s) -> ~55; impacto ~2,5/acerto -> ~90; total ~150 (chaingun vanilla: 4 particulas/tiro com fumaca e cartucho)"
   },
@@ -656,7 +889,11 @@
    },
    "impact": {
     "hull": {
-     "bullet": [
+     "he": [
+      "MGH",
+      0.75
+     ],
+     "ap": [
       "MGH",
       0.75
      ]
@@ -675,7 +912,8 @@
      0,
      0
     ],
-    "now": "MG x1"
+    "now": "MG x1",
+    "pen": "PEN_S"
    },
    "budget": "~25 vivas por arma"
   },
@@ -759,7 +997,11 @@
    },
    "impact": {
     "hull": {
-     "std": [
+     "he": [
+      "MGH",
+      0.75
+     ],
+     "ap": [
       "MGH",
       0.75
      ]
@@ -782,7 +1024,8 @@
      0,
      0
     ],
-    "now": "MG x1"
+    "now": "MG x1",
+    "pen": "PEN_S"
    },
    "budget": "OC 19,6/s: ~70 vivas"
   },
@@ -811,7 +1054,7 @@
     "smear": null,
     "trail": {
      "shape": "med",
-     "file": "bs_trail_med_amber",
+     "file": "bs_trail_med_<municao>",
      "eps": 150,
      "scale": [
       2,
@@ -878,7 +1121,15 @@
    },
    "impact": {
     "hull": {
-     "bullet": [
+     "he": [
+      "AC",
+      0.8
+     ],
+     "ap": [
+      "AC",
+      0.8
+     ],
+     "sap": [
       "AC",
       0.8
      ]
@@ -889,9 +1140,13 @@
     ],
     "pen_mes": 0.55,
     "he": {
-     "bullet": [
+     "he": [
       "HE_POP",
       0.6
+     ],
+     "sap": [
+      "HE_POP",
+      0.5
      ]
     },
     "shield": [
@@ -902,7 +1157,8 @@
      0,
      0
     ],
-    "now": "mg x1 + carga final = EXPLOSAO INTEIRA DO MISSIL HE x1 (desenhada para r4; a carga e r1/80)"
+    "now": "mg x1 + carga final = EXPLOSAO INTEIRA DO MISSIL HE x1 (desenhada para r4; a carga e r1/80)",
+    "pen": "PEN_S"
    },
    "budget": "~45 vivas por arma (rastro 24/projetil)"
   },
@@ -1011,7 +1267,7 @@
    },
    "impact": {
     "hull": {
-     "std": [
+     "he": [
       "AC_FAST",
       1.0
      ],
@@ -1019,13 +1275,9 @@
       "AC_FAST",
       1.0
      ],
-     "aphe": [
+     "sap": [
       "AC_FAST",
       1.0
-     ],
-     "emp": [
-      "EMP_FAST",
-      0.5
      ]
     },
     "struct": [
@@ -1034,13 +1286,13 @@
     ],
     "pen_mes": 0.7,
     "he": {
-     "std": [
+     "he": [
       "HE_POP",
       0.85
      ],
-     "aphe": [
+     "sap": [
       "HE_POP",
-      1.0
+      0.7
      ]
     },
     "shield": [
@@ -1051,7 +1303,8 @@
      0,
      0
     ],
-    "now": "mg x1 + chaingun_overclock_hit x1"
+    "now": "mg x1 + chaingun_overclock_hit x1",
+    "pen": "PEN_S"
    },
    "budget": "OC 16,8/s: muzzle ~1,1 vivas/tiro -> ~20; impacto ~3,9/acerto -> ~65; total ~85"
   },
@@ -1097,7 +1350,11 @@
      ],
      "trail": "large 200/s 4..8"
     },
-    "head": 0.7
+    "head": 0.7,
+    "art_tier": "s",
+    "head_k": 0.5,
+    "head_dx": 0.15,
+    "head_note": "ADDENDUM G7f: clarao da base com metade do diametro e recuado head_dx x diametro antigo para tras da base"
    },
    "muzzle": {
     "N": [
@@ -1187,7 +1444,7 @@
    },
    "impact": {
     "hull": {
-     "std": [
+     "he": [
       "L",
       0.9
      ],
@@ -1195,13 +1452,13 @@
       "L",
       0.9
      ],
-     "aphe": [
+     "sap": [
       "L",
       0.9
      ],
-     "emp": [
-      "EMP",
-      0.6
+     "ac": [
+      "L",
+      0.9
      ]
     },
     "struct": [
@@ -1210,13 +1467,17 @@
     ],
     "pen_mes": 0.65,
     "he": {
-     "std": [
+     "he": [
       "HE",
-      0.5
+      "r/4"
      ],
-     "aphe": [
+     "sap": [
       "HE",
-      0.4
+      "r/4"
+     ],
+     "ac": [
+      "AC_BLAST_S",
+      "r/4"
      ]
     },
     "shield": [
@@ -1231,7 +1492,8 @@
      0.05,
      0.5
     ],
-    "now": "large x1 + carga = missil HE x1 (r4) para um r2"
+    "now": "large x1 + carga = missil HE x1 (r4) para um r2",
+    "pen": "PEN_M"
    },
    "budget": "OC: ~350 vivas por arma (rastro 40/projetil x 5 no ar, impacto ~48)"
   },
@@ -1276,7 +1538,11 @@
      ],
      "trail": "deck 300/s 4..8"
     },
-    "head": 0.75
+    "head": 0.75,
+    "art_tier": "m",
+    "head_k": 0.5,
+    "head_dx": 0.15,
+    "head_note": "ADDENDUM G7f: clarao da base com metade do diametro e recuado head_dx x diametro antigo para tras da base"
    },
    "muzzle": {
     "N": [
@@ -1372,7 +1638,7 @@
    },
    "impact": {
     "hull": {
-     "std": [
+     "he": [
       "D",
       1.0
      ],
@@ -1380,13 +1646,13 @@
       "D",
       1.0
      ],
-     "aphe": [
+     "sap": [
       "D",
       1.0
      ],
-     "emp": [
-      "EMP",
-      0.9
+     "ac": [
+      "D",
+      1.0
      ]
     },
     "struct": [
@@ -1395,13 +1661,17 @@
     ],
     "pen_mes": 0.7,
     "he": {
-     "std": [
+     "he": [
       "HE",
-      0.75
+      "r/4"
      ],
-     "aphe": [
+     "sap": [
       "HE",
-      0.56
+      "r/4"
+     ],
+     "ac": [
+      "AC_BLAST_M",
+      "r/4"
      ]
     },
     "shield": [
@@ -1416,7 +1686,8 @@
      0.15,
      0.75
     ],
-    "now": "deck x1 + missil HE x1, tremor 0,08"
+    "now": "deck x1 + missil HE x1, tremor 0,08",
+    "pen": "PEN_M"
    },
    "budget": "~250 vivas por arma"
   },
@@ -1473,7 +1744,8 @@
      ],
      "trail": "deck 300/s 4..8"
     },
-    "head": 0.9
+    "head": 0.9,
+    "art_tier": "l"
    },
    "muzzle": {
     "N": [
@@ -1584,7 +1856,7 @@
    },
    "impact": {
     "hull": {
-     "std": [
+     "he": [
       "D",
       1.5
      ],
@@ -1592,13 +1864,13 @@
       "D",
       1.5
      ],
-     "aphe": [
+     "sap": [
       "D",
       1.5
      ],
-     "emp": [
-      "EMP",
-      1.3
+     "ac": [
+      "D",
+      1.5
      ]
     },
     "struct": [
@@ -1607,18 +1879,22 @@
     ],
     "pen_mes": 0.75,
     "he": {
-     "std": [
+     "he": [
       "HE_BIG",
-      1.1
+      "r/4"
      ],
-     "aphe": [
+     "sap": [
       "HE_BIG",
-      0.85
+      "r/4"
+     ],
+     "ac": [
+      "AC_BLAST_L",
+      "r/4"
      ]
     },
     "extra_ap": [
      "big_part_explode_debris",
-     1.0
+     "so no FinishedPenetratingOperational (onde a AP para), nunca nas pecas atravessadas"
     ],
     "shield": [
      "SH_D",
@@ -1632,7 +1908,8 @@
      0.25,
      1.0
     ],
-    "now": "deck x1 + missil HE x1 (identico ao 155 e ao Carcara!), tremor 0,08"
+    "now": "deck x1 + missil HE x1 (identico ao 155 e ao Carcara!), tremor 0,08",
+    "pen": "PEN_L"
    },
    "budget": "~600 vivas no pico por torre (3 granadas no ar com rastro + fumaca, 3 impactos)"
   },
@@ -1640,11 +1917,12 @@
    "codename": "Boiúna",
    "tier": "late",
    "mm": 420,
-   "cls": "obuseiro NUCLEAR (calibre visual 420 mm, classe 2B1 Oka)",
+   "cls": "obuseiro pesado da municao AC (calibre visual 420 mm; granada he_h / ac_h de art3d/bs_shells2)",
    "rate": "1 a cada 10 s",
    "barrels": 1,
    "projectile": {
-    "look": "nuke_shell",
+    "look": "shell",
+    "art_tier": "h",
     "body": [
      2.2,
      0.86
@@ -1654,47 +1932,20 @@
      0.9
     ],
     "glow": [
-     30,
-     15
+     28,
+     14
     ],
     "glow_z": 0.5,
     "trail_len": 7,
-    "lights": {
-     "frames": 4,
-     "fps": 6,
-     "what": "2 faixas verdes pulsando"
-    },
-    "spin_small": {
-     "tex": "./Data/shots/missile_nuke/radiation_small.png",
-     "size": 0.75,
-     "spin": "360d",
-     "color": [
-      120,
-      255,
-      60
-     ],
-     "bucket": "BulletUpper4"
-    },
-    "spin_big": {
-     "tex": "./Data/shots/missile_nuke/radiation.png",
-     "size": 8,
-     "spin": "180d",
-     "color": [
-      120,
-      255,
-      60
-     ],
-     "bucket": "BulletUpper2",
-     "is_light": true
-    },
     "trail": {
-     "shape": "deck",
-     "file": "bs_trail_deck_nuclear",
+     "shape": "deckH",
+     "file": "bs_trail_deckH_<municao>",
      "eps": 300,
      "scale": [
-      4,
-      8
-     ]
+      2,
+      4
+     ],
+     "note": "rastro com metade da largura do deck e cores x0,75 (BOIUNA_THIN.puff / gain)"
     },
     "smoke_trail": {
      "src": "TSM",
@@ -1706,18 +1957,27 @@
      "life": [
       1.0,
       1.3
-     ],
-     "tint": "cinza-esverdeado"
+     ]
+    },
+    "head": null,
+    "thin": {
+     "tw": 0.45,
+     "tl": 6.5,
+     "kw": 0.5,
+     "kl": 1.6,
+     "kback": 0.35,
+     "puff": 0.5,
+     "gain": 0.75,
+     "note": "ADDENDUM G7d (BOIUNA_THIN de make_sheets.py): tracante 6,5 tiles com 45 % da largura, nucleo 1,6 tile com metade da largura comecando 0,35 tile atras da base, tudo a 75 %"
     },
     "now": {
-     "sprite": "bullet_large.png 1,35 (o mesmo dardo do 406, so o brilho verde)",
+     "sprite": "granada nuclear da 1.x (trevo verde girando)",
      "glow": [
-      22,
-      11
+      30,
+      15
      ],
      "trail": "deck verde"
-    },
-    "head": null
+    }
    },
    "muzzle": {
     "N": [
@@ -1728,10 +1988,6 @@
      [
       "CDF",
       1.8
-     ],
-     [
-      "RADF",
-      1.0
      ],
      [
       "CDR",
@@ -1791,31 +2047,29 @@
    },
    "impact": {
     "hull": {
-     "nuclear": [
-      "NUKE",
-      1.15
+     "he": [
+      "HE_BIG",
+      1.375
+     ],
+     "ac": [
+      "AC_BLAST_L",
+      2.25
      ]
     },
-    "oc_mes": 1.4,
-    "extra": [
-     "bs_nuke_ring",
-     "bs_nuke_afterglow"
-    ],
-    "shield": [
-     "NUKE",
-     1.15
-    ],
-    "shot_down": [
-     "missile_nuke_flash + bs_nuke_ring",
-     0.5
-    ],
+    "extra": {
+     "ac": [
+      "../common_effects/particles/explosions/big_part_explode_debris"
+     ]
+    },
+    "shield": "a mesma midia do HitOperational (HitShield do SimpleHit) com a mesma escala",
+    "shot_down": "pop_effect('h') = POP_L (Targetable.OnDeath, sem MediaEffectsScale)",
     "shake": [
-     0.5,
-     1.5
+     0.3,
+     1.2
     ],
-    "now": "cogumelo vanilla x1, tremor 0,35; abatido = clarao da flak"
+    "now": "1.x: cogumelo nuclear x1,15 + anel e brilho verdes; agora HE_BIG x1,375 (r 5,5 / 4) e AC_BLAST_L x2,25"
    },
-   "budget": "1 tiro a cada 10 s: irrelevante"
+   "budget": "1 tiro a cada 10 s: AC_BLAST_L + destrocos = ~49 particulas por impacto"
   },
   "bs_flak_light": {
    "codename": "Tatu",
@@ -1865,7 +2119,28 @@
      0,
      0
     ],
-    "now": "flak_large x1 (150-200 estilhacos por rajada)"
+    "now": "flak_large x1 (150-200 estilhacos por rajada)",
+    "burst_frag": [
+     "FRAG_BURST_L",
+     0.9
+    ],
+    "fragment": {
+     "wh": [
+      0.35,
+      0.06
+     ],
+     "color": "frag.tracer",
+     "bucket": "BulletUpper3",
+     "lerp_scale_from": [
+      0.3,
+      1
+     ],
+     "lerp_time": 0.03,
+     "hit_bullet": [
+      "chaingun_shot/particles/chaingun_sparks"
+     ],
+     "note": "fragmento = UMA sprite aditiva (blob.png), sem IsLight e sem emissor; no projetil abatido so chaingun_sparks (2-4 particulas)"
+    }
    },
    "budget": "3 rajadas/s x ~48 = ~150 vivas (hoje ~530)"
   },
@@ -1915,7 +2190,28 @@
      0,
      0
     ],
-    "now": "flak_large x1 por rajada"
+    "now": "flak_large x1 por rajada",
+    "burst_frag": [
+     "FRAG_BURST_L",
+     1.0
+    ],
+    "fragment": {
+     "wh": [
+      0.35,
+      0.06
+     ],
+     "color": "frag.tracer",
+     "bucket": "BulletUpper3",
+     "lerp_scale_from": [
+      0.3,
+      1
+     ],
+     "lerp_time": 0.03,
+     "hit_bullet": [
+      "chaingun_shot/particles/chaingun_sparks"
+     ],
+     "note": "fragmento = UMA sprite aditiva (blob.png), sem IsLight e sem emissor; no projetil abatido so chaingun_sparks (2-4 particulas)"
+    }
    },
    "budget": "OC 19,5 rajadas/s x ~48 = ~940 vivas (hoje ~3.400)"
   },
@@ -1973,7 +2269,28 @@
      0.03,
      0.3
     ],
-    "now": "flak_large x1"
+    "now": "flak_large x1",
+    "burst_frag": [
+     "FRAG_BURST_H",
+     1.0
+    ],
+    "fragment": {
+     "wh": [
+      0.35,
+      0.06
+     ],
+     "color": "frag.tracer",
+     "bucket": "BulletUpper3",
+     "lerp_scale_from": [
+      0.3,
+      1
+     ],
+     "lerp_time": 0.03,
+     "hit_bullet": [
+      "chaingun_shot/particles/chaingun_sparks"
+     ],
+     "note": "fragmento = UMA sprite aditiva (blob.png), sem IsLight e sem emissor; no projetil abatido so chaingun_sparks (2-4 particulas)"
+    }
    },
    "budget": "OC 7,5 rajadas/s x ~125 = ~940 vivas (hoje ~1.300)"
   },
@@ -1990,6 +2307,361 @@
    "mm": null,
    "cls": "PLASMA (plasma_fx, outro job)",
    "note": "classe visual ~155 mm; o caliber_fx PULA esta arma"
+  }
+ },
+ "historico_1x": {
+  "_note": "tabela da 1.x (Fase B) so para as previas 'antes' (tools/blender/previews: sheet.py, prev2.draw_old, make_sheets.old_1x); o gerador 2.0 nao le",
+  "ammo_colors": {
+   "std": {
+    "tracer": [
+     255,
+     170,
+     60
+    ],
+    "core": [
+     255,
+     235,
+     190
+    ],
+    "glow": [
+     255,
+     120,
+     30
+    ],
+    "band": [
+     255,
+     190,
+     60
+    ]
+   },
+   "ap": {
+    "tracer": [
+     190,
+     215,
+     255
+    ],
+    "core": [
+     240,
+     248,
+     255
+    ],
+    "glow": [
+     200,
+     225,
+     255
+    ],
+    "band": [
+     215,
+     230,
+     255
+    ]
+   },
+   "aphe": {
+    "tracer": [
+     255,
+     95,
+     45
+    ],
+    "core": [
+     255,
+     205,
+     170
+    ],
+    "glow": [
+     255,
+     80,
+     40
+    ],
+    "band": [
+     255,
+     80,
+     40
+    ]
+   },
+   "emp": {
+    "tracer": [
+     100,
+     170,
+     255
+    ],
+    "core": [
+     200,
+     225,
+     255
+    ],
+    "glow": [
+     80,
+     150,
+     255
+    ],
+    "band": [
+     80,
+     150,
+     255
+    ]
+   },
+   "bullet": {
+    "tracer": [
+     255,
+     170,
+     60
+    ],
+    "core": [
+     255,
+     235,
+     190
+    ],
+    "glow": [
+     255,
+     140,
+     40
+    ],
+    "band": [
+     255,
+     190,
+     60
+    ]
+   },
+   "nuclear": {
+    "tracer": [
+     160,
+     255,
+     90
+    ],
+    "core": [
+     230,
+     255,
+     200
+    ],
+    "glow": [
+     0,
+     255,
+     0
+    ],
+    "band": [
+     120,
+     255,
+     60
+    ]
+   }
+  },
+  "weapons": {
+   "bs_naval_76": {
+    "projectile": {
+     "look": "shell",
+     "body": [
+      0.72,
+      0.26
+     ],
+     "tracer": [
+      5.5,
+      0.6
+     ],
+     "glow": [
+      12,
+      6
+     ],
+     "glow_z": 0,
+     "trail_len": 5,
+     "trail": {
+      "shape": "large",
+      "file": "bs_trail_large_<municao>",
+      "eps": 200,
+      "scale": [
+       4,
+       8
+      ],
+      "note": "rastro existente (bsgen/trails.py): os rastros existentes nao mudam; o design pedia escala 3,2..6,4 (X2 pede trail_len 5)"
+     },
+     "smoke_trail": null,
+     "now": {
+      "sprite": "bullet_large.png (dardo com sabot) 0,7",
+      "glow": [
+       12,
+       6
+      ],
+      "trail": "large 200/s 4..8"
+     },
+     "head": 0.7
+    }
+   },
+   "bs_naval_155": {
+    "projectile": {
+     "look": "shell",
+     "body": [
+      1.15,
+      0.4
+     ],
+     "tracer": [
+      6.0,
+      0.7
+     ],
+     "glow": [
+      18,
+      9
+     ],
+     "glow_z": 0.5,
+     "trail_len": 7,
+     "trail": {
+      "file": "bs_trail_deck_<municao>",
+      "eps": 300,
+      "scale": [
+       4,
+       8
+      ],
+      "shape": "deck"
+     },
+     "smoke_trail": null,
+     "now": {
+      "sprite": "bullet_large.png 1,1",
+      "glow": [
+       18,
+       9
+      ],
+      "trail": "deck 300/s 4..8"
+     },
+     "head": 0.75
+    }
+   },
+   "bs_naval_406": {
+    "projectile": {
+     "look": "shell",
+     "body": [
+      2.05,
+      0.72
+     ],
+     "tracer": [
+      6.5,
+      0.85
+     ],
+     "glow": [
+      26,
+      13
+     ],
+     "glow_z": 0.5,
+     "trail_len": 9,
+     "trail": {
+      "shape": "deckL",
+      "file": "bs_trail_deckL_<municao>",
+      "eps": 300,
+      "scale": [
+       6,
+       12
+      ],
+      "note": "forma nova deckL em bsgen/trails.py"
+     },
+     "smoke_trail": {
+      "src": "TSM",
+      "eps": 110,
+      "scale": [
+       2.8,
+       3.5
+      ],
+      "life": [
+       0.35,
+       0.45
+      ]
+     },
+     "now": {
+      "sprite": "bullet_large.png 1,35",
+      "glow": [
+       22,
+       11
+      ],
+      "trail": "deck 300/s 4..8"
+     },
+     "head": 0.9
+    }
+   },
+   "bs_nuke_howitzer": {
+    "projectile": {
+     "look": "nuke_shell",
+     "body": [
+      2.2,
+      0.86
+     ],
+     "tracer": [
+      5.0,
+      0.9
+     ],
+     "glow": [
+      30,
+      15
+     ],
+     "glow_z": 0.5,
+     "trail_len": 7,
+     "lights": {
+      "frames": 4,
+      "fps": 6,
+      "what": "2 faixas verdes pulsando"
+     },
+     "spin_small": {
+      "tex": "./Data/shots/missile_nuke/radiation_small.png",
+      "size": 0.75,
+      "spin": "360d",
+      "color": [
+       120,
+       255,
+       60
+      ],
+      "bucket": "BulletUpper4"
+     },
+     "spin_big": {
+      "tex": "./Data/shots/missile_nuke/radiation.png",
+      "size": 8,
+      "spin": "180d",
+      "color": [
+       120,
+       255,
+       60
+      ],
+      "bucket": "BulletUpper2",
+      "is_light": true
+     },
+     "trail": {
+      "shape": "deck",
+      "file": "bs_trail_deck_nuclear",
+      "eps": 300,
+      "scale": [
+       4,
+       8
+      ]
+     },
+     "smoke_trail": {
+      "src": "TSM",
+      "eps": 60,
+      "scale": [
+       2.4,
+       3.0
+      ],
+      "life": [
+       1.0,
+       1.3
+      ],
+      "tint": "cinza-esverdeado"
+     },
+     "now": {
+      "sprite": "bullet_large.png 1,35 (o mesmo dardo do 406, so o brilho verde)",
+      "glow": [
+       22,
+       11
+      ],
+      "trail": "deck verde"
+     },
+     "head": null
+    }
+   }
+  },
+  "hit_presets": {
+   "NUKE": [
+    "missile_nuke/particles/missile_nuke_flash_light",
+    "missile_nuke/particles/missile_nuke_flash",
+    "missile_nuke/particles/missile_nuke_shockwave",
+    "missile_nuke/particles/missile_nuke_hit"
+   ]
+  },
+  "new_sources": {
+   "RADF": "copia do cannon_shoot_deck_flash com Texture = ./Data/shots/missile_nuke/radiation.png e cor verde [0.45, 1, 0.25]: o clarao da Boiuna desenha um trevo de luz no casco (0,6 s)"
   }
  },
  "x2": "Revisao da escada (X2): na escala real o tiro do Tambor 76 mm parecia mais fraco que os tracantes de 20/30 mm e o Trovao 155 mm so empatava com o 30 mm. Regra: cada linha de canhao (76, 155, 406, nuclear) >= 1,2x o maior peso visual das linhas de calibre menor (ladder.py do WP3, painel 1x). head = clarao branco-quente na base do tracante. A escada publicada (docs/preview/3d/granadas_calibre.png) desenha os riscos com a largura do jogo (sheet.DRAW_W = 1); a regra continua valendo nessa medida."

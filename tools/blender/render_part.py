@@ -651,6 +651,16 @@ STACK_LAYOUT = {  # posicoes (x, y, z) dentro de um tile para k unidades empilha
     5: [(-0.2, -0.2, 0), (0.2, -0.2, 0), (-0.2, 0.2, 0), (0.2, 0.2, 0), (0, 0, 0.16)],
     6: [(-0.2, -0.2, 0), (0.2, -0.2, 0), (-0.2, 0.2, 0), (0.2, 0.2, 0), (-0.1, 0, 0.16), (0.1, 0, 0.16)],
 }
+# pilhas 7..10 (spec 2.0 render_kinds.resource.stack_layout_7_10.missile_charges: carga comprida deitada em X,
+# 2 camadas de 5; unit_scale 0,5 e stack_rot 90 +-2 = STACK_ROT_CHARGES). STACK_LAYOUT_CHARGES = o leiaute
+# inteiro 1..10 do spec (PART["stack_layout"] = "charges"). Os itens 2.0 aprovados (art3d/bs_msl_*) trazem o proprio
+# stack_layout (parts/_bs2_itens_helpers.py MSL_LAYOUT, desvio consciente registrado la): nada muda para eles.
+_ROW0 = [(-0.28, 0.0, 0.0), (-0.14, 0.0, 0.0), (0.0, 0.0, 0.0), (0.14, 0.0, 0.0), (0.28, 0.0, 0.0)]
+_ROW1 = [(-0.21, 0.0, 0.14), (-0.07, 0.0, 0.14), (0.07, 0.0, 0.14), (0.21, 0.0, 0.14), (0.35, 0.0, 0.14)]
+STACK_LAYOUT_CHARGES = {k: (_ROW0 + _ROW1)[:k] for k in range(1, 11)}
+STACK_ROT_CHARGES = [90, 92, 88, 91, 89, 90, 92, 88, 91, 89]
+for _k in range(7, 11):
+    STACK_LAYOUT[_k] = STACK_LAYOUT_CHARGES[_k]
 
 
 def _place_item(mod, M, at, scale, rot_deg, name):
@@ -679,9 +689,13 @@ def render_resource(mod, out, only):
         M = fresh(accent)
         B.camera(1, 1, (0, 0))
         samples(48)
-        lay = P.get("stack_layout", STACK_LAYOUT).get(k) or STACK_LAYOUT[min(k, 6)]
+        sl = P.get("stack_layout", STACK_LAYOUT)
+        if sl == "charges":
+            sl = STACK_LAYOUT_CHARGES
+        lay = sl.get(k) or sl.get(str(k)) or STACK_LAYOUT.get(k) or STACK_LAYOUT[max(STACK_LAYOUT)]
+        rots = P.get("stack_rot", [0, 8, -6, 4, -10, 6])
         for j, (x, y, z) in enumerate(lay):
-            rot = P.get("stack_rot", [0, 8, -6, 4, -10, 6])[j % 6]
+            rot = rots[j % len(rots)]                 # listas de 6 (os itens 2.0) ficam iguais a antes
             _place_item(mod, M, (x, y, z), unit, rot, f"unit{j}")
         B.show_only(["item"])
         B.render_set(os.path.join(out, f"stack_{k}"), (PX, PX), glow_halo=True, off=False, normals=False)
@@ -880,6 +894,17 @@ def main():
           "launcher": render_launcher, "missiles": render_projectiles, "shells": render_projectiles}[kind]
     meta = fn(mod, out, only)
     mp = os.path.join(out, "meta.json")
+    if kind in PROJ_KINDS and not only and os.path.exists(mp):
+        # PART["atlases"] (bs_missiles2.py --atlases: petalas da Piranha) nao e item: o render completo nao refaz o
+        # atlas, entao o bloco "atlases" do meta antigo e os PNGs dele ficam (antes o render completo apagava o
+        # bloco e era preciso rodar bs_missiles2.py --meta-only)
+        old = json.load(open(mp))
+        atl = old.get("atlases") if old.get("kind") == kind else None
+        if atl:
+            meta["atlases"] = atl
+            keep = {f for a in atl.values() for f in (a.get("file"), a.get("normals"))
+                    if f and os.path.exists(os.path.join(out, f))}
+            meta["files"] = sorted(set(meta["files"]) | keep)
     if only and os.path.exists(mp):
         old = json.load(open(mp))
         if kind in PROJ_KINDS and old.get("kind") == kind:
@@ -894,12 +919,16 @@ def main():
         old["files"] = sorted(set(old.get("files", [])) | set(meta["files"]))
         meta = old
     json.dump(meta, open(mp, "w"), indent=1)
+    if kind in PROJ_KINDS and mod.PART.get("atlases") and hasattr(mod, "register_atlases"):
+        mod.register_atlases(out)        # formato do proprio modelo (bs_missiles2): idempotente
     if "--preview" in args and kind in ("gun", "launcher"):
         import compose_preview
         compose_preview.make_all(out)
     elif "--preview" in args and kind in PROJ_KINDS:
         import compose_preview
         compose_preview.make_projectiles(out)
+    elif "--preview" in args and kind == "factory":
+        print("previa de fabrica: python3 tools/blender/compose_factory.py <fabrica> <recurso> <nome>")
     print("OK", short, out)
 
 

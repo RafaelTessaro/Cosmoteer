@@ -1,30 +1,39 @@
-"""Efeitos por CALIBRE do Bullet Strike (modulo opcional, CONTRATOS secao 2.2): arma maior, tiro maior.
+"""Efeitos por CALIBRE do Bullet Strike 2.0 (WP03; modulo FX do registro do build_mod, API 2): arma maior, tiro maior.
 
-Fonte dos numeros: tools/spec/bullet_strike_vfx.json (copia da tabela aprovada do design de calibre + extensoes do
-gerador + X2). So VISUAL (CONTRATOS R4): nunca muda HitEffects, dano, raio, Physics, Targetable, alcance,
-velocidade, municao, toggles ou tempos; so MediaEffects, MediaEffectsScale, componentes de sprite/luz/midia e
-arquivos de particula proprios. Plasma (s["plasma_fx"], linhas com mm = null) fica de fora (R3).
+Fonte dos numeros: tools/spec/bullet_strike_vfx.json (tabela da Fase B re-chaveada pelas municoes 2.0 he/ap/sap/ac/
+frag + os efeitos 2.0) e SPEC.art_assets (tools/spec/bullet_strike_art2.json: palette, shell_ladder, seam_tier_map,
+phase_b_leftovers, effects.ac/.frag). So VISUAL (CONTRATOS R4): nunca muda HitEffects, dano, raio, Physics,
+Targetable.Health, alcance, velocidade, municao, toggles ou tempos; so MediaEffects, MediaEffectsScale, componentes de
+sprite/luz e arquivos de particula proprios. Plasma (s["plasma_fx"], linhas com mm = null) fica de fora.
 
-Entra pelos seams (CONTRATOS secao 1), sem editar bs_data / shots / build_mod / ciws:
-  annotate(data)                    D1: chaves visuais nos projeteis (s["vfx"], look, tamanhos, rastro, tremor) e
-                                        nos efeitos de boca das armas/defesas (g["fx"] / d["fx"]);
-  projectile_components(s, trail)   S1: visual em voo (tracante, granada, granada nuclear);
-  decorate(s, top)                  S3: midia de impacto por calibre (presets + MediaEffectsScale), HitShield
-                                        explicito, carga final HE, nuclear (anel/brilho/abatido), rajada da flak;
-  write(out, header)                B2: copias escaladas em shots/bs_cal_fx/;
-  copy_art(out)                     B3: PNGs das granadas (art3d/bs_shells -> shots/bs_shell_art/).
+Ganchos e seams (o build_mod chama annotate depois do shots(DATA) de TODOS os modulos, J2R3-13):
+  annotate(DATA)                  D1: chaves visuais nos tiros de GUNS[].modes[] (por 'index'/'key'), nos feixes e
+                                      fragmentos de DEFENSES por modo e, em DATA.SHOTS, a arte dos tiros com
+                                      art_key/art_tier de outros modulos (PEM do WP08 'pem_s/m/l', slug do WP09);
+                                      efeitos de boca das armas/defesas (g["fx"] / d["fx"]);
+  write(out, header)              B2: copias escaladas em shots/bs_cal_fx/ + efeitos proprios em shots/bs_ac_fx/
+                                      (AC_BLAST) e shots/bs_frag_fx/ (FRAG_BURST);
+  copy_art(out)                   B3: PNGs de art3d/bs_shells2 -> shots/bs_shell_art/;
+  projectile_components(s, trail) S1: visual em voo (tracante, granada 2.0 da escada, fragmento da FRAG);
+  decorate(s, top)                S3: midia de impacto (presets + MediaEffectsScale), pecas atravessadas com PEN,
+                                      fim da AP com o preset cheio uma vez, abatido = POP, rajada HE/FRAG das defesas,
+                                      faisca do fragmento;
+  pen_effect(art_tier) / pop_effect(art_tier)   seam do WP02 (SPEC.art_assets.seam_tier_map): lista de MediaEffects
+                                      ('&<...>') ou None (tier fora da tabela / plasma: o chamador mantem o efeito antigo);
+  art_key(ammo, tier, s) / art_item(key) / art_body(key) / art_components(...) / art_anchor(key, nome)
+                                      arte de voo de art3d/bs_shells2 para quem escreve o proprio tiro (WP08, WP09).
+Switches: art.light_split (fxkit.light_pair), art.pen_media (light | full = Fase B), art.frag_cone (cone | radial).
 
 Dois mecanismos (caliber_design 1.A / 1.B):
   * impactos: arquivos vanilla por referencia + MediaEffectsScale (numero puro) no bloco de acerto. Campo vanilla
     em bloco de acerto: shots/bullet_railgun/bullet_railgun.rules l.99/139/173 (0.30.3); numero puro no SW:ACD
     (alvo 0.30.4): shots/missiles/proton_rocket/proton_rocket.rules l.129/187 ("MediaEffectsScale = 1.5");
-  * boca e rastros: COPIAS escaladas (scaled_copy) de 12 arquivos vanilla guardados em tools/vanilla_fx/ (texto
-    identico no 0.30.3 e no 0.30.5 RC1). A copia multiplica so o Renderer.BaseSize (nunca tambem LocalScale/
+  * boca, rastros e baforadas: COPIAS escaladas (scaled_copy) de arquivos vanilla guardados em tools/vanilla_fx/ (e
+    tools/vanilla_fx/ammo2/ para as fontes 2.0). A copia multiplica so o Renderer.BaseSize (nunca tambem LocalScale/
     base_scale: daria s^2), mais posicoes/velocidades (s), quantidade (n), vida (life), Delay e Bucket, e cada botao
-    confere quantos campos achou (texto vanilla diferente = build para, nunca tamanho errado em silencio). O Lerp do
-    chaingun_shoot sobrescreve a escala de mundo, entao MediaEffectsScale nao serve para a boca.
+    confere quantos campos achou (texto vanilla diferente = build para, nunca tamanho errado em silencio).
 Import: so rules_dsl, bsgen.fxkit, bsgen.trails e a biblioteca padrao (nunca bs_data / build_mod / bsgen.shots no
-nivel do modulo: shots importa este arquivo).
+nivel do modulo: shots importa este arquivo). Os switches vem de fxkit.art_switch (bs_data ja carregado).
 """
 
 import copy
@@ -38,38 +47,48 @@ from rules_dsl import Q, Inh, fmt_num
 from bsgen import fxkit as FXK
 from bsgen import trails as TR
 
+API = 2
+
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))     # tools/
 ROOT = os.path.dirname(HERE)                                            # repositorio
 SPEC_PATH = os.path.join(HERE, "spec", "bullet_strike_vfx.json")
 VENDOR_DIR = os.path.join(HERE, "vanilla_fx")
 OUT_DIR = "shots/bs_cal_fx"           # copias escaladas (irma de bs_trails / bs_plasma_fx / bs_nuke_fx)
+FX_DIRS = {"ac": "shots/bs_ac_fx", "frag": "shots/bs_frag_fx"}     # efeitos proprios 2.0 (tijolos do fxkit)
+TEX_PREFIX = "../bs_fx_tex/"          # texturas de bsgen/fx_tex.py vistas de shots/<pasta>/ (fx_tex.ref)
 ART_OUT = "shots/bs_shell_art"        # PNGs das granadas (CONTRATOS secao 3)
-ART_SRC = os.path.join(ROOT, "art3d", "bs_shells")
+ART_SRC = os.path.join(ROOT, "art3d", "bs_shells2")
 ART_PREFIX = "../bs_shell_art/"       # visto de shots/<id>/<id>.rules
 D = "./Data"
 
 with open(SPEC_PATH, encoding="utf-8") as _fh:
     SPEC = json.load(_fh)
+with open(FXK.ART2_PATH, encoding="utf-8") as _fh:
+    ART2 = json.load(_fh)["art_assets"]
 WEAPONS = SPEC["weapons"]
-COLORS = SPEC["ammo_colors"]
 PRESETS = SPEC["hit_presets"]
+OWN_FX = {k: v for k, v in SPEC["own_fx"].items() if not k.startswith("_")}
+COUNTS = SPEC["particle_counts"]
+LADDER = ART2["shell_ladder"]["items"]          # 18 chaves da escada (he_s ... slug): corpo no jogo
+SEAM = ART2["seam_tier_map"]
+AMMOS = ("he", "ap", "sap", "ac", "frag")
+# cores: a paleta 2.0 do spec (SPEC.art_assets.palette); ammo_colors do json e copia (annotate avisa se divergir)
+COLORS = {k: FXK.pal(k) for k in AMMOS}
 
 # ============================================================================= copias escaladas (1.B)
-# fontes guardadas em tools/vanilla_fx/<nome do arquivo vanilla>.rules (caminho vanilla em SPEC["sources"])
-VENDORED = ("CG", "CGF", "CGS", "CD", "CDF", "CDR", "CDS", "RGD", "FF", "FS", "SHR", "TSM")
+# fontes guardadas em tools/vanilla_fx/[<vendor>/]<nome do arquivo vanilla>.rules (caminho vanilla em SPEC["sources"])
+VENDORED = tuple(SPEC["sources"])
 # balde da copia quando o vanilla esta num balde de baixo (ficaria sob o nosso teto): FlakShootSmoke e Lower1
 DEFAULT_BUCKET = {"FS": "RoofCannonSmoke", "TSM": "BulletTrailUpper"}
-# fontes novas = fonte vanilla + trocas fixas (caliber_design 1.B "New sources")
-#   RADF: clarao do deck com a textura do trevo (radiation.png) em verde; 0,25 s -> 0,6 s. Cor de UM canal (0, 1, 0):
-#         luz particle_light com SCREEN; com o verde do design [.45, 1, .25] o R e o B tambem estouram no casco e o
-#         trevo sairia branco (mesma conta do WP2, vfx_impl/WP2/light_model.py)
+# fontes novas = fonte vanilla + trocas fixas
 #   SHR_L / SHR_H: estilhacos da flak com 30..40 / 100..120 por rajada (o vanilla solta 150..200)
-#   TSM_G: esteira de fumaca da Boiuna cinza-esverdeada (troca R por G na rampa color_add, quente perto da granada)
+#   FLS_L / FLS_H: baforada da FRAG (flak_large_smoke pequena, curta e cinza-azulada; sem coluna de fumaca)
+TINT_FRAG = ("ramp", 0.8, 1.0, 0.95)
 NEW_SOURCES = {
-    "RADF": ("CDF", {"texture": f"{D}/shots/missile_nuke/radiation.png", "color": (0, 1, 0, 1), "life": 2.4}),
     "SHR_L": ("SHR", {"count": (30, 40)}),
     "SHR_H": ("SHR", {"count": (100, 120)}),
-    "TSM_G": ("TSM", {"color": "swap_rg"}),
+    "FLS_L": ("FLS", {"s": 0.25, "count": (4, 6), "life": 0.36, "color": TINT_FRAG}),
+    "FLS_H": ("FLS", {"s": 0.35, "count": (8, 10), "life": 0.36, "color": TINT_FRAG}),
 }
 # quantos campos cada botao tem de achar em cada fonte (so elementos com Enabled = true). Conferido contra o texto
 # vanilla; se o jogo mudar o arquivo, o build para aqui.
@@ -89,6 +108,7 @@ EXPECT = {
     "FS": {"size": 1, "loc": 0, "vel": 1, "life": 1, "count": 1, "eps": 1},
     "SHR": {"size": 1, "loc": 0, "vel": 0, "life": 1, "count": 1, "eps": 1},
     "TSM": {"size": 1, "loc": 1, "vel": 1, "life": 1, "count": 1, "eps": 1},
+    "FLS": {"size": 1, "loc": 1, "vel": 1, "life": 1, "count": 1, "eps": 1},
 }
 
 _NUM = r"-?\d+(?:\.\d+)?(?:[Ee][-+]?\d+)?"
@@ -109,8 +129,14 @@ def _iround(v):
     return int(math.floor(float(v) + 0.5))
 
 
+def _is_ramp(color):
+    return isinstance(color, tuple) and len(color) == 4 and color[0] == "ramp"
+
+
 def vendor_path(src):
-    return os.path.join(VENDOR_DIR, os.path.basename(SPEC["sources"][src]["file"]))
+    e = SPEC["sources"][src]
+    sub = e.get("vendor")
+    return os.path.join(VENDOR_DIR, *([sub] if sub else []), os.path.basename(e["file"]))
 
 
 def vendor_text(src):
@@ -216,7 +242,7 @@ def _patch(src, s, n, life, speed, delay, bucket, texture, color, count):
                     if c != 2:
                         raise ValueError(f"caliber_fx {src}: AwayFromPoint sem X/Y")
                 got["vel"] += 1
-            elif typ == "SetValue" and out == "base_color" and isinstance(color, tuple):
+            elif typ == "SetValue" and out == "base_color" and isinstance(color, tuple) and not _is_ramp(color):
                 for ch, v in zip(("Rf", "Gf", "Bf", "Af"), color):
                     new, c = re.subn(rf"^(\t+{ch} = ){_NUM}$", lambda m, v=v: m.group(1) + _num(v), new, flags=re.M)
                     if c != 1:
@@ -232,13 +258,16 @@ def _patch(src, s, n, life, speed, delay, bucket, texture, color, count):
             if c != 2:
                 raise ValueError(f"caliber_fx {src}: SetRandom lifetime sem FromValue/ToValue")
             got["life"] += 1
-        elif where == "upd" and typ == "ColorRamp" and _field(body, "ColorOut") == "color_add" and color == "swap_rg":
-            # tinge de verde a parte quente da fumaca: cada chave (R, G, B) -> (G, R, B)
-            def _swap(m):
-                return f"{m.group(1)}{m.group(4)}{m.group(3)}{m.group(2)}{m.group(5)}"
-            new, c = re.subn(rf"(\t+Rf = )({_NUM})(\n\t+Gf = )({_NUM})(\n)", _swap, new)
+        elif where == "upd" and typ == "ColorRamp" and _field(body, "ColorOut") == "color" and _is_ramp(color):
+            # tinge a rampa de cor (RGB de cada chave x tinta; o alfa fica): baforada cinza-azulada da FRAG
+            _r, kr, kg, kb = color
+
+            def _tint(m):
+                return (f"{m.group(1)}{_num(float(m.group(2)) * kr)}{m.group(3)}{_num(float(m.group(4)) * kg)}"
+                        f"{m.group(5)}{_num(float(m.group(6)) * kb)}")
+            new, c = re.subn(rf"(\t+Rf = )({_NUM})(\n\t+Gf = )({_NUM})(\n\t+Bf = )({_NUM})", _tint, new)
             if c < 1:
-                raise ValueError(f"caliber_fx {src}: rampa color_add sem chaves")
+                raise ValueError(f"caliber_fx {src}: rampa de cor sem chaves")
             got["color"] = got.get("color", 0) + 1
         if new != body:
             reps.append((a, b, new))
@@ -274,7 +303,7 @@ def _patch(src, s, n, life, speed, delay, bucket, texture, color, count):
     got["eps"] = c
     reps.append((e0, p0, head3))
     exp = dict(EXPECT[src])
-    if isinstance(color, tuple) or color == "swap_rg":
+    if isinstance(color, tuple):
         exp["color"] = 1
     if got != exp:
         raise ValueError(f"caliber_fx: a fonte {src} ({vendor_path(src)}) nao bate com o esperado: achou {got}, "
@@ -282,7 +311,7 @@ def _patch(src, s, n, life, speed, delay, bucket, texture, color, count):
     out = text
     for a, b, new in sorted(reps, reverse=True):
         out = out[:a] + new + out[b:]
-    # textura do material (so RADF)
+    # textura do material
     if texture:
         m0, m1 = _sections(out)["mat"]
         mat, c = re.subn(r"(\t\tTexture\n\t\t\{\n\t\t\tFile = )([^\n]+)", lambda m: m.group(1) + texture, out[m0:m1])
@@ -290,6 +319,7 @@ def _patch(src, s, n, life, speed, delay, bucket, texture, color, count):
             raise ValueError(f"caliber_fx {src}: Material.Texture nao achada")
         out = out[:m0] + mat + out[m1:]
     # caminhos relativos do vanilla -> ./Data/... (a copia mora em outra pasta)
+
     def _file(m):
         val = m.group(2)
         q = val.startswith('"')
@@ -338,7 +368,10 @@ def copy_name(src, s=1.0, n=1.0, life=1.0, speed=1.0, delay=0.0, bucket=None, te
     if texture:
         name += "_t" + re.sub(r"\W", "", os.path.splitext(os.path.basename(texture))[0].lower())
     if color is not None:
-        name += "_c" + (color if isinstance(color, str) else "".join(f"{_iround(v * 255):02x}" for v in color))
+        if _is_ramp(color):
+            name += "_cr" + "".join(f"{_iround(v * 255):02x}" for v in color[1:])
+        else:
+            name += "_c" + (color if isinstance(color, str) else "".join(f"{_iround(v * 255):02x}" for v in color))
     if count is not None:
         name += f"_k{int(count[0])}_{int(count[1])}"
     return name
@@ -349,7 +382,8 @@ def scaled_copy(src, s, n=1, life=1, speed=1, delay=0, bucket=None, texture=None
       s: tamanho (so Renderer.BaseSize x s); posicoes do EmitterDef x s; velocidades x s * speed;
       n: quantidade (EmitPerOneShot Min/Max e EmitPerSecond x n, arredondado, minimo 1 onde nao era 0);
       life: vida (Lifetime e SetRandom lifetime x life); delay: Delay do topo (s); bucket: Bucket do topo;
-      texture / color / count: trocas avulsas (as fontes novas ja trazem as delas).
+      texture / color / count: trocas avulsas (as fontes novas ja trazem as delas; color ("ramp", r, g, b) tinge
+      a rampa de cor).
     O texto sai sem cabecalho (write() poe o de sempre)."""
     base, fixed = _src_parts(src)
     tex = texture or fixed.get("texture")
@@ -357,7 +391,7 @@ def scaled_copy(src, s, n=1, life=1, speed=1, delay=0, bucket=None, texture=None
     cnt = count if count is not None else fixed.get("count")
     lf = life * fixed.get("life", 1)
     name = copy_name(src, s, n, life, speed, delay, bucket, texture, color, count)
-    return name, _patch(base, s, n, lf, speed, delay, bucket, tex, col, cnt)
+    return name, _patch(base, s * fixed.get("s", 1), n, lf, speed, delay, bucket, tex, col, cnt)
 
 
 def _item_params(item):
@@ -375,18 +409,19 @@ def _item_params(item):
 
 
 def _smoke_params(st):
-    """smoke_trail da tabela {src TSM, eps, scale [a, b], life [a, b], tint} -> (fonte, kwargs). O tamanho vem do
+    """smoke_trail da tabela {src TSM, eps, scale [a, b], life [a, b]} -> (fonte, kwargs). O tamanho vem do
     BaseSize (base_scale vanilla 4..5 -> scale / 4,5), a quantidade do EmitPerSecond (60) e a vida do lifetime
-    vanilla 0,9..1,1 (media 1)."""
-    src = st["src"] + ("_G" if st.get("tint") else "")
+    vanilla 0,9..1,1 (media 1). Fumaca cinza (sem tinta: a Boiuna 2.0 nao e nuclear)."""
+    if st.get("tint"):
+        raise ValueError("caliber_fx: smoke_trail com tint nao existe na 2.0 (fumaca cinza)")
     s = (st["scale"][0] + st["scale"][1]) / 2 / 4.5
     life = (st["life"][0] + st["life"][1]) / 2 / 1.0
-    return src, {"s": round(s, 4), "n": round(st["eps"] / 60, 4), "life": round(life, 4)}
+    return st["src"], {"s": round(s, 4), "n": round(st["eps"] / 60, 4), "life": round(life, 4)}
 
 
 def _needed():
-    """{nome: (fonte, kwargs)} de TODAS as copias que a tabela usa (boca, culatra, esteira, estilhacos). write() grava
-    todas; as referencias de annotate/decorate/projectile_components saem do mesmo copy_name."""
+    """{nome: (fonte, kwargs)} de TODAS as copias que a tabela usa (boca, culatra, esteira, estilhacos, baforadas).
+    write() grava todas; as referencias de annotate/decorate/projectile_components saem do mesmo copy_name."""
     need = {}
 
     def add(src, kw):
@@ -402,11 +437,10 @@ def _needed():
         pr = row.get("projectile") or {}
         if pr.get("smoke_trail"):
             add(*_smoke_params(pr["smoke_trail"]))
-        burst = (row.get("impact") or {}).get("burst")
-        if burst:
-            for p in PRESETS[burst[0]]:
-                if p.startswith("bs:"):
-                    add(p[3:], {"s": 1.0})
+    for lst in PRESETS.values():
+        for p in lst:
+            if p.startswith("bs:"):
+                add(p[3:], {"s": 1.0})
     return need
 
 
@@ -415,93 +449,260 @@ def all_files():
     return {name: scaled_copy(src, **kw)[1] for name, (src, kw) in sorted(_needed().items())}
 
 
+def cal_ref(name, frm):
+    """Caminho (sem &<>) de uma copia de OUT_DIR; frm = "shot" | "part" (fxkit.ref)."""
+    return FXK.ref(OUT_DIR, name, frm)
+
+
+# ============================================================================= efeitos proprios 2.0 (AC, FRAG)
+HOT = [(1.6, 1.6, 1.6, 1), (1.15, 1.15, 1.15, 0.75), (1, 1, 1, 0.25), (1, 1, 1, 0)]
+RING_RAMP = [(1.4, 1.4, 1.4, 1), (1.1, 1.1, 1.1, 0.95), (1, 1, 1, 0.7), (1, 1, 1, 0)]
+LIGHT_RAMP = [(1, 1, 1, 1), (1, 1, 1, 0.5), (1, 1, 1, 0)]
+FRAG_CONES = ("cone", "radial")
+
+
+def frag_shape_mode():
+    v = FXK.art_switch("frag_cone")
+    if v not in FRAG_CONES:
+        raise ValueError(f"art.frag_cone invalido: {v!r} (use {', '.join(FRAG_CONES)})")
+    return v
+
+
+def own_fx_text(key):
+    """Texto do efeito proprio 'pasta/nome' de SPEC["own_fx"] (tijolos do fxkit)."""
+    c = OWN_FX[key]
+    name = key.split("/", 1)[1]
+    kind = c["kind"]
+    note = f"Bullet Strike 2.0 ({name}): {c['what']}"
+    col = tuple(c.get("color") or (1, 1, 1, 1))
+    if kind == "light":
+        # luz no casco (particle_light, SCREEN): alfa baixo para o casco tingir sem virar branco
+        return FXK.blob(note, c["size"], c["life"], 0, col, LIGHT_RAMP, scale=(0.8, 1.15), light=True, bucket="Upper5")
+    if kind == "flash":
+        return FXK.blob(note, c["size"], c["life"], 0, col, HOT, scale=(0.6, 1.2), bucket="Upper2")
+    if kind == "ring":
+        return FXK.textured_blob(note, TEX_PREFIX + c["tex"], c["size"], c["life"], col, RING_RAMP,
+                                 scale=tuple(c["scale"]), bucket="Upper2", delay=c.get("delay", 0))
+    if kind == "embers":
+        return FXK.embers(note, n=tuple(c["n"]), speed=tuple(c.get("speed") or (2.5, 6)), life=tuple(c["life"]),
+                          color_from=tuple(c["from"]), color_to=tuple(c["to"]))
+    if kind == "frag_shape":
+        if frag_shape_mode() == "cone":
+            # leque a frente: o vertice (borda esquerda do quadro) fica no ponto da rajada (Offset 0,5 do quadro)
+            return FXK.textured_blob(note + " [art.frag_cone = cone]", TEX_PREFIX + c["cone_tex"], c["size"],
+                                     c["life"], col, HOT, scale=tuple(c["scale"]), offset=(0.5, 0), bucket="Upper2")
+        return FXK.textured_blob(note + " [art.frag_cone = radial]", TEX_PREFIX + c["ring_tex"], c["size"], c["life"],
+                                 col, RING_RAMP, scale=(0.3, 1), bucket="Upper2")
+    raise ValueError(f"caliber_fx: own_fx {key} com kind desconhecido {kind!r}")
+
+
 def write(out, header):
-    """Seam B2: grava shots/bs_cal_fx/*.rules (inclusive com --no-art: so texto)."""
+    """Seam B2: grava shots/bs_cal_fx/*.rules e os efeitos proprios de shots/bs_ac_fx/ e shots/bs_frag_fx/
+    (inclusive com --no-art: so texto)."""
     head = "\n".join(f"// {ln}" for ln in header.split("\n"))
     for name, (src, kw) in sorted(_needed().items()):
         base, fixed = _src_parts(src)
         what = ", ".join(f"{k}={_num(v)}" for k, v in kw.items())
         # (caminhos seguidos de espaco: o conferidor de ./Data do build_mod tambem le os comentarios)
         extra = ("; trocas fixas: " + " ; ".join(f"{k} = {v}" for k, v in fixed.items()) + " ") if fixed else ""
+        rel_v = os.path.relpath(vendor_path(base), HERE).replace(os.sep, "/")
         note = (f"// Copia escalada de ./Data/{SPEC['sources'][base]['file']} (fonte {src}: {what}{extra}).\n"
-                f"// Texto vanilla em tools/vanilla_fx/{os.path.basename(vendor_path(base))}; so mudam BaseSize, "
-                f"posicoes, velocidades, quantidade, vida, Delay, Bucket e caminhos ./Data.\n")
+                f"// Texto vanilla em tools/{rel_v}; so mudam BaseSize, posicoes, velocidades, quantidade, vida, "
+                f"Delay, Bucket, tinta e caminhos ./Data.\n")
         out.text(f"{OUT_DIR}/{name}.rules", head + "\n" + note + scaled_copy(src, **kw)[1])
-
-
-def cal_ref(name, frm):
-    """Caminho (sem &<>) de uma copia de OUT_DIR; frm = "shot" | "part" (fxkit.ref)."""
-    return FXK.ref(OUT_DIR, name, frm)
+    for key in sorted(OWN_FX):
+        sub, name = key.split("/", 1)
+        out.text(f"{FX_DIRS[sub]}/{name}.rules", head + "\n" + own_fx_text(key))
 
 
 # ============================================================================= presets de impacto (1.A)
-def _preset_paths(name):
-    """Arquivos de um preset de SPEC["hit_presets"] como entradas de MediaEffects (vistas de um projetil)."""
-    out = []
-    for p in PRESETS[name]:
-        if p.startswith("bs:"):
-            out.append(f"&<{cal_ref(copy_name(p[3:], 1.0), 'shot')}>")
-        else:
-            out.append(f"&<{_data_shot(p)}>")
-    return out
-
-
 def _data_shot(p):
     """'chaingun_shot/particles/x' (relativo a Data/shots) -> './Data/shots/chaingun_shot/particles/x.rules'."""
     return D + "/" + os.path.normpath(os.path.join("shots", p)).replace(os.sep, "/") + ".rules"
 
 
+def _entry_path(p, frm="shot"):
+    """Caminho (sem &<>) de uma entrada de preset: 'bs:<fonte>' (copia escalada s=1), 'fx:<pasta>/<nome>' (efeito
+    proprio 2.0) ou caminho vanilla relativo a Data/shots."""
+    if p.startswith("bs:"):
+        return cal_ref(copy_name(p[3:], 1.0), frm)
+    if p.startswith("fx:"):
+        sub, name = p[3:].split("/", 1)
+        return FXK.ref(FX_DIRS[sub], name, frm)
+    return _data_shot(p)
+
+
+def _preset_paths(name, frm="shot"):
+    """Arquivos de um preset de SPEC["hit_presets"] como entradas de MediaEffects (vistas de um projetil)."""
+    return [f"&<{_entry_path(p, frm)}>" for p in PRESETS[name]]
+
+
+def preset_media(name, frm="shot"):
+    """Lista de MediaEffects ('&<...>') de um preset (PEN_S, POP_L, AC_BLAST_M, FRAG_BURST_H, ...)."""
+    if name not in PRESETS:
+        raise KeyError(f"caliber_fx: preset desconhecido {name!r}")
+    return _preset_paths(name, frm)
+
+
+def preset_particles(name):
+    """Particulas por disparo (soma dos maximos de particle_counts) de um preset."""
+    return sum(int(COUNTS[p]) for p in PRESETS[name])
+
+
 DEBRIS = "../common_effects/particles/explosions/big_part_explode_debris"
-NUKE_SHOT_DOWN = [f"&<{_data_shot('missile_nuke/particles/missile_nuke_flash')}>"]
 
 
-# ============================================================================= arte das granadas (CONTRATOS 3)
+# ============================================================================= seam do WP02 (J2R3-18)
+def _seam(table, art_tier):
+    name = SEAM[table].get(art_tier) if isinstance(art_tier, str) else None
+    return name or None
+
+
+def pen_effect(art_tier, frm="shot"):
+    """MediaEffects das pecas ATRAVESSADAS (PenetratingOperational) pelo art_tier (SPEC.art_assets.seam_tier_map:
+    tracer -> PEN_S; s/m -> PEN_M; l/h -> PEN_L; pem -> PEN_S; slug -> PEN_L): lista de '&<...>' (<= 6 particulas,
+    sem som e sem tremor; o chamador soma o som de antes). None para plasma, tier fora da tabela ou art.pen_media =
+    full (o chamador mantem o efeito antigo; nunca KeyError)."""
+    if FXK.art_switch("pen_media") == "full":
+        return None
+    name = _seam("pen_effect", art_tier)
+    return _preset_paths(name, frm) if name else None
+
+
+def pop_effect(art_tier, frm="shot"):
+    """MediaEffects do projetil ABATIDO no ar (Targetable.OnDeath) pelo art_tier (tracer/s/pem -> POP_S;
+    m/l/h/slug -> POP_L), sem MediaEffectsScale (o campo nao aparece no corpus em OnDeath). None como pen_effect."""
+    if FXK.art_switch("pen_media") == "full":
+        return None
+    name = _seam("pop_effect", art_tier)
+    return _preset_paths(name, frm) if name else None
+
+
+# ============================================================================= arte das granadas (art3d/bs_shells2)
 _ART = {}
+_LEGACY_USED = {}            # chave -> (item, meta) da reserva 1.x usada neste build (copy_art copia os arquivos)
+
+
+def _load_meta(d, kind="shells"):
+    p = os.path.join(d, "meta.json")
+    if not os.path.isfile(p):
+        return None
+    with open(p, encoding="utf-8") as fh:
+        meta = json.load(fh)
+    if meta.get("kind") != kind:
+        raise ValueError(f"caliber_fx: {p} nao e de granadas (kind {meta.get('kind')!r})")
+    missing = [f for f in meta.get("files", []) if not os.path.isfile(os.path.join(d, f))]
+    if missing:
+        raise FileNotFoundError(f"caliber_fx: {p} cita arquivos que nao existem: {missing[:5]}")
+    for key, it in (meta.get("items") or {}).items():
+        if not it.get("file") or not it.get("size"):
+            raise KeyError(f"caliber_fx: {p}: item {key!r} sem file/size")
+        for f in [it.get("file"), it.get("normals"), it.get("mask")] + [(it.get("lights") or {}).get("file")]:
+            if f and f not in meta.get("files", []):
+                raise KeyError(f"caliber_fx: {p}: {key} usa {f!r}, fora da lista files")
+    return dict(meta, _dir=d)
 
 
 def _shell_art():
-    """meta.json da arte das granadas ou None (sem arte = dardo vanilla no tamanho novo). BS_SHELL_ART_DIR troca a
-    pasta (folhas de teste); pasta sem meta.json = sem arte (testa o caminho de reserva)."""
+    """meta.json da arte das granadas 2.0 (art3d/bs_shells2) ou None (sem arte = dardo vanilla no tamanho novo).
+    BS_SHELL_ART_DIR troca a pasta (folhas de teste); pasta sem meta.json = sem arte (testa o caminho de reserva)."""
     d = os.environ.get("BS_SHELL_ART_DIR") or ART_SRC
-    if d in _ART:
-        return _ART[d]
-    p = os.path.join(d, "meta.json")
-    meta = None
-    if os.path.isfile(p):
-        with open(p, encoding="utf-8") as fh:
-            meta = json.load(fh)
-        if meta.get("kind") != "shells":
-            raise ValueError(f"caliber_fx: {p} nao e de granadas (kind {meta.get('kind')!r})")
-        missing = [f for f in meta.get("files", []) if not os.path.isfile(os.path.join(d, f))]
-        if missing:
-            raise FileNotFoundError(f"caliber_fx: {p} cita arquivos que nao existem: {missing[:5]}")
-        for key in ("he", "ap", "nuke"):
-            it = (meta.get("items") or {}).get(key)
-            if not it or not it.get("file") or not it.get("size"):
-                raise KeyError(f"caliber_fx: {p} sem o item {key!r} (file/size)")
-            for f in [it.get("file"), it.get("normals"), it.get("mask")] + [(it.get("lights") or {}).get("file")]:
-                if f and f not in meta.get("files", []):
-                    raise KeyError(f"caliber_fx: {p}: {key} usa {f!r}, fora da lista files")
-        meta = dict(meta, _dir=d)
-    _ART[d] = meta
-    return meta
+    if d not in _ART:
+        _ART[d] = _load_meta(d)
+    return _ART[d]
+
+
+def art_key(ammo, tier=None, s=None):
+    """Chave da arte de voo: s['art_key'] quando o modulo dono pos uma (WP08 pem_s/pem_m/pem_l, WP09 'slug'); senao
+    f'{ammo}_{tier}' (he_s, ap_m, ac_h, ...)."""
+    if s is not None and s.get("art_key"):
+        return s["art_key"]
+    return f"{ammo}_{tier}"
+
+
+def art_item(key):
+    """(item do meta, meta) da chave em art3d/bs_shells2; (None, None) sem arte. Chave que falta na 2.0 cai na
+    reserva 1.x do bloco LEGACY_1X_FALLBACK (aviso 'arte 1.x usada: <chave>')."""
+    meta = _shell_art()
+    if meta and key in meta["items"]:
+        return meta["items"][key], meta
+    if key in _LEGACY_USED:
+        return _LEGACY_USED[key]
+    # LEGACY_1X_FALLBACK inicio
+    if not os.environ.get("BS_SHELL_ART_DIR"):
+        old = _ART.get("__1x__")
+        if "__1x__" not in _ART:
+            old = _ART["__1x__"] = _load_meta(os.path.join(ROOT, "art3d", "bs_shells"))
+        k1 = "ap" if key.split("_")[0] in ("ap", "sap") else "he"
+        if old and k1 in old["items"]:
+            FXK._warn(f"arte 1.x usada: {key} (sem a chave em art3d/bs_shells2; reserva art3d/bs_shells '{k1}')")
+            _LEGACY_USED[key] = (old["items"][k1], old)
+            return _LEGACY_USED[key]
+    # LEGACY_1X_FALLBACK fim
+    return None, None
+
+
+def art_body(key, length=None):
+    """Corpo no jogo [L, W] (tiles): L = SPEC.art_assets.shell_ladder.items[key].in_game_body[0] (ou length) e
+    W = L x tela_h / tela_w da arte (meta items.<chave>.size: ex. he_s [2,0; 0,7] -> 0,72 x 0,252; slug [3,0; 0,8])."""
+    item, _meta = art_item(key)
+    if length is None:
+        if key not in LADDER:
+            raise KeyError(f"caliber_fx: chave {key!r} fora de SPEC.art_assets.shell_ladder.items")
+        length = LADDER[key]["in_game_body"][0]
+    L = float(length)
+    if item:
+        cw, ch = item["size"]
+        return [round(L, 4), round(L * ch / cw, 4)]
+    return [round(L, 4), round(float(LADDER.get(key, {}).get("in_game_body", [L, L * 0.35])[1]), 4)]
+
+
+def art_anchor(key, name, length=None):
+    """Ancora da arte (meta items.<chave>.anchors: 'tip' do slug, 'seeker' da ac_h) em tiles no jogo, a partir do
+    centro do corpo; None quando a arte nao tem a ancora."""
+    item, _meta = art_item(key)
+    if not item or name not in (item.get("anchors") or {}):
+        return None
+    L, W = art_body(key, length)
+    ax, ay = item["anchors"][name]
+    cw, ch = item["size"]
+    return [round(ax * L / cw, 4), round(ay * W / ch, 4)]
+
+
+def art_components(key, length=None, mask_color=None, lights=True, bucket_body="BulletUpper3",
+                   bucket_lights="BulletUpper4", offset=0, prefix=ART_PREFIX):
+    """Componentes de sprite da arte de voo (corpo iluminado + faixa tingida + atlas de luzes, fxkit.
+    art_sprite_components) para um tiro em shots/<pasta>/<arquivo>.rules; {} sem arte. mask_color: VertexColor da
+    faixa (padrao: palette[municao].band quando o item tem mascara). Usado pelo WP08 (pem_s/m/l) e WP09 (slug)."""
+    item, _meta = art_item(key)
+    if not item:
+        return {}
+    if mask_color is None and item.get("mask"):
+        ammo = key.split("_")[0]
+        mask_color = (COLORS.get(ammo) or {}).get("band")
+    return FXK.art_sprite_components(prefix, item, art_body(key, length), bucket_body=bucket_body,
+                                     bucket_lights=bucket_lights, lights=lights,
+                                     mask_color=mask_color if item.get("mask") else None, offset=offset)
 
 
 def copy_art(out):
-    """Seam B3: copia as PNGs da arte das granadas para shots/bs_shell_art/ (full e --no-art)."""
-    meta = _shell_art()
-    if not meta:
-        return
+    """Seam B3: copia as PNGs da arte das granadas (art3d/bs_shells2 e, se usada, a reserva 1.x) para
+    shots/bs_shell_art/ (full e --no-art)."""
     dst = os.path.join(out.root, ART_OUT)
-    os.makedirs(dst, exist_ok=True)
-    for f in meta["files"]:
-        shutil.copyfile(os.path.join(meta["_dir"], f), os.path.join(dst, f))
+    metas = []
+    meta = _shell_art()
+    if meta:
+        metas.append((meta, meta["files"]))
+    for item, m in _LEGACY_USED.values():
+        files = [item.get("file"), item.get("normals"), item.get("mask"), (item.get("lights") or {}).get("file")]
+        metas.append((m, [f for f in files if f]))
+    for m, files in metas:
+        os.makedirs(dst, exist_ok=True)
+        for f in files:
+            shutil.copyfile(os.path.join(m["_dir"], f), os.path.join(dst, f))
 
 
 # ============================================================================= anotacao (D1)
-ART_KEY = {"std": "he", "emp": "he", "bullet": "he", "ap": "ap", "aphe": "ap", "nuclear": "nuke"}
-
-
 def _row(short):
     row = WEAPONS.get(short)
     if not row or row.get("mm") is None:
@@ -519,11 +720,22 @@ def _muzzle_refs(items, frm):
     return mz, br
 
 
-def _annotate_shot(s, short, row, ammo, oc):
+def _turret_radius(g):
+    """Raio da torre (tiles) para o StartTime das luzes: meta da arte (turret_size) ou a maior medida da peca / 2."""
+    meta = g.get("art3d") or {}
+    ts = meta.get("turret_size") if isinstance(meta, dict) else None
+    if ts:
+        return float(ts) / 2
+    return max(g.get("size") or [1, 1]) / 2
+
+
+def _annotate_shot(s, g, row, ammo, oc):
     pr = copy.deepcopy(row.get("projectile"))
     imp = copy.deepcopy(row.get("impact") or {})
-    s["vfx"] = {"short": short, "ammo": ammo, "oc": bool(oc), "mm": row["mm"], "tier": row.get("tier"),
-                "projectile": pr, "impact": imp}
+    tier = s.get("art_tier") or (pr or {}).get("art_tier") or ("tracer" if (pr or {}).get("look") == "tracer" else None)
+    v = {"short": g["short"], "ammo": ammo, "oc": bool(oc), "mm": row["mm"], "tier": tier, "projectile": pr,
+         "impact": imp, "start": FXK.start_time(_turret_radius(g), s.get("speed") or 0)}
+    s["vfx"] = v
     if pr:
         look = pr["look"]
         s["look"] = look
@@ -534,7 +746,11 @@ def _annotate_shot(s, short, row, ammo, oc):
             s["glow_offset"] = round(-0.4 * pr["streak"][0], 3)
             s.pop("glow_z", None)
         else:
-            s["sprite_size"] = pr["body"][0]
+            key = art_key(ammo, tier, s)
+            v["art_key"] = key
+            s["art_key"] = key
+            v["body"] = art_body(key) if key in LADDER else list(pr["body"])
+            s["sprite_size"] = v["body"][0]
             s["glow_size"] = list(pr["glow"])
             s["glow_offset"] = 0
             s["glow_z"] = pr.get("glow_z", 0)
@@ -555,31 +771,53 @@ def _annotate_shot(s, short, row, ammo, oc):
     s["vfx_shake_time"] = sh[1]
 
 
-def _annotate_burst(s, short, row):
+def _annotate_burst(s, d, row, key):
     imp = copy.deepcopy(row.get("impact") or {})
-    s["vfx"] = {"short": short, "ammo": None, "oc": False, "mm": row["mm"], "tier": row.get("tier"),
-                "projectile": None, "impact": imp}
+    if key == "frag" and imp.get("burst_frag"):
+        imp["burst"] = imp["burst_frag"]
+    s["vfx"] = {"short": d["short"], "ammo": key, "oc": False, "mm": row["mm"], "tier": None, "projectile": None,
+                "impact": imp}
     sh = imp.get("shake") or [0, 0]
     s["vfx_shake_time"] = sh[1]
 
 
+def _annotate_fragment(s, d, row):
+    fr = copy.deepcopy((row.get("impact") or {}).get("fragment") or {})
+    s["vfx"] = {"short": d["short"], "ammo": "frag", "oc": False, "mm": row["mm"], "tier": None, "projectile": None,
+                "impact": {}, "fragment": fr}
+
+
+def _check_palette_copy():
+    """ammo_colors do json e copia de SPEC.art_assets.palette: avisa se alguem mudou um e nao o outro."""
+    for k, c in (SPEC.get("ammo_colors") or {}).items():
+        p = COLORS.get(k)
+        if not p:
+            continue
+        for ch, val in c.items():
+            if isinstance(val, list) and ch in p and list(p[ch]) != list(val):
+                FXK._warn(f"caliber_fx: bullet_strike_vfx.json ammo_colors.{k}.{ch} = {val} difere da paleta do spec "
+                          f"{p[ch]} (vale a paleta)")
+
+
 def annotate(data):
-    """Seam D1: liga os projeteis as linhas da tabela pelos modos das armas (shot / shot_oc) e pelos feixes das
-    defesas (beam), nunca pelo nome do arquivo. So chaves visuais; as de som, volume, raio, dano, tipo, categoria,
-    vida, velocidade e alcance nao sao tocadas."""
+    """Seam D1: liga os projeteis as linhas da tabela pelos modos das armas (GUNS[].modes[] por index/key: shot /
+    shot_oc) e das defesas (feixe por modo + fragmento da FRAG), nunca pelo nome do arquivo; e poe a arte de voo
+    (art_key resolvida + art_body) nos tiros de outros modulos com art_key/art_tier (PEM, slug). So chaves visuais."""
+    _check_palette_copy()
     by_file = {s["file"]: s for s in data.SHOTS}
     for g in data.GUNS:
         row = _row(g["short"])
         if row is None:
             continue
-        for m in g["modes"]:
-            for f, oc in ((m["shot"], False), (m.get("shot_oc"), True)):
-                if not f or (oc and f == m["shot"]):
+        for m in sorted(g["modes"], key=lambda x: x["index"]):
+            ammo = m.get("key") or m.get("ammo")
+            for f, oc in ((m.get("shot"), False), (m.get("shot_oc"), True)):
+                if not f or (oc and f == m.get("shot")) or f not in by_file:
                     continue
                 s = by_file[f]
                 if s.get("plasma_fx"):
                     continue
-                _annotate_shot(s, g["short"], row, m["ammo"], oc)
+                _annotate_shot(s, g, row, ammo, oc)
         mz = row["muzzle"]
         fx = g["fx"]
         p, b = _muzzle_refs(mz["N"], "part")
@@ -607,12 +845,27 @@ def annotate(data):
         if mz.get("OC"):
             p, _b = _muzzle_refs(mz["OC"], "part")
             d["fx"]["particles_oc"] = p
-        _annotate_burst(by_file[d["beam"]], d["short"], row)
+        for m in sorted(d["modes"], key=lambda x: x["index"]):
+            key = m.get("key") or m.get("ammo")
+            beam = by_file.get(m.get("beam"))
+            if beam is not None:
+                _annotate_burst(beam, d, row, key)
+            frag = by_file.get(m.get("fragment"))
+            if frag is not None and "vfx" not in frag:
+                _annotate_fragment(frag, d, row)
+    # tiros de outros modulos (WP08 'pem', WP09 'slug_rail', ...): chave da arte de voo resolvida
+    for s in data.SHOTS:
+        if "vfx" in s or s.get("plasma_fx"):
+            continue
+        if s.get("art_key") or s.get("art_tier") in ("pem", "slug"):
+            key = art_key(s.get("ammo") or s.get("key"), s.get("art_tier"), s)
+            s["art_key"] = key
+            if key in LADDER:
+                s["art_body"] = art_body(key)
 
 
 # ============================================================================= visual em voo (S1)
 GLOW = {"File": Q(f"{D}/common_effects/particles/blob.png"), "MipLevels": "max", "SampleMode": "Linear"}
-FANCY = Q(f"{D}/common_effects/fancy_light.shader")
 WHITE_HOT = [255, 250, 235]
 # Os mocks aprovados (vfx_design/scripts/fxlib.draw_tracer) desenham o risco com 2,2x a largura do Size do jogo
 # (shots._sprite_components: Size [L, W]); a granada desenha o tracante com 1,4 x largura e o nucleo com 0,8 x.
@@ -627,23 +880,18 @@ def _blob(bucket, wh, color, offset):
                        "VertexColor": [int(c) for c in color], "TargetBlendMode": "Add"}}
 
 
-def _glow(wh, color, offset, z, unlit):
-    """Brilho IsLight (fancy_light) do mesmo formato de shots._sprite_components."""
-    return {"Type": "Sprite", "RenderBucket": "BulletUpper4", "Z": z, "IsLight": True,
-            "Offset": [round(offset, 3), 0],
-            "Sprite": {"Texture": dict(GLOW), "Size": list(wh), "VertexColor": [int(c) for c in color],
-                       "TargetBlendMode": "Add", "Shader": FANCY, "_z": 1, "_nrmlStrengthLimit": 1,
-                       "_litReflectiveStrength": 24, "_litAdditiveStrength": 0.05, "_unlitAdditiveStrength": unlit}}
-
-
 def _ammo_colors(ammo):
-    return COLORS.get(ammo) or COLORS["std"]
+    return COLORS.get(ammo) or COLORS["he"]
+
+
+def _gain(color, g):
+    return [_iround(c * g) for c in color]
 
 
 def _tracer_components(s, v, trail_ref):
-    """Tracante (metralhadoras, 20/30 mm): risco + nucleo + cabeca + borrao + brilho (+ rastro no 20 mm).
-    Molde do pd_shot.rules (Size [L, W], Offset -0.4375 L, LerpScaleFrom [.25, 1], LerpTime .05), igual ao caminho
-    antigo de shots._sprite_components; so os tamanhos mudam com o calibre."""
+    """Tracante (metralhadoras, 20/30 mm): risco + nucleo + cabeca + borrao + halo de espaco (+ rastro no 20 mm).
+    Molde do pd_shot.rules (Size [L, W], Offset -0.4375 L, LerpScaleFrom [.25, 1], LerpTime .05). A luz e SO o halo
+    (fxkit.light_pair sem luz de casco: ate 36 tiros/s por arma, uma luz por tiro como na Fase B)."""
     pr = v["projectile"]
     col = _ammo_colors(v["ammo"])
     L, W = pr["streak"]
@@ -663,17 +911,18 @@ def _tracer_components(s, v, trail_ref):
         sl, sw = pr["smear"]["wh"]
         a = float(pr["smear"]["alpha"])
         comps["SmearSprite"] = _blob("BulletUpper2", [sl, sw], [_iround(c * a) for c in col["tracer"]], -0.55 * sl)
-    comps["GlowSprite"] = _glow(list(pr["glow"]), col["glow"], -0.4 * L, 0, 0.2)
+    comps.update(FXK.light_pair(list(pr["glow"]), col["glow"], None, None, v.get("start"), FXK.UNLIT_TRACER,
+                                x_halo=-0.4 * L, legacy_unlit=0.2))
     if trail_ref:
         comps["Trail"] = {"Type": "MediaEffects", "MediaEffects": [trail_ref]}
     return comps
 
 
 def shell_layout(pr):
-    """Camadas da granada no jogo (x do centro em tiles a partir do CENTRO do corpo, +x = nariz; [L, W] em tiles):
-    corpo centrado (como o bullet_large vanilla e os misseis); tracante na base, por baixo do corpo, com o centro em
-    -(0,55 L + 0,4375 tl) (caliber_design 3.5); nucleo branco-quente na frente do tracante; clarao da base (head, X2)
-    em -0,5 L; brilho IsLight centrado. Usado tambem pela previa da escada (vfx_impl/WP3/ladder)."""
+    """Camadas da granada (Fase B) no jogo (x do centro em tiles a partir do CENTRO do corpo, +x = nariz; [L, W] em
+    tiles): corpo centrado; tracante na base, por baixo do corpo, com o centro em -(0,55 L + 0,4375 tl); nucleo
+    branco-quente na frente do tracante; clarao da base (head, X2) em -0,5 L; brilho centrado. Mantida igual para as
+    previas (tools/blender/previews: sheet.py / prev2.py); o jogo usa shell_layout2."""
     L, W = pr["body"]
     tl, tw = pr["tracer"]
     lay = {"body": (0.0, [L, W]),
@@ -682,6 +931,29 @@ def shell_layout(pr):
            "glow": (0.0, list(pr["glow"]))}
     if pr.get("head"):
         lay["head"] = (-0.5 * L, [round(1.6 * pr["head"], 4)] * 2)
+    return lay
+
+
+def shell_layout2(pr):
+    """shell_layout + as correcoes 2.0 (ADDENDUM G7): head_k / head_dx (Tambor e Trovao: clarao da base com metade do
+    diametro e recuado head_dx x diametro antigo para tras da base) e thin (Boiuna, BOIUNA_THIN: tracante de tl tiles
+    com tw x a largura comecando na base, nucleo de kl tiles com kw x a largura e a frente kback tile atras da base;
+    'gain' fica para quem pinta). Mesma conta das folhas aprovadas (prev2.draw_new)."""
+    lay = shell_layout(pr)
+    L = pr["body"][0]
+    if "head" in lay and (pr.get("head_k") or pr.get("head_dx")):
+        hx, (hd, _hd) = lay["head"]
+        k = float(pr.get("head_k") or 1.0)
+        lay["head"] = (round(hx - float(pr.get("head_dx") or 0) * hd, 4), [round(hd * k, 4)] * 2)
+    th = pr.get("thin")
+    if th:
+        _x, (tl, tw) = lay["tracer"]
+        tl, tw = float(th.get("tl", tl)), tw * float(th.get("tw", 1))
+        lay["tracer"] = (round(-0.5 * L - 0.5 * tl, 4), [round(tl, 4), round(tw, 4)])
+        _x, (kl, kw) = lay["core"]
+        kl, kw = float(th.get("kl", kl)), kw * float(th.get("kw", 1))
+        lay["core"] = (round(-0.5 * L - float(th.get("kback", 0.3)) - 0.5 * kl, 4), [round(kl, 4), round(kw, 4)])
+        lay.pop("head", None)
     return lay
 
 
@@ -699,32 +971,32 @@ def _dart(size):
 
 
 def _shell_components(s, v, trail_ref):
-    """Granada (76/155/406) e granada nuclear (Boiuna): corpo iluminado da arte (art3d/bs_shells) com a faixa na cor
-    da municao, tracante na base, clarao da base, brilho IsLight, rastro e esteira de fumaca; na Boiuna o atlas de
-    luzes das faixas e o trevo de radiacao girando (fxkit.radiation_components, molde missile_nuke_stage1.rules
-    l.72-116). Sem arte: o dardo vanilla no tamanho novo, com o resto igual."""
-    pr = v["projectile"]
+    """Granada 2.0 (Tambor s, Trovao m, Mapinguari l, Boiuna h): arte de art3d/bs_shells2 (corpo iluminado + faixa na
+    cor da municao + atlas de luzes; ac_h = a AC guiada da Boiuna com o sensor piscando no atlas), tracante/nucleo/
+    clarao da base (shell_layout2), halo de espaco + luz de casco (fxkit.light_pair: palette[municao].hull, refl 6;
+    AC 4), rastro e esteira de fumaca cinza (406 e Boiuna). Sem arte: o dardo vanilla no tamanho novo."""
+    pr = dict(v["projectile"])
     ammo = v["ammo"]
-    nuke = pr["look"] == "nuke_shell"
     col = _ammo_colors(ammo)
-    lay = shell_layout(pr)
-    L, W = pr["body"]
+    L, W = v.get("body") or pr["body"]
+    pr["body"] = [L, W]
+    lay = shell_layout2(pr)
+    gain = float((pr.get("thin") or {}).get("gain", 1.0))
     comps = {}
-    meta = _shell_art()
-    item = (meta or {}).get("items", {}).get(ART_KEY.get(ammo, "he")) if meta else None
+    key = v.get("art_key")
+    item = art_item(key)[0] if key else None
     if item:
-        art = FXK.art_sprite_components(ART_PREFIX, item, [L, W],
-                                        mask_color=(col["band"] if item.get("mask") else None))
-        comps.update(art)
+        comps.update(FXK.art_sprite_components(ART_PREFIX, item, [L, W],
+                                               mask_color=(col["band"] if item.get("mask") else None)))
     else:
         comps["Sprite"] = _dart(L)
     x, wh = lay["tracer"]
-    tr = _blob("BulletUpper2", wh, col["tracer"], x)
+    tr = _blob("BulletUpper2", wh, _gain(col["tracer"], gain), x)
     tr["LerpScaleFrom"] = [0.25, 1]
     tr["LerpTime"] = 0.05
     comps["TailSprite"] = tr
     x, wh = lay["core"]
-    core = _blob("BulletUpper2", wh, col["core"], x)
+    core = _blob("BulletUpper2", wh, _gain(col["core"], gain), x)
     core["LerpScaleFrom"] = [0.25, 1]
     core["LerpTime"] = 0.05
     comps["CoreSprite"] = core
@@ -732,24 +1004,9 @@ def _shell_components(s, v, trail_ref):
         x, wh = lay["head"]
         comps["HeadSprite"] = _blob("BulletUpper2", wh, WHITE_HOT, x)
     x, wh = lay["glow"]
-    # nuclear: ammo_colors.nuclear.glow = [0, 255, 0] no spec (= fxkit.NUKE_GREEN_HULL). O brilho de 30x15 fica em
-    # cima do trevo; com o verde do design [120, 255, 60] e forca 24 os tres canais estouravam e o casco virava uma
-    # mancha branca em volta do trevo (modelo WP2/light_model.py); com um canal so fica verde nos tres cascos
-    comps["GlowSprite"] = _glow(wh, col["glow"], x, pr.get("glow_z", 0), 0.125)
-    if nuke:
-        big, small = pr["spin_big"], pr["spin_small"]
-        anc = [0, 0]
-        if item and item.get("anchors", {}).get("radiation"):
-            ax, ay = item["anchors"]["radiation"]
-            anc = [round(ax * L / item["size"][0], 4), round(ay * W / item["size"][1], 4)]
-        # luz grande de UM canal (fxkit.NUKE_GREEN_HULL: o verde do design deixava o trevo branco no casco, WP2);
-        # o trevo pequeno aditivo fica com a cor da tabela
-        rad = FXK.radiation_components(big["size"], float(big["spin"].rstrip("d")), small["size"],
-                                       float(small["spin"].rstrip("d")), anc, FXK.NUKE_GREEN_HULL,
-                                       big_bucket=big.get("bucket", "BulletUpper2"),
-                                       small_bucket=small.get("bucket", "BulletUpper4"),
-                                       small_color=small.get("color", FXK.NUKE_GREEN_TINT))
-        comps.update(rad)
+    comps.update(FXK.light_pair(wh, col["glow"], [round(1.2 * L, 4), round(max(1.2 * W, 0.5), 4)], col["hull"],
+                                v.get("start"), FXK.UNLIT_SHELL, x_halo=x, z=pr.get("glow_z", 0), key=ammo,
+                                legacy_unlit=0.125))
     if trail_ref:
         comps["Trail"] = {"Type": "MediaEffects", "MediaEffects": [trail_ref]}
     if s.get("vfx_smoke"):
@@ -760,17 +1017,30 @@ def _shell_components(s, v, trail_ref):
     return comps
 
 
+def fragment_components(s):
+    """Fragmento da FRAG: UMA sprite aditiva (blob.png, palette.frag.tracer, [0,35, 0,06], BulletUpper3, LerpScaleFrom
+    [0,3, 1], LerpTime 0,03); sem IsLight e sem emissor (SPEC.art_assets.effects.frag.fragments)."""
+    fr = ((s.get("vfx") or {}).get("fragment")) or {}
+    L, W = fr.get("wh") or [0.35, 0.06]
+    spr = _blob(fr.get("bucket", "BulletUpper3"), [L, W], COLORS["frag"]["tracer"], -0.4375 * L)
+    spr["LerpScaleFrom"] = list(fr.get("lerp_scale_from") or [0.3, 1])
+    spr["LerpTime"] = fr.get("lerp_time", 0.03)
+    return {"Sprite": spr}
+
+
 def projectile_components(s, trail_ref):
     """Seam S1: componentes visuais em voo por calibre, ou None (caminho antigo de shots._sprite_components)."""
     if s.get("plasma_fx"):
         return None
+    if s.get("kind") == "frag_fragment":
+        return fragment_components(s)
     v = s.get("vfx")
     if not v or not v.get("projectile"):
         return None
     look = v["projectile"]["look"]
     if look == "tracer":
         return _tracer_components(s, v, trail_ref)
-    if look in ("shell", "nuke_shell"):
+    if look == "shell":
         return _shell_components(s, v, trail_ref)
     return None
 
@@ -778,15 +1048,15 @@ def projectile_components(s, trail_ref):
 # ============================================================================= impactos (S3)
 SOUND_BASE = "/BASE_SOUNDS/AudioExterior"
 SHAKE_BASE = "/BASE_SHAKE"
-# MediaEffectsScale em dois blocos onde o corpus (vanilla 0.30.3/0.30.5 + SW:ACD) nunca o usa: a carga final HE
+# MediaEffectsScale em dois blocos onde o corpus (vanilla 0.30.3/0.30.5 + SW:ACD) nunca o usa: a carga final
 # (FinishedPenetratingOperational) e a rajada da flak (HitNothing do feixe). Sao o mesmo tipo de grupo dos blocos
 # irmaos onde o campo e provado (PenetratingHit HitOperational/PenetratingOperational: bullet_railgun.rules 0.30.3
 # l.99/139; HitOperational de raiz de feixe: ion_beam.rules 0.30.3 l.165), numero puro como no SW:ACD
-# (proton_rocket.rules l.129). Campo desconhecido o jogo ignora (pior caso: o efeito sai x1). schema_check acusa
-# duas categorias novas por isso; False aqui tira as duas e volta esses efeitos ao tamanho vanilla (a granada de
-# 76 mm volta a desenhar a explosao inteira do missil HE). Teste no jogo: T-CAL-1.
+# (proton_rocket.rules l.129). Campo desconhecido o jogo ignora (pior caso: o efeito sai x1). False aqui tira os
+# dois e volta esses efeitos ao tamanho vanilla. Teste no jogo: T-CAL-1.
 MES_ON_FINISH = True
 MES_ON_HITNOTHING = True
+AP_FINISH_K = 0.8            # AP sem carga: o preset cheio do casco x0,8 UMA vez, onde a granada para
 
 
 def _is(e, base):
@@ -821,14 +1091,39 @@ def _mes(v):
 
 def _hull_entry(imp, ammo):
     hull = imp.get("hull") or {}
-    ent = hull.get(ammo) or hull.get("std") or next(iter(hull.values()))
+    ent = hull.get(ammo) or hull.get("he") or next(iter(hull.values()))
     return ent
+
+
+def _he_entry(imp, ammo, radius):
+    """(preset, MediaEffectsScale) da carga de ammo: 'r/4' = raio da carga / 4 (lei he_mes)."""
+    he = (imp.get("he") or {}).get(ammo)
+    if not he:
+        return None
+    preset, mes = he
+    if isinstance(mes, str):
+        if mes.strip() != "r/4" or not radius:
+            raise ValueError(f"caliber_fx: escala {mes!r} sem raio de carga")
+        mes = float(radius) / 4.0
+    return preset, mes
+
+
+def _pop(s, comps, v, frm="shot"):
+    """Abatido no ar: Targetable.OnDeath = POP pelo tier (pop_effect); so troca uma lista/referencia de midia."""
+    tg = comps.get("Targetable")
+    if not isinstance(tg, dict) or not isinstance(tg.get("OnDeath"), dict):
+        return
+    pop = pop_effect(v.get("tier") or s.get("art_tier"), frm)
+    if pop:
+        tg["OnDeath"]["MediaEffects"] = pop
 
 
 def _decorate_kinetic(s, top, v):
     imp = v["impact"]
     ammo = v["ammo"]
-    hit = top["Components"]["Hit"]
+    comps = top["Components"]
+    hit = comps["Hit"]
+    light = FXK.art_switch("pen_media") != "full"
     shake = (s.get("shake", 0), s.get("vfx_shake_time", 0.5))
     hp, hmes = _hull_entry(imp, ammo)
     op = hit["HitOperational"]
@@ -839,14 +1134,15 @@ def _decorate_kinetic(s, top, v):
         sp, smes = imp["struct"]
         st["MediaEffects"] = _media(_preset_paths(sp), st.get("MediaEffects"), (0, 0))
         st["MediaEffectsScale"] = _mes(smes)
+    fin = hit.get("FinishedPenetratingOperational")
+    burst_r = (s.get("finish_explosion") or [None])[0]
+    he = _he_entry(imp, ammo, burst_r) if isinstance(fin, dict) else None
     # escudo: preset proprio (sem fumaca nem destrocos), HitEffects iguais aos de antes (R4)
     if imp.get("shield"):
         shp, shmes = imp["shield"]
         refs = _preset_paths(shp)
-        he_ammo = (imp.get("he") or {}).get(ammo)
-        if he_ammo and imp.get("shield_he") and isinstance(hit.get("FinishedPenetratingOperational"), dict):
-            # granada HE no escudo: + clarao da carga; um MediaEffectsScale por bloco -> o menor dos dois (a bola de
-            # fogo fica do tamanho da carga; o clarao do impacto encolhe junto)
+        if he and imp.get("shield_he"):
+            # granada com carga no escudo: + clarao da carga; um MediaEffectsScale por bloco -> o menor dos dois
             refs = refs + [r for r in _preset_paths(imp["shield_he"][0]) if r not in refs]
             shmes = min(shmes, imp["shield_he"][1])
         sh = hit.get("HitShield")
@@ -857,62 +1153,68 @@ def _decorate_kinetic(s, top, v):
                 [Inh(SHAKE_BASE, {"ShakeAmount": shake[0], "Duration": shake[1]})] if shake[0] else [])
             sh["MediaEffectsScale"] = _mes(shmes)
             hit["HitShield"] = sh
-    # pecas atravessadas: as particulas do primeiro acerto, menores (pen_mes; sem ele, a escala do casco), com o som
-    # de antes (R5) e SEM tremor: antes o bloco apontava para a midia do HitOperational e cada peca atravessada
-    # tremia de novo (406: ate 13 pecas x 0,25). O vanilla tambem nao treme aqui (bullet_deck.rules 0.30.3 l.119-145)
+    # pecas atravessadas (Fase B: o preset cheio do primeiro acerto em CADA peca = 559-793 particulas por granada 406
+    # AP em 13 pecas). 2.0: PEN_S/M/L (<= 6 por peca) com o som de antes (R5) e SEM tremor
     pen = hit.get("PenetratingOperational")
     if isinstance(pen, dict):
         pmes = imp.get("pen_mes")
-        refs = _preset_paths(hp)
-        if imp.get("extra_ap") and ammo == "ap":
-            # 406 Perfurante: destrocos grandes a cada peca atravessada (big_part_explode_debris ignora a escala)
-            refs = refs + [f"&<{_data_shot(DEBRIS)}>"]
+        if light:
+            refs = _preset_paths(imp.get("pen") or _seam("pen_effect", v.get("tier")) or "PEN_S")
+        else:
+            refs = _preset_paths(hp)
+            if imp.get("extra_ap") and ammo == "ap":
+                refs = refs + [f"&<{_data_shot(DEBRIS)}>"]
         pen["MediaEffects"] = refs + _sounds(op["MediaEffects"])
         pen["MediaEffectsScale"] = _mes(pmes if pmes is not None else hmes)
-    # carga final HE (onde a granada para): preset por municao, escala = raio / 4 (missile_he desenhado para r4)
-    fin = hit.get("FinishedPenetratingOperational")
+    # onde a granada para: carga (HE/SAP/AC) com o preset por municao, escala = raio / 4
     if isinstance(fin, dict):
-        he = (imp.get("he") or {}).get(ammo)
         if not he:
             raise KeyError(f"caliber_fx: {s['file']} tem carga final mas a tabela nao tem impact.he[{ammo!r}]")
         fin["MediaEffects"] = _media(_preset_paths(he[0]), fin.get("MediaEffects"), shake)
         if MES_ON_FINISH:
             fin["MediaEffectsScale"] = _mes(he[1])
+    elif light and isinstance(pen, dict) and isinstance(fin, str) and fin.strip().endswith("PenetratingOperational"):
+        # AP sem carga: o impacto cheio UMA vez onde a granada para (HitEffects copiados = R4; 406: + destrocos)
+        new = {}
+        if "ReduceEffectsByPenetration" in pen:
+            new["ReduceEffectsByPenetration"] = pen["ReduceEffectsByPenetration"]
+        new["HitEffects"] = copy.deepcopy(pen.get("HitEffects", []))
+        refs = _preset_paths(hp)
+        if imp.get("extra_ap") and ammo == "ap":
+            refs = refs + [f"&<{_data_shot(DEBRIS)}>"]
+        new["MediaEffects"] = refs + _sounds(op["MediaEffects"])
+        new["MediaEffectsScale"] = _mes(hmes * AP_FINISH_K)
+        hit["FinishedPenetratingOperational"] = new
+    if light:
+        _pop(s, comps, v)
 
 
 def _decorate_explosive(s, top, v):
-    """Boiuna: cogumelo vanilla x MES + anel verde + brilho residual (fxkit, compartilhados com a Iara); abatida no
-    ar: clarao do missil nuclear + anel pequeno (no lugar do clarao da flak)."""
+    """Boiuna 2.0 (obuseiro da AC, sem visual nuclear): HE = HE_BIG x1,375 (r 5,5 / 4), AC = AC_BLAST_L x2,25 +
+    destrocos; HitShield com a mesma midia e a mesma escala; abatida no ar = POP_L."""
     imp = v["impact"]
     ammo = v["ammo"]
     comps = top["Components"]
     hit = comps["Hit"]
     shake = (s.get("shake", 0), s.get("vfx_shake_time", 0.5))
     hp, hmes = _hull_entry(imp, ammo)
-    if v.get("oc") and imp.get("oc_mes"):
-        hmes = imp["oc_mes"]
-    refs = _preset_paths(hp) + [FXK.nuke_media(n, "shot") for n in imp.get("extra") or []]
+    refs = _preset_paths(hp) + [f"&<{_data_shot(p)}>" for p in (imp.get("extra") or {}).get(ammo, [])]
     op = hit["HitOperational"]
     op["MediaEffects"] = _media(refs, op.get("MediaEffects"), shake)
     op["MediaEffectsScale"] = _mes(hmes)
-    # HitShield explicito da Boiuna (dano proprio) ja usa &../HitOperational/MediaEffects: mesma midia, e agora a
-    # mesma escala (1,15; OC 1,4), senao o acerto no escudo tocava o cogumelo x1. HitShield e HitOperational de um
-    # SimpleHit sao o mesmo tipo de bloco (missile_he.rules l.125 "HitShield = &HitOperational"; schema_check
-    # SAME_TYPE), e o HitShield da ogiva da Iara (SimpleHit) ja leva MediaEffectsScale no mesmo build (missile_fx).
+    # HitShield explicito (dano proprio) com &../HitOperational/MediaEffects: mesma midia e a mesma escala, senao o
+    # acerto no escudo tocava a explosao x1 (HitShield e HitOperational de um SimpleHit sao o mesmo tipo de bloco)
     sh = hit.get("HitShield")
     if isinstance(sh, dict):
         sh["MediaEffectsScale"] = _mes(hmes)
-    if imp.get("shot_down"):
-        tg = comps.get("Targetable")
-        if isinstance(tg, dict) and isinstance(tg.get("OnDeath"), dict):
-            # sem MediaEffectsScale no OnDeath (nao aparece no corpus): o clarao vanilla fica x1, como o missil
-            # nuclear vanilla abatido (missile_nuke_stage1.rules HitFriendly); o anel pequeno ja e pequeno
-            tg["OnDeath"]["MediaEffects"] = list(NUKE_SHOT_DOWN) + [FXK.nuke_media("bs_nuke_ring_small", "shot")]
+    if FXK.art_switch("pen_media") != "full":
+        _pop(s, comps, v)
 
 
 def _decorate_flak(s, top, v):
-    """Rajada da flak/CIWS (HitNothing; HitShield/HitOperational/HitStructural = &HitNothing herdam): clarao + fumaca
-    vanilla + estilhacos SHR_L/SHR_H (copia leve), escala por defesa, tremor so na Pororoca."""
+    """Rajada da flak/CIWS (HitNothing; HitShield/HitOperational/HitStructural = &HitNothing herdam): HE = clarao +
+    fumaca vanilla + estilhacos SHR_L/SHR_H; FRAG = clarao branco-frio + leque (ou anel) + baforada cinza-azulada
+    (FRAG_BURST_L/H, <= 8/12 particulas, sem coluna de fumaca). Escala por defesa, tremor so na Pororoca."""
     imp = v["impact"]
     burst = imp.get("burst")
     if not burst:
@@ -926,14 +1228,36 @@ def _decorate_flak(s, top, v):
         hn["MediaEffectsScale"] = _mes(burst[1])
 
 
+HIT_TYPES = ("SimpleHit", "VolumeHit", "PenetratingHit")
+
+
+def _decorate_fragment(s, top):
+    """Fragmento da FRAG: so a faisca chaingun_sparks (2-4) no projetil inimigo atingido (HitBullet) e a sprite do
+    fragmento quando o construtor nao pos nenhuma; casco/escudo sem efeito (o fragmento so defende)."""
+    comps = top.get("Components")
+    if not isinstance(comps, dict):
+        return
+    v = s.get("vfx") or {}
+    fr = v.get("fragment") or {}
+    sparks = [f"&<{_data_shot(p)}>" for p in (fr.get("hit_bullet") or ["chaingun_shot/particles/chaingun_sparks"])]
+    for c in comps.values():
+        if isinstance(c, dict) and c.get("Type") in HIT_TYPES and isinstance(c.get("HitBullet"), dict):
+            c["HitBullet"]["MediaEffects"] = sparks + _sounds(c["HitBullet"].get("MediaEffects"))
+    if not any(isinstance(c, dict) and c.get("Type") in ("Sprite", "AnimatedSprite") for c in comps.values()):
+        comps.update(fragment_components(s))
+
+
 def decorate(s, top):
     """Seam S3: midia de impacto por calibre, no lugar (so visual; HitEffects e estatisticas intocados)."""
     if s.get("plasma_fx"):
         return None
+    kind = s.get("kind")
+    if kind == "frag_fragment":
+        _decorate_fragment(s, top)
+        return None
     v = s.get("vfx")
     if not v:
         return None
-    kind = s.get("kind")
     if kind == "kinetic" and isinstance(top.get("Components", {}).get("Hit"), dict):
         _decorate_kinetic(s, top, v)
     elif kind == "explosive" and isinstance(top.get("Components", {}).get("Hit"), dict):
@@ -941,3 +1265,103 @@ def decorate(s, top):
     elif kind == "flak":
         _decorate_flak(s, top, v)
     return None
+
+
+# ============================================================================= conferencias (selfcheck)
+_BLOCK = r"^(\t*){name}\n\1\{{\n(.*?)\n\1\}}"
+
+
+def _blocks(text, name):
+    return [m.group(2) for m in re.finditer(_BLOCK.format(name=name), text, re.M | re.S)]
+
+
+def _val(block, field):
+    m = re.search(rf"^\t*{field} = ({_NUM})$", block, re.M)
+    return float(m.group(1)) if m else None
+
+
+def _vc(block):
+    m = re.search(r"^\t*VertexColor = \[(\d+), (\d+), (\d+)", block, re.M)
+    return [int(m.group(i)) for i in (1, 2, 3)] if m else None
+
+
+def _full_refs():
+    """Arquivos dos presets cheios de casco (os que NAO podem tocar nas pecas atravessadas)."""
+    pen = set()
+    for k in ("PEN_S", "PEN_M", "PEN_L"):
+        pen |= set(PRESETS[k])
+    full = set()
+    for k in ("MG", "MGH", "AC", "AC_FAST", "L", "D", "HE", "HE_BIG", "HE_POP"):
+        full |= set(PRESETS.get(k, []))
+    return {_data_shot(p) for p in full - pen}
+
+
+def selfcheck(mod_dir, spec):
+    """WP03: R4 da limpeza 1.x nos fontes; as 18 chaves da escada com arte; orcamentos (PEN <= 6, AC 17/17/37/49,
+    FRAG 8/12); arquivos escritos; nos tiros do mod: halo (GlowSprite IsLight) com refl 0 e add 0, toda luz de casco
+    (GlowSprite2) com o canal mais fraco <= c_min_limit(refl) e AC/slug a refl 4; nenhuma peca atravessada
+    (PenetratingOperational) com o preset cheio ou com a midia do HitOperational; Boiuna sem visual nuclear."""
+    probs = []
+    for p in (os.path.abspath(__file__), os.path.join(os.path.dirname(os.path.abspath(__file__)), "fxkit.py")):
+        probs += FXK.legacy_scan(p)
+    meta = _shell_art()
+    for key in LADDER:
+        it, m = art_item(key)
+        if not it:
+            probs.append(f"chave da escada {key} sem arte (art3d/bs_shells2)")
+    # orcamentos de particulas
+    for name, cap in COUNTS["budgets"].items():
+        base = name.split("+")[0]
+        n = preset_particles(base) + (int(COUNTS[DEBRIS]) if name.endswith("+debris") else 0)
+        if n > cap:
+            probs.append(f"preset {name}: {n} particulas > {cap}")
+    # arquivos
+    for name in _needed():
+        if not os.path.isfile(os.path.join(mod_dir, OUT_DIR, f"{name}.rules")):
+            probs.append(f"{OUT_DIR}/{name}.rules nao foi escrito")
+    for key in OWN_FX:
+        sub, name = key.split("/", 1)
+        if not os.path.isfile(os.path.join(mod_dir, FX_DIRS[sub], f"{name}.rules")):
+            probs.append(f"{FX_DIRS[sub]}/{name}.rules nao foi escrito")
+    if meta:
+        for f in meta["files"]:
+            if not os.path.isfile(os.path.join(mod_dir, ART_OUT, f)):
+                probs.append(f"{ART_OUT}/{f} nao foi copiado")
+                break
+    # tiros do mod
+    split = FXK.art_switch("light_split") != "legacy"
+    light = FXK.art_switch("pen_media") != "full"
+    refl4 = {tuple(FXK.pal(k)["hull"]): k for k in ("ac", "rail")}
+    full = _full_refs()
+    shots = os.path.join(mod_dir, "shots")
+    for dp, _dn, fn in os.walk(shots):
+        for f in fn:
+            if not f.endswith(".rules"):
+                continue
+            rel = os.path.relpath(os.path.join(dp, f), mod_dir).replace(os.sep, "/")
+            with open(os.path.join(dp, f), encoding="utf-8") as fh:
+                text = fh.read()
+            if "bs_plasma_fx" in text:
+                continue           # plasma: Fase B sem mudanca (luz propria do plasma_fx)
+            if split:
+                for b in _blocks(text, "GlowSprite"):
+                    if "IsLight = true" in b and (_val(b, "_litReflectiveStrength") or 0) != 0:
+                        probs.append(f"{rel}: halo GlowSprite com _litReflectiveStrength != 0 (lava o casco branco)")
+                    if "IsLight = true" in b and (_val(b, "_litAdditiveStrength") or 0) != 0:
+                        probs.append(f"{rel}: halo GlowSprite com _litAdditiveStrength != 0")
+            for b in _blocks(text, "GlowSprite2"):
+                vc, refl = _vc(b), _val(b, "_litReflectiveStrength")
+                if vc is None or refl is None:
+                    continue
+                if refl > 0 and min(vc) > FXK.c_min_limit(refl):
+                    probs.append(f"{rel}: luz de casco {vc} refl {refl:g} lava o casco branco (c_min > "
+                                 f"{FXK.c_min_limit(refl)})")
+                if tuple(vc) in refl4 and refl != 4:
+                    probs.append(f"{rel}: luz de casco de {refl4[tuple(vc)]} com refl {refl:g} (tem de ser 4)")
+            if light:
+                for b in _blocks(text, "PenetratingOperational"):
+                    if "&../HitOperational/MediaEffects" in b or any(r in b for r in full):
+                        probs.append(f"{rel}: PenetratingOperational com o preset cheio (usar PEN_*)")
+            if "howitzer" in rel and ("bs_nuke_fx" in text or "radiation" in text):
+                probs.append(f"{rel}: Boiuna com visual nuclear (trevo/anel verde)")
+    return probs

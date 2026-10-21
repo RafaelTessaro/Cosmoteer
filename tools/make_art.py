@@ -1,4 +1,16 @@
-"""Gera os PNGs de cada peca/recurso do Bullet Strike usando a biblioteca bsgen.sprites."""
+"""Gera (ou copia de art3d/) os PNGs de cada peca/recurso do Bullet Strike.
+
+Com arte 3D (art3d/<pasta>/meta.json) os PNGs renderizados sao copiados; sem ela, e so com BS_ARTE_PROCEDURAL=1
+(art3d.ALLOW_PROCEDURAL), sai a arte procedural (bsgen.sprites). Pastas da 2.0:
+  * armas/defesas/PEM: g['art3d_dir'] (a Boiuna le art3d/bs_boiuna_ac, meta id rafaeltessaro.bs_nuke_howitzer);
+  * fabricas: f['art3d_dir'] (a F2 le art3d/bs_factory_special, meta id rafaeltessaro.bs_factory_mag_ap);
+  * recursos: r['art3d_dir'] (os 12 itens 2.0, pilhas ate 10);
+  * pecas "layered" (Tupa, paiois, Fita, FX da Fita, placas): layered_art() - copia a pasta (uma vez por destino),
+    os niveis de dano das paredes, o icone do editor e a planta; sem arte, desenha a arte provisoria do meta
+    (bsgen.layered.stand_in) e anota em bs_data.PLACEHOLDERS;
+  * icones de interface: misc_art() copia art3d/bs_ui_icons2 pelo icons.json ('files') e so desenha (ui_icons) o que
+    faltar; o que nem o ui_icons sabe desenhar fica para o placeholder do WP01 (bsgen.placeholder_icons).
+"""
 
 import math
 import zlib
@@ -17,13 +29,19 @@ def _accent(g):
     return S.ACCENTS[g["art"].get("accent", "ammo")]
 
 
+def art_dir(x):
+    """Pasta de art3d/ de uma peca/recurso do DATA 2.0 (art3d_dir; senao o id curto)."""
+    return x.get("art3d_dir") or x.get("short") or x.get("dir")
+
+
 def gun_art3d(out, pdir, g, info):
     """Arma com arte 3D: copia os PNGs renderizados e monta icone/blueprint com eles."""
     geo = info["geo"]
     w, h = g["size"]
     meta = g["art3d"]
-    A3.copy_files(out.root, pdir, g["short"], meta)
-    load = lambda n: Image.open(A3.path(g["short"], n)).convert("RGBA")  # noqa: E731
+    adir = art_dir(g)
+    A3.copy_files(out.root, pdir, adir, meta)
+    load = lambda n: Image.open(A3.path(adir, n)).convert("RGBA")  # noqa: E731
     roof = load(meta["hull"]["roof"])
     turret = load(meta["turret"]["frames"][0])
     rest = load(meta["barrel"]["rest"])
@@ -143,8 +161,9 @@ def factory_art(out, pdir, f, info):
     w, h = info["size"]
     if f.get("art3d"):
         meta = f["art3d"]
-        A3.copy_files(out.root, pdir, f["short"], meta)
-        load = lambda n: Image.open(A3.path(f["short"], n)).convert("RGBA")  # noqa: E731
+        adir = art_dir(f)
+        A3.copy_files(out.root, pdir, adir, meta)
+        load = lambda n: Image.open(A3.path(adir, n)).convert("RGBA")  # noqa: E731
         icon = Image.new("RGBA", (w * PX, h * PX), (0, 0, 0, 0))
         icon.alpha_composite(load("floor.png"))
         icon.alpha_composite(load(meta["machine"]["frames"][0]))
@@ -260,13 +279,18 @@ def launcher_art(out, pdir, lch, info):
 
 
 def resource_art(out, r):
+    """Recurso: copia art3d/<art3d_dir> (os 12 itens 2.0) ou, sem arte, a pilha procedural de r['art'] =
+    {kind: mag | cell | shell, accent} com stack_1..max_stack (ate 10: cargas de missil)."""
     d = f"resources/{r['dir']}"
     if r.get("art3d"):
-        A3.copy_files(out.root, d, r["dir"], r["art3d"])
-        out.image(f"../docs/preview/res_{r['dir']}.png", Image.open(A3.path(r["dir"], "icon.png")).convert("RGBA"))
+        adir = art_dir(r)
+        A3.copy_files(out.root, d, adir, r["art3d"])
+        out.image(f"../docs/preview/res_{r['dir']}.png", Image.open(A3.path(adir, "icon.png")).convert("RGBA"))
         return
-    icon, overlay, nugget, nugget_n, stacks = S.render_resource(r["art"]["kind"], S.ACCENTS[r["art"]["accent"]],
-                                                               r["max_stack"])
+    art = r.get("art") or {}
+    kind = art.get("kind") if art.get("kind") in ("mag", "cell", "shell") else "mag"
+    accent = S.ACCENTS.get(art.get("accent"), S.ACCENTS["ammo"])
+    icon, overlay, nugget, nugget_n, stacks = S.render_resource(kind, accent, int(r["max_stack"]))
     out.image(f"{d}/icon.png", icon)
     out.image(f"{d}/overlay.png", overlay)
     out.image(f"{d}/nugget.png", nugget)
@@ -488,15 +512,111 @@ def _logo_procedural():
     return img.convert("RGB")
 
 
-def misc_art(out):
-    # icones da interface no padrao do jogo (silhueta azul com brilho, 96 px; ver bsgen/ui_icons.py)
+UI_ICONS_DIR = "bs_ui_icons2"     # art3d/<isto>/icons.json: icones de interface 2.0 (96 x 96)
+
+
+def wanted_icons(D):
+    """Icones gui/... que o build usa: as escolhas de SPEC.toggles, as do seletor de missil do DATA, o grupo do
+    editor, o slug (so com o Tupa) e o buff da Fita."""
+    want = {"gui/group_bullet_strike.png", "gui/buff_fita.png"}
+    for _tid, t in (D.SPEC.get("toggles") or {}).items():
+        chs = t.get("choices") if isinstance(t, dict) else None
+        for c in (chs if isinstance(chs, list) else []):
+            if c.get("icon"):
+                want.add(c["icon"])
+    for ch in getattr(D, "MISSILE_CHOICES", []) or []:
+        icon = ch[3] if isinstance(ch, (list, tuple)) and len(ch) > 3 else None
+        if icon:
+            want.add(icon if icon.startswith("gui/") else f"gui/{icon}")
+    if getattr(D, "RAIL_ENABLED", True):
+        want.add("gui/slug_rail.png")
+    return want
+
+
+def ui_icon_fn(rel):
+    """Funcao do tools/bsgen/ui_icons.py que desenha o icone gui/<x>.png (ICONS_2_0), ou None."""
     from bsgen import ui_icons as U
-    out.image("gui/group_bullet_strike.png", U.icon_group())
-    for kind in ("std", "ap", "aphe", "emp"):
-        out.image(f"gui/ammo_{kind}.png", U.icon_ammo(kind))
-    # seletor de missil (bs_missile_type): um icone por escolha
+    return (getattr(U, "ICONS_2_0", None) or {}).get(rel.split("/", 1)[1] if rel.startswith("gui/") else rel)
+
+
+def misc_art(out):
+    """Icones da interface (gui/) e logo. 1) copia art3d/bs_ui_icons2 pelo icons.json (arte aprovada); 2) o que o
+    build usa e nao veio de la, tenta desenhar com o ui_icons (ICONS_2_0); se o ui_icons nao souber (ValueError /
+    sem funcao), nao escreve nada: o placeholder do WP01 (bsgen.placeholder_icons) cobre e o spec2_check lista.
+    Os icones 1.x (ammo_std/aphe/emp, missile_limpet/napalm/torpedo) nao saem mais (icons.json drop_1x)."""
     import bs_data as D
-    if D.LAUNCHERS:
-        for _idx, _cid, _key, icon, mt in D.MISSILE_CHOICES:
-            out.image(f"gui/{icon}", U.icon_missile(mt))
+    want = wanted_icons(D)
+    meta = A3.load_meta(UI_ICONS_DIR)
+    pub = set((meta or {}).get("publish") or {})
+    if not getattr(D, "RAIL_ENABLED", True):
+        pub.discard("gui/slug_rail.png")
+    done = set(A3.copy_ui_icons(out.root, UI_ICONS_DIR, only=pub)) if meta else set()
+    for rel in sorted(want - done):
+        fn = ui_icon_fn(rel)
+        if fn is None:
+            continue
+        try:
+            img = fn()
+        except (ValueError, KeyError):
+            continue
+        out.image(rel, img)
+        done.add(rel)
+    if "gui/group_bullet_strike.png" not in done:
+        from bsgen import ui_icons as U
+        out.image("gui/group_bullet_strike.png", (getattr(U, "icon_group2", None) or U.icon_group)())
     out.image("logo.png", logo())
+    return sorted(done)
+
+
+# ============================================================================ pecas "layered"
+_LAYERED_DONE = {}
+
+
+def layered_art(out, pdir, adir, meta, wall_damage=True, exclude=None, what=None):
+    """Arte de uma pasta "layered" (render_layered.py) em <mod>/<pdir>/, uma vez por destino e build:
+
+    * meta (art3d/<adir>/meta.json, shared ou nao): copia os arquivos (menos `exclude`, ex.: os digitos do paiol
+      sem paiol_counter); com wall_damage, grava <walls>_33.png / <walls>_66.png de cada peca (paredes
+      danificadas, como as fabricas: bsgen.layered.base_graphics(walls_damage=layered.wall_damage_names(...)));
+      icone/planta que o meta nao tiver (ex.: FX, placas) nao sao inventados;
+    * meta de mentira (bsgen.layered.stand_in, meta['stand_in']) ou meta real cuja pasta art3d/<adir> falta:
+      arte provisoria de cada arquivo (bsgen.sprites.render_layered_stand_in) e uma linha em
+      bs_data.PLACEHOLDERS;
+    * meta None: ValueError (sem meta nao ha camadas/arquivos para desenhar; use bsgen.layered.stand_in).
+
+    Devolve {"files": [...], "walls_damage": {sub: [walls, _33, _66]}, "placeholder": bool}."""
+    key = (os.path.abspath(out.root), pdir)
+    if key in _LAYERED_DONE:
+        return _LAYERED_DONE[key]
+    res = {"files": [], "walls_damage": {}, "placeholder": False}
+    if meta is None:
+        raise ValueError(f"layered_art {pdir}: sem meta (use bsgen.layered.stand_in para a arte provisoria)")
+    if meta.get("stand_in") or not os.path.isdir(os.path.join(A3.ART3D, adir or "")):
+        A3.require(adir or pdir, None)
+        imgs = S.render_layered_stand_in(meta)
+        for name, im in sorted(imgs.items()):
+            if exclude and name in exclude:
+                continue
+            out.image(f"{pdir}/{name}", im)
+        res["files"] = sorted(n for n in imgs if not (exclude and n in exclude))
+        res["placeholder"] = True
+        try:
+            import bs_data as D
+            D.PLACEHOLDERS.append(f"{what or meta.get('id') or pdir}: arte provisoria (layered, {len(imgs)} PNGs)")
+        except Exception:  # noqa: BLE001  (fora do build: sem bs_data)
+            pass
+    else:
+        res["files"] = A3.copy_files(out.root, pdir, adir, meta, exclude=exclude)
+    if wall_damage:
+        for sub, m in A3.sub_metas(meta):
+            wn = m.get("walls")
+            if not wn or not os.path.exists(os.path.join(out.root, pdir, wn)):
+                continue
+            walls = Image.open(os.path.join(out.root, pdir, wn)).convert("RGBA")
+            names = [wn, wn[:-4] + "_33.png", wn[:-4] + "_66.png"]
+            for name, img in zip(names[1:], wall_damage_levels(walls, zlib.crc32((adir or pdir).encode() +
+                                                                                 wn.encode()))):
+                out.image(f"{pdir}/{name}", img)
+            res["walls_damage"][sub] = names
+    _LAYERED_DONE[key] = res
+    return res

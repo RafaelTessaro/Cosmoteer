@@ -991,3 +991,93 @@ def compose_launcher(w, h, roof, pod, cells, pivot):
         layer.paste(im, (x, y), im)
         img = Image.alpha_composite(img, layer)
     return img
+
+
+# =====================================================================================  layered (arte provisoria)
+# So para pecas "layered" SEM art3d (BS_ARTE_PROCEDURAL=1 ou arte que ainda falta): um PNG simples para cada arquivo
+# de um meta (bsgen.layered.stand_in ou um meta real cuja pasta sumiu), no tamanho que as regras esperam
+# (px = rect x 64, ou o "px" da camada). Legivel no jogo como "falta arte", nunca como arte final.
+def walls_frame(w, h, color=(64, 67, 71)):
+    """Moldura de parede de 7 px com sombra interna (o mesmo desenho do render_part.walls_png, sem o Blender)."""
+    W, H = w * PX, h * PX
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    for i in range(7):
+        d.rectangle([i, i, W - 1 - i, H - 1 - i], outline=color + (255,))
+    for i in range(7):
+        a = int(110 * (1 - i / 7))
+        d.rectangle([7 + i, 7 + i, W - 8 - i, H - 8 - i], outline=(0, 0, 0, a))
+    return im
+
+
+def _stand_in_sprite(gl, px, k, n, label):
+    """Um sprite provisorio da camada do jogo gl, tamanho px, instancia k de n (quadros/niveis diferem)."""
+    w, h = px
+    if gl == "lights_add":
+        im = Image.new("RGBA", (w, h), (0, 0, 0, 255))
+        d = ImageDraw.Draw(im)
+        t = (k + 0.5) / max(1, n)
+        r = max(1, min(w, h) // 6)
+        cx, cy = int(w * (0.2 + 0.6 * t)), h // 2
+        d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(40, 90, 160, 255))
+        return im.filter(ImageFilter.GaussianBlur(max(1, r / 2)))
+    if gl == "floors":
+        im = Image.new("RGBA", (w, h), (30, 32, 36, 255))
+        d = ImageDraw.Draw(im)
+        for x in range(0, w, PX // 2):
+            d.line([(x, 0), (x, h)], fill=(40, 42, 47, 255))
+        for y in range(0, h, PX // 2):
+            d.line([(0, y), (w, y)], fill=(40, 42, 47, 255))
+        return im
+    if gl == "roofs":
+        im = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        d = ImageDraw.Draw(im)
+        d.rectangle([2, 2, w - 3, h - 3], fill=(58, 62, 68, 255))
+        d.rectangle([8, 8, w - 9, h - 9], fill=(20, 150, 20, 255))      # verde = pintura da nave
+        return im
+    im = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    m = max(1, min(w, h) // 10)
+    d.rounded_rectangle([m, m, w - 1 - m, h - 1 - m], radius=max(1, m), fill=(120, 126, 136, 200),
+                        outline=(220, 60, 200, 255), width=max(1, m // 2))
+    t = (k + 0.5) / max(1, n)
+    bh = max(1, int((h - 4 * m) * t)) if n > 1 else 0
+    if bh:
+        d.rectangle([2 * m, h - 2 * m - bh, w - 1 - 2 * m, h - 2 * m], fill=(220, 60, 200, 200))
+    return im
+
+
+def render_layered_stand_in(meta):
+    """{arquivo: Image} para TODOS os arquivos de um meta layered (shared: de todas as pecas): sprites das camadas,
+    normais (planas, com o alfa do difuso), walls, icone(s) e blueprints. Cores de 'falta arte' (magenta)."""
+    out = {}
+    parts = sorted(meta["parts"].items()) if meta.get("shared") else [(None, meta)]
+    for _sub, m in parts:
+        W, H = m["size"]
+        for name, ent in (m.get("layers") or {}).items():
+            x, y, w, h = ent["rect"]
+            px = tuple(ent["px"]) if ent.get("px") else (max(1, int(round(w * PX))), max(1, int(round(h * PX))))
+            n = len(ent["files"])
+            for k, f in enumerate(ent["files"]):
+                if f in out:
+                    continue
+                im = _stand_in_sprite(ent["game_layer"], px, k, n, name)
+                out[f] = im
+            for f in ent.get("normals") or []:
+                base = f[:-len("_normals.png")] + ".png"
+                if base in out:
+                    out[f] = flat_normals(out[base].size, out[base])
+        if m.get("walls"):
+            out[m["walls"]] = walls_frame(W, H)
+        sil = Image.new("RGBA", (W * PX, H * PX), (0, 0, 0, 0))
+        for name, ent in (m.get("layers") or {}).items():
+            if ent["game_layer"] in ("roofs", "floors"):
+                spr = out[ent["files"][0]]
+                if spr.size == sil.size:
+                    sil.alpha_composite(spr)
+        icons = m.get("icon")
+        for ic in (icons if isinstance(icons, list) else [icons] if icons else []):
+            out[ic] = paint_roof_preview(sil)
+        if m.get("blueprints"):
+            out[m["blueprints"]] = blueprint_from(W, H, sil)
+    return out

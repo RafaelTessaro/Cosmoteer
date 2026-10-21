@@ -7,6 +7,14 @@ Gera na mesma pasta:
     preview_fire.gif    -> torre girando, 3 disparos ("tum, tum, tum") com recuo, clarao e calor
 Lancadores (meta kind "launcher"): o casulo com o rack cheio (1x e 3x) e um GIF com a salva em LIFO tubo a tubo
 (o nivel do rack cai uma unidade por lancamento, clarao no tubo e baforada de sopro) e a recarga unidade a unidade.
+Pecas "layered" (meta kind "layered", make_layered; render_layered.py: Tupa, paiois, Fita, placas):
+
+    python3 tools/blender/compose_preview.py <pasta> [--sub 1x1] [--sheet PNG] [--gif GIF]
+
+    folha com a peca montada como no jogo (interior e teto pintado, 1x e 3x; placa de tipo do meta no teto; digitos
+    do paiol so com o switch paiol_counter, desligado nos builds) e uma tira por camada com mais de um sprite; GIF
+    com as camadas de quadros/niveis rodando juntas (variantes = escolha fixa: so tira; pasta shared: --sub escolhe
+    a peca; sem quadros nem niveis, ex. placas, nao ha GIF).
 Projeteis (meta kind "missiles" / "shells", make_projectiles):
 
     python3 tools/blender/compose_preview.py <pasta_sprites> [--sheet PNG] [--gif GIF]
@@ -595,11 +603,51 @@ MOCK_COLORS = {"he": (255, 170, 60), "cluster": (255, 214, 90), "limpet": (255, 
 MASK_COLORS = {"he": (255, 190, 60), "ap": (215, 230, 255), "aphe": (255, 80, 40), "emp": (80, 150, 255)}
 
 
+def palette_2_0():
+    """SPEC.art_assets.palette (tools/spec/bullet_strike_art2.json): a paleta 2.0 (AC carmim, Tupa AZUL eletrico).
+    {} sem o arquivo (rascunhos fora do repositorio)."""
+    p = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "spec", "bullet_strike_art2.json")
+    try:
+        with open(p, encoding="utf-8") as fh:
+            return json.load(fh)["art_assets"]["palette"]
+    except (OSError, KeyError, ValueError):
+        return {}
+
+
+def _palette_colors():
+    """Cores 2.0 das previas: tracante (MOCK_COLORS) e faixa (MASK_COLORS) por municao; slug/rail no azul da Tupa
+    (palette.rail glow/core, nunca violeta)."""
+    pal = palette_2_0()
+    for k in ("he", "ap", "sap", "ac", "frag", "pem"):
+        c = pal.get(k) or {}
+        if c.get("tracer") or c.get("glow"):
+            MOCK_COLORS[k] = tuple(c.get("tracer") or c.get("glow"))
+        if c.get("band"):
+            MASK_COLORS[k] = tuple(c["band"])
+    rail = pal.get("rail") or {}
+    if rail.get("glow"):
+        MOCK_COLORS["slug"] = MOCK_COLORS["rail"] = tuple(rail["glow"])
+    if rail.get("core"):
+        MASK_COLORS["slug"] = tuple(rail["core"])
+
+
+_palette_colors()
+
+
 def _font():
     try:
         return ImageFont.load_default(12)
     except TypeError:
         return ImageFont.load_default()
+
+
+def _font_ui(size=13):
+    """Fonte com acentos para as legendas em pt-BR das previas layered (a fonte padrao do Pillow nao tem 'í')."""
+    for p in ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/usr/share/fonts/opentype/inter/Inter-Regular.otf",
+              "C:/Windows/Fonts/arial.ttf"):
+        if os.path.exists(p):
+            return ImageFont.truetype(p, size)
+    return _font()
 
 
 def hull_tiles(w, h, paint=(46, 58, 74), tile=PX):
@@ -801,15 +849,279 @@ def make_projectiles(d, sheet_path=None, gif_path=None, paint=(46, 58, 74), keys
     return sheet_path, gif_path
 
 
+# ============================================================================ pecas "layered" (render_layered.py)
+GAME_LAYERS = ["structure", "floors", "turrets", "doodads_low", "walls_stencil", "external_walls", "walls", "doors",
+               "weapons", "doodads_high", "lights_add", "fire", "roofs", "roof_doodads", "roof_turrets",
+               "roof_lights_fancy"]
+ROOF_LAYERS = ("roofs", "roof_doodads", "roof_turrets", "roof_lights_fancy")
+
+
+def layered_part(meta, sub=None):
+    """Meta de UMA peca layered (pasta shared: parts[sub]; sem sub, a primeira)."""
+    if meta.get("shared"):
+        parts = meta.get("parts") or {}
+        return parts[sub] if sub else parts[sorted(parts)[0]]
+    return meta
+
+
+def _ent_rects(ent):
+    return ent.get("rects") or [ent["rect"]]
+
+
+def _add_light(img, spr, xy, gain=1.0):
+    """Soma aditiva (lights_add: RGB sobre preto) onde img ja tem alfa."""
+    x, y = xy
+    Wi, Hi = img.size
+    x0, y0, x1, y1 = max(0, x), max(0, y), min(Wi, x + spr.width), min(Hi, y + spr.height)
+    if x1 <= x0 or y1 <= y0:
+        return img
+    b = np.asarray(img, dtype=np.float32).copy()
+    sp = np.asarray(spr, dtype=np.float32)[y0 - y:y1 - y, x0 - x:x1 - x]
+    add = sp[..., :3] * (sp[..., 3:4] / 255.0) * gain
+    b[y0:y1, x0:x1, :3] = np.clip(b[y0:y1, x0:x1, :3] + add * (b[y0:y1, x0:x1, 3:4] / 255.0), 0, 255)
+    return Image.fromarray(b.astype(np.uint8), "RGBA")
+
+
+def _sprite_for(d, ent, idx, size_px):
+    """Sprite idx da camada no tamanho do rect (as camadas com 'px' proprio, ex. digitos, sao reduzidas)."""
+    spr = load(d, ent["files"][idx % len(ent["files"])])
+    if spr.size != size_px:
+        spr = spr.resize(size_px, Image.LANCZOS)
+    return spr
+
+
+def _optional_layers(m):
+    """Camadas que so existem com um switch ligado (escondidas por padrao; so entram com pick explicito): os
+    digitos do paiol (meta digits.switch = paiol_counter, DESLIGADO nos dois builds: ADDENDUM G1/G9)."""
+    dg = m.get("digits") or {}
+    if not dg.get("switch"):
+        return set()
+    fs = set(dg.get("files") or [])
+    return {n for n, e in (m.get("layers") or {}).items() if n == "digitos" or (fs and set(e["files"]) <= fs)}
+
+
+def _plate_sprite(d, m, pick):
+    """(sprite, rect) da placa de tipo do meta (parts.<n>.plate: rect + files[familia] em art3d/<source>) ou None.
+    Familia = a variante escolhida do teto (pick['roof']); tipo = pick['placa'] (indice na lista da familia,
+    padrao 0 = o 1o tipo, como no logistica_paiois.png aprovado; None esconde)."""
+    pl = m.get("plate")
+    if not (isinstance(pl, dict) and pl.get("rect") and isinstance(pl.get("files"), dict)):
+        return None
+    k = (pick or {}).get("placa", 0)
+    if k is None:
+        return None
+    roof = (m.get("layers") or {}).get("roof") or {}
+    fams = roof.get("variants") or list(pl["files"])
+    fam = fams[((pick or {}).get("roof", 0) or 0) % len(fams)]
+    files = pl["files"].get(fam) or []
+    if not files:
+        return None
+    src = os.path.join(os.path.dirname(os.path.abspath(d)), pl.get("source") or "bs_placas")
+    if not os.path.exists(os.path.join(src, files[k % len(files)])):
+        return None
+    x, y, w, h = pl["rect"]
+    spr = load(src, files[k % len(files)])
+    size = (int(round(w * PX)), int(round(h * PX)))
+    if spr.size != size:
+        spr = spr.resize(size, Image.LANCZOS)
+    return spr, (int(round(x * PX)), int(round(y * PX)))
+
+
+def layered_composite(d, m, pick=None, roof=True, paint=(46, 58, 74), lights=True, walls=True, hide=()):
+    """Peca layered montada a 1x (64 px/quadro) na ordem das camadas do jogo, como o render_layered.composite mas
+    so com PIL: pick = {camada: indice do sprite | None (esconde)} (padrao 0); roof=False = interior; as camadas
+    lights_add sao SOMADAS na posicao do jogo (abaixo dos tetos, como no jogo) quando lights=True; os tetos levam
+    a pintura `paint`. hide: camadas que nao entram (ex.: layer_flags exclusive_with).
+    Como no jogo: as camadas de switch desligado (digitos do paiol, _optional_layers) so entram com pick explicito
+    ({'digitos': i}); a placa de tipo do meta (plate.rect, art3d/bs_placas) entra no roof_doodads com o teto
+    (pick['placa'] = indice do tipo da familia, None esconde)."""
+    W, H = m["size"]
+    stack, adds = [], []
+    opt = _optional_layers(m)
+    if walls and m.get("walls") and os.path.exists(os.path.join(d, m["walls"])):
+        stack.append((GAME_LAYERS.index("walls"), -1, load(d, m["walls"]), (0, 0)))
+    nl = len(m.get("layers") or {})
+    if roof:
+        ps = _plate_sprite(d, m, pick)
+        if ps is not None:
+            # depois do medidor e antes dos digitos (ordem do compose_logistica aprovado; nao se cruzam)
+            stack.append((GAME_LAYERS.index("roof_doodads"), nl - 0.5, ps[0], ps[1]))
+    for k, (name, ent) in enumerate((m.get("layers") or {}).items()):
+        gl = ent["game_layer"]
+        if name in hide or (not roof and gl in ROOF_LAYERS):
+            continue
+        idx = (pick or {}).get(name, None if name in opt else 0)
+        if idx is None:
+            continue
+        x, y, w, h = ent["rect"]
+        spr = _sprite_for(d, ent, idx, (int(round(w * PX)), int(round(h * PX))))
+        if gl == "roofs" and paint is not None:
+            spr = paint_roof(spr, paint)
+        for r in _ent_rects(ent):
+            xy = (int(round(r[0] * PX)), int(round(r[1] * PX)))
+            if gl == "lights_add":
+                if lights:
+                    adds.append((spr, xy))
+            else:
+                stack.append((GAME_LAYERS.index(gl), k, spr, xy))
+    img = Image.new("RGBA", (W * PX, H * PX), (0, 0, 0, 0))
+    gl_add = GAME_LAYERS.index("lights_add")
+    done = False
+    for gl, _k, spr, xy in sorted(stack, key=lambda t: (t[0], t[1])):
+        if gl > gl_add and not done:
+            for a in adds:
+                img = _add_light(img, *a)
+            done = True
+        img.alpha_composite(spr, xy)
+    if not done:
+        for a in adds:
+            img = _add_light(img, *a)
+    return img
+
+
+def _exclusive_hidden(m):
+    """Camadas escondidas por padrao: layer_flags rest_only (ex.: weapon da ponta do Tupa, que nunca vai junto com
+    weapon_tranco)."""
+    return {n for n, fl in (m.get("layer_flags") or {}).items() if fl.get("rest_only")}
+
+
+def _strip_layers(m):
+    """[(camada, n, intervalo s)] das camadas com mais de um sprite (quadros, niveis ou variantes): uma tira cada
+    na folha."""
+    out = []
+    for name, ent in (m.get("layers") or {}).items():
+        n = len(ent["files"])
+        if n > 1:
+            iv = ent.get("interval") or (0.12 if "frames" in ent else 0.18)
+            out.append((name, n, float(iv)))
+    return out
+
+
+def _animated(m):
+    """[(camada, n, intervalo s)] das camadas que MUDAM no jogo (quadros e niveis; o GIF passa por todos). As
+    variantes (teto por familia, placas, digitos) sao escolhas fixas de cada peca/estado: so tiras, sem GIF; as
+    camadas de switch desligado (digitos) tambem ficam fora."""
+    opt = _optional_layers(m)
+    return [(n, k, iv) for n, k, iv in _strip_layers(m)
+            if n not in opt and "variants" not in m["layers"][n]]
+
+
+def _on_hull(img, paint=(46, 58, 74), pad=1):
+    w, h = img.size
+    bg = hull_tiles(w + 2 * pad * PX, h + 2 * pad * PX, paint)
+    bg.alpha_composite(img, (pad * PX, pad * PX))
+    return bg
+
+
+def make_layered(d, sub=None, sheet_path=None, gif_path=None, paint=(46, 58, 74), scale=3, title=None):
+    """Previas de uma peca layered (spec render_kinds.layered.preview): folha com a peca montada a 1x e a `scale`
+    (interior e com teto pintado), uma tira por camada com mais de um sprite (todos os quadros/niveis/variantes,
+    ampliados) e um GIF com as camadas de quadros/niveis (_animated) rodando juntas (intervalo de cada camada; niveis
+    sobem e descem), interior e teto lado a lado sobre placas de casco. Padrao: preview_layered[_sub].png / .gif na
+    pasta. Devolve (folha, gif); gif None quando nada anima (ex.: placas)."""
+    meta = json.load(open(os.path.join(d, "meta.json"), encoding="utf-8"))
+    m = layered_part(meta, sub)
+    tag = f"_{sub}" if sub else ""
+    sheet_path = sheet_path or os.path.join(d, f"preview_layered{tag}.png")
+    gif_path = gif_path or os.path.join(d, f"preview_layered{tag}.gif")
+    font = _font_ui()
+    hide = _exclusive_hidden(m)
+    inner = layered_composite(d, m, roof=False, paint=paint, hide=hide)
+    full = layered_composite(d, m, roof=True, paint=paint, hide=hide)
+    tiles = []
+    for im, lab in ((inner, "interior (sem teto)"), (full, "com teto pintado")):
+        big = _on_hull(im, paint).resize(((im.width + 2 * PX) * scale, (im.height + 2 * PX) * scale), Image.NEAREST)
+        tiles.append((big, f"{lab} - {scale}x"))
+        tiles.append((_on_hull(im, paint), f"{lab} - 1x"))
+    cells = []
+    for im, lab in tiles:
+        cv = Image.new("RGBA", (im.width, im.height + 18), (7, 9, 14, 255))
+        cv.alpha_composite(im, (0, 18))
+        ImageDraw.Draw(cv).text((4, 3), lab, font=font, fill=(220, 226, 236, 255))
+        cells.append(cv)
+    strips = []
+    opt = _optional_layers(m)
+    for name, n, iv in _strip_layers(m):
+        ent = m["layers"][name]
+        x, y, w, h = ent["rect"]
+        k = max(1, min(4, int(256 // max(1, max(w, h) * PX))))
+        fr = [_sprite_for(d, ent, i, (int(round(w * PX)), int(round(h * PX)))) for i in range(n)]
+        if ent["game_layer"] == "roofs" and paint is not None:
+            fr = [paint_roof(f, paint) for f in fr]          # teto como no jogo (sem a chave de pintura verde)
+        cw, ch = fr[0].width * k, fr[0].height * k
+        kind = "quadros" if "frames" in ent else "níveis" if "levels" in ent else "variantes"
+        if "variants" in ent and "frames" not in ent and "levels" not in ent:
+            info = f"{ent['game_layer']}, escolha fixa, fora do GIF"
+        else:
+            info = f"{ent['game_layer']}, {iv:g} s"
+        if name in opt:
+            info += f"; só com o switch {(m.get('digits') or {}).get('switch')}, desligado nos builds"
+        lab = f"{name}: {n} {kind} ({info})"
+        st = Image.new("RGBA", (max(n * (cw + 4) + 4, int(font.getlength(lab)) + 12), ch + 22), (7, 9, 14, 255))
+        for i, f in enumerate(fr):
+            bg = Image.new("RGBA", f.size, (0, 0, 0, 255) if ent["game_layer"] == "lights_add" else (48, 52, 62, 255))
+            bg.alpha_composite(f)
+            st.alpha_composite(bg.resize((cw, ch), Image.NEAREST), (4 + i * (cw + 4), 20))
+        ImageDraw.Draw(st).text((4, 4), lab, font=font, fill=(255, 196, 70, 255))
+        strips.append(st)
+    head = title or f"{m.get('id', meta.get('id', ''))} ({m['size'][0]}x{m['size'][1]}, layered)"
+    Wd = max([sum(c.width + 8 for c in cells) + 8] + [s.width + 16 for s in strips])
+    Hd = 26 + max(c.height for c in cells) + 8 + sum(s.height + 8 for s in strips) + 8
+    sheet = Image.new("RGBA", (Wd, Hd), (7, 9, 14, 255))
+    dr = ImageDraw.Draw(sheet)
+    dr.text((8, 6), head, font=font, fill=(255, 196, 70, 255))
+    x = 8
+    for c in cells:
+        sheet.alpha_composite(c, (x, 26))
+        x += c.width + 8
+    y = 26 + max(c.height for c in cells) + 8
+    for s_ in strips:
+        sheet.alpha_composite(s_, (8, y))
+        y += s_.height + 8
+    os.makedirs(os.path.dirname(os.path.abspath(sheet_path)), exist_ok=True)
+    sheet.convert("RGB").save(sheet_path)
+    anim = _animated(m)
+    if not anim:
+        return sheet_path, None
+    step = 0.04
+    T = min(6.0, max(2.0, max(n * iv * (2 if "levels" in m["layers"][nm] else 1) for nm, n, iv in anim)))
+    frames = []
+    for f in range(int(round(T / step))):
+        t = f * step
+        pick = {}
+        for nm, n, iv in anim:
+            i = int(t / iv)
+            if "levels" in m["layers"][nm]:
+                i = i % (2 * n - 2) if n > 1 else 0          # niveis sobem e descem
+                i = i if i < n else 2 * n - 2 - i
+            else:
+                i = i % n
+            pick[nm] = i
+        a = _on_hull(layered_composite(d, m, pick=pick, roof=False, paint=paint, hide=hide), paint)
+        b = _on_hull(layered_composite(d, m, pick=pick, roof=True, paint=paint, hide=hide), paint)
+        fr = Image.new("RGBA", (a.width + b.width + 8, a.height), (7, 9, 14, 255))
+        fr.alpha_composite(a, (0, 0))
+        fr.alpha_composite(b, (a.width + 8, 0))
+        k = max(1, min(4, int(900 // fr.width)))          # pecas pequenas (FX 1x1) saem ampliadas
+        frames.append(fr.resize((fr.width * k, fr.height * k), Image.NEAREST))
+    os.makedirs(os.path.dirname(os.path.abspath(gif_path)), exist_ok=True)
+    _save_gif_shared(frames, [int(step * 1000)] * len(frames), gif_path)
+    return sheet_path, gif_path
+
+
 def main():
     d = sys.argv[1]
     paint = (46, 58, 74)
     if "--paint" in sys.argv:
         paint = tuple(int(v) for v in sys.argv[sys.argv.index("--paint") + 1].split(","))
     meta = json.load(open(os.path.join(d, "meta.json")))
+    opt = {a: sys.argv[sys.argv.index(f"--{a}") + 1] for a in ("sheet", "gif", "sub") if f"--{a}" in sys.argv}
     if meta.get("kind") in PROJ_KINDS:
-        opt = {a: sys.argv[sys.argv.index(f"--{a}") + 1] for a in ("sheet", "gif") if f"--{a}" in sys.argv}
         print("OK", make_projectiles(d, sheet_path=opt.get("sheet"), gif_path=opt.get("gif"), paint=paint))
+        return
+    if meta.get("kind") == "layered":
+        print("OK", make_layered(d, sub=opt.get("sub"), sheet_path=opt.get("sheet"), gif_path=opt.get("gif"),
+                                 paint=paint))
         return
     print("OK", make_all(d, paint), "quadros")
 

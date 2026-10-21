@@ -1,7 +1,8 @@
 """Previa de fabrica + municao (para mostrar a arte fora do jogo).
 
 Uso: python3 tools/blender/compose_factory.py <fabrica> <recurso> <nome_saida>
-Gera em docs/preview/3d/:
+(<fabrica> = pasta de art3d/, ex.: bs_factory_special para a F2 2.0; o teto leva a placa do 1o modo quando o meta
+tem mode_plate.) Gera em docs/preview/3d/:
   <nome_saida>.png  - teto pintado, interior desligado, pilhas 1..N do recurso e o icone (ampliados, pixel a pixel)
   <nome_saida>.gif  - interior da fabrica trabalhando (chao + maquina + paredes + luzes), ampliado
 """
@@ -31,6 +32,24 @@ def _roof_tint(im):
     return paint_roof(im, (46, 58, 74))
 
 
+def plate_on_roof(roof, meta, mode=None):
+    """Teto com a placa de modo (2.0: meta mode_plate + art3d/bs_placas/placa_<modo>.png, roof_doodads) no encaixe;
+    mode = o modo (padrao: o primeiro). Sem mode_plate ou sem a placa, devolve o teto como veio."""
+    mp = meta.get("mode_plate")
+    if not mp or not mp.get("modes"):
+        return roof
+    m = mode or mp["modes"][0]
+    p = os.path.join(ART, "bs_placas", f"placa_{m}.png")
+    if not os.path.exists(p):
+        return roof
+    s = int(round(float(mp.get("size", 0.8)) * 64))
+    cx, cy = mp["rect_centre"]
+    out = roof.copy()
+    out.alpha_composite(Image.open(p).convert("RGBA").resize((s, s), Image.LANCZOS),
+                        (int(round(cx * 64 - s / 2)), int(round(cy * 64 - s / 2))))
+    return out
+
+
 def _interior(fac, meta, frame):
     hull = meta["hull"]
     base = Image.new("RGBA", _load(fac, hull["floor"]).size, BG)
@@ -57,7 +76,7 @@ def main(fac, res, out):
     rm = json.load(open(os.path.join(ART, res, "meta.json")))
     os.makedirs(OUT, exist_ok=True)
     k = 3
-    roof = _roof_tint(_load(fac, fm["hull"]["roof"]))
+    roof = plate_on_roof(_roof_tint(_load(fac, fm["hull"]["roof"])), fm)
     off = _interior(fac, fm, fm["machine"]["off"])
     stacks = [_load(res, f"stack_{i}.png") for i in range(1, rm.get("stack", 6) + 1)]
     icon = _load(res, "icon.png")

@@ -1,30 +1,54 @@
-"""Gerador das armas de conves (ataque) do Bullet Strike.
+"""Gerador das armas de conves (ataque) do Bullet Strike 2.0 (dono: WP02; modulo de CONTEUDO, API 2).
+
+Gancho parts(out, DATA, ctx) do build_mod: os 12 canhoes de DATA.GUNS (numeros de SPEC.weapons ja transformados pelo
+bs_data). build_gun(g, shot_paths, ctx=None) segue usavel por armas de recurso unico de outros modulos (PEM do WP08).
 
 Arquitetura (so padroes ja usados pelo jogo base 0.30.x):
   * Torre unica (TurretWeapon) com FireInterval modificavel:
       - divide pelo buff RateOfFire (spin-up da minigun, igual ao chaingun.rules l.765-790)
       - multiplica pelo fator de overclock (BuffRemap Overclock Multiply, idem)
-  * Municao: um ResourceStorage "MagStorage_k" por MODO de municao k (Perfurante e Perfurante-Explosiva usam o
-    mesmo Carregador Perfurante, mas cada um guarda o seu) + um InlineResourceConverter "Splitter_k" que abre
-    1 carregador em N tiros (chaingun.rules l.353-374); com mais de 1 carregador por disparo o emissor puxa
-    direto do deposito (cannon_deck.rules l.845-846).
-    O consumidor (pedido de entrega para a tripulacao) de cada modo existe em dois ToggledComponents com o
-    mesmo ID, ligados pelo ModeToggle_k (common.toggled_consumers, chaingun.rules l.383-437): modo escolhido =
-    consumidor normal (com a entrega de prioridade minima de qualquer arma, mesmo desligada); modo nao
-    escolhido = nenhuma entrega (AllowNonOperationalMinPriorityDelivery = false). Cada modo guarda o proprio
-    estoque e o proprio carregador aberto na arma, e nenhum carregador sai como outro tipo ao trocar a municao.
-  * Seletor de municao: UIToggle "bs_ammo_type" + ModeToggle (missile_launcher.rules l.125-146).
-  * Emissores: blocos ToggledComponents mutuamente exclusivos (tipo x overclock) que definem
-    componentes com os MESMOS nomes (TargetEmitter, Emitter1..n); a torre e os efeitos usam
-    EmitterProxy (cannon_deck.rules l.827-928).
-  * Conves: anel 'tall', TurretCollider IsHigh, IgnoreFriendlyShipLowLOSChecks e
-    IgnoreFriendlyShipHighLOSChecks (a torre atira por cima do casco e das nossas torres; os tiros tambem
-    passam por cima delas: shots.OWN_SHIP_PASS), AntiPhasingRaycastIgnoreLowCollisions com o raio comecando
-    no anel da propria torre e sprites em "roof_turrets" (cannon_deck).
+  * Municao, POR MODO i (indice da tabela SPEC.ammo_index_rules: 0 HE, 1 AP, 2 SAP, 3 AC; nunca a posicao na lista):
+    ResourceStorage MagStorage_i (MaxResources = internal_storage_units), InlineResourceConverter Splitter_i que abre
+    1 carregador em N cargas (ToQuantity = splitter_to_quantity; chaingun.rules l.353-374; Boiuna 1 -> 2 cargas) e o
+    BulletEmitter puxa resources_used_per_shot do Splitter_i (Boiuna 3 = 1,5 carregador por granada); ModeToggle_i e
+    o consumidor da tripulacao MagConsumer_i (common.mag_consumer: ResupplyThreshold = floor(Max/2) +
+    logistics.reserva_tripulacao) em dois ToggledComponents com o mesmo ID (common.toggled_consumers, chaingun.rules
+    l.383-437): so o modo escolhido recebe entregas e cada modo guarda o proprio estoque.
+  * Seletor de municao: UIToggle "bs_ammo_type" (AvailableChoices do spec, Default 0) + ModeToggle
+    (missile_launcher.rules l.125-146).
+  * Emissores: blocos ToggledComponents mutuamente exclusivos (tipo x overclock) com os MESMOS nomes (TargetEmitter,
+    Emitter1..n); a torre e os efeitos usam EmitterProxy (cannon_deck.rules l.827-928).
+  * Logistica pelo seam do intake (WP05, bsgen.intake por common.content_module, nunca desligado pelo BS_FX_EXT):
+    part_fields (TypeCategories/ReceivableBuffs a somar), weapon_intake (Fita: FitaEntra_<chave> por modo, ou
+    acoplamento) e weapon_return (devolucao). Sem o modulo a arma fica so com a tripulacao.
+  * Cook-off por modo: DeathEffects ExplosiveDamage = cookoff_cap x FactorHitEffectsWith MagStorage_i (fracao de
+    enchimento, padrao thermal_battery.rules l.94-122, IncludeWhenUnderConstruction false).
+  * Conves: anel 'tall', TurretCollider IsHigh, IgnoreFriendlyShipLowLOSChecks e IgnoreFriendlyShipHighLOSChecks (a
+    torre atira por cima do casco e das nossas torres; os tiros tambem passam por cima delas: shots.OWN_SHIP_PASS),
+    AntiPhasingRaycastIgnoreLowCollisions com o raio comecando no anel da propria torre e sprites em "roof_turrets".
 """
 
-from rules_dsl import Q, VOID, comment
+import os
+
+from rules_dsl import Q, VOID, comment, render
 from bsgen import common as C
+
+API = 2
+
+
+def _intake():
+    """bsgen.intake (WP05) com API >= 2, ou None (arma so com a tripulacao). Import tardio: evita ciclo com o intake."""
+    return C.content_module("bsgen.intake")
+
+
+def _ctx(ctx):
+    """ctx do build_mod, ou um minimo (build_gun chamado de fora do gancho parts, ex. check_art3d)."""
+    if ctx is not None:
+        return ctx
+    import bs_data as D
+    import posixpath
+    return {"D": D, "transport": D.transport(), "warn": D.warn, "header": "",
+            "relpath": lambda a, b: posixpath.relpath(b, a)}
 
 
 def _fi_value(g):
@@ -49,7 +73,8 @@ def _barrel_ys(g):
 def geometry(g):
     """Calcula geometria (pivo, torre, canos, cano) a partir do tamanho; o gerador de sprites usa a mesma.
 
-    Com arte 3D (g["art3d"] = meta.json do render), a geometria vem do proprio render."""
+    Com arte 3D (g["art3d"] = meta.json do render), a geometria vem do proprio render (pasta g["art3d_dir"]; a
+    Boiuna le art3d/bs_boiuna_ac, nao o art3d/<id curto>)."""
     w, h = g["size"]
     a3 = g.get("art3d")
     if a3:
@@ -61,10 +86,11 @@ def geometry(g):
         # quanto o cano passa da borda de cima da peca (icone): ate o fim do desenho do cano em repouso, nao so
         # ate a boca (no Boitata as pontas passam da boca e ficariam cortadas na primeira linha do icone)
         top = geo["muzzle"]
-        if g.get("short"):
+        adir = g.get("art3d_dir") or g.get("short")
+        if adir:
             import art3d as A3
             from PIL import Image
-            bb = Image.open(A3.path(g["short"], br["rest"])).getchannel("A").getbbox()
+            bb = Image.open(A3.path(adir, br["rest"])).getchannel("A").getbbox()
             if bb:
                 top = max(top, br["center"] + br["sprite_len"] / 2 - bb[1] / 64)
         overhang = top - geo["pivot"][1]
@@ -94,6 +120,24 @@ def geometry(g):
 
 def _modes(g):
     return g["modes"]
+
+
+def _k(m):
+    """Indice do modo (o da tabela; dicts 1.x usam 'mode')."""
+    return m["index"] if "index" in m else m["mode"]
+
+
+def _direct(m):
+    """True = o emissor puxa direto do MagStorage (sem Splitter): so dicts sem splitter_to_quantity (1.x / modulos de
+    fora) com mais de 1 carregador por disparo (cannon_deck.rules l.209-217 e l.845-846). Os modos 2.0 sempre tem o
+    Splitter_i (mesmo com ToQuantity 1) e o emissor puxa resources_used_per_shot dele."""
+    if m.get("direct_from_storage"):
+        return True
+    return "splitter_to_quantity" not in m and m.get("units_per_shot", 1) > 1
+
+
+def _ammo_src(m):
+    return f"MagStorage_{_k(m)}" if _direct(m) else f"Splitter_{_k(m)}"
 
 
 def _fire_block_toggle(g, k, oc_state):
@@ -225,16 +269,126 @@ def _barrels_per_trigger(pattern, nb):
     return {"alternate": 1, "pairs": 2}.get(pattern, nb)
 
 
-def build_gun(g, shot_paths):
-    """Retorna (texto_rules, info) de uma arma de conves.
+# ----------------------------------------------------------------------------- partes comuns (canhoes e defesas)
+def crew_positions_for(g, geo):
+    """Postos da tripulacao: os do meta da arte 3D (ou os procedurais) cortados em [:crew] (J2R3-12: o meta do
+    bs_naval_406 traz 10 postos para 7 tripulantes; a Boiuna le art3d/bs_boiuna_ac, com 5)."""
+    w, h = g["size"]
+    pos = list(g.get("crew_pos") or C.crew_positions(w, h, g["crew"], geo["pivot"]))
+    if len(pos) < g["crew"]:
+        raise ValueError(f"{g.get('short')}: {len(pos)} postos de tripulacao para {g['crew']} tripulantes")
+    return pos[:g["crew"]]
 
-    shot_paths: dict (k, oc_state) -> caminho relativo do arquivo do tiro a partir da pasta da peca.
+
+def ammo_selector(comp, g, modes):
+    """UIToggle bs_ammo_type (AvailableChoices do spec, Default 0 = HE) + ModeToggle_i por modo."""
+    choices = list(g.get("available_choices") or [_k(m) for m in modes])
+    comp["AmmoTypeToggle"] = {"Type": "UIToggle", "ToggleID": Q("bs_ammo_type"),
+                              "Default": 0 if 0 in choices else choices[0], "AvailableChoices": choices,
+                              "AlwaysAllowInBuildMode": True}
+    for m in modes:
+        comp[f"ModeToggle_{_k(m)}"] = {"Type": "ModeToggle", "Mode": "AmmoTypeToggle", "OnMode": _k(m)}
+
+
+def mag_storage(comp, g, m, pos, w, h):
+    """MagStorage_i (+ Splitter_i) de um modo."""
+    k = _k(m)
+    st = {
+        "Type": "ResourceStorage",
+        "ResourceType": m["res"],
+        "MaxResources": int(m["storage"]),
+        "UITileRect": [f"{pos % w} + 7/64", f"{max(0, h - 1 - pos // w)} + 7/64", "1 - 14/64", "1 - 14/64"],
+        "ReceiveResourceMediaEffects": "&/COMMON_EFFECTS/AmmoDeliver",
+        "DropResourcesWhenDestroyed": True,
+    }
+    if _direct(m):
+        # liga so com carregadores para 1 disparo inteiro (cannon_deck.rules l.216-217 / l.259-260)
+        st["ToggleOnResources"] = int(m["units_per_shot"])
+        st["ToggleOffResources"] = int(m["units_per_shot"]) - 1
+    comp[f"MagStorage_{k}"] = st
+    if not _direct(m):
+        comp[f"Splitter_{k}"] = {"Type": "InlineResourceConverter", "ResourceType": m["res"],
+                                 "FromStorage": f"MagStorage_{k}", "FromQuantity": 1,
+                                 "ToQuantity": int(m.get("splitter_to_quantity", m.get("shots_per_unit", 1)))}
+
+
+def mag_consumers(comp, m, selector):
+    """Consumidor da tripulacao do modo: ResupplyThreshold = floor(Max/2) e reserva da tripulacao
+    (logistics.reserva_tripulacao) pelo common; arma sem seletor passa comp= (exigido com sem_fita, WP01)."""
+    k = _k(m)
+    thr = C.half(m["storage"])
+    if selector:
+        C.toggled_consumers(comp, f"MagConsumer_{k}", f"ModeToggle_{k}", m["res"], f"MagStorage_{k}",
+                            f"AmmoConsumersOn_{k}", f"AmmoConsumersOff_{k}", threshold=thr)
+    else:
+        comp[f"MagConsumer_{k}"] = C.mag_consumer(m["res"], f"MagStorage_{k}", "CommandConsumptionToggle",
+                                                  threshold=thr, comp=comp)
+
+
+def intake_fields(g, ctx):
+    """(TypeCategories, ReceivableBuffs) a somar na peca pelo transporte (intake.part_fields do WP05)."""
+    res = C.call(_intake(), "part_fields", g, ctx) or {}
+    cats = list(res.get("TypeCategories_add") or res.get("TypeCategories") or [])
+    buffs = list(res.get("ReceivableBuffs_add") or res.get("ReceivableBuffs") or [])
+    return cats, buffs
+
+
+def intake_components(comp, g, ctx):
+    """Entrada da arma pela logistica (Fita, acoplamento, esteira) e devolucao: seam do intake (WP05/WP15)."""
+    mod = _intake()
+    C.call(mod, "weapon_intake", comp, g, ctx)
+    C.call(mod, "weapon_return", comp, g, ctx)
+
+
+def cookoff_hits(g):
+    """HitEffects do cook-off de UM modo cheio: g['cookoff_hits'] (lista pronta, ex. PEM do WP08) ou o teto
+    g['cookoff_cap'] = {total_damage, radius_m} do spec (SPEC.cookoff.guns: teto 1.x por tipo guardado)."""
+    if g.get("cookoff_hits"):
+        return list(g["cookoff_hits"])
+    cap = g.get("cookoff_cap") or {}
+    if not cap.get("total_damage"):
+        return None
+    return [{"Type": "ExplosiveDamage", "TotalDamage": {"BaseValue": int(cap["total_damage"]), "EffectScaleExponent": 1},
+             "Radius": cap["radius_m"], "Delay": 0.05, "Filter": {"Friendlies": True}}]
+
+
+def cookoff_effects(comp, g, center, modes):
+    """Um DeathEffects por modo, escalado pelo enchimento do MagStorage_i (FactorHitEffectsWith, padrao
+    thermal_battery.rules l.94-122; IncludeWhenUnderConstruction = false como la). Modo cheio = o teto do spec."""
+    hits = cookoff_hits(g)
+    if not hits:
+        return
+    comp[comment("---- cook-off por modo (teto x enchimento do MagStorage_i) ----")] = None
+    for m in modes:
+        k = _k(m)
+        comp[f"DestroyedEffects_{k}"] = {"Type": "DeathEffects", "Location": center,
+                                         "FactorHitEffectsWith": f"MagStorage_{k}",
+                                         "IncludeWhenUnderConstruction": False, "HitEffects": hits}
+
+
+def skip_down_for(g):
+    """Colunas da fileira de tras sem porta termica (so com esteira, WP15): D.belt_skip_down(g)."""
+    if "skip_down" in g:
+        return tuple(g["skip_down"] or ())
+    try:
+        import bs_data as D
+        return D.belt_skip_down(g)
+    except Exception:   # noqa: BLE001 (build_gun fora do build)
+        return ()
+
+
+def build_gun(g, shot_paths, ctx=None):
+    """Retorna (top, info) de uma arma de conves.
+
+    shot_paths: dict (indice do modo, oc_state) -> caminho relativo do arquivo do tiro a partir da pasta da peca.
+    ctx: ctx do build_mod (logistica pelo intake); None = ctx minimo do bs_data.
     """
+    ctx = _ctx(ctx)
     w, h = g["size"]
     oc = g.get("oc")
     spin = g.get("spin")
-    sel = g.get("selector") and len(_modes(g)) > 1
-    g["selector"] = bool(sel)
+    sel = bool(g.get("selector") and len(_modes(g)) > 1)
+    g["selector"] = sel
     geo = geometry(g)
     center = [w / 2, h / 2]
     modes = _modes(g)
@@ -265,6 +419,7 @@ def build_gun(g, shot_paths):
     if spin:
         top["SPIN"] = {"MAX": spin["max"], "UP_TIME": spin["up"], "DOWN_TIME": spin["down"]}
 
+    add_cats, add_buffs = intake_fields(g, ctx)
     part = {}
     part["NameKey"] = Q(f"Parts/{g['key']}")
     part["IconNameKey"] = Q(f"Parts/{g['key']}Icon")
@@ -276,12 +431,15 @@ def build_gun(g, shot_paths):
     part["Size"] = [w, h]
     part["SelectionPriority"] = 1
     part["MaxHealth"] = g["hp"]
-    part["TypeCategories"] = ["weapon", "uses_ammo", "is_crewed"] + list(g.get("extra_categories", []))
+    cats = ["weapon", "uses_ammo", "is_crewed"]
+    for c in list(g.get("extra_categories", [])) + add_cats:
+        if c not in cats:
+            cats.append(c)
+    part["TypeCategories"] = cats
     part["SignificanceToggle"] = "ScorchedToggle"
-    if spin:
-        part["ReceivableBuffs : ^/0/ReceivableBuffs"] = ["RateOfFire"]
-    else:
-        part["ReceivableBuffs : ^/0/ReceivableBuffs"] = []
+    buffs = ["RateOfFire"] if spin else []
+    buffs += [b for b in add_buffs if b not in buffs]
+    part["ReceivableBuffs : ^/0/ReceivableBuffs"] = buffs
     part["ProhibitedBy : ^/0/ProhibitedBy"] = ["tall"]
     ring = C.tall_ring(w, h, g.get("ring", 1))
     if ring:
@@ -294,69 +452,33 @@ def build_gun(g, shot_paths):
     comp.update(C.standard_toggles(bool(oc), g["cp"], defense=hybrid, fire_pref_default=g.get("fire_pref_default", 2)))
 
     # ------------------------------------------------------------------ municao
-    comp[C.comment("---- municao (carregadores abertos em N tiros) ----")] = None
+    comp[comment("---- municao: por modo i, MagStorage_i + Splitter_i + MagConsumer_i (indice da tabela) ----")] = None
     if sel:
-        comp["AmmoTypeToggle"] = {"Type": "UIToggle", "ToggleID": Q("bs_ammo_type"), "Default": modes[0]["mode"],
-                                  "AlwaysAllowInBuildMode": True}
-    # um deposito, um divisor e um consumidor por MODO (como na versao testada no jogo), mesmo quando dois modos
-    # usam o mesmo recurso (Perfurante e Perfurante-Explosiva usam o Carregador Perfurante): ao trocar de modo, o
-    # estoque e o carregador ja aberto do modo anterior ficam guardados com ele e nunca saem como o outro tipo.
-    # A chave e o numero do modo (MagStorage_0 e o do Padrao, usado nos stats).
-
-    def direct(m):
-        # mais de 1 carregador por disparo: o emissor puxa ResourcesUsed direto do deposito (cannon_deck.rules
-        # l.209-217 e l.845-846), nunca mais do que um InlineResourceConverter entrega
-        return m["units_per_shot"] > 1
-
-    def ammo_src(m):
-        return f"MagStorage_{m['mode']}" if direct(m) else f"Splitter_{m['mode']}"
-
+        ammo_selector(comp, g, modes)
     for i, m in enumerate(modes):
-        k = m["mode"]
-        if sel:
-            comp[f"ModeToggle_{k}"] = {"Type": "ModeToggle", "Mode": "AmmoTypeToggle", "OnMode": k}
-        st = {
-            "Type": "ResourceStorage",
-            "ResourceType": m["res"],
-            "MaxResources": m["storage"],
-            "UITileRect": [f"{i % w} + 7/64", f"{max(0, h - 1 - i // w)} + 7/64", "1 - 14/64", "1 - 14/64"],
-            "ReceiveResourceMediaEffects": "&/COMMON_EFFECTS/AmmoDeliver",
-            "DropResourcesWhenDestroyed": True,
-        }
-        if direct(m):
-            # liga so com carregadores para 1 disparo inteiro (cannon_deck.rules l.216-217 / l.259-260)
-            st["ToggleOnResources"] = m["units_per_shot"]
-            st["ToggleOffResources"] = m["units_per_shot"] - 1
-        comp[f"MagStorage_{k}"] = st
-        if not direct(m):
-            comp[f"Splitter_{k}"] = {"Type": "InlineResourceConverter", "ResourceType": m["res"],
-                                     "FromStorage": f"MagStorage_{k}", "FromQuantity": 1,
-                                     "ToQuantity": m["shots_per_unit"]}
-        if sel:
-            # consumidor do modo k ligado pelo proprio ModeToggle_k (so o modo escolhido recebe entregas)
-            C.toggled_consumers(comp, f"MagConsumer_{k}", f"ModeToggle_{k}", m["res"], f"MagStorage_{k}",
-                                f"AmmoConsumersOn_{k}", f"AmmoConsumersOff_{k}")
-        else:
-            comp[f"MagConsumer_{k}"] = C.mag_consumer(m["res"], f"MagStorage_{k}", "CommandConsumptionToggle")
+        mag_storage(comp, g, m, i, w, h)
+        mag_consumers(comp, m, sel)
     if sel:
         for m in modes:
-            k = m["mode"]
-            comp[f"HasAmmo_{k}"] = {"Type": "MultiToggle", "Toggles": [f"ModeToggle_{k}", ammo_src(m)], "Mode": "All"}
-        comp["AmmoPrereq"] = {"Type": "MultiToggle", "Toggles": [f"HasAmmo_{m['mode']}" for m in modes], "Mode": "Any"}
+            k = _k(m)
+            comp[f"HasAmmo_{k}"] = {"Type": "MultiToggle", "Toggles": [f"ModeToggle_{k}", _ammo_src(m)], "Mode": "All"}
+        comp["AmmoPrereq"] = {"Type": "MultiToggle", "Toggles": [f"HasAmmo_{_k(m)}" for m in modes], "Mode": "Any"}
     else:
-        comp["AmmoPrereq"] = {"Type": "MultiToggle", "Toggles": [ammo_src(modes[0])], "Mode": "Any"}
+        comp["AmmoPrereq"] = {"Type": "MultiToggle", "Toggles": [_ammo_src(modes[0])], "Mode": "Any"}
     if sel and oc:
         for m in modes:
-            k = m["mode"]
+            k = _k(m)
             comp[f"FireToggle_{k}_N"] = {"Type": "MultiToggle",
                                          "Toggles": [f"ModeToggle_{k}", "{ Toggle=IsOverclocked; Invert=true }"],
                                          "Mode": "All"}
             comp[f"FireToggle_{k}_OC"] = {"Type": "MultiToggle", "Toggles": [f"ModeToggle_{k}", "IsOverclocked"],
                                           "Mode": "All"}
+    # logistica (Fita / acoplamento / esteira e devolucao) pelo seam do intake; sem o modulo, so a tripulacao
+    intake_components(comp, g, ctx)
 
     # ------------------------------------------------------------------ spin-up
     if spin:
-        comp[C.comment("---- spin-up (chaingun.rules l.191-287) ----")] = None
+        comp[comment("---- spin-up (chaingun.rules l.191-287) ----")] = None
         max_interval = g["fire_interval"] * (oc["fire_interval_factor"] if oc else 1)
         comp["IsFiringTimer"] = {"Type": "Timer", "Duration": round(max(1.0, max_interval * 1.25), 3),
                                  "StartTrigger": "Turret", "ResetTrigger": "Turret",
@@ -390,7 +512,7 @@ def build_gun(g, shot_paths):
                                   "BuffMultiplier": "SpinUp"}
 
     # ------------------------------------------------------------------ torre
-    comp[C.comment("---- torre ----")] = None
+    comp[comment("---- torre ----")] = None
     turret = {
         "Type": "TurretWeapon",
         "Location": geo["pivot"],
@@ -457,14 +579,14 @@ def build_gun(g, shot_paths):
         triggers = ["Turret"] * nb
 
     # ------------------------------------------------------------------ emissores (blocos por tipo x overclock)
-    comp[C.comment("---- emissores: um bloco por tipo de municao (e por estado de overclock) ----")] = None
+    comp[comment("---- emissores: um bloco por tipo de municao (e por estado de overclock) ----")] = None
     oc_states = [False, True] if oc else [False]
     spread = g["spread"]
     # raio anti-phasing comeca no anel da propria torre, nunca atras do pivo nem dentro da peca vizinha
     # (cannon_deck: min(2, 3.75 - 1.5) = 2; cannon_med 2 - 1.5 = 0.5 a frente do pivo)
     anti_phasing = round(min(2.0, max(0.0, geo["muzzle"] - (geo["collider"] or 0))), 2)
     for m in modes:
-        k = m["mode"]
+        k = _k(m)
         for s in oc_states:
             shot = shot_paths[(k, s)]
             base = {
@@ -477,8 +599,8 @@ def build_gun(g, shot_paths):
                 "Bullet": f"&<{shot}>",
                 "Spread": [f"-{spread}d", f"{spread}d"] if not s else
                 ["-(&~/OVERCLOCK/HALF_SPREAD)", "(&~/OVERCLOCK/HALF_SPREAD)"],
-                "ResourceStorage": ammo_src(m),
-                "ResourcesUsed": m.get("units_per_shot", 1),
+                "ResourceStorage": _ammo_src(m),
+                "ResourcesUsed": int(m.get("units_per_shot", 1)),
                 "Recoil": g["recoil"] if not s else f"{g['recoil']} * (&~/OVERCLOCK/RECOIL_FACTOR)",
                 "AntiPhasingRaycastDistance": anti_phasing,
                 "AntiPhasingRaycastIgnoreLowCollisions": True,
@@ -524,6 +646,7 @@ def build_gun(g, shot_paths):
 
     # ------------------------------------------------------------------ efeitos de disparo
     fx = g["fx"]
+
     def fire_media(sound, shake, particles):
         media = [f"&<{p}>" for p in particles]
         snd = {"Volume": fx.get("volume", 1.0), "SpeedVariation": fx.get("speed_var", 0.15)}
@@ -553,8 +676,6 @@ def build_gun(g, shot_paths):
     # fumaca de recuo na culatra (fx["breech"] / fx["breech_oc"], copias escaladas do bsgen/caliber_fx.py; o atraso
     # vai no Delay da propria copia): outro TriggeredEffects nos MESMOS proxies do clarao, na raiz do cano
     # (Location relativa ao proxy da boca = raiz - boca). Sem "breech" (plasma, metralhadoras) nada muda.
-    # Mapinguari: os 3 canos disparam no mesmo quadro; o escalonamento 0 / 0,12 / 0,24 s do design de calibre NAO
-    # entra aqui (muda o tempo de tiro = jogabilidade, CONTRATOS R4): decisao do balanceamento.
     if fx.get("breech"):
         bx = round(geo["front"] - geo["muzzle"], 4)
         for i, p in enumerate(proxies_n):
@@ -582,13 +703,14 @@ def build_gun(g, shot_paths):
                                               "Cumulative": True, "HitShipOnly": True}]}
 
     # ------------------------------------------------------------------ tripulacao
-    comp[C.comment("---- tripulacao ----")] = None
-    comp.update(C.crew_block(g.get("crew_pos") or C.crew_positions(w, h, g["crew"], geo["pivot"]), "AmmoPrereq"))
+    comp[comment("---- tripulacao ----")] = None
+    comp.update(C.crew_block(crew_positions_for(g, geo), "AmmoPrereq"))
 
     # ------------------------------------------------------------------ overclock
     if oc:
-        comp[C.comment("---- overclock (base_part_overclock.rules + cannon_deck.rules l.323-413) ----")] = None
-        comp.update(C.overclock_machinery(center, w, h, proxies_all, has_constant_heat=oc.get("heat_per_second", 0) > 0))
+        comp[comment("---- overclock (base_part_overclock.rules + cannon_deck.rules l.323-413) ----")] = None
+        comp.update(C.overclock_machinery(center, w, h, proxies_all, has_constant_heat=oc.get("heat_per_second", 0) > 0,
+                                          skip_down=skip_down_for(g)))
         comp["PeakHeatGenerationValue"] = {
             "Type": "StaticValue",
             "SHOT_HEAT_PER_SECOND": "(&~/OVERCLOCK/HEAT_PER_SHOT) * (&~/Part/SecondaryToolTip/StatsByCategory/0/Stats/ShotsPerSecond)",
@@ -599,7 +721,7 @@ def build_gun(g, shot_paths):
                                               "ValueFrom": "PeakHeatGenerationValue"}
 
     # ------------------------------------------------------------------ graficos
-    comp[C.comment("---- graficos ----")] = None
+    comp[comment("---- graficos ----")] = None
     if spin:
         # intervalo de tiro atual (com spin-up e overclock) e seu inverso, para a velocidade do giro dos canos
         comp["FireIntervalValue"] = {"Type": "BuffableValue", "Value": fi_val}
@@ -611,6 +733,7 @@ def build_gun(g, shot_paths):
 
     # ------------------------------------------------------------------ efeitos / UI
     comp.update(C.destroyed_effects(center, w, h))
+    cookoff_effects(comp, g, center, modes)
     comp["Indicators"] = C.weapon_indicators(center, "AmmoPrereq", bool(oc), "&~/FIRE_INTERVAL")
     comp["Blueprints"] = C.blueprint(w, h)
 
@@ -620,24 +743,25 @@ def build_gun(g, shot_paths):
     m0 = modes[0]
     part["Stats"] = {
         "CrewRequired": "&~/Part/Components/PartCrew/Crew",
-        "AmmoCapacity": f"&~/Part/Components/MagStorage_{m0['mode']}/MaxResources",
+        "AmmoCapacity": f"&~/Part/Components/MagStorage_{_k(m0)}/MaxResources",
     }
-    if not direct(m0):
-        part["Stats"]["BSShotsPerMag"] = f"&~/Part/Components/Splitter_{m0['mode']}/ToQuantity"
+    if not _direct(m0):
+        part["Stats"]["BSShotsPerMag"] = f"&~/Part/Components/Splitter_{_k(m0)}/ToQuantity"
     if g.get("stun"):
         part["Stats"]["CrewStunDuration"] = [0, "&~/Part/Components/StunEffect/HitEffects/0/Duration/BaseValue"]
         part["Stats"]["CrewStunRadius"] = "&~/Part/Components/StunEffect/HitEffects/0/Radius/BaseValue"
 
     shots_per_trigger = _barrels_per_trigger(pattern, nb) * (burst["count"] if burst else 1)
     spin_max = spin["max"] if spin else 1
-    cats = []
+    cats_stats = []
+
     def em_path(k, s):
         if _fire_block_toggle(g, k, s)[0] is None:
             return "&~/Part/Components/TargetEmitter"
         return f"&~/Part/Components/Fire_{k}_{'OC' if s else 'N'}/Components/TargetEmitter"
 
     for m in modes:
-        k = m["mode"]
+        k = _k(m)
         em = em_path(k, False)
         st = {
             "DamagePerShot": f"{em}/Bullet/STAT_DAMAGE",
@@ -658,19 +782,23 @@ def build_gun(g, shot_paths):
             "Spread": f"deg({em}/Spread/1)",
             "TurretSpeed": "deg(&~/Part/Components/Turret/RotateSpeed)",
             "ShotSpeed": f"{em}/Bullet/Speed",
-            "ShotHP": f"{em}/Bullet/Components/Targetable/Health",
-            "AmmoPerShot": f"{em}/ResourcesUsed" if direct(m) else
-            f"({em}/ResourcesUsed) / (&~/Part/Components/Splitter_{m['mode']}/ToQuantity)",
+        })
+        if m.get("shot_targetable", True):
+            # tiro <= 30 mm nao tem Targetable (a referencia nao existiria)
+            st["ShotHP"] = f"{em}/Bullet/Components/Targetable/Health"
+        st.update({
+            "AmmoPerShot": f"{em}/ResourcesUsed" if _direct(m) else
+            f"({em}/ResourcesUsed) / (&~/Part/Components/Splitter_{k}/ToQuantity)",
             "AmmoPerSecond": "(&AmmoPerShot) * (&ShotsPerSecond)",
             "ShotAmmoUsage": ["&../AmmoPerShot", "&../AmmoPerSecond"],
         })
         if burst:
             st["Burst"] = burst["count"]
-        cats.append({"NameKey": Q(f"StatCategories/BSAmmo_{m['ammo']}"), "Stats": st})
-    part["StatsByCategory"] = cats
+        cats_stats.append({"NameKey": Q(f"StatCategories/BSAmmo_{m['ammo']}"), "Stats": st})
+    part["StatsByCategory"] = cats_stats
 
     if oc:
-        k = m0["mode"]
+        k = _k(m0)
         em = em_path(k, True)
         oc_burst = oc.get("burst") or burst
         spt = _barrels_per_trigger(pattern, nb) * (oc_burst["count"] if oc_burst else 1)
@@ -700,3 +828,231 @@ def build_gun(g, shot_paths):
     top["Part : " + C.base_part_path(w, h, bool(oc))] = part
     info = {"geo": geo, "center": center}
     return top, info
+
+
+# ----------------------------------------------------------------------------- gancho do build_mod
+def write_art(out, pdir, g, info, ctx):
+    """Arte da peca: make_art (arte 3D da pasta g['art3d_dir'] ou procedural) ou, com --no-art, a copia dos PNGs."""
+    art = ctx.get("art")
+    if art:
+        art_g = dict(g, short=g["art3d_dir"]) if g.get("art3d") and g.get("art3d_dir") else g
+        art.gun_art(out, pdir, art_g, info)
+    elif g.get("art3d"):
+        import art3d as A3
+        A3.copy_files(out.root, pdir, g.get("art3d_dir") or g["short"], g["art3d"])
+
+
+def parts(out, D, ctx):
+    """Escreve os 12 canhoes (parts/<curto>/<curto>.rules) com os tiros ja escritos (ctx['shot_rel'])."""
+    shots = {s["file"]: s for s in D.SHOTS}
+    for g in D.GUNS:
+        pdir = f"parts/{g['short']}"
+        sp, missing = {}, []
+        for m in g["modes"]:
+            k = _k(m)
+            states = [(False, m["shot"])] + ([(True, m.get("shot_oc") or m["shot"])] if g.get("oc") else [])
+            for st, sid in states:
+                rel = ctx["shot_rel"].get(sid)
+                if rel is None:
+                    missing.append(sid)
+                    continue
+                sp[(k, st)] = ctx["relpath"](pdir, rel)
+            m["shot_targetable"] = bool((shots.get(m["shot"]) or {}).get("targetable", True))
+        if missing:
+            ctx["warn"](f"peca {g['id']} pulada: tiros nao escritos {sorted(set(missing))}")
+            continue
+        top, info = build_gun(g, sp, ctx)
+        rel = f"{pdir}/{g['short']}.rules"
+        code = f" \"{g['codename']}\"" if g.get("codename") else ""
+        out.text(rel, render(top, ctx["header"] + f"\nArma: {g['name_en']} / {g['name_pt']}{code}"))
+        write_art(out, pdir, g, info, ctx)
+        ctx["add_part"](g["id"])
+
+
+# ----------------------------------------------------------------------------- conferencia (selfcheck)
+def rules_root(path):
+    """Arvore do arquivo .rules (parser do tools/rules_lint.py) ou None."""
+    import rules_lint as RL
+    if not os.path.isfile(path):
+        return None
+    with open(path, encoding="utf-8") as fh:
+        text = fh.read()
+    root, errs, _w = RL.parse_text(text, RL.RFile("fs", path, path))
+    return root if not errs else None
+
+
+def node_at(node, path):
+    """No pelo caminho 'A/B/0/C' (nomes sem a heranca; numeros = elemento de lista); None se nao existir."""
+    for seg in [x for x in path.split("/") if x]:
+        if node is None:
+            return None
+        if seg.isdigit() and node.kind == "list":
+            i = int(seg)
+            node = node.children[i] if i < len(node.children) else None
+            continue
+        node = next((c for c in node.children if c.name == seg), None)
+    return node
+
+
+def num_at(node, path=""):
+    """Valor numerico do no (grupo {BaseValue}: o BaseValue; '45d' / '60%' sem o sufixo); None se nao for numero."""
+    n = node_at(node, path) if path else node
+    if n is None:
+        return None
+    if n.kind == "group":
+        return num_at(n, "BaseValue")
+    if n.kind != "value" or n.value is None:
+        return None
+    v = n.value.strip().strip('"').rstrip("d%")
+    try:
+        return float(v)
+    except ValueError:
+        return None
+
+
+def list_at(node, path):
+    n = node_at(node, path)
+    if n is None or n.kind != "list":
+        return None
+    return [(c.value or "").strip() for c in n.children]
+
+
+def _eq(a, b, tol=1e-6):
+    return a is not None and b is not None and abs(float(a) - float(b)) <= tol * max(1.0, abs(float(b)))
+
+
+def selfcheck(mod_dir, SPEC):
+    """Confere os canhoes escritos contra o spec (numeros brutos de SPEC.weapons) e o bs_data (os transformados pelos
+    switches: dano das pecas seguintes, alvejavel): MagStorage_i, Splitter_i, ResourcesUsed, AvailableChoices,
+    Crew/CommandPoints, FIRE_INTERVAL e, por tiro (sem overclock), dano direto, PenetratingOperational, explosao/raio,
+    HitShield, Penetration, blindagem, Targetable e nenhum campo 0.30.5."""
+    import bs_data as D
+    errs = []
+    weapons = {w["id"]: w for w in SPEC["weapons"]}
+    trans = {w["id"]: w for w in D.SPEC_WEAPONS}
+    shots = {s["file"]: s for s in D.SHOTS}
+    for g in D.GUNS:
+        w = weapons.get(g["id"])
+        if w is None:
+            errs.append(f"{g['id']} fora do spec")
+            continue
+        short = g["short"]
+        root = rules_root(os.path.join(mod_dir, "parts", short, f"{short}.rules"))
+        if root is None:
+            errs.append(f"{short}: parts/{short}/{short}.rules ausente ou ilegivel")
+            continue
+        part = node_at(root, "Part")
+        comp = node_at(part, "Components")
+        if not _eq(num_at(comp, "PartCrew/Crew"), w["crew"]):
+            errs.append(f"{short}: Crew {num_at(comp, 'PartCrew/Crew')} != {w['crew']}")
+        if not _eq(num_at(comp, "CommandConsumer/CommandPoints"), w["command_points"]):
+            errs.append(f"{short}: CommandPoints {num_at(comp, 'CommandConsumer/CommandPoints')} != {w['command_points']}")
+        if w.get("fire_interval_s") and not _eq(num_at(root, "FIRE_INTERVAL"), w["fire_interval_s"], 1e-3):
+            errs.append(f"{short}: FIRE_INTERVAL {num_at(root, 'FIRE_INTERVAL')} != {w['fire_interval_s']}")
+        sel = len(w["ammo_modes"]) > 1
+        if sel:
+            ac = list_at(comp, "AmmoTypeToggle/AvailableChoices")
+            if ac != [str(x) for x in (w.get("available_choices") or [])]:
+                errs.append(f"{short}: AvailableChoices {ac} != {w.get('available_choices')}")
+        for m in w["ammo_modes"]:
+            i = m["index"]
+            if not _eq(num_at(comp, f"MagStorage_{i}/MaxResources"), m["internal_storage_units"]):
+                errs.append(f"{short}: MagStorage_{i} {num_at(comp, f'MagStorage_{i}/MaxResources')} != "
+                            f"{m['internal_storage_units']}")
+            if not _eq(num_at(comp, f"Splitter_{i}/ToQuantity"), m["splitter_to_quantity"]):
+                errs.append(f"{short}: Splitter_{i} ToQuantity {num_at(comp, f'Splitter_{i}/ToQuantity')} != "
+                            f"{m['splitter_to_quantity']}")
+            if node_at(comp, f"MagConsumer_{i}") is None and node_at(comp, f"AmmoConsumersOn_{i}/Components/MagConsumer_{i}") is None:
+                errs.append(f"{short}: sem MagConsumer_{i}")
+            cand = [f"Fire_{i}_N/Components/TargetEmitter", "TargetEmitter"]
+            em = next((node_at(comp, c) for c in cand if node_at(comp, c) is not None), None)
+            if em is None or not _eq(num_at(em, "ResourcesUsed"), m["resources_used_per_shot"]):
+                errs.append(f"{short}/{m['key']}: ResourcesUsed {num_at(em, 'ResourcesUsed') if em else None} != "
+                            f"{m['resources_used_per_shot']}")
+            if em is not None and (node_at(em, "ResourceStorage") is None
+                                   or node_at(em, "ResourceStorage").value != f"Splitter_{i}"):
+                errs.append(f"{short}/{m['key']}: o emissor nao puxa do Splitter_{i}")
+            errs += _check_gun_shot(mod_dir, w, m, (trans.get(g["id"]) or w)["ammo_modes"], shots, D)
+    return errs
+
+
+def _check_gun_shot(mod_dir, w, m, tmodes, shots, D):
+    """Um tiro (sem overclock) de canhao contra o spec."""
+    errs = []
+    sid = m["shot_id"].split(".", 1)[1]
+    s = shots.get(sid) or {}
+    path = os.path.join(mod_dir, "shots", s.get("dir") or sid, f"{sid}.rules")
+    root = rules_root(path)
+    if root is None:
+        return [f"{sid}: arquivo do tiro ausente ou ilegivel"]
+    with open(path, encoding="utf-8") as fh:
+        text = fh.read()
+    for f in D.SPEC["conventions"]["forbidden_fields_0305"]:
+        if f in text:
+            errs.append(f"{sid}: campo 0.30.5 proibido {f}")
+    rng = num_at(root, "Range")
+    if not _eq(rng, w["range_m"]):
+        errs.append(f"{sid}: Range {rng} != {w['range_m']}")
+    tm = next((x for x in tmodes if x["index"] == m["index"]), m)
+    hit = node_at(root, "Components/Hit")
+    targ = node_at(root, "Components/Targetable")
+    want_t = bool(s.get("targetable"))
+    if want_t != (targ is not None):
+        errs.append(f"{sid}: Targetable {'ausente' if want_t else 'presente'} (esperado {'sim' if want_t else 'nao'})")
+    if want_t and targ is not None and not _eq(num_at(targ, "Health"), s.get("health")):
+        errs.append(f"{sid}: Targetable Health {num_at(targ, 'Health')} != {s.get('health')}")
+    kind = str(m.get("kind") or "")
+    shield = m.get("shield_damage")
+    if kind.startswith("contact"):
+        fx = node_at(hit, "HitOperational/HitEffects")
+        vals = [(node_at(c, "Type").value if node_at(c, "Type") else None, c) for c in (fx.children if fx else [])]
+        dmg = next((num_at(c, "Damage") for t, c in vals if t == "Damage"), None)
+        exp = next((c for t, c in vals if t == "ExplosiveDamage"), None)
+        if not _eq(dmg, m["direct"]):
+            errs.append(f"{sid}: dano direto {dmg} != {m['direct']}")
+        if exp is None or not _eq(num_at(exp, "TotalDamage"), m["explosive"]) or not _eq(num_at(exp, "Radius"),
+                                                                                       m["explosive_radius_m"]):
+            errs.append(f"{sid}: explosao != {m['explosive']} r{m['explosive_radius_m']}")
+        if shield is not None and not _eq(num_at(hit, "HitShield/HitEffects/0/Damage"), shield):
+            errs.append(f"{sid}: HitShield {num_at(hit, 'HitShield/HitEffects/0/Damage')} != {shield}")
+        guided = isinstance(m.get("guided"), dict) and D.switch("boiuna.ac_guided")
+        if guided != (node_at(root, "Components/Homing") is not None):
+            errs.append(f"{sid}: Homing {'ausente' if guided else 'presente'}")
+        if node_at(root, "Components/Death/OnDeath") is None:
+            errs.append(f"{sid}: sem detonacao no fim do alcance (Death/OnDeath)")
+        return errs
+    if not _eq(num_at(hit, "HitOperational/HitEffects/0/Damage"), m["direct"]):
+        errs.append(f"{sid}: dano direto {num_at(hit, 'HitOperational/HitEffects/0/Damage')} != {m['direct']}")
+    hs = node_at(hit, "HitShield")
+    want_sh = shield if shield is not None else m["direct"]
+    if hs is None:
+        errs.append(f"{sid}: sem HitShield")
+    elif hs.kind == "group":
+        # bloco proprio (shield_damage != direto; ou o decorate do WP03, que expande &HitOperational com os mesmos
+        # HitEffects e a midia de escudo)
+        if not _eq(num_at(hs, "HitEffects/0/Damage"), want_sh):
+            errs.append(f"{sid}: HitShield {num_at(hs, 'HitEffects/0/Damage')} != {want_sh}")
+    elif shield is not None and shield != m["direct"]:
+        errs.append(f"{sid}: HitShield sem bloco proprio (escudo {shield} != direto {m['direct']})")
+    elif (hs.value or "") != "&HitOperational":
+        errs.append(f"{sid}: HitShield deveria ser &HitOperational")
+    if m["key"] == "plasma":
+        return errs
+    if not _eq(num_at(hit, "Penetration"), m["penetration"]):
+        errs.append(f"{sid}: Penetration {num_at(hit, 'Penetration')} != {m['penetration']}")
+    pd = tm.get("pen_damage_per_further_part")
+    got = num_at(hit, "PenetratingOperational/HitEffects/0/Damage")
+    if pd is not None and not _eq(got, pd):
+        errs.append(f"{sid}: PenetratingOperational {got} != {pd}")
+    if got is not None and m["direct"] and got >= m["direct"] and m["key"] in ("he", "ac", "ap", "sap"):
+        errs.append(f"{sid}: PenetratingOperational {got} >= dano direto {m['direct']}")
+    af = m.get("armor_factor")
+    if af is not None and abs(af - 1) > 1e-9:
+        if not _eq(num_at(hit, "PartCategoryPenetrationFactors/armor"), af * 100):
+            errs.append(f"{sid}: armor {num_at(hit, 'PartCategoryPenetrationFactors/armor')} != {af * 100}%")
+    if (m.get("explosive") or 0) > 0:
+        fin = node_at(hit, "FinishedPenetratingOperational/HitEffects/0")
+        if fin is None or not _eq(num_at(fin, "TotalDamage"), m["explosive"]) or not _eq(num_at(fin, "Radius"),
+                                                                                       m["explosive_radius_m"]):
+            errs.append(f"{sid}: carga no fim != {m['explosive']} r{m['explosive_radius_m']}")
+    return errs

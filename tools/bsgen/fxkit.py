@@ -17,14 +17,34 @@ bsgen.shots, bsgen.trails ou bsgen.plasma_fx): nao entra em ciclo de import com 
    (shots/missile_nuke/missile_nuke_stage1.rules l.72-116: RadiationSpriteSmall + RadiationSpriteBig), recolorido
    e com tamanho, giro, posicao e baldes por projetil.
 4. art_sprite_components(): corpo iluminado com mapa de normais + atlas de luzes aditivo + faixa tingida, a partir
-   de um item do meta.json da arte de projeteis (art3d/bs_missiles, art3d/bs_shells; CONTRATOS secao 3).
+   de um item do meta.json da arte de projeteis (art3d/bs_missiles2, art3d/bs_shells2; CONTRATOS secao 3).
+5. (2.0, WP03) light_pair(): a luz do projetil em DUAS sprites IsLight (SPEC.art_assets.phase_b_leftovers.
+   islight_white_hull + ADDENDUM G7): halo grande SO NO ESPACO (GlowSprite, cor glow/4, _litReflectiveStrength 0) +
+   luz de casco pequena (GlowSprite2, palette[municao].hull, refl 6; AC e slug 4) com a regra do canal mais fraco
+   (c_min <= floor(0,5 x 255 / (0,85 x refl)): 25 a refl 6, 37 a refl 4) para o casco branco nunca virar mancha
+   branca. Switch art.light_split (split | legacy = a luz unica da Fase B). Ajudantes: palette(), hull_refl(),
+   c_min_limit(), start_time() (StartTime das luzes, para o clarao do disparo nao lavar a propria torre).
+6. (2.0, WP03) embers(): brasas que saem em leque, freiam e apagam (receita das gotas de brasa do missile_fx,
+   generalizada: cor, quantidade, vida); AC (ac_embers) e o rail_fx (rail_embers) usam o mesmo tijolo.
+7. (2.0, WP03) missile_art_dir() / missile_art_meta(): pasta da arte dos misseis = art3d/bs_missiles2 (ou env
+   BS_MISSILE_ART_DIR); a reserva da arte 1.x fica so dentro do bloco LEGACY_1X_FALLBACK (apagado pelo WP14b).
+8. (2.0, WP03) art_switch(nome): valor do switch art.<nome> (bs_data.switch quando o bs_data esta carregado; senao
+   env BS_ART_<NOME> ou o padrao do spec).
 
 Campos e tipos: so os do conjunto provado no 0.30.4c (CONTRATOS R9: TAIL_TEXT, regras ja geradas pelo mod e o
 corpus do SW:ACD, que mira o 0.30.4). Inteiros onde o jogo so usa inteiros (VertexColor, FrameCount, FrameSize,
 FramesPerRow, FramesPerSecond): valor fracionario estoura aqui, no build, e nao no carregamento do jogo.
 """
 
+import json
+import math
+import os
+import sys
+
 from rules_dsl import Q, VOID, render, fmt_num
+
+# registro de modulos do build_mod (WP01): so participa com API >= 2 (gancho write: arquivos de shots/bs_nuke_fx)
+API = 2
 
 # ----------------------------------------------------------------------------- constantes (copia de plasma_fx)
 D = "./Data"
@@ -623,6 +643,14 @@ def art_sprite_components(img_prefix, item, size, bucket_body="BulletUpper3", bu
         comps["MaskSprite"] = m
 
     lt = item.get("lights")
+    if lights and lt and _int(lt["frames"], "lights.frames") == 1:
+        # 2.0 (WP03): atlas de UM quadro (ex.: AC dos niveis s/m/l re-renderizada sem o sensor piscando, fps 0) =
+        # sprite aditivo parado (FramesPerSecond 0 num AnimatedSprite nao aparece no corpus)
+        ls = base("Sprite", bucket_lights)
+        ls["Sprite"] = {"Texture": _art_tex(prefix, lt["file"], linear=True), "Size": list(wh),
+                        "TargetBlendMode": "Add"}
+        comps["LightsSprite"] = ls
+        return comps
     if lights and lt:
         anim = {"AtlasSprite": {"Texture": _art_tex(prefix, lt["file"], linear=True), "Size": list(wh),
                                 "TargetBlendMode": "Add"},
@@ -641,3 +669,291 @@ def art_sprite_components(img_prefix, item, size, bucket_body="BulletUpper3", bu
         ls["Animation"] = anim
         comps["LightsSprite"] = ls
     return comps
+
+
+# ============================================================================= 2.0 (WP03): paleta, luzes, brasas
+TOOLS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))    # tools/
+ROOT_DIR = os.path.dirname(TOOLS_DIR)                                       # repositorio
+ART2_PATH = os.path.join(TOOLS_DIR, "spec", "bullet_strike_art2.json")     # split do SPEC_2.0 (art_assets)
+SPEC_PATH = os.path.join(TOOLS_DIR, "spec", "bullet_strike_spec.json")
+SWITCHES_PATH = os.path.join(TOOLS_DIR, "spec", "bullet_strike_switches.json")
+_PAL = None
+_SPEC_SW = None
+
+
+def _warn(msg):
+    """Aviso do build: bs_data.warn quando o bs_data esta carregado (entra na lista '(aviso)' do build_mod)."""
+    D = sys.modules.get("bs_data")
+    if D is not None and callable(getattr(D, "warn", None)):
+        D.warn(msg)
+    else:
+        print(f"(aviso) {msg}", file=sys.stderr)
+
+
+def palette():
+    """SPEC.art_assets.palette (tools/spec/bullet_strike_art2.json): cores 2.0 por municao/familia."""
+    global _PAL
+    if _PAL is None:
+        with open(ART2_PATH, encoding="utf-8") as fh:
+            _PAL = json.load(fh)["art_assets"]["palette"]
+    return _PAL
+
+
+# chaves de tiro que nao sao chaves da paleta
+PAL_ALIAS = {"slug": "rail", "nuke": "nuclear", "missile_he": "msl_he", "missile_emp": "msl_emp"}
+
+
+def pal(key):
+    """Entrada da paleta de uma municao/familia (he, ap, sap, ac, frag, pem, rail/slug, cluster, ...)."""
+    p = palette()
+    k = PAL_ALIAS.get(key, key)
+    if k not in p:
+        raise KeyError(f"paleta 2.0 sem a chave {key!r} (ha: {', '.join(sorted(p))})")
+    return p[k]
+
+
+def art_switch(name):
+    """Valor do switch art.<name>: bs_data.switch quando o bs_data ja esta carregado (o build_mod carrega antes de
+    tudo); senao env BS_ART_<NAME>, tools/spec/bullet_strike_switches.json (BS_SWITCHES_FILE) e o padrao do spec.
+    Nunca importa o bs_data (montar os dados de dentro de um tijolo de efeito seria um ciclo)."""
+    key = f"art.{name}"
+    D = sys.modules.get("bs_data")
+    if D is not None and callable(getattr(D, "switch", None)):
+        return D.switch(key)
+    env = os.environ.get(f"BS_ART_{name.upper()}", "").strip()
+    if env:
+        return env
+    p = os.environ.get("BS_SWITCHES_FILE") or SWITCHES_PATH
+    if os.path.isfile(p):
+        with open(p, encoding="utf-8") as fh:
+            v = json.load(fh).get(key)
+        if v is not None:
+            return v
+    global _SPEC_SW
+    if _SPEC_SW is None:
+        with open(SPEC_PATH, encoding="utf-8") as fh:
+            _SPEC_SW = json.load(fh)["switches"]
+    return _SPEC_SW["art"][name]["default"]
+
+
+# Luz de projetil em duas sprites (SPEC.art_assets.phase_b_leftovers.islight_white_hull, ADDENDUM G7). Modelo do
+# fancy_light.shader sobre peca: L_c = refl x c/255 x D_c + add x c/255; sobre o espaco: unlit x c/255
+# (plasma_fx.py, bolt_components). Casco branco (D ~ 0,85) vira mancha BRANCA quando os tres canais passam de 1.
+HALO_DIV = 4                 # halo = round(glow / 4) (mesmo brilho no espaco da Fase B com unlit 0,8 / 0,5)
+HULL_REFL_DEFAULT = 6        # luz de casco: refl 6 (AC e slug: palette.<k>.hull_refl = 4)
+HULL_ADD = 0.05
+WHITE_HULL_DIFFUSE = 0.85
+UNLIT_TRACER = 0.8           # halo dos tracantes (Fase B: 0,2 x glow)
+UNLIT_SHELL = 0.5            # halo de granadas e misseis (Fase B: 0,125 x glow)
+LIGHT_SPLITS = ("split", "legacy")
+
+
+def c_min_limit(refl):
+    """Maior valor permitido para o canal mais fraco da luz de casco: floor(0,5 x 255 / (0,85 x refl))
+    (25 a refl 6, 37 a refl 4, 15 a refl 10): pelo menos um canal nunca satura no casco branco."""
+    return int(math.floor(0.5 * 255 / (WHITE_HULL_DIFFUSE * float(refl)) + 1e-9))
+
+
+def hull_refl(key):
+    """_litReflectiveStrength da luz de casco da municao key (palette.<k>.hull_refl ou 6)."""
+    v = pal(key).get("hull_refl") or HULL_REFL_DEFAULT
+    return int(v) if float(v) == int(v) else float(v)
+
+
+def start_time(turret_radius_tiles, speed_tiles_s, lo=0.01, hi=0.05):
+    """StartTime das luzes do projetil: clamp((raio da torre + 1) / velocidade, 0,01, 0,05) s, com 3 casas: no quadro
+    do disparo o brilho parado na boca nao lava a arte da propria torre (plasma_fx: tail_start)."""
+    sp = float(speed_tiles_s or 0)
+    if sp <= 0:
+        return hi
+    return round(min(hi, max(lo, (float(turret_radius_tiles) + 1.0) / sp)), 3)
+
+
+def halo_vertex_color(glow):
+    """Cor do halo: round(glow / 4) por canal (0,5 sobe)."""
+    return [int(math.floor(float(v) / HALO_DIV + 0.5)) for v in list(glow)[:3]]
+
+
+def light_pair(halo_size, halo_color, hull_size=None, hull_color=None, start=None, unlit=UNLIT_SHELL,
+               x_halo=0, x_hull=0, refl=None, key=None, z=0, bucket="BulletUpper4", split=None, legacy_unlit=None,
+               ammo=None):
+    """Luzes IsLight de um projetil: {"GlowSprite": halo, "GlowSprite2": luz de casco (so com hull_size)}.
+
+    Ordem posicional (plano WP03): light_pair(halo_size, halo_color, hull_size, hull_color, start, unlit); o resto
+    por nome.
+      halo_size [L, W] (tiles): o tamanho do brilho da Fase B; halo_color: a cor 'glow' CHEIA da paleta (aqui
+        vira round(glow / 4), _litReflectiveStrength 0 e _litAdditiveStrength 0: o halo so aparece no ESPACO);
+      hull_size [L, W] ou None: None = so o halo (tracantes <= 30 mm: uma luz por tiro como na Fase B); granadas
+        [1,2 L, max(1,2 W, 0,5)], misseis [1,2 L, 1,2 W] no bocal, slug [3,6, 1,2], PEM [1,2 L, 0,6];
+      hull_color: VertexColor da luz de casco (padrao palette[key].hull); refl: _litReflectiveStrength dela
+        (padrao hull_refl(key) = 6, AC e slug 4); o canal mais fraco tem de ficar <= c_min_limit(refl), senao
+        ValueError no build;
+      start: StartTime (s) das duas sprites (start_time(); None = sem StartTime);
+      unlit: _unlitAdditiveStrength do halo (UNLIT_TRACER 0,8 / UNLIT_SHELL 0,5);
+      x_halo / x_hull: Offset x (numero) ou [x, y]; z: Z das duas; bucket: balde (BulletUpper4 como na Fase B);
+      key (ou ammo, apelido): chave da paleta (he, ap, sap, ac, pem, rail/slug, cluster, ...);
+      split: None le o switch art.light_split; 'legacy' = UMA luz da Fase B (cor glow cheia, refl 24, add 0,05,
+        unlit legacy_unlit: 0,2 sem hull_size / 0,125 com) para o teste A/B T-ART-5."""
+    key = key or ammo
+    split = split or art_switch("light_split")
+    if split not in LIGHT_SPLITS:
+        raise ValueError(f"art.light_split invalido: {split!r} (use {', '.join(LIGHT_SPLITS)})")
+
+    def spr(size, x, color, r_, add, ul):
+        c = {"Type": "Sprite", "RenderBucket": bucket, "Z": _r(z), "IsLight": True}
+        if start:
+            c["StartTime"] = _r(start, 3)
+        c["Offset"] = _vec(x, "offset")
+        c["Sprite"] = {"Texture": {"File": Q(BLOB), "MipLevels": "max", "SampleMode": "Linear"},
+                       "Size": _wh(size, "size"), "VertexColor": _color(color), "TargetBlendMode": "Add",
+                       "Shader": Q(FANCY_LIGHT), "_z": 1, "_nrmlStrengthLimit": 1,
+                       "_litReflectiveStrength": r_, "_litAdditiveStrength": add, "_unlitAdditiveStrength": ul}
+        return c
+    glow = _color([int(round(float(v))) for v in list(halo_color)[:3]], "halo_color")
+    if split == "legacy":
+        lu = legacy_unlit if legacy_unlit is not None else (0.2 if hull_size is None else 0.125)
+        return {"GlowSprite": spr(halo_size, x_halo, glow, 24, HULL_ADD, lu)}
+    out = {"GlowSprite": spr(halo_size, x_halo, halo_vertex_color(glow), 0, 0, unlit)}
+    if hull_size is not None:
+        if hull_color is None:
+            if key is None:
+                raise ValueError("light_pair: hull_size sem hull_color nem key")
+            hull_color = pal(key)["hull"]
+        if refl is None:
+            refl = hull_refl(key) if key else HULL_REFL_DEFAULT
+        hc = _color(hull_color, "hull_color")
+        lim = c_min_limit(refl)
+        if min(hc[:3]) > lim:
+            raise ValueError(f"light_pair: luz de casco {hc} com canal mais fraco {min(hc[:3])} > {lim} (refl {refl}): "
+                             f"lavaria o casco branco (regra c_min, SPEC.art_assets.phase_b_leftovers)")
+        out["GlowSprite2"] = spr(hull_size, x_hull, hc, refl, HULL_ADD, 0)
+    return out
+
+
+def embers(note, n=(8, 11), speed=(2.5, 6), life=(1.0, 1.5), color_from=(0.86, 0.12, 0.24, 1),
+           color_to=(1, 0.78, 0.31, 1), scale=(0.35, 0.7), spread=(0.3, 0.6), away_x=-0.6, end_scale=0.55,
+           ramp=None, bucket="Upper1", zoom="30", delay=0):
+    """Brasas: n particulas aditivas (blob.png) que nascem numa faixa de +-spread em volta do ponto, saem para longe de
+    (away_x, 0) com velocidade speed, freiam ate 10 % e apagam em life s (o alvo "continua queimando"). Receita das
+    gotas de brasa do missile_fx (tijolos de fxkit.streaks provados pelo plasma), so com cor/quantidade/vida como
+    parametro: AC (ac_embers, carmim -> ouro) e Tupa (rail_embers, laranja-ouro -> brasa escura)."""
+    ramp = ramp or [(1.6, 1.6, 1.6, 1), (1.2, 1.2, 1.2, 0.9), (1, 1, 1, 0.6), (0.7, 0.7, 0.7, 0)]
+    pre = [_el("SetRandom", DataOut="location", ValueType="Vector2", FromValue=V(-_r(spread[0]), -_r(spread[1])),
+               ToValue=V(_r(spread[0]), _r(spread[1]))),
+           _el("SetRandomVelocityFromPoint", LocationIn="location", VelocityOut="base_velocity",
+               Speed=R(speed[0], speed[1]), AwayFromPoint=V(_r(away_x), 0)),
+           _el("SetRandom", DataOut="base_color", ValueType="Color", FromValue=C(*color_from), ToValue=C(*color_to)),
+           _el("SetRandom", DataOut="base_scale", ValueType="Float", FromValue=scale[0], ToValue=scale[1]),
+           _el("SetRandom", DataOut="lifetime", ValueType="Float", FromValue=life[0], ToValue=life[1])]
+    init = [_el("LocationToWorldSpace", LocationIn="location", LocationOut="location"),
+            _el("VelocityToWorldSpace", VelocityIn="base_velocity", VelocityOut="base_velocity"),
+            _el("AddFrameOfReference", VelocityInOut="inherited_velocity"),
+            _el("ScaleToWorldSpace", ScaleIn="base_scale", ScaleOut="base_scale")]
+    upd = [_el("VariableLifetime", LifeInOut="life", LifetimeIn="lifetime"),
+           _el("Lerp", True, LerpIn="life", DataOut="velocity", Invert=False, ValueType="Vector2",
+               FromValue=V(1, 1), ToValue=V(0.1, 0.1)),
+           _mul("Vector2", "velocity", "base_velocity", "velocity", upd=False),
+           _addt("location", "velocity"),
+           _addt("location", "inherited_velocity"),
+           _ramp("color", ramp),
+           _mul("Color", "color", "base_color", "color"),
+           _el("Lerp", True, LerpIn="life", DataOut="scale", Invert=False, ValueType="Float", FromValue=1,
+               ToValue=end_scale),
+           _mul("Float", "scale", "base_scale", "scale")]
+    mat = {"Texture": _tex(BLOB), "TargetBlendMode": dict(ADD)}
+    return _particles(note, init, upd, _renderer(), mat, _emitter(pre, n), bucket, True, zoom, inflate=3, delay=delay)
+
+
+def textured_blob(note, tex_path, size, life, color, ramp, scale=(1, 1), loc_x=0, offset=(0, 0), bucket="Upper2",
+                  fancy=False, zoom=MAXZ, delay=0, n=(1, 1)):
+    """Uma particula aditiva com textura propria (anel bs_ring_thin, leque bs_frag_cone): o blob() com Offset no
+    Renderer (fracao do quadro, como o Offset {X 0; Y 0.5} do bullet_trail_def.rules vanilla) e Delay no rabo.
+    offset (0.5, 0) poe a borda esquerda do quadro (o vertice do leque) no ponto do efeito em qualquer escala."""
+    pre = [_el("SetValue", DataOut="location", ValueType="Vector2", Value=V(_r(loc_x), 0)),
+           _el("SetValue", DataOut="base_color", ValueType="Color", Value=C(*color)),
+           _el("SetValue", DataOut="base_scale", ValueType="Float", Value=_r(size))]
+    upd = [_el("Lifetime", LifeInOut="life", Lifetime=_r(life)),
+           _addt(),
+           _ramp("color", ramp),
+           _mul("Color", "color", "base_color", "color"),
+           _el("Lerp", True, LerpIn="life", DataOut="scale", Invert=False, ValueType="Float",
+               FromValue=scale[0], ToValue=scale[1]),
+           _mul("Float", "scale", "base_scale", "scale")]
+    mat = {"Texture": _tex(tex_path), "TargetBlendMode": dict(ADD)}
+    return _particles(note, _local_init(), upd, _renderer(offset=offset), mat, _emitter(pre, n), bucket, fancy, zoom,
+                      inflate=3, delay=delay)
+
+
+# ----------------------------------------------------------------------------- arte dos misseis (pasta)
+MISSILE_ART_ENV = "BS_MISSILE_ART_DIR"
+MISSILE_ART_DIR = os.path.join(ROOT_DIR, "art3d", "bs_missiles2")
+
+
+def missile_art_dir():
+    """Pasta da arte dos misseis: env BS_MISSILE_ART_DIR (folhas de teste) ou art3d/bs_missiles2 (ADOTADA, BASE).
+    So se a 2.0 faltar entra a reserva 1.x do bloco LEGACY_1X_FALLBACK (aviso 'arte 1.x usada: misseis')."""
+    d = os.environ.get(MISSILE_ART_ENV)
+    if d:
+        return d
+    if os.path.isfile(os.path.join(MISSILE_ART_DIR, "meta.json")):
+        return MISSILE_ART_DIR
+    # LEGACY_1X_FALLBACK inicio
+    old = os.path.join(ROOT_DIR, "art3d", "bs_missiles")
+    if os.path.isfile(os.path.join(old, "meta.json")):
+        _warn("arte 1.x usada: misseis (art3d/bs_missiles2/meta.json ausente; reserva art3d/bs_missiles)")
+        return old
+    # LEGACY_1X_FALLBACK fim
+    return MISSILE_ART_DIR
+
+
+def missile_art_meta():
+    """meta.json (kind 'missiles') da pasta de missile_art_dir(), com '_dir'; None sem meta."""
+    d = missile_art_dir()
+    p = os.path.join(d, "meta.json")
+    if not os.path.isfile(p):
+        return None
+    with open(p, encoding="utf-8") as fh:
+        meta = json.load(fh)
+    if meta.get("kind") != "missiles":
+        raise ValueError(f"{p}: meta.json nao e de misseis (kind {meta.get('kind')!r})")
+    return dict(meta, _dir=d)
+
+
+def selfcheck(mod_dir, spec):
+    """Arquivos de shots/bs_nuke_fx escritos (Iara) e a regra R4 da limpeza 1.x neste arquivo."""
+    probs = []
+    for name in NUKE:
+        if not os.path.isfile(os.path.join(mod_dir, NUKE_DIR, f"{name}.rules")):
+            probs.append(f"{NUKE_DIR}/{name}.rules nao foi escrito")
+    probs += legacy_scan(os.path.abspath(__file__))
+    return probs
+
+
+_LEGACY_PAT = r"bs_shells([^2]|$)|bs_missiles([^2]|$)"
+
+
+def legacy_scan(path):
+    """R4 (SPEC.art_assets.legacy_1x_cleanup): nenhuma citacao das pastas de arte 1.x de granadas/misseis fora dos
+    blocos '# LEGACY_1X_FALLBACK inicio' / 'fim' do arquivo path, e no maximo um bloco."""
+    import re
+    probs = []
+    with open(path, encoding="utf-8") as fh:
+        lines = fh.read().split("\n")
+    inside, blocks = False, 0
+    for i, ln in enumerate(lines, 1):
+        s = ln.strip()
+        if s == "# LEGACY_1X_FALLBACK inicio":
+            if inside:
+                probs.append(f"{os.path.basename(path)}:{i}: bloco LEGACY_1X_FALLBACK aberto duas vezes")
+            inside, blocks = True, blocks + 1
+            continue
+        if s == "# LEGACY_1X_FALLBACK fim":
+            inside = False
+            continue
+        if not inside and re.search(_LEGACY_PAT, ln) and "_LEGACY_PAT" not in ln:
+            probs.append(f"{os.path.basename(path)}:{i}: pasta de arte 1.x fora do bloco LEGACY_1X_FALLBACK")
+    if inside:
+        probs.append(f"{os.path.basename(path)}: bloco LEGACY_1X_FALLBACK sem fim")
+    if blocks > 1:
+        probs.append(f"{os.path.basename(path)}: {blocks} blocos LEGACY_1X_FALLBACK (esperado 1)")
+    return probs

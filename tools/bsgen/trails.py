@@ -1,15 +1,21 @@
-"""Rastros de particulas proprios dos projeteis do Bullet Strike (R1: projeteis visiveis em voo).
+"""Rastros de particulas proprios dos projeteis do Bullet Strike (R1: projeteis visiveis em voo; 2.0: WP03).
 
 Copias do texto vanilla 0.30.x de shots/bullet_med/particles/bullet_trail_med.rules, bullet_trail_large.rules,
 bullet_trail_def.rules e shots/bullet_deck/particles/bullet_trail_deck.rules, com SO estas mudancas:
   * Bucket = BulletTrailUpper (o do bullet_trail_deck): o rastro fica por cima dos tetos, visivel sobre o
     nosso casco e sobre o casco inimigo (BulletTrail esta nos MiddleBuckets, sob o teto);
   * EmitPerSecond menor nos rastros de canhao rapido (orcamento de particulas, ver bs_data.VIS);
-  * nos coloridos (Perfurante, P.E.M., nuclear) a Def vai inteira no arquivo e muda so _color1/_color2:
+  * nos coloridos (AP, SAP, AC) a Def vai inteira no arquivo e muda so _color1/_color2:
     no particle_distort.shader a cor vem do material (col = lerp(_color1, _color2, tex.r)), a cor da particula
     nao tinge o rastro. Caminhos relativos da Def viram ./Data/... (os tres existem no jogo).
 Nada de heranca parcial da Def ("Def : <...> { Material : ... }"): nao ha exemplo vanilla e o
 bullet_deck_overclock.rules avisa que heranca parcial aninhada pode travar o jogo.
+
+2.0 (WP03): chaves por forma x municao 2.0: med_{he,ap,sap}, large_{he,ap,sap,ac}, deck_{he,ap,sap,ac},
+deckL_{he,ap,sap,ac} e deckH_{he,ac} (Boiuna: rastro fino, metade da largura do deck e cores x0,75). HE = ambar
+vanilla (med/large pela Def vanilla por referencia; deck = o proprio bullet_trail_deck.rules vanilla, trail_name
+devolve None). all_trails() continua chamado sem condicao pelo build_mod (Boitata/Curupira e o caminho sem o
+caliber_fx tambem usam estes arquivos).
 """
 
 # Def de shots/bullet_med/particles/bullet_trail_def.rules (@@BS@@ = BaseSize; @@C1@@/@@C2@@ = cores)
@@ -412,35 +418,37 @@ SHAPES = {
     # 406 mm (caliber_design item 12): o deck vanilla com escala base 6..12 e emissao 1,5 a frente (rastro maior que
     # o do 155 mm, mesma Def de BaseSize 1,5)
     "deckL": {"scale": (6, 12), "loc_x": 1.5, "base_size": 1.5},
+    # Boiuna 2.0 (ADDENDUM G7d, BOIUNA_THIN: puff 0,5 / gain 0,75): o deck com metade da escala (rastro fino de granada,
+    # nao 'chama de foguete') e as duas cores do material x0,75
+    "deckH": {"scale": (2, 4), "loc_x": 1, "base_size": 1.5, "gain": 0.75},
 }
 
 # _color1 / _color2 (X, Y, Z, W) do material. Vanilla (ambar): (1, 0.0745, 0, 1) e (1, 0.727, 0.259, 1)
 COLORS = {
-    # ambar vanilla escrito por extenso: so para formas sem rastro vanilla pronto (deckL); med/large ambar continuam
-    # pela Def vanilla por referencia e o deck ambar e o proprio bullet_trail_deck.rules
-    "amber": ((1, 0.0745, 0, 1), (1, 0.727, 0.259, 1)),
-    "ap": ((0.35, 0.5, 1, 1), (0.85, 0.92, 1, 1)),        # branco-azulado do Perfurante
-    "emp": ((0.05, 0.3, 1, 1), (0.5, 0.8, 1, 1)),          # azul do P.E.M.
-    "nuclear": ((0.3, 1, 0, 1), (0.8, 1, 0.45, 1)),        # verde da Boiuna
+    # HE = ambar vanilla escrito por extenso: so para formas sem rastro vanilla pronto (deckL, deckH); med/large HE
+    # continuam pela Def vanilla por referencia e o deck HE e o proprio bullet_trail_deck.rules
+    "he": ((1, 0.0745, 0, 1), (1, 0.727, 0.259, 1)),
+    "ap": ((0.35, 0.5, 1, 1), (0.85, 0.92, 1, 1)),         # branco-azulado do Perfurante (palette.ap)
+    "sap": ((1, 0.22, 0.02, 1), (1, 0.6, 0.26, 1)),        # laranja do Semiperfurante (palette.sap)
+    "ac": ((0.78, 0.03, 0.12, 1), (1, 0.45, 0.36, 1)),     # carmim profundo da Alta Capacidade (palette.ac, nunca rosa)
 }
+# nomes antigos e municoes sem cor propria de rastro -> ambar (HE)
+COLOR_ALIAS = {"amber": "he", "std": "he", "bullet": "he", "frag": "he"}
 # (o plasma do Curupira tem rastro proprio em bsgen/plasma_fx.py)
 
-# (forma, cor ou None = ambar vanilla, particulas/s): um arquivo por combinacao usada pelos projeteis
-TRAILS = {
-    "bs_trail_med_amber": ("med", None, 150),
-    "bs_trail_large_amber": ("large", None, 200),
-    "bs_trail_large_ap": ("large", "ap", 200),
-    "bs_trail_large_emp": ("large", "emp", 200),
-    "bs_trail_deck_ap": ("deck", "ap", 300),
-    "bs_trail_deck_emp": ("deck", "emp", 300),
-    "bs_trail_deck_nuclear": ("deck", "nuclear", 300),
-    # 406 mm (bsgen/caliber_fx.py): forma deckL nas cores Padrao/Perfurante-Explosiva (ambar), Perfurante e P.E.M.
-    "bs_trail_deckL_amber": ("deckL", "amber", 300),
-    "bs_trail_deckL_ap": ("deckL", "ap", 300),
-    "bs_trail_deckL_emp": ("deckL", "emp", 300),
-}
+EPS = {"med": 150, "large": 200, "deck": 300, "deckL": 300, "deckH": 300}
+# formas x municoes usadas pelos projeteis 2.0 (Carcara med; Tambor large; Trovao deck; Mapinguari deckL; Boiuna
+# deckH) mais as combinacoes do caminho sem o caliber_fx (bs_data.VIS: Mapinguari e Boiuna com 'deck')
+USED = {"med": ("he", "ap", "sap"), "large": ("he", "ap", "sap", "ac"), "deck": ("ap", "sap", "ac"),
+        "deckL": ("he", "ap", "sap", "ac"), "deckH": ("he", "ac")}
+# (forma, cor ou None = Def vanilla por referencia (ambar), particulas/s): um arquivo por combinacao
+TRAILS = {}
+for _shape, _keys in USED.items():
+    for _k in _keys:
+        _ref = _k == "he" and _shape in ("med", "large")
+        TRAILS[f"bs_trail_{_shape}_{_k}"] = (_shape, None if _ref else _k, EPS[_shape])
 
-# rastro vanilla ja no bucket de cima (sem copia): canhoes de conves de 155/406 mm com Padrao / Perfurante-Explosiva
+# rastro vanilla ja no bucket de cima (sem copia): canhoes de conves com HE
 VANILLA_DECK = "./Data/shots/bullet_deck/particles/bullet_trail_deck.rules"
 DIR = "shots/bs_trails"
 
@@ -453,15 +461,21 @@ def _color_lines(c):
     return "\n".join(f"\t\t\t{k} = {_num(v)}" for k, v in zip("XYZW", c))
 
 
+def color_key(color):
+    """Municao -> chave de cor de rastro (he/ap/sap/ac; o resto vira ambar = he)."""
+    key = COLOR_ALIAS.get(color, color)
+    return key if key in COLORS else "he"
+
+
 def trail_name(shape, color):
-    """Nome do arquivo do rastro de uma forma (med/large/deck/deckL) e cor (ap/emp/nuclear; outra = ambar).
-    None = rastro vanilla bullet_trail_deck.rules (deck ambar)."""
-    key = color if color in COLORS else "amber"
+    """Nome do arquivo do rastro de uma forma (med/large/deck/deckL/deckH) e municao (he/ap/sap/ac; outra = ambar).
+    None = rastro vanilla bullet_trail_deck.rules (deck HE)."""
+    key = color_key(color)
+    if shape == "deck" and key == "he":
+        return None
     name = f"bs_trail_{shape}_{key}"
     if name in TRAILS:
         return name
-    if shape == "deck" and key == "amber":
-        return None
     raise ValueError(f"rastro sem arquivo: {shape} / {color}")
 
 
@@ -472,7 +486,8 @@ def trail_text(name):
         # Def vanilla por referencia (mesmo texto do bullet_trail_med/large.rules, caminho absoluto)
         head = "Type = Particles\nDef = &<./Data/shots/bullet_med/particles/bullet_trail_def.rules>\n"
     else:
-        c1, c2 = COLORS[color]
+        g = sh.get("gain", 1)
+        c1, c2 = ([round(v * g, 4) for v in c[:3]] + [c[3]] for c in COLORS[color])
         d = DEF_TEXT.replace("@@BS@@", _num(sh["base_size"]))
         d = d.replace("@@C1@@", _color_lines(c1)).replace("@@C2@@", _color_lines(c2))
         head = "Type = Particles\nDef\n{\n" + d + "\n}\n"

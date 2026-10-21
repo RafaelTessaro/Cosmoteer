@@ -54,7 +54,9 @@ importa deles está resumido nas seções 1 e 2 abaixo.
   listadas no `art_direction` do spec (oliva, vermelho-ferrugem, areia etc.). O usuário aprovou um visual único
   para a família. Do `art_direction` tire só **a silhueta, a quantidade e o estilo dos canos e as animações**.
 - Cor de destaque (cor das luzes) por arma: `"amber"` por padrão; `"cyan"` nas armas de plasma (Boitatá, Curupira);
-  `"green"` no obuseiro nuclear (Boiúna). Uma luz pequena de radar vermelha (`M["red"]`) é permitida na CIWS.
+  `"green"` no obuseiro nuclear (Boiúna 1.x). Uma luz pequena de radar vermelha (`M["red"]`) é permitida na CIWS.
+  Na 2.0: a Boiúna AC é âmbar (sem trevo), a linha PEM é azul com bobinas de cobre e o Tupã é **azul elétrico**
+  com detalhes laranja-ouro (paleta completa na seção 13).
 - O teto do casco é **verde puro** (`B.mat_roof_green()`); o jogo troca o verde pela pintura da nave. O que não deve
   ser pintado (ventilações, escotilhas, metal) usa materiais que não são verdes.
 
@@ -136,8 +138,22 @@ Regras:
 | bs_naval_155 (Trovão) | 4x5 | 5 | 2 | recoil | alternate | amber |
 | bs_plasma_heavy (Curupira) | 4x5 | 4 | 2 | recoil | alternate | cyan |
 | bs_flak_heavy (Pororoca) | 4x4 | 4 | 2 | recoil | alternate | amber |
-| bs_nuke_howitzer (Boiúna) | 5x6 | 6 | 1 | recoil | single | green |
+| bs_nuke_howitzer (Boiúna, 1.x) | 5x6 | 6 | 1 | recoil | single | green |
 | bs_naval_406 (Mapinguari) | 6x7 | 10 | 3 | recoil | volley | amber |
+
+Armas da 2.0 (arte adotada; a pasta de arte vem de `art3d_dir` no spec, não do ID):
+
+| arma (pasta de arte) | tamanho | tripulação | canos visíveis | anim | padrão | destaque |
+|---|---|---|---|---|---|---|
+| Boiúna AC (`art3d/bs_boiuna_ac`, `parts/bs_boiuna_ac.py`; ID `rafaeltessaro.bs_nuke_howitzer`) | 5x6 | 5 | 1 | recoil | single | amber (sem trevo) |
+| Tuvira (`bs_pem_light`, torre 270°) | 1x2 | 1 | 2 | recoil | volley | blue + cobre |
+| Treme-Treme (`bs_pem_medium`) | 2x2 | 2 | 1 | recoil | single | blue + cobre |
+| Corisco (`bs_pem_heavy`, com `charge_glow`) | 4x4 | 3 | 2 | recoil | alternate | blue + cobre |
+
+- **`charge_glow`** (opcional, aditivo): `PART["charge_glow"] = {"frames": 4, "interval": 0.125, "color": rgb,
+  "blend": "alpha", "layer": "above_barrels"}` e uma função `charge_glow(M, T, phase)` no modelo; o renderizador grava
+  `charge_glow1..4.png` no quadro da torre (só a emissão, a cabeça como Holdout, mais halo). As regras desenham em
+  `roof_turrets` presas à torre durante o Timer de pré-disparo (`pem.charge_glow`).
 
 - Posicionamento: a cabeça costuma cobrir as fileiras da frente; a **fileira de trás** da peça (onde fica a
   tripulação) costuma continuar visível no teto (escotilha, ventilações). A tripulação é posicionada
@@ -160,6 +176,8 @@ $PY tools/blender/render_part.py bs_xxx --quick --preview --out <pasta de rascun
 $PY tools/blender/render_part.py bs_xxx --preview
 # confere se o mod gera e valida:
 python3 tools/build_mod.py --no-art && python3 tools/rules_lint.py --mod BulletStrike --vanilla <pasta Data do Cosmoteer>
+# confere a arte (todas as pastas, ou só as de um pacote; --estrito = aviso vira erro):
+python3 tools/check_art3d.py todos | --pacote WPxx | bs_xxx [--estrito]
 ```
 
 A opção `--preview` grava `preview_ingame.png` (1x e 3x) e `preview_fire.gif` na pasta de saída. **Olhe as
@@ -197,6 +215,25 @@ def roof(M, T="roof"): ...                    # teto verde + detalhes sem pintur
   - 3x3 (as outras fábricas, leiaute da `factory_he` do jogo base): fileira de cima + quadro central (1,1) =
     maquinário. Quadros (0,1) à esquerda e (2,1) à direita = ENTRADAS (a 2ª entrada à direita). A fileira de baixo
     inteira (y = 2) = SAÍDA.
+  - **Leiautes 2.0** (spec `render_kinds.factory.new_layouts`; o `meta.json` de cada fábrica grava a grade em
+    `grid` = {blocked, inputs, outputs}, que o `check_art3d` confere contra o tamanho e as bases livres):
+
+    | fábrica (pasta) | tamanho | maquinário (bloqueado) | entradas | saídas |
+    |---|---|---|---|---|
+    | F1 Prensa HE (`bs_factory_mag_std`) | 2x2 | fileira 0 | (0,1) | (1,1) |
+    | F2 Munição Especial (`bs_factory_special`, ID `bs_factory_mag_ap`) | 4x3 (`factory_mine`) | fileira 0 + (1,1), (2,1) | (0,1), (3,1) | uma por receita: (0,2) AP, (1,2) SAP, (2,2) AC, (3,2) FRAG |
+    | F3 Células (`bs_factory_plasma`) | 3x3 | fileira 0 + (1,1) | (0,1), (2,1), (1,2) | (0,2) plasma, (2,2) PEM |
+    | F4 Mísseis (`bs_factory_missile`) | 3x3 | fileira 0 + (1,1) | (0,1), (2,1) | (0,2), (1,2), (2,2) |
+    | F5 Ogivas (`bs_factory_warhead`) | 4x4 (`factory_nuke`) | fileiras 0-1 + (1,2), (2,2) | (0,2), (3,2) | fileira 3 inteira |
+    | F6 Forja de Projéteis (`bs_factory_slug`) | 3x4 (`factory_emp`) | fileiras 0-1 + (1,2) | (0,2), (2,2) | fileira 3 inteira |
+
+  - Fábricas com seletor (F2, F3, F4) levam um **encaixe de placa de modo** no teto (`mode_plate` no meta:
+    `rect_centre`, `size` 0,8, `modes`); a placa `placa_<modo>.png` vem de `art3d/bs_placas` e é desenhada em
+    `roof_doodads` por cima do encaixe (ToggledComponents pelo seletor). Camadas extras de uma fábrica (ex.: o banco
+    PEM da F3) ficam em `overlays` no meta, no esquema das camadas layered (seção 12).
+  - Fábricas 2.0 são renderizadas em DOIS passos: `render_part.py <id>` e depois
+    `tools/blender/parts/_bs2_fabricas_helpers.py <id>` (camadas extras, `META_EXTRA` = grid / mode_plate /
+    art3d_dir, ganho do `lights.png`, LEDs do teto).
   - O jogo desenha as pilhas de recurso por cima dos quadros de entrada e saída (camada `doodads_low`). O chão
     deve mostrar "plataformas" marcadas ali. Deixe esses quadros livres de maquinário.
 - O maquinário precisa parecer da mesma família: carcaças claras chanfradas com chanfro duplo, núcleo escuro, LEDs
@@ -223,6 +260,10 @@ def item(M, T="item"): ...   # UMA unidade centrada na origem, cabendo em ~1x1 (
   triaço, faixa branco-azulada), P.E.M. (bobinas/brilho azul), célula de plasma (cilindro ciano aceso), projétil
   nuclear (projétil grande, faixa verde, símbolo de radiação feito de 3 cunhas).
 - Pilhas de 5 ou 6 não podem parecer um amontoado: use um arranjo organizado em 2 camadas (`stack_layout`).
+- **Pilhas até 10** (cargas de míssil 2.0): `render_part.STACK_LAYOUT` vai de 1 a 10 (7..10 = spec
+  `stack_layout_7_10.missile_charges`: carga comprida deitada em X, 2 camadas de 5). `"stack_layout": "charges"`
+  usa o leiaute inteiro do spec (com `"stack_rot": STACK_ROT_CHARGES`, 90 ± 2 graus); `stack_rot` com qualquer
+  tamanho de lista (índice `j % len`). Os 12 itens 2.0 trazem o próprio `stack_layout` (`parts/_bs2_itens_helpers.py`).
 
 ## 8. Lança-mísseis (`kind: "launcher"`)
 
@@ -662,12 +703,111 @@ trevo nem a luz de radiação (a Iara de verdade é a que tem a luz verde girand
 
 ### 11.9 Conferência e prévias
 
-- `python3 tools/check_art3d.py bs_missiles | bs_shells | todos | <pasta de rascunho>`: arquivos e nomes do contrato,
-  `px = size x px_per_tile` (+-1 px), atlas `n x w` numa fileira, um componente de alfa por sprite, orçamento de
-  emissivo do quadro 0, máscaras brancas sobre transparente (e dentro do corpo), normais com o alfa do difuso;
-  nas pastas oficiais, também as chaves do contrato (granadas `he`, `ap`, `nuke`; mísseis = tabela de arte).
+- `python3 tools/check_art3d.py bs_shells2 | bs_missiles2 | todos | <pasta de rascunho>`: arquivos e nomes do
+  contrato, `px = size x px_per_tile` (+-1 px), atlas `n x w` numa fileira, um componente de alfa por sprite,
+  orçamento de emissivo do quadro 0, máscaras brancas sobre transparente (e dentro do corpo), normais com o alfa do
+  difuso, âncoras do contrato (`seeker`, `warhead`, `radiation`, `tip`) e o bloco `atlases` (pétalas: textura
+  `per_row x sprite_px`, normais com o alfa do difuso); nas pastas oficiais, também as chaves do contrato (2.0:
+  as 18 granadas de `shell_ladder.items`; mísseis = `assets.missiles.items`; 1.x: `he`, `ap`, `nuke`). Número do meta
+  diferente do spec = AVISO (o meta vence); AC s/m/l ainda guiadas = AVISO com dono (WP11).
+- O `render_part.py` de projéteis preserva o bloco `atlases` do meta antigo num render completo e chama
+  `register_atlases(out)` do modelo quando ele existe (bs_missiles2): não é mais preciso rodar `--meta-only` depois.
 - `python3 tools/blender/compose_preview.py <pasta> [--sheet PNG] [--gif GIF]` (ou `--preview` no render): folha com
   cada item a 1x e 3x sobre placas de casco, com uma chama/tracante simples na cor do tipo atrás do bocal, as luzes do
   quadro 0 somadas e a faixa tingida; GIF com os atlas de luzes animados (fps de cada item; `Clamp` segura o último
   quadro). Em Python, `compose_preview.make_projectiles(pasta, sheet_path, gif_path, lengths={chave: [comprimentos
   no jogo]}, mock_colors=..., mask_colors=...)` monta, por exemplo, a escada de calibres das granadas.
+
+## 12. Peças em camadas (`kind: "layered"`)
+
+Peças que não são torre nem fábrica: o railgun Tupã (carregador 5x5, cano 3x3, ponta 3x4), os paióis, a Fita, o FX
+da Fita e as placas de modo. Renderizador: `tools/blender/render_layered.py` (adotado do job de arte do Tupã; o
+esquema completo do `PART` está no cabeçalho dele). Cada **camada** tem o seu sprite (ou conjunto de sprites), o seu
+retângulo na peça e a sua camada do jogo:
+
+```python
+PART = {"id": "rafaeltessaro.bs_xxx", "kind": "layered", "size": [W, H], "accent": "amber",
+        "walls": "closed" | "none" | {"open": [["top", 1.0, 2.0], ...]},
+        "layers": [
+            {"name": "floor", "game_layer": "floors", "opaque": True},
+            {"name": "roof", "game_layer": "roofs", "normals": True, "despill": True},
+            {"name": "carga", "game_layer": "lights_add", "rect": [0, 0, 3, 3], "levels": 8,
+             "emission_only": True, "blend": "add", "file": "carga{i}.png"},
+            {"name": "tranco", "game_layer": "roof_turrets", "frames": 8, "interval": 0.05, "normals": True,
+             "file": "tranco{i}.png", "islands": True},
+            {"name": "placa", "fn": "pil:placa", "game_layer": "roof_doodads", "variants": ["he", "ap"],
+             "file": "placa_{v}.png"},
+        ],
+        "icon": {...}, "blueprint_layers": ["roof"]}
+def roof(M, T="roof", **kw): ...            # kw: level | phase + frame | variant | sit
+```
+
+- **Coordenadas:** o `rect` é `[x, y, w, h]` em quadros com a origem no canto de cima-esquerda e **+y para baixo**
+  (como as regras); o modelo continua centrado na peça com +Y = frente (como a fábrica). `at` repete o mesmo
+  sprite em vários lugares (o meta ganha `rects`). Retângulos da MESMA camada do jogo não devem se sobrepor (a
+  ordem de desenho dentro de uma camada não é garantida).
+- **Conjuntos:** `levels N` (ValueSprites / ResourceSprites: níveis de carga, medidores, pilhas), `frames N`
+  (AnimationFiles: tranco, consolas, FX), `variants [..]` (uma imagem por tipo: tetos por família, placas,
+  dígitos), `situations [..]` (peças que se emendam: só a reserva da esteira).
+- **Quadros do tranco** (recuo animado): arquivo 1 = repouso; o meta grava `tranco.<camada>.AnimationFiles_order` =
+  [2..8, 1] e as regras tocam nessa ordem com `AnimationStartTime = MinValue` e `ClampAnimation` (como o
+  `barrel1.png` dos canhões de convés), com `NormalsAnimationFiles` na mesma ordem.
+- **Pasta compartilhada:** várias peças numa pasta só (`PART["folder"]`, ex.: os 12 paióis em `art3d/bs_paiol`):
+  meta `{shared: true, id, parts: {1x1: meta, 2x2: meta, 3x3: meta}, files: [união]}`, publicada no mod com o
+  nome do id (`parts/bs_paiol_comum/`).
+- **Saída:** os PNGs, `walls.png` (moldura vanilla de 7 px com as aberturas), `icon.png`, `blueprints.png` e o
+  `meta.json` versão 1 (`layers: {nome: {game_layer, rect, rects, files, normals, levels|frames|variants|
+  situations, interval, blend, opaque, emission_only, islands, px}}`).
+- **Regras do estilo** (as mesmas das seções 1 e 9): teto verde puro (`B.mat_roof_green`, `despill` tira o verde
+  refletido do metal vizinho), nada verde em `roof_doodads` (o shader pintaria), LEDs só em recessos, `lights_add`
+  aditivo opaco sobre preto (`emission_only` + `blend: "add"`), emissivo <= 2 % nas camadas iluminadas.
+
+Ligação nas regras e conferência:
+
+- `tools/bsgen/layered.py`: `graphics(meta, camada, ...)` devolve o componente das regras (Graphics com
+  AnimationFiles, ValueSprites, ResourceSprites ou ToggledBlendSprites) com `Location` = centro do rect e `Size` =
+  rect; `components(meta, camada, "Id")` (uma Graphics por cópia), `base_graphics(meta)` (piso, paredes e teto),
+  `editor_icon`, `blueprints`, `stand_in` (arte provisória no mesmo formato). Campos que o slot da Graphics não aceita
+  no jogo (corpus vanilla + SW:ACD) levantam erro no build em vez de ir para o arquivo.
+- `tools/make_art.py`: `layered_art(out, pasta_publicada, pasta_art3d, meta)` copia a pasta uma vez por build, grava
+  as paredes danificadas (`<walls>_33/_66.png`) e, sem arte (só com `BS_ARTE_PROCEDURAL=1`), desenha a arte
+  provisória de um `stand_in`.
+- `python3 tools/check_art3d.py <pasta>`: todo arquivo listado existe; `px = rect x 64` (+-1) ou o `px` da camada;
+  rects dentro da peça; conjuntos completos (todo quadro/nível/variante); um componente de alfa por sprite quando
+  `islands` é falso; pisos opacos; `lights_add` opaco; normais com o alfa do difuso; nada na chave de pintura em
+  `roof_doodads`; emissivo <= 2 %; `tranco` e `layer_flags` coerentes; nomes, ids e tamanhos do spec (Fita, FX,
+  placas, paiol, Tupã).
+- Prévias: `python3 tools/blender/compose_preview.py art3d/<pasta> [--sub 2x2]` grava `preview_layered.png` (peça
+  montada, interior e teto, 1x e 3x, e uma tira por camada com mais de um sprite) e `preview_layered.gif` (as camadas
+  de quadros e de níveis rodando juntas); `python3 tools/make_gallery.py --out <pasta> layered` monta o Tupã com 4
+  canos (níveis no máximo: "carga cheia"), os 12 paióis e a Fita numa folha. As prévias montam a peça como o jogo:
+  a placa de tipo do meta (`plate.rect`, 1º tipo da família, `art3d/bs_placas`) entra no `roof_doodads`; os dígitos
+  do paiol só aparecem com pedido explícito (`pick={'digitos': i}`), porque o switch `paiol_counter` está desligado
+  nos dois builds; as variantes (teto por família, placas, dígitos) são escolhas fixas: têm tira, mas não entram no
+  GIF.
+
+## 13. Paleta 2.0 e regra de luz (`c_min`)
+
+Fonte: `tools/spec/bullet_strike_art2.json` (`art_assets.palette`, gerado do `SPEC_2.0.json`). Valores sRGB.
+
+| família | faixa / chip | tracante / brilho | luz de casco (`hull`) | observação |
+|---|---|---|---|---|
+| HE | (255, 190, 60) | (255, 170, 60) / (255, 120, 30) | (255, 96, 12) | âmbar |
+| AP | (215, 230, 255) | (190, 215, 255) / (200, 225, 255) | (24, 104, 255) | branco-azulado |
+| SAP | (255, 140, 50) | (255, 135, 50) / (255, 110, 40) | (255, 64, 8) | laranja |
+| AC | (230, 40, 80) + ouro (255, 200, 80) | (220, 30, 60) / (220, 30, 60) | (200, 10, 40), refl 4 | **carmim profundo**, nunca rosa |
+| FRAG | (120, 210, 200) | (150, 230, 215) / (110, 210, 200) | sem luz | fragmentos sem IsLight |
+| PEM | (60, 200, 255) + cobre (200, 110, 50) | — / (40, 170, 255) | (8, 150, 255) | cobre = só a família PEM |
+| Tupã (rail) | chip (64, 128, 255), ponta (255, 140, 40) | azul (45, 115, 255) / (100, 175, 255), núcleo (205, 228, 255) | (20, 82, 255), refl 4 | **azul elétrico**; laranja-ouro (215, 145, 40) só em detalhes pintados, molas (235, 185, 50); **nunca violeta, nunca cobre** |
+| Piranha (cluster) | (255, 150, 40) | — | (255, 110, 16) | |
+
+- **Chip de família dos paióis** (`palette.family_chip`): cartuchos (255, 190, 60), células (60, 220, 255),
+  mísseis (255, 120, 40), **projéteis AZUL (64, 128, 255) com pontas laranja (255, 140, 40)** (a cor do Tupã). O
+  chip é tinta (sem emissão); o `check_art3d` não o conta como luz.
+- Medidores (`palette.gauge`): baixo (255, 70, 30), alto (255, 200, 40), cheio (110, 230, 90).
+- **Regra `c_min` da luz de casco** (`art_assets.phase_b_leftovers.islight_white_hull`): toda luz de projétil se
+  divide em dois sprites, o halo grande SÓ NO ESPAÇO (`_litReflectiveStrength 0`) e a luz pequena no casco. A cor
+  da luz de casco precisa manter o canal mais fraco `c_min <= floor(0,5 x 255 / (0,85 x refl))` (= 25 a refl 6,
+  37 a refl 4, 15 a refl 10): pelo menos um canal nunca satura e o casco branco fica tingido, nunca lavado de
+  branco. AC e o slug do Tupã usam refl 4 (`hull_refl`); o resto refl 6. Ao criar uma cor nova de luz, confira o
+  `c_min` antes de renderizar.

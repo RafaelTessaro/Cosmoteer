@@ -1,9 +1,17 @@
 """Sprites 3D (renderizados no Blender) do Bullet Strike: leitura do meta.json e copia para o mod.
 
-Cada peca com arte 3D tem uma pasta art3d/<id_curto>/ com os PNGs no formato do jogo e um meta.json
-gerado por tools/blender/render_part.py. Quando a pasta existe, o gerador do mod usa a geometria do
-meta (pivo, tamanho da torre, canos, quadros de animacao) e copia os PNGs em vez de desenhar a arte
-procedural antiga.
+Cada peca com arte 3D tem uma pasta art3d/<pasta>/ com os PNGs no formato do jogo e um meta.json
+gerado por tools/blender/render_part.py (torre, fabrica, recurso, lancador, projeteis) ou por
+tools/blender/render_layered.py (kind "layered": carregador/cano/ponta do Tupa, paiois, Fita, placas).
+Quando a pasta existe, o gerador do mod usa a geometria do meta (pivo, tamanho da torre, canos, quadros de
+animacao, retangulos das camadas) e copia os PNGs em vez de desenhar a arte procedural antiga.
+
+Tipos de pasta (2.0):
+  * meta.json "normal" (gun, factory, resource, launcher, missiles, shells, layered);
+  * meta.json "shared" (layered com varias pecas numa pasta so: {shared: true, id, parts: {sub: meta}, files});
+    a pasta da arte (art3d/bs_paiol) pode ser publicada com outro nome no mod (parts/bs_paiol_comum: o id do meta);
+  * icons.json (sem meta.json): icones de interface 96x96 (art3d/bs_ui_icons2), mapa 'files' gui/<x>.png -> <x>.png;
+    load_meta devolve um meta {kind: "ui_icons", publish: {gui/...: arquivo}, files: [...]}.
 """
 
 import json
@@ -14,16 +22,91 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ART3D = os.path.join(ROOT, "art3d")
 
 
-def load_meta(short):
-    p = os.path.join(ART3D, short, "meta.json")
-    if not os.path.exists(p):
-        return None
+def _icons_meta(short, p):
+    """icons.json (art3d/bs_ui_icons2) no formato de um meta: kind ui_icons, publish = {gui/<x>.png: <x>.png}."""
     with open(p, encoding="utf-8") as f:
-        meta = json.load(f)
+        ic = json.load(f)
+    pub = dict(ic.get("files") or {})
+    return {"version": ic.get("version", 1), "kind": "ui_icons", "id": f"rafaeltessaro.{short}",
+            "size": list(ic.get("size") or [96, 96]), "publish": pub, "files": sorted(set(pub.values())),
+            "accents": ic.get("accents") or {}, "drop_1x": ic.get("drop_1x") or [], "source": "icons.json"}
+
+
+def meta_path(short):
+    """Caminho do meta da pasta (meta.json; ou icons.json nas pastas de icones de interface). None sem nenhum."""
+    for n in ("meta.json", "icons.json"):
+        p = os.path.join(ART3D, short, n)
+        if os.path.exists(p):
+            return p
+    return None
+
+
+def load_meta(short):
+    p = meta_path(short)
+    if p is None:
+        return None
+    if p.endswith("icons.json"):
+        meta = _icons_meta(short, p)
+    else:
+        with open(p, encoding="utf-8") as f:
+            meta = json.load(f)
     missing = [n for n in meta.get("files", []) if not os.path.exists(os.path.join(ART3D, short, n))]
     if missing:
         raise FileNotFoundError(f"art3d/{short}: meta.json cita arquivos que nao existem: {missing[:5]}")
     return meta
+
+
+# ============================================================================ kind "layered" (e pastas shared)
+def sub_meta(meta, sub=None):
+    """Meta de UMA peca: o proprio meta, ou meta['parts'][sub] numa pasta compartilhada (shared)."""
+    if not meta.get("shared"):
+        if sub not in (None, meta.get("sub")):
+            raise KeyError(f"{meta.get('id')}: meta nao e compartilhado (sub {sub!r})")
+        return meta
+    parts = meta.get("parts") or {}
+    if sub is None:
+        if len(parts) == 1:
+            return next(iter(parts.values()))
+        raise KeyError(f"{meta.get('id')}: pasta compartilhada, escolha sub entre {sorted(parts)}")
+    if sub not in parts:
+        raise KeyError(f"{meta.get('id')}: sub {sub!r} nao existe (ha {sorted(parts)})")
+    return parts[sub]
+
+
+def sub_metas(meta):
+    """[(sub, meta da peca)] de uma pasta layered (shared ou nao)."""
+    if meta.get("shared"):
+        return sorted((meta.get("parts") or {}).items())
+    return [(meta.get("sub"), meta)]
+
+
+def published_dir(short, meta=None):
+    """Pasta do mod onde a arte de art3d/<short> e publicada (parts/<isto>/): o id curto do meta nas pastas
+    compartilhadas (art3d/bs_paiol -> bs_paiol_comum), meta['publish_dir'] se existir, senao o proprio nome."""
+    meta = meta if meta is not None else load_meta(short)
+    if meta and meta.get("publish_dir"):
+        return meta["publish_dir"]
+    if meta and meta.get("shared") and "." in (meta.get("id") or ""):
+        return meta["id"].split(".", 1)[1]
+    return short
+
+
+def layer_files(meta, sub=None, layers=None, normals=True, extras=True):
+    """Arquivos de uma peca layered: das camadas pedidas (todas por padrao), com as normais e (extras) walls,
+    icone(s) e blueprints."""
+    m = sub_meta(meta, sub)
+    out = []
+    for name, ent in (m.get("layers") or {}).items():
+        if layers is not None and name not in layers:
+            continue
+        out += list(ent.get("files") or [])
+        if normals:
+            out += list(ent.get("normals") or [])
+    if extras:
+        for k in ("walls", "icon", "blueprints"):
+            v = m.get(k)
+            out += list(v) if isinstance(v, list) else ([v] if v else [])
+    return out
 
 
 # Arte procedural antiga (desenhada em Python) so com BS_ARTE_PROCEDURAL=1; sem isso, falta de art3d/<id> ou do
@@ -97,14 +180,31 @@ def overlay_glow(alpha, radius=5.0, strength=0.7):
     return out
 
 
-def copy_files(out_root, pdir, short, meta):
+_COPIED = set()
+
+
+def copy_files(out_root, pdir, short, meta, only=None, exclude=None, once=False):
     """Copia os PNGs listados no meta para <mod>/<pdir>/. Renders de recurso antigos (sem nugget_scale /
-    overlay_glow no meta) saem ja no formato atual: nugget do tamanho de uma unidade da pilha e overlay com halo."""
+    overlay_glow no meta) saem ja no formato atual: nugget do tamanho de uma unidade da pilha e overlay com halo.
+
+    only / exclude: conjuntos de nomes (ex.: digitos do paiol so com paiol_counter); once=True copia a mesma pasta
+    para o mesmo destino uma vez so por build (pastas compartilhadas: 12 paiois, placas de modo). Icones de
+    interface (kind ui_icons): use copy_ui_icons. Devolve os nomes copiados."""
     from PIL import Image
+    if meta.get("kind") == "ui_icons":
+        raise ValueError(f"art3d/{short}: icones de interface vao para gui/ (use art3d.copy_ui_icons)")
+    key = (os.path.abspath(out_root), pdir, short, tuple(sorted(only or ())), tuple(sorted(exclude or ())))
+    if once and key in _COPIED:
+        return []
     dst = os.path.join(out_root, pdir)
     os.makedirs(dst, exist_ok=True)
     nf = nugget_factor(short, meta)
-    for name in meta["files"]:
+    names = [n for n in meta["files"] if (only is None or n in only) and not (exclude and n in exclude)]
+    if only is not None:
+        miss = sorted(set(only) - set(meta["files"]))
+        if miss:
+            raise FileNotFoundError(f"art3d/{short}: o meta nao lista {miss[:5]}")
+    for name in names:
         src = os.path.join(ART3D, short, name)
         if nf and name in ("nugget.png", "nugget_normals.png"):
             scaled_center(Image.open(src), nf).save(os.path.join(dst, name), optimize=True)
@@ -112,6 +212,28 @@ def copy_files(out_root, pdir, short, meta):
             overlay_glow(Image.open(src).convert("RGBA").getchannel("A")).save(os.path.join(dst, name), optimize=True)
         else:
             shutil.copyfile(src, os.path.join(dst, name))
+    if once:
+        _COPIED.add(key)
+    return names
+
+
+def copy_ui_icons(out_root, short="bs_ui_icons2", only=None):
+    """Copia os icones de interface de art3d/<short>/ para os caminhos do mapa icons.json 'files' (gui/<x>.png).
+    only: caminhos publicados a copiar (padrao: todos). Devolve [caminhos publicados]."""
+    meta = load_meta(short)
+    if meta is None:
+        return []
+    if meta.get("kind") != "ui_icons":
+        raise ValueError(f"art3d/{short}: kind {meta.get('kind')} (esperado ui_icons)")
+    done = []
+    for rel, name in sorted(meta["publish"].items()):
+        if only is not None and rel not in only:
+            continue
+        p = os.path.join(out_root, rel)
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        shutil.copyfile(os.path.join(ART3D, short, name), p)
+        done.append(rel)
+    return done
 
 
 def path(short, name):

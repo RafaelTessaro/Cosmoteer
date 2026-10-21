@@ -22,6 +22,12 @@ import fxlib as FX  # noqa: E402
 REPO = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 TABLE_PATH = os.path.join(REPO, "tools", "spec", "bullet_strike_vfx.json")
 TABLE = json.load(open(TABLE_PATH, encoding="utf-8"))
+# 2.0 (WP03): a tabela re-chaveada (he/ap/sap/ac) guarda a da Fase B em historico_1x; as previas leem a vista da Fase B
+# (cores std/aphe/emp/nuclear e os projeteis 1.x), como quando as folhas aprovadas foram feitas
+if "historico_1x" in TABLE:
+    _H = TABLE["historico_1x"]
+    TABLE = dict(TABLE, ammo_colors=_H["ammo_colors"], weapons={
+        k: (dict(r, **_H["weapons"][k]) if k in _H["weapons"] else r) for k, r in TABLE["weapons"].items()})
 # posicoes e larguras das camadas da granada = as do jogo (bsgen/caliber_fx.shell_layout)
 sys.path.insert(0, os.path.join(REPO, "tools"))
 from bsgen import caliber_fx as CFX  # noqa: E402
