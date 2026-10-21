@@ -45,7 +45,7 @@ RAIL_Y = 1.24              # trilho do portico
 MS = 1.55                  # escala da carga de missil (0.57 x 0.14 quadro)
 BODY_X = -0.08             # centro do corpo no berco de encaixe (nariz para +X)
 LOW_Y = 0.02               # berco de acabamento (celula central)
-OUTS = {(0, 2): "msl_he", (1, 2): "msl_cluster", (2, 2): "msl_emp"}
+OUTS = {(0, 2): "msl_he_pad", (1, 2): "msl_cluster", (2, 2): "msl_emp"}   # pastilhas/setas (HE em laranja)
 PLATE_C = (0.0, 1.0)       # rect_centre [1.5, 0.5]
 
 META_EXTRA = {
@@ -57,7 +57,10 @@ META_EXTRA = {
     "mode_plate": {"rect_centre": [1.5, 0.5], "size": 0.8, "modes": ["msl_he", "msl_cluster", "msl_emp"],
                    "toggle": "bs_missile_type", "values": [0, 1, 2], "files": "placa_<modo>.png (art3d/bs_placas)",
                    "game_layer": "roof_doodads"},
-    "notes": ["o maquinario e o mesmo nos 3 modos; pastilhas pintadas nas saidas e placa de modo no teto"],
+    "notes": ["o maquinario e o mesmo nos 3 modos; pastilhas pintadas nas saidas e placa de modo no teto",
+              "pastilhas/setas das saidas: HE laranja (palette.msl_he.hull 255,96,12), submunicao amarelo-limao (a "
+              "Piranha aprovada e o recurso bs_msl_cluster), PEM azul. A placa_msl_cluster (bs_placas) e o "
+              "palette.cluster.chip (255,120,40) sao laranja: alinhar a placa ou o spec na ligacao"],
 }
 
 
@@ -94,7 +97,7 @@ def floor(M, T="floor"):
 # ============================================================================ maquina
 HOUSE = [(-1.40, 1.30), (-1.30, 1.40), (-0.70, 1.40), (-0.60, 1.30), (-0.60, 1.20), (-0.66, 1.14), (-0.66, 0.80),
          (-0.74, 0.72), (-1.32, 0.72), (-1.40, 0.80)]
-BLADE = [(-1.40, 0.67), (-0.92, 0.67), (-0.70, 0.60), (-0.70, 0.545), (-1.30, 0.545), (-1.40, 0.60)]
+BLADE = [(-1.40, 0.69), (-0.92, 0.69), (-0.70, 0.62), (-0.70, 0.525), (-1.30, 0.525), (-1.40, 0.605)]
 
 
 def _housing(prefix, sx, M, tags, hole):
@@ -104,7 +107,7 @@ def _housing(prefix, sx, M, tags, hole):
     ha, hp = B.shard(prefix, f(HOUSE), 0.0, 0.40, A, slope=0.06, groove=0.03, panel_h=0.028, tags=tags)
     hole = f(hole)
     H.bezel(prefix + "_win", hole, B.offset_poly(hole, 0.022), 0.20, 0.40, M, tags, (ha, hp))
-    ba, bp = B.shard(prefix + "_blade", f(BLADE), 0.0, 0.26, A, slope=0.04, groove=0.018, panel_h=0.022, tags=tags)
+    ba, bp = B.shard(prefix + "_blade", f(BLADE), 0.0, 0.26, A, slope=0.03, groove=0.014, panel_h=0.02, tags=tags)
     H.ledslot(prefix + "_in", sx * 1.10, 0.61, 0.30, 0.07, 0.10, 0, M, tags, [ba, bp], vertical=False)
     for k in range(3):
         H.chevron(f"{prefix}_inchv{k}", sx * (1.00 + k * 0.10), 0.61, 90, M["glow_dim"], tags, z=0.108, s=0.40)
@@ -270,7 +273,8 @@ def _finish(M, Xm, tags, st):
               pips=[M["glow_dim"] if (st["low_y"] is not None and st["low_y"] < 0) else None, None, None, None])
     # boca de saida e as 3 setas (cor de cada missil) para as 3 bases de baixo
     B.box("lo_out", 0, -0.44, 0.62, 0.09, 0.0, 0.05, M["black"], bevel=0.0, tags=tags)
-    for k, (x, ang, kind) in enumerate(((-0.24, 225, "msl_he"), (0.0, 270, "msl_cluster"), (0.24, 315, "msl_emp"))):
+    for k, (x, ang, kind) in enumerate(((-0.24, 225, "msl_he_pad"), (0.0, 270, "msl_cluster"),
+                                        (0.24, 315, "msl_emp"))):
         H.chevron(f"lo_ar{k}", x, -0.445, ang, H.led(kind, 0.9), tags, z=0.05, s=0.55)
     if st["low_y"] is not None:
         H.mini_missile("lo_msl", 0.0, st["low_y"], 0.08, M, Xm, tags, kind="msl_he", s=MS, rz=-90)
@@ -301,9 +305,9 @@ def roof(M, T="roof"):
     # coroa do portico (meio de cima): encaixe da placa de modo entre dois montantes do trilho
     H.plate_slot("rf_plate", M, PLATE_C[0], PLATE_C[1], 0.8, [], T=T, z1=0.18)
     for sx in (-1, 1):
-        post = H.flip(sx)([(-0.62, 1.44), (-0.50, 1.44), (-0.50, 0.58), (-0.56, 0.52), (-0.62, 0.52)])
+        post = H.flip(sx)([(-0.66, 1.44), (-0.50, 1.44), (-0.50, 0.60), (-0.58, 0.52), (-0.66, 0.52)])
         pa, pp = B.shard(f"rf_post{sx}", post, 0.0, 0.26, A, slope=0.03, groove=0.012, panel_h=0.014, tags=tags)
-        H.ledslot(f"rf_psl{sx}", sx * 0.56, 1.0, 0.03, 0.24, 0.22, 3, M, tags, [pa, pp], pw=0.014,
+        H.ledslot(f"rf_psl{sx}", sx * 0.58, 1.0, 0.03, 0.24, 0.22, 3, M, tags, [pa, pp], pw=0.014,
                   pip_mat=M["glow_dim"])
     # cantos de cima: tampas blindadas das estacoes (respiro + fenda) com o trilho do portico passando por cima
     for sx in (-1, 1):
@@ -316,15 +320,17 @@ def roof(M, T="roof"):
         H.ledslot(f"rf_cs{sx}", sx * 1.03, 0.90, 0.30, 0.034, 0.20, 3, M, tags, [ca, cp], vertical=False, pw=0.016,
                   pip_mat=M["glow_dim"])
         B.box(f"rf_rail{sx}", sx * 0.95, 1.40, 0.90, 0.05, 0.24, 0.30, S, bevel=0.01, tags=tags)
-    # celula central: escotilha em seta (o missil desce) com o perfil de missil gravado
+    # celula central (maquina): tampa OCTOGONAL do berco (sem direcao, para nao parecer uma seta de saida) com o
+    # perfil do missil gravado deitado e 3 LEDs ao longo dele
     pa, pp = deck[(1, 1)]
-    arrow = [(-0.30, 0.34), (0.30, 0.34), (0.30, -0.10), (0.0, -0.36), (-0.30, -0.10)]
-    aa, ap = H.inlay("rf_carr", arrow, (pa, pp), 0.14, tags)
-    msl = [(-0.035, 0.24), (0.035, 0.24), (0.035, -0.08), (0.0, -0.17), (-0.035, -0.08)]
+    cap = H.octo(0.0, 0.0, 0.33)
+    aa, ap = H.inlay("rf_carr", cap, (pa, pp), 0.14, tags)
+    msl = [(-0.24, -0.035), (0.08, -0.035), (0.17, 0.0), (0.08, 0.035), (-0.24, 0.035)]
     for q, t in enumerate((aa, ap)):
         if t is not None:
             B.cut(t, [B.loft(f"rf_mc{q}", msl, msl, 0.06, 0.5, K, bevel=0.0)])
     B.loft("rf_mbed", msl, msl, 0.055, 0.065, M["black"], bevel=0.0, tags=tags)
     for k in range(3):
-        B.box(f"rf_mled{k}", 0, 0.16 - k * 0.09, 0.024, 0.03, 0.065, 0.072, M["glow_dim"], bevel=0.0, tags=tags)
+        B.box(f"rf_mled{k}", -0.16 + k * 0.09, 0.0, 0.03, 0.024, 0.065, 0.072, M["glow_dim"], bevel=0.0, tags=tags)
+    B.bolts("rf_cb", [(0.0, 0.22), (0.0, -0.22)], 0.14, 0.016, S, tags=tags)
     H.roof_unpaint(T)

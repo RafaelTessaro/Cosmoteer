@@ -24,9 +24,11 @@ Animacao: 12 quadros x 0,125 s = 1,5 s = metade do ciclo de 3,0 s (2 voltas por 
 garras nas portas | 1-3 o braco direito poe o nucleo (o poco pulsa) | 3-5 o braco esquerdo poe a tampa | 5 solda
 (lampejo verde nas costuras) | 6 os bracos voltam | 7-8 a eclusa abre e a ogiva desce | 9-10 a ogiva no berco
 desce para a saida | 11 carcaca nova na mesa, nucleo e tampa novos nas portas.
-Teto: placas verdes; tampa da celula quente sem pintura em degraus com visor e fendas de LED verde; tampas das
-colunas (centrifugas = 3 calotas octogonais; torno = capo com respiro); cinta de cofre sobre o berco de saida;
-escotilhas em seta nas entradas e na saida.
+Teto: placas verdes; tampa da celula quente em degraus (aba externa pintada com linhas de painel, escudo interno
+claro com visor, fendas de LED verde e o trevo grande embutido num recesso escuro); tampas das colunas
+(centrifugas = 3 calotas octogonais; torno = capo com respiro + placa da janela, uma por celula); cinta de cofre
+sobre o berco de saida; escotilhas em seta nas entradas e na saida. LEDs do teto todos em (0.32, 1, 0) a 0,75
+(STYLE 9: |r - b| >= 64, o shader de pintura nao os repinta).
 """
 
 import math
@@ -101,6 +103,7 @@ def _extra(st=None):
         "lead": B.mat_metal("f5_lead", (0.075, 0.08, 0.085), rough=0.55, metal=0.5),
         "mid": B.mat_paint("f5_mid", (0.26, 0.268, 0.28), rough=0.5, metal=0.3, wear=0.0, grime=0.05, scale=4),
         "wfloor": B.mat_metal("f5_wfloor", (0.030, 0.052, 0.040), rough=0.38, metal=0.8),
+        "rack": B.mat_paint("f5_rack", (0.075, 0.078, 0.086), rough=0.42, metal=0.45, wear=0.25, grime=0.05),
     }
 
 
@@ -196,17 +199,14 @@ def _hotcell(M, Xm, X, tags, st):
     B.bolts("hc_wb", [(wx + dx * (WIN[0] / 2 + 0.005), wy + dy * (WIN[1] / 2 + 0.005)) for dx in (-1, 1)
                       for dy in (-1, 1)], 0.50, 0.016, KM, tags=tags)
     # moldura: fendas de pips verdes nos lados, linha de painel em cima, fenda na cunha de baixo
-    if fp is not None:
-        # linhas de painel na moldura (STYLE 1.8: uma quebra a cada 0,3-0,5 quadro): faixa de cima, lados e cunha de
-        # baixo partidas em placas menores
-        cuts = [B.box("hc_tpl", wx, 1.71, 0.90, 0.024, 0.48, 0.9, K, bevel=0.0)]
-        for sx in (-1, 1):
-            cuts.append(B.box(f"hc_tv{sx}", sx * 0.30, 1.69, 0.022, 0.24, 0.48, 0.9, K, bevel=0.0))
-            cuts.append(B.box(f"hc_sh{sx}", sx * 0.735, 1.24, 0.30, 0.022, 0.48, 0.9, K, bevel=0.0))
-            cuts.append(B.box(f"hc_sl{sx}", sx * 0.735, 0.86, 0.30, 0.022, 0.48, 0.9, K, bevel=0.0))
-            cuts.append(B.box(f"hc_bv{sx}", sx * 0.30, 0.55, 0.022, 0.24, 0.48, 0.9, K, bevel=0.0))
-            cuts.append(B.rbox(f"hc_bd{sx}", sx * 0.67, 0.62, 0.20, 0.022, 0.48, 0.9, K, rot=-sx * 50, bevel=0.0))
-        B.cut(fp, cuts)
+    # linhas de painel escuras na moldura (STYLE 1.8: uma quebra a cada 0,3-0,5 quadro): faixa de cima, lados e
+    # cunha de baixo partidas em placas menores
+    H.groove("hc_tpl", wx, 1.71, 0.86, 0.026, 0.50, (fa, fp), M, tags, depth=0.06)
+    for sx in (-1, 1):
+        H.groove(f"hc_tv{sx}", sx * 0.30, 1.67, 0.026, 0.18, 0.50, (fa, fp), M, tags, depth=0.06)
+        H.groove(f"hc_sh{sx}", sx * 0.725, 1.24, 0.24, 0.026, 0.50, (fa, fp), M, tags, depth=0.06)
+        H.groove(f"hc_sl{sx}", sx * 0.725, 0.87, 0.24, 0.026, 0.50, (fa, fp), M, tags, depth=0.06)
+        H.groove(f"hc_bv{sx}", sx * 0.30, 0.56, 0.026, 0.18, 0.50, (fa, fp), M, tags, depth=0.06)
     for sx in (-1, 1):
         H.vent(f"hc_sv{sx}", sx * 0.725, 1.05, 0.14, 0.24, 0.44, 0.50, M, tags, n=3, targets=[fa, fp])
     for sx in (-1, 1):
@@ -406,6 +406,7 @@ def _output(M, Xm, X, tags, st):
                            (-0.92, -0.90)])
         ha, hp = B.shard(f"ot_h{sx}", hood, 0.0, 0.32, A, slope=0.05, groove=0.022, panel_h=0.024, tags=tags)
         H.vent(f"ot_v{sx}", sx * 0.66, -0.30, 0.30, 0.22, 0.27, 0.32, M, tags, n=4, targets=[ha, hp])
+        H.groove(f"ot_pl{sx}", sx * 0.64, -0.49, 0.44, 0.026, 0.32, (ha, hp), M, tags, depth=0.06)
         H.ledslot(f"ot_sl{sx}", sx * 0.66, -0.66, 0.30, 0.034, 0.28, 4, M, tags, [ha, hp], vertical=False, pw=0.016,
                   pips=[X["led"] if st["clamp"] else X["led_lo"], None, None, X["led_lo"]])
         cg = 0.0 if st["clamp"] else 0.04
@@ -444,52 +445,88 @@ def roof(M, T="roof"):
     for i in range(4):
         cx, cy = H.cell_xy(W, HH, i, 3)
         H.roof_hatch(f"rf_out{i}", M, cx, cy, 270, deck[(i, 3)], T=T, led_mat=led, s=0.9)
-    # tampa da celula quente (4 celulas do meio de cima): base escura, 2 degraus claros, visor com fenda verde
+    # tampa da celula quente (4 celulas do meio de cima): base escura; aba externa em degrau PINTADA (o verde vira a
+    # pintura da nave) com linhas de painel e respiros; escudo interno claro com visor, linhas de painel a cada
+    # ~0,3-0,5 quadro (STYLE 1.8) e o trevo grande EMBUTIDO (recesso octogonal escuro, 3 cunhas claras e LEDs verdes
+    # entre elas, como no teto aprovado da Fundicao 1.x)
+    green = H.roof_green()
     base = [(-0.96, 1.92), (0.96, 1.92), (0.98, 1.90), (0.98, 0.10), (0.96, 0.08), (-0.96, 0.08), (-0.98, 0.10),
             (-0.98, 1.90)]
     B.plate("lid_core", base, 0.0, 0.10, K, slope=0.02, tags=tags)
     lid = [(-0.88, 1.86), (0.88, 1.86), (0.94, 1.80), (0.94, 0.62), (0.56, 0.16), (-0.56, 0.16), (-0.94, 0.62),
            (-0.94, 1.80)]
-    la, lp = B.shard("lid", lid, 0.08, 0.30, A, slope=0.08, groove=0.035, panel_h=0.03, tags=tags)
+    la, lp = B.shard("lid", lid, 0.08, 0.30, green, slope=0.08, groove=0.035, panel_h=0.03, tags=tags)
+    H.groove("lid_pt", 0, 0.30, 0.36, 0.026, 0.30, (la, lp), M, tags, depth=0.08)
+    for sx in (-1, 1):
+        H.groove(f"lid_pw{sx}", sx * 0.80, 1.06, 0.20, 0.026, 0.30, (la, lp), M, tags, depth=0.08)
+        H.groove(f"lid_pv{sx}", sx * 0.40, 1.76, 0.026, 0.14, 0.30, (la, lp), M, tags, depth=0.08)
+        H.groove(f"lid_pd{sx}", sx * 0.645, 0.53, 0.26, 0.026, 0.30, (la, lp), M, tags, depth=0.08, rot=-sx * 39.6)
     lid2 = [(-0.62, 1.70), (0.62, 1.70), (0.70, 1.62), (0.70, 0.86), (0.36, 0.46), (-0.36, 0.46), (-0.70, 0.86),
             (-0.70, 1.62)]
     l2a, l2p = B.shard("lid2", lid2, 0.32, 0.44, A, slope=0.04, groove=0.02, panel_h=0.022, tags=tags)
     vis = B.rpoly(0, 1.30, 0.70, 0.16, 0, chamfer=0.05)
+    tc = (0.0, 0.79)
+    tho = H.octo(tc[0], tc[1], 0.28)
     for q, t in enumerate((l2a, l2p)):
         if t is not None:
-            B.cut(t, [B.loft(f"lid_vc{q}", vis, vis, 0.36, 0.9, K, bevel=0.0)])
+            B.cut(t, [B.loft(f"lid_vc{q}", vis, vis, 0.36, 0.9, K, bevel=0.0),
+                      B.loft(f"lid_tc{q}", tho, tho, 0.37, 0.9, K, bevel=0.0)])
+    H.groove("lid_ph", 0, 1.52, 1.06, 0.026, 0.44, (l2a, l2p), M, tags, depth=0.06)
+    H.groove("lid_pm", 0, 1.13, 1.26, 0.026, 0.44, (l2a, l2p), M, tags, depth=0.06)
+    for sx in (-1, 1):
+        H.groove(f"lid_pl{sx}", sx * 0.43, 0.98, 0.026, 0.24, 0.44, (l2a, l2p), M, tags, depth=0.06)
+        H.groove(f"lid_pu{sx}", sx * 0.43, 1.60, 0.026, 0.14, 0.44, (l2a, l2p), M, tags, depth=0.06)
     B.loft("lid_vbed", vis, vis, 0.35, 0.36, X["wbed"], bevel=0.0, tags=tags)
     for k in range(5):
-        B.box(f"lid_vl{k}", -0.24 + k * 0.12, 1.30, 0.06, 0.03, 0.36, 0.366, led if k == 2 else X["led_lo"],
-              bevel=0.0, tags=tags)
+        B.box(f"lid_vl{k}", -0.24 + k * 0.12, 1.30, 0.06, 0.03, 0.36, 0.366, led, bevel=0.0, tags=tags)
     for sx in (-1, 1):
-        H.ledslot(f"lid_sl{sx}", sx * 0.52, 0.98, 0.034, 0.30, 0.40, 3, M, tags, [l2a, l2p], pw=0.016, pip_mat=led)
-        H.vent(f"lid_v{sx}", sx * 0.80, 1.40, 0.14, 0.40, 0.25, 0.30, M, tags, n=5, targets=[la, lp])
-        B.bolts(f"lid_b{sx}", [(sx * 0.84, 1.78), (sx * 0.84, 0.70), (sx * 0.30, 0.24)], 0.30, 0.018, S, tags=tags)
-    # trevo de 3 cunhas claras no degrau de baixo (emblema nuclear sem amarelo e sem faixa de perigo)
-    tc = (0.0, 0.90)
-    B.plate("lid_tbase", H.octo(tc[0], tc[1], 0.22), 0.43, 0.46, K, slope=0.01, tags=tags)
+        H.ledslot(f"lid_sl{sx}", sx * 0.56, 1.32, 0.034, 0.28, 0.40, 3, M, tags, [l2a, l2p], pw=0.016, pip_mat=led)
+        H.vent(f"lid_v{sx}", sx * 0.82, 1.42, 0.14, 0.40, 0.25, 0.30, M, tags, n=5, targets=[la, lp])
+        B.bolts(f"lid_b{sx}", [(sx * 0.84, 1.78), (sx * 0.84, 0.72), (sx * 0.30, 0.24)], 0.30, 0.018, S, tags=tags)
+        B.bolts(f"lid_b2{sx}", [(sx * 0.58, 1.62), (sx * 0.58, 0.92)], 0.44, 0.016, S, tags=tags)
+    # trevo de 3 cunhas claras num recesso octogonal escuro (emblema nuclear sem amarelo e sem faixa de perigo)
+    B.plate("lid_tbase", B.offset_poly(tho, -0.005), 0.30, 0.375, K, slope=0.008, tags=tags)
     for k in range(3):
         a = 90 + 120 * k
         pts = [(tc[0] + math.cos(math.radians(a + d)) * r, tc[1] + math.sin(math.radians(a + d)) * r)
-               for r, d in ((0.055, -24), (0.19, -27), (0.19, 27), (0.055, 24))]
-        B.shard(f"lid_tw{k}", pts, 0.45, 0.52, AM, slope=0.012, groove=0.006, panel_h=0.008, tags=tags)
-    B.cyl("lid_th", tc[0], tc[1], 0.50, 0.035, 0.05, KM, axis="Z", verts=8, bevel=0.006, tags=tags)
-    B.cyl("lid_tl", tc[0], tc[1], 0.527, 0.016, 0.006, led, axis="Z", verts=8, bevel=0.0, tags=tags)
-    # colunas: capo do torno (esquerda) e 3 calotas das centrifugas (direita) sobre as placas verdes
+               for r, d in ((0.075, -24), (0.235, -28), (0.235, 0), (0.235, 28), (0.075, 24))]
+        B.shard(f"lid_tw{k}", pts, 0.37, 0.43, A, slope=0.012, groove=0.008, panel_h=0.01, tags=tags)
+        b_ = a + 60
+        B.cyl(f"lid_tl{k}", tc[0] + math.cos(math.radians(b_)) * 0.18, tc[1] + math.sin(math.radians(b_)) * 0.18,
+              0.375, 0.024, 0.008, led, axis="Z", verts=8, bevel=0.0, tags=tags)
+    B.cyl("lid_th", tc[0], tc[1], 0.40, 0.045, 0.05, KM, axis="Z", verts=8, bevel=0.006, tags=tags)
+    B.cyl("lid_thl", tc[0], tc[1], 0.427, 0.018, 0.006, led, axis="Z", verts=8, bevel=0.0, tags=tags)
+    # colunas: torno (esquerda) com uma tampa por celula - capo com respiro em cima, placa da janela do torno
+    # embaixo e a travessa escura entre elas -; 3 calotas das centrifugas (direita) sobre o rack cinza
     for sx in (-1, 1):
-        for j in (0, 1):
-            pa, pp = deck[(0 if sx < 0 else 3, j)]
-        cap = H.flip(sx)([(-1.86, 1.84), (-1.10, 1.84), (-1.10, 0.18), (-1.86, 0.18)])
         if sx < 0:
-            ha, hp = B.shard("rf_lathe", B.rpoly(-1.48, 1.0, 0.70, 1.60, 0, chamfer=0.12), 0.06, 0.24, A,
-                             slope=0.05, groove=0.022, panel_h=0.022, tags=tags)
-            H.vent("rf_lv", -1.48, 1.30, 0.40, 0.40, 0.19, 0.24, M, tags, n=5, targets=[ha, hp])
-            H.ledslot("rf_ll", -1.48, 0.62, 0.34, 0.036, 0.19, 3, M, tags, [ha, hp], vertical=False, pw=0.016,
+            cx = -1.48
+            hood = B.rpoly(cx, 1.50, 0.66, 0.62, 0, chamfer=0.11)
+            B.plate("rf_lk", B.offset_poly(hood, -0.03), 0.04, 0.08, K, slope=0.01, tags=tags)
+            ha, hp = B.shard("rf_lathe", hood, 0.06, 0.24, A, slope=0.05, groove=0.022, panel_h=0.022, tags=tags)
+            H.vent("rf_lv", cx, 1.63, 0.40, 0.22, 0.19, 0.24, M, tags, n=4, targets=[ha, hp])
+            H.groove("rf_lpl", cx, 1.465, 0.50, 0.026, 0.24, (ha, hp), M, tags, depth=0.06)
+            H.ledslot("rf_ll", cx, 1.32, 0.34, 0.036, 0.19, 3, M, tags, [ha, hp], vertical=False, pw=0.016,
                       pip_mat=led)
+            low = B.rpoly(cx, 0.52, 0.66, 0.60, 0, chamfer=0.11)
+            B.plate("rf_lk2", B.offset_poly(low, -0.03), 0.04, 0.08, K, slope=0.01, tags=tags)
+            wa, wp = B.shard("rf_lwin", low, 0.06, 0.24, A, slope=0.05, groove=0.022, panel_h=0.022, tags=tags)
+            win = B.rpoly(cx, 0.60, 0.44, 0.13, 0, chamfer=0.03)
+            for q, t in enumerate((wa, wp)):
+                if t is not None:
+                    B.cut(t, [B.loft(f"rf_lwc{q}", win, win, 0.17, 0.8, K, bevel=0.0)])
+            B.loft("rf_lwb", win, win, 0.16, 0.17, X["wfloor"], bevel=0.0, tags=tags)
+            B.box("rf_lwg", cx, 0.60, 0.36, 0.014, 0.17, 0.174, X["led_lo"], bevel=0.0, tags=tags)
+            for k in (-1, 1):
+                B.box(f"rf_lwr{k}", cx, 0.60 + k * 0.035, 0.40, 0.012, 0.17, 0.19, KM, bevel=0.0, tags=tags)
+            H.groove("rf_lwpl", cx, 0.43, 0.50, 0.026, 0.24, (wa, wp), M, tags, depth=0.06)
+            B.bolts("rf_lwbo", [(cx - 0.22, 0.32), (cx + 0.22, 0.32)], 0.24, 0.016, S, tags=tags)
+            B.box("rf_lcr", cx, 1.005, 0.20, 0.38, 0.04, 0.13, KM, bevel=0.012, tags=tags)
+            B.box("rf_lcrk", cx, 1.005, 0.05, 0.26, 0.13, 0.135, K, bevel=0.0, tags=tags)
+            B.box("rf_lcrg", cx, 1.005, 0.016, 0.22, 0.135, 0.139, led, bevel=0.0, tags=tags)
         else:
             ra, rp = B.shard("rf_cfrack", B.rpoly(1.50, 1.02, 0.74, 1.66, 0, chamfer=0.12), 0.04, 0.14,
-                             M["armor_mid"], slope=0.03, groove=0.016, panel_h=0.016, tags=tags)
+                             X["rack"], slope=0.03, groove=0.016, panel_h=0.016, tags=tags)
             for k, y in enumerate((0.55, 1.02, 1.49)):
                 cx = 1.48
                 hole = H.octo(cx, y, 0.215)
@@ -514,7 +551,7 @@ def roof(M, T="roof"):
         st_ = B.rpoly((x0 + x1) / 2, -0.50, x1 - x0, 0.30, 0, chamfer=0.06)
         sa, sp = B.shard(f"rf_strap{k}", st_, 0.06, 0.20, A, slope=0.035, groove=0.016, panel_h=0.018, tags=tags)
         H.ledslot(f"rf_ss{k}", (x0 + x1) / 2, -0.50, 0.40, 0.034, 0.16, 4, M, tags, [sa, sp], vertical=False,
-                  pw=0.016, pip_mat=X["led_lo"])
+                  pw=0.016, pip_mat=led)
     B.plate("rf_lock", H.octo(0, -0.50, 0.12), 0.06, 0.26, AM, slope=0.02, tags=tags)
     B.cyl("rf_lockl", 0, -0.50, 0.265, 0.03, 0.008, led, axis="Z", verts=8, bevel=0.0, tags=tags)
     for k, y in enumerate((-0.16, -0.84)):

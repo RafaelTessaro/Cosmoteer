@@ -272,9 +272,10 @@ def _outlet(M, tags, st):
 def _pump(M, tags, st):
     """Modulo de bomba hidraulica na faixa da direita: casca clara estreita, fenda de pips e mangueiras."""
     K, KM, A, AM, S = M["core"], M["core_mid"], M["armor"], M["armor_mid"], M["steel"]
-    poly = [(0.715, 0.20), (0.885, 0.20), (0.885, 0.80), (0.80, 0.885), (0.715, 0.885), (0.715, 0.62),
-            (0.69, 0.59), (0.69, 0.235)]
-    pa, pp = B.shard("pump", poly, 0.0, 0.29, A, slope=0.05, groove=0.022, panel_h=0.022, tags=tags)
+    # pentagono simples (as arestas curtas do entalhe antigo esvaziavam o painel interno, STYLE 9) e bisel menor
+    # para a casca estreita (0,18) manter o chanfro duplo
+    poly = [(0.705, 0.20), (0.885, 0.20), (0.885, 0.80), (0.80, 0.885), (0.705, 0.885)]
+    pa, pp = B.shard("pump", poly, 0.0, 0.29, A, slope=0.035, groove=0.016, panel_h=0.02, tags=tags)
     lit = st["i"] % 5
     H.ledslot("pump_sl", 0.80, 0.42, 0.03, 0.22, 0.24, 3, M, tags, [pa, pp], pw=0.014,
               pips=[M["glow_dim"] if k == (2 - lit % 3) else None for k in range(3)])

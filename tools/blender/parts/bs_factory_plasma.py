@@ -26,7 +26,8 @@ Camadas extras (EXTRA_LAYERS, render pelo _bs2_fabricas_helpers.py; spec factori
   * banco_pem_luz1..4.png, lights_add, 0,1 s por quadro: as frestas entre as espiras acendem em azul (baixo) numa
     onda de baixo para cima; precisa do modo PEM E da fabrica produzindo (AnimationToggle).
 Teto: placas verdes; encaixe da placa de modo no canto de cima a esquerda; emblema do toro no meio de cima;
-base do banco PEM (placa verde com 4 batentes) no canto de cima a direita; escotilha em capsula sobre o berco;
+tampa fechada do banco PEM (2 folhas claras com respiro e a janela dos bornes de cobre, coberta pelo banco no
+modo PEM) no canto de cima a direita; escotilha em capsula sobre o berco;
 escotilhas em seta nas 3 entradas e nas 2 saidas (com a pastilha da celula).
 """
 
@@ -252,13 +253,14 @@ def _tanks(M, Xm, X, tags, st):
             B.cyl(f"tk_band{k}{sy}", x, yc + sy * 0.12, 0.16, r * 1.04, 0.026, KM, axis="Y", verts=8, bevel=0.004,
                   tags=tags)
         # visor vertical: fenda escura no topo do tanque com o nivel ciano (oscila com a fase, os 2 defasados)
-        B.cut(tank, [B.box(f"tk_vc{k}", x, yc, 0.045, 0.20, 0.16 + r * 0.80, 0.6, K, bevel=0.0)])
-        B.box(f"tk_vb{k}", x, yc, 0.045, 0.20, 0.16 + r * 0.74, 0.16 + r * 0.80, M["black"], bevel=0.0, tags=tags)
+        # janela de nivel mais larga e acesa em ciano (a cor do produto padrao, a celula de plasma, puxa a leitura)
+        B.cut(tank, [B.box(f"tk_vc{k}", x, yc, 0.07, 0.24, 0.16 + r * 0.72, 0.6, K, bevel=0.0)])
+        B.box(f"tk_vb{k}", x, yc, 0.07, 0.24, 0.16 + r * 0.66, 0.16 + r * 0.72, X["drum"], bevel=0.0, tags=tags)
         lvl = 2 + int(round(1.5 + 1.5 * math.sin(2 * math.pi * (i / NF) + k * 2.2)))
         for j in range(5):
             on = j < lvl
-            B.box(f"tk_lv{k}{j}", x, yc - 0.08 + j * 0.04, 0.024, 0.028, 0.16 + r * 0.80, 0.16 + r * 0.82,
-                  (X["pl_mid"] if j == lvl - 1 else X["pl_tail"]) if on else KM, bevel=0.0, tags=tags)
+            B.box(f"tk_lv{k}{j}", x, yc - 0.092 + j * 0.046, 0.046, 0.034, 0.16 + r * 0.72, 0.16 + r * 0.75,
+                  (X["pl_hi"] if j == lvl - 1 else X["pl_mid"]) if on else KM, bevel=0.0, tags=tags)
     # coletor escuro sob os tanques ate o duto do anel (o enxofre ionizado sobe da boca de baixo)
     B.box("tk_man", -1.03, 0.885, 0.50, 0.05, 0.04, 0.10, KM, bevel=0.008, tags=tags)
     for k, x in enumerate((-1.165, -0.895)):
@@ -420,18 +422,24 @@ def roof(M, T="roof"):
         H.roof_hatch(f"rf_out{i}", M, px, py, 270, deck[(i, j)], T=T, chip=kind)
     # encaixe da placa de modo (canto de cima a esquerda)
     H.plate_slot("rf_plate", M, PLATE_C[0], PLATE_C[1], 0.8, [], T=T, z1=0.16)
-    # base do banco PEM (canto de cima a direita): 4 batentes escuros com parafuso nos cantos do rect do banco e uma
-    # regua de terminais (o banco_pem.png assenta por cima no modo PEM; no modo plasma a placa fica a mostra)
+    # tampa FECHADA do banco PEM (canto de cima a direita): no modo plasma (o padrao) a base do banco fica coberta
+    # por 2 folhas claras com respiro, a fresta escura entre elas e a janelinha dos bornes de cobre; no modo PEM o
+    # banco_pem.png (base 0,86 x 0,96, roof_doodads) assenta por cima e cobre a tampa inteira (0,74 x 0,82)
     bx, by = BANK_C
-    pa, pp = deck[(2, 0)]
-    for k, (dx, dy) in enumerate(((-1, -1), (-1, 1), (1, -1), (1, 1))):
-        sx_, sy_ = bx + dx * 0.34, by + dy * 0.36
-        B.box(f"rf_bk{k}", sx_, sy_, 0.10, 0.10, 0.06, 0.12, KM, bevel=0.012, tags=tags)
-        B.bolts(f"rf_bkb{k}", [(sx_, sy_)], 0.12, 0.018, S, tags=tags)
-    term = B.box("rf_term", bx, by, 0.12, 0.50, 0.06, 0.11, KM, bevel=0.01, tags=tags)
-    for k in range(4):
-        B.box(f"rf_termc{k}", bx, by - 0.18 + k * 0.12, 0.07, 0.05, 0.11, 0.125, Mo.copper_mat(), bevel=0.006,
-              tags=tags)
+    hb = B.rpoly(bx, by, 0.74, 0.82, 0, chamfer=0.12)
+    B.plate("rf_bkh", hb, 0.03, 0.10, K, slope=0.015, tags=tags)
+    for sx in (-1, 1):
+        leaf = B.rpoly(bx + sx * 0.175, by, 0.32, 0.76, 0, chamfer=0.09)
+        la, lp = B.shard(f"rf_bkl{sx}", leaf, 0.08, 0.20, A, slope=0.035, groove=0.016, panel_h=0.018, tags=tags)
+        H.vent(f"rf_bkv{sx}", bx + sx * 0.175, by + 0.18, 0.18, 0.22, 0.15, 0.20, M, tags, n=3, targets=[la, lp])
+        H.groove(f"rf_bkg{sx}", bx + sx * 0.175, by - 0.02, 0.22, 0.026, 0.20, (la, lp), M, tags, depth=0.05)
+        B.bolts(f"rf_bkb{sx}", [(bx + sx * 0.255, by + 0.33), (bx + sx * 0.255, by - 0.33)], 0.20, 0.016, S,
+                tags=tags)
+    win = B.rpoly(bx, by - 0.22, 0.30, 0.10, 0, chamfer=0.03)
+    B.loft("rf_bkw", win, win, 0.10, 0.205, KM, bevel=0.006, tags=tags)
+    for k in range(3):
+        B.box(f"rf_termc{k}", bx - 0.09 + k * 0.09, by - 0.22, 0.05, 0.05, 0.205, 0.22, Mo.copper_mat(),
+              bevel=0.006, tags=tags)
     # emblema do toro (meio de cima, como na 1.x)
     ea, ep = B.shard("rf10", B.rpoly(0, 1.0, 0.92, 0.92, 0, chamfer=0.10), 0.0, 0.07, green, slope=0.03,
                      groove=0.05, panel_h=0.022, tags=tags)
@@ -466,7 +474,7 @@ def roof(M, T="roof"):
     cap = [(-0.10, -0.40), (0.10, -0.40), (0.20, -0.30), (0.20, 0.30), (0.10, 0.40), (-0.10, 0.40), (-0.20, 0.30),
            (-0.20, -0.30)]
     for sx in (-1, 1):
-        clamp = [(0.23, -0.20), (0.36, -0.28), (0.40, -0.24), (0.40, 0.24), (0.36, 0.28), (0.23, 0.20)]
+        clamp = [(0.225, -0.19), (0.34, -0.29), (0.42, -0.21), (0.42, 0.21), (0.34, 0.29), (0.225, 0.19)]
         cl = clamp if sx > 0 else Mo.mirror(clamp)
         B.plate(f"hc_cl{sx}", B.offset_poly(cl, -0.025), 0.06, 0.10, K, slope=0.01, tags=tags)
         B.shard(f"hc_clamp{sx}", cl, 0.09, 0.17, AM, slope=0.03, groove=0.015, panel_h=0.015, tags=tags)

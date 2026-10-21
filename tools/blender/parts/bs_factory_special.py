@@ -447,8 +447,10 @@ def roof(M, T="roof"):
     B.plate("cr_core", base, 0.0, 0.10, K, slope=0.02, tags=tags)
     spine = [(-0.50, 1.44), (0.50, 1.44), (0.56, 1.38), (0.56, 0.72), (0.18, 0.50), (-0.18, 0.50), (-0.56, 0.72),
              (-0.56, 1.38)]
-    sa, sp = B.shard("cr_spine", spine, 0.08, 0.30, A, slope=0.07, groove=0.03, panel_h=0.03, tags=tags)
-    H.plate_slot("cr_plate", M, PLATE_C[0], PLATE_C[1], 0.8, [sa, sp], T=T, z1=0.36)
+    # a espinha e so a moldura em volta do encaixe da placa (o encaixe tira o miolo inteiro): placa chanfrada simples
+    # (com B.shard o painel interno sumia nas booleanas)
+    sa = B.plate("cr_spine", spine, 0.08, 0.30, A, slope=0.06, tags=tags)
+    H.plate_slot("cr_plate", M, PLATE_C[0], PLATE_C[1], 0.8, [sa], T=T, z1=0.36)
     # garras laterais da coroa (descem ate a borda da celula do meio) com fenda de pips e respiro
     claw = [(-0.94, 1.42), (-0.62, 1.42), (-0.62, 0.70), (-0.70, 0.56), (-0.94, 0.56)]
     for sx in (-1, 1):
@@ -465,10 +467,13 @@ def roof(M, T="roof"):
     for q, t in enumerate((ma, mp)):
         if t is not None:
             B.cut(t, [B.loft(f"rf_midh{q}", hole, hole, -0.01, 0.5, K, bevel=0.0)])
-    if mp is not None:
-        # linhas de painel nas duas pontas da placa (a placa e longa: quebra a cada ~0,5 quadro)
-        B.cut(mp, [B.box(f"rf_midpl{k}", sx_ * 0.66, 0, 0.022, 0.70, 0.04, 0.3, K, bevel=0.0)
-                   for k, sx_ in enumerate((-1, 1))])
+    # linhas de painel ESCURAS e respiros nas duas pontas da placa (a placa e longa: quebra a cada ~0,3 quadro, e no
+    # casco branco a placa verde vira branca - so as frestas escuras a separam)
+    for k, sx_ in enumerate((-1, 1)):
+        H.groove(f"rf_midpl{k}", sx_ * 0.56, 0, 0.026, 0.66, 0.07, (ma, mp), M, tags, depth=0.05)
+        H.vent(f"rf_midv{k}", sx_ * 0.76, 0.12, 0.20, 0.36, 0.03, 0.06, M, tags, n=4, targets=[ma, mp])
+        H.ledslot(f"rf_mids{k}", sx_ * 0.76, -0.24, 0.20, 0.034, 0.03, 3, M, tags, [ma, mp], vertical=False,
+                  pw=0.016, pip_mat=M["glow_dim"])
     B.plate("cr_colbase", H.octo(0, 0, 0.42), 0.0, 0.05, K, slope=0.01, tags=tags)
     for k in range(8):
         a0 = 22.5 + 45 * k

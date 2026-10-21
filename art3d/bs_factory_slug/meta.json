@@ -118,5 +118,6 @@
  "palette_note": "azul/laranja da Tupa nova (USER_NOTES: referencia da railgun) em vez do violeta do spec",
  "notes": [
   "12 quadros x 0,25 s = 3,0 s = um projetil por volta (R07)"
- ]
+ ],
+ "lights_gain": 1.306
 }

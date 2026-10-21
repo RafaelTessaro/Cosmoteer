@@ -253,11 +253,11 @@ def _press(M, Xm, X, tags, st):
     B.box("pr_chang", 0, y, 0.012, 0.36, 0.085, 0.088, X["blue_lo"], bevel=0.0, tags=tags)
     g = 0.15 - 0.10 * st["jaws"]
     for sx in (-1, 1):
-        jaw = [(0.0, -0.15), (0.13, -0.15), (0.16, -0.12), (0.16, 0.12), (0.13, 0.15), (0.0, 0.15), (-0.035, 0.07),
+        jaw = [(0.0, -0.15), (0.10, -0.15), (0.16, -0.09), (0.16, 0.09), (0.10, 0.15), (0.0, 0.15), (-0.035, 0.07),
                (-0.035, -0.07)]
         jaw = [(sx * (g + x), y + yy) for x, yy in jaw]
         jaw = jaw if sx > 0 else list(reversed(jaw))
-        ja, jp = B.shard(f"pr_jaw{sx}", jaw, 0.08, 0.38, A, slope=0.035, groove=0.016, panel_h=0.02, tags=tags)
+        ja, jp = B.shard(f"pr_jaw{sx}", jaw, 0.08, 0.38, A, slope=0.03, groove=0.012, panel_h=0.02, tags=tags)
         if jp is not None:
             B.cut(jp, [B.box(f"pr_jpl{sx}", sx * (g + 0.08), y, 0.02, 0.22, 0.36, 0.8, K, bevel=0.0)])
         # mola laranja atras do mordente (entre ele e o batente)
@@ -382,8 +382,7 @@ def roof(M, T="roof"):
         B.plate(f"rf_ck{sx}", B.offset_poly(hood, -0.03), 0.06, 0.10, K, slope=0.01, tags=tags)
         ca, cp = B.shard(f"rf_cov{sx}", hood, 0.09, 0.26, A, slope=0.05, groove=0.022, panel_h=0.024, tags=tags)
         H.vent(f"rf_cv{sx}", cx, 1.645, 0.40, 0.20, 0.21, 0.26, M, tags, n=4, targets=[ca, cp])
-        if cp is not None:
-            B.cut(cp, [B.box(f"rf_cpl{sx}", cx, 1.475, 0.52, 0.022, 0.24, 0.8, K, bevel=0.0)])
+        H.groove(f"rf_cpl{sx}", cx, 1.475, 0.50, 0.026, 0.26, (ca, cp), M, tags, depth=0.06)
         H.ledslot(f"rf_cs{sx}", cx, 1.33, 0.34, 0.034, 0.21, 4, M, tags, [ca, cp], vertical=False, pw=0.016,
                   pips=[X["blue_lo"], None, X["blue_lo"], X["led_o"]])
         B.bolts(f"rf_cb{sx}", [(cx - 0.25, 1.235), (cx + 0.25, 1.235)], 0.26, 0.016, S, tags=tags)
@@ -414,8 +413,7 @@ def roof(M, T="roof"):
     for sx in (-1, 1):
         ha, hp = B.shard(f"rf_fh{sx}", H.flip(sx)(cheek), 0.10, 0.27, A, slope=0.035, groove=0.016, panel_h=0.018,
                          tags=tags)
-        if hp is not None:
-            B.cut(hp, [B.box(f"rf_fpl{sx}", sx * 0.22, -0.37, 0.16, 0.02, 0.25, 0.8, K, bevel=0.0)])
+        H.groove(f"rf_fpl{sx}", sx * 0.22, -0.37, 0.12, 0.026, 0.27, (ha, hp), M, tags, depth=0.06)
         H.ledslot(f"rf_fs{sx}", sx * 0.22, -0.63, 0.034, 0.30, 0.20, 3, M, tags, [ha, hp], pw=0.016,
                   pips=[X["blue_lo"], X["blue_lo"], X["led_o"]])
     ch = B.plate("rf_fch", B.rpoly(0, -0.5, 0.22, 0.80, 0, chamfer=0.04), 0.10, 0.21, X["graph"], slope=0.02,

@@ -186,5 +186,6 @@
  "notes": [
   "grade de cobre no poco da base [1,2] (J2R3-9)",
   "banco_pem/banco_pem_luz: overlays do modo PEM (spec factories F3.pem_bank)"
- ]
+ ],
+ "lights_gain": 1.143
 }

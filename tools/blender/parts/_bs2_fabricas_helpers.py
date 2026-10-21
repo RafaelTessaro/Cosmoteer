@@ -61,6 +61,9 @@ CHIP = {
     "frag": (120, 210, 200), "plasma": (60, 220, 255), "pem": (60, 200, 255), "msl_he": (255, 150, 30),
     "msl_cluster": (255, 232, 80), "msl_emp": (40, 150, 255), "nuke": (90, 255, 40), "slug": (150, 105, 255),
     "rail_gold": (255, 200, 90), "pem_cu": (200, 110, 50),
+    # pastilha/seta da saida HE da Fabrica de Misseis: laranja do casco do msl_he (palette.msl_he.hull), longe do
+    # amarelo-limao da Piranha (o ambar da faixa HE se confundia com ele a 1x, 6x2 px)
+    "msl_he_pad": (255, 96, 12),
 }
 VIOLET = (0.30, 0.135, 1.0)          # violeta do Tupa 1a versao (parts/bs_rail.py VIOLET)
 RAIL_BLUE = (0.026, 0.171, 1.0)      # azul eletrico da Tupa nova (parts/bs_rail.py BLUE; USER_NOTES: referencia)
@@ -175,6 +178,18 @@ def ledslot(name, cx, cy, sx, sy, z_bed, n, M, tags, targets, vertical=True, pip
         if mat is None:
             mat = M["core_mid"]
         B.rbox(f"{name}_pip{i}", px, py, a, b, z_bed + 0.008, z_bed + 0.02, mat, rot=ang, bevel=0.0, tags=tags)
+
+
+def groove(name, cx, cy, sx, sy, z_top, targets, M, tags, depth=0.05, rot=0.0, mat=None):
+    """Linha de painel ESCURA: vala cortada nas pecas alvo (painel + corpo, profundidade > panel_h, STYLE 9) com um
+    leito escuro (core) no fundo, para a linha ler a 1x tambem sobre placa clara ou pintada (STYLE 1.8). Um corte
+    raso so no painel deixa o fundo claro/verde e a linha some no casco branco."""
+    zb = z_top - depth
+    for k, t in enumerate(targets):
+        if t is not None:
+            B.cut(t, [B.rbox(f"{name}_c{k}", cx, cy, sx, sy, zb, z_top + 0.5, M["core"], rot=rot, bevel=0.0)])
+    return B.rbox(name + "_bed", cx, cy, sx, sy, zb - 0.006, zb + 0.002, mat or M["core"], rot=rot, bevel=0.0,
+                  tags=tags)
 
 
 def bezel(prefix, poly_out, poly_in, z0, z1, M, tags, targets, bed=True):
@@ -728,6 +743,33 @@ def roof_unpaint(T="roof"):
 
 
 # ============================================================================ camadas extras (render)
+LIGHTS_TARGET = 64     # pico do lights.png (as fabricas 1.x aprovadas ficam em 49-73)
+
+
+def _lights_gain(out, target=LIGHTS_TARGET, cap=3.0):
+    """O render_factory monta o lights.png do quadro 1 com um desfoque de 6 px: os LEDs pequenos das fabricas 2.0
+    (so em recessos, STYLE 1.6) saem com pico 20-50 e nao florescem nas naves escuras. Sobe o ganho ate o pico
+    chegar perto do nivel 1.x (target), no maximo cap x. O sprite da maquina (e a area acesa dele) nao muda.
+    Marca o PNG (texto bs_lights_gain) para nao aplicar duas vezes."""
+    import numpy as np
+    from PIL import Image, PngImagePlugin
+    p = os.path.join(out, "lights.png")
+    if not os.path.exists(p):
+        return None
+    im = Image.open(p)
+    if "bs_lights_gain" in im.info:
+        return float(im.info["bs_lights_gain"])
+    a = np.asarray(im.convert("RGBA")).astype(np.float32)
+    peak = float(a[..., :3].max())
+    g = 1.0 if peak <= 0 or peak >= target else min(cap, target / peak)
+    a[..., :3] = np.clip(a[..., :3] * g, 0, 255)
+    info = PngImagePlugin.PngInfo()
+    info.add_text("bs_lights_gain", f"{g:.3f}")
+    Image.fromarray(a.astype(np.uint8), "RGBA").save(p, pnginfo=info)
+    print(f"lights.png: pico {peak:.0f} -> {min(255.0, peak * g):.0f} (ganho {g:.2f})")
+    return g
+
+
 def _main():
     """Renderiza EXTRA_LAYERS de uma fabrica e junta META_EXTRA/overlays no meta.json dela."""
     import importlib
@@ -762,6 +804,9 @@ def _main():
     if overlays:
         meta["overlays"] = overlays
     meta.update(getattr(mod, "META_EXTRA", {}))
+    g = _lights_gain(out, getattr(mod, "LIGHTS_TARGET", LIGHTS_TARGET))
+    if g is not None:
+        meta["lights_gain"] = round(g, 3)
     meta["files"] = sorted(files)
     json.dump(meta, open(mp, "w"), indent=1, ensure_ascii=False)
     print("OK extras", short, out, sorted(overlays))
