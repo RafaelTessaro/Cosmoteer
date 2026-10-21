@@ -1,0 +1,39 @@
+// Textos do mod de teste "fita sem esteira" do Bullet Strike 2.0 (pt-BR). Nao coloque __Name / __DebugOnly em arquivos de mod.
+
+BS2FTag = "\n<s16><gray>Mod: [TESTE] Bullet Strike 2.0 - fita sem esteira</gray></s16>"
+EditorGroups
+{
+	BS2Fita = "BS Teste Fita"
+}
+Parts
+{
+	BS2FFita = "[TESTE] Fita de alimentação"
+	BS2FFitaIcon = "Fita"
+	BS2FFitaDesc = "Grude do lado de uma fábrica, paiol ou arma deste teste (encostada em cima, embaixo, à esquerda ou à direita). A máquina entra na rede da fita: a munição passa sozinha, sem tripulação e sem nenhuma peça no caminho, como se houvesse uma esteira por baixo do navio. A luz verde acende quando a fita está grudada em alguma máquina, e a máquina mostra o ícone da fita.<string id='BS2FTag'/>"
+	BS2FPaiolBala = "[TESTE] Paiol de munição (fita)"
+	BS2FPaiolBalaIcon = "Paiol munição"
+	BS2FPaiolBalaDesc = "Paiol FECHADO (a tripulação não entra) para 200 munições de canhão. Só funciona com uma Fita grudada: recebe das fábricas com fita e manda para as armas com fita, em qualquer lugar do navio (10 por segundo). Animação de cartuchos entrando e saindo.<string id='BS2FTag'/>"
+	BS2FPaiolHE = "[TESTE] Paiol de peça de míssil A.E. (fita)"
+	BS2FPaiolHEIcon = "Paiol A.E."
+	BS2FPaiolHEDesc = "Paiol FECHADO para 50 peças de míssil A.E. Igual ao paiol de munição, mas só aceita e só manda peça de míssil A.E.: um tipo nunca vira o outro.<string id='BS2FTag'/>"
+	BS2FFabBala = "[TESTE] Fábrica de teste - Munição (fita A)"
+	BS2FFabBalaIcon = "Fáb. munição A"
+	BS2FFabBalaDesc = "Cria munição de canhão do nada (só para testes): 10 a cada 1 s, na grade de saída. Com uma Fita grudada, manda da grade para os paióis de munição com fita (10 por segundo, animação de cartuchos saindo). Sem fita, a tripulação recolhe da grade como numa fábrica normal.<string id='BS2FTag'/>"
+	BS2FFabBalaB = "[TESTE] Fábrica de teste - Munição (fita B)"
+	BS2FFabBalaBIcon = "Fáb. munição B"
+	BS2FFabBalaBDesc = "Igual à Fáb. munição A, mas o elo vai no sentido contrário (a fábrica é quem chama os paióis). Com uma Fita grudada, manda da grade para os paióis de munição em qualquer lugar do navio (10 por segundo). O paiol não precisa de fita para receber desta. Serve para comparar os dois jeitos no jogo.<string id='BS2FTag'/>"
+	BS2FFabHE = "[TESTE] Fábrica de teste - Peça de míssil A.E. (fita)"
+	BS2FFabHEIcon = "Fáb. A.E."
+	BS2FFabHEDesc = "Cria peças de míssil A.E. do nada (só para testes): 8 a cada 1 s. Com uma Fita grudada, manda para os paióis de peça de míssil A.E. com fita.<string id='BS2FTag'/>"
+	BS2FArma = "[TESTE] Arma de teste - paiol empurra"
+	BS2FArmaIcon = "Arma empurra"
+	BS2FArmaDesc = "Imita uma arma: gasta 4 unidades por segundo do tipo escolhido com o botão liga/desliga ligado (= atirando). Com uma Fita grudada, os paióis com fita do mesmo tipo enchem o estoque interno sozinhos (o paiol empurra). Sem fita, a tripulação abastece abaixo da metade, como hoje. Duas barras, uma por tipo.<string id='BS2FTag'/>"
+	BS2FArmaPuxa = "[TESTE] Arma de teste - arma puxa"
+	BS2FArmaPuxaIcon = "Arma puxa"
+	BS2FArmaPuxaDesc = "Igual à outra arma de teste, mas no sentido contrário: esta arma puxa dos paióis com fita (10 por segundo). Serve para comparar os dois jeitos no jogo.<string id='BS2FTag'/>"
+}
+PartToggles
+{
+	BS2FTipoBala = "Munição de canhão"
+	BS2FTipoHE = "Peça de míssil A.E."
+}

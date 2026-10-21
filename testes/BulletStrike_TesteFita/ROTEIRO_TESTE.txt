@@ -1,0 +1,94 @@
+[TESTE] Bullet Strike 2.0 - fita sem esteira: roteiro (uns 20 minutos, jogo Criativo, 0.30.4c)
+
+O que este mod responde: a munição passa da fábrica para o paiol e do paiol para a arma SOZINHA, sem tripulação e
+sem nenhuma peça no caminho, só com a peça "Fita" grudada do lado de cada máquina?
+
+Instalar: copie a pasta BulletStrike_TesteFita para a pasta Mods (do mesmo jeito do kit BulletStrike_Teste2),
+ative "[TESTE] Bullet Strike 2.0 - fita sem esteira" e reinicie. Pode ficar junto com o kit de testes (IDs diferentes).
+Na Parte A deixe os outros mods desligados, se puder.
+As peças ficam numa aba com ícone de cinto de cartuchos, logo depois da aba "Armas de projéteis" (passe o mouse:
+"BS Teste Fita"). Nomes no menu: Fita, Paiol munição, Paiol A.E., Fáb. munição A, Fáb. munição B, Fáb. A.E.,
+Arma empurra, Arma puxa.
+
+PREPARAR
+Novo jogo > Criativo. No menu do modo Criativo, confira que "Modo Construção Livre" está MARCADO (as peças ficam
+prontas na hora, sem tripulação). Clique em "Construir nova nave" e faça uma linha reta de "Estrutura" (aba
+"Blindagem e Estrutura") de uns 50 quadrados. Não precisa de reator.
+NÃO use nada da aba "Tripulação" (Beliche / Alojamentos / Quartel da tripulação) e NÃO clique em
+"Reabastecer todos os recursos".
+Cada máquina fica encostada na Estrutura, afastada das outras (5 quadrados ou mais; pode usar os dois lados da
+linha). Cada Fita encosta só na sua máquina, de lado (não na quina), E TAMBÉM na linha de Estrutura: ponha a Fita
+ao lado da máquina, na fileira que encosta na linha. Assim ela não fica pendurada só na máquina quando você
+trocar a máquina no A3b.
+
+Como olhar:
+ - Barras: clique na peça; elas aparecem embaixo da barra de vida. Vazia = só preto.
+   Munição: vermelha -> amarela, VERDE quando cheia. A.E.: roxa -> lilás, quase BRANCA quando cheia.
+   A arma tem 2 barras: a 1ª é munição, a 2ª é A.E.
+ - Luz verde da Fita, luz da fábrica e grade da fábrica: ligue o interior (botão "Exibe o interior da nave" /
+   tecla "Ligar/desligar interior da nave" em Opções > Controles).
+ - Animação de cartuchos: desligue o interior (teto à mostra).
+ - Ícone de fita na máquina: só no modo de construção.
+ - Energia = botão liga/desliga (tecla P). Na arma, "Energia: ligada" = atirando (gasta 4 por segundo).
+   A arma começa DESLIGADA; as fábricas começam ligadas.
+ - Tipo da arma: botão com ícone de cartucho (passe o mouse: "Munição de canhão"). Já vem em munição.
+
+PARTE A - o essencial (sem tripulação nenhuma)
+A1. Carregou sem erro? As 8 peças aparecem na aba? (sim/não)
+A2. Ponha um "Paiol munição" numa ponta. Antes de grudar a Fita: a barra dele está VAZIA? (se não estiver, me avise)
+    Grude uma "Fita" nele. A luz verde da Fita acendeu? O paiol mostra o ícone de fita? (sim/não para cada)
+A3. No meio da linha, ponha a "Fáb. munição A" com outra Fita. Olhe nos primeiros 20 s (depois o paiol fica cheio
+    e tudo para; é normal):
+    a barra do paiol sobe? Aparecem cartuchos saindo da fábrica e entrando no paiol?
+    A pilha de munição na grade da fábrica sobe e desce (não fica parada cheia) e a luz da fábrica não apaga?
+    (sem Fita a grade enche e a luz apaga em poucos segundos) (sim/não para cada)
+A3b. PRIMEIRO desconstrua a Fáb. munição A e ponha a "Fáb. munição B" no mesmo lugar, encostada na Fita dela.
+    SÓ DEPOIS desconstrua o Paiol munição (cheio) e ponha um NOVO no mesmo lugar (ele começa vazio).
+    Confira que a luz verde das duas Fitas (a do paiol e a da fábrica B) acendeu de novo.
+    Em 20 s a barra do paiol sobe e a grade da fábrica B sobe e desce? (sim/não)
+    (A fábrica B usa o elo no sentido contrário, igual aos reatores sem fio do SW:ACD.)
+    Daqui em diante deixe no navio a fábrica que funcionou (se só a A deu sim, volte a pôr a A).
+    Se as duas deram não, pare aqui e me mande as respostas.
+A4. Na outra ponta, ponha a "Arma empurra" com uma Fita e ligue a Energia dela.
+    A 1ª barra enche em uns 10 s e fica cheia (espere 30 s)? Aparecem cartuchos entrando na arma? (sim/não)
+A5. Ponha a "Arma puxa" com Fita, afastada das outras peças, e ligue a Energia.
+    A 1ª barra enche em uns 10 s e fica cheia (espere 30 s)? (sim/não)
+A6. Na "Arma empurra" (use a "Arma puxa" só se o A4 deu não), desconstrua só a Fita. Com a Energia ligada, a 1ª barra dessa arma
+    ESVAZIA em uns 15 s (60 ÷ 4)? (sim/não)
+A7. Use a arma do A6 (sem Fita, 1ª barra vazia). Mude o tipo para "Peça de míssil A.E." e SÓ DEPOIS grude a
+    Fita de volta. A 1ª barra continua VAZIA, mesmo com munição no paiol? (sim/não)
+    (Se A3 deu não, pare o A7 aqui.) Desligue a Energia da fábrica de munição. Ponha a "Fáb. A.E." e o
+    "Paiol A.E.", cada um com Fita. Em uns 15 s a 2ª barra da arma e a barra do Paiol A.E. sobem, e a barra do
+    Paiol munição nunca sobe? (sim/não)
+
+PARTE B - tripulação como reserva (uns 5 min)
+B1. Perto das armas, ponha um "Beliche da tripulação" (aba Tripulação) e uma "Baia de armazenamento" (aba
+    Armazenamento). Ligue beliche, baia e as 2 armas com "Corredor" (tecla Z); confira que cada peça tem "Porta"
+    (tecla X). Em "Gerenciar recursos", marque uma casa da baia como Munição e clique em "Reabastecer todos os
+    recursos". Ponha as 2 armas no tipo Munição de canhão. Tire TODAS as Fitas. Deixe a Energia das armas LIGADA
+    e espere 1 minuto: quando a 1ª barra fica abaixo da metade, um tripulante leva munição? (sim/não)
+B2. Ponha as Fitas de volta (e ligue a Energia da fábrica de munição). A tripulação para de levar munição para as
+    armas (a fita mantém cheio)? (sim/não)
+    (tripulante levando munição da fábrica para a baia é normal; olhe só se alguém leva para as ARMAS)
+B3. Com as Fitas no lugar, desligue a Energia da fábrica e espere o paiol esvaziar (uns 30 s). Quando a 1ª barra
+    da arma passa da metade para baixo, a tripulação volta a levar munição? (sim/não)
+
+PARTE C - extras (opcional)
+C1. Num navio sem tripulação (como na Parte A), deixe paiol + fábrica numa metade e uma arma (com Fita, Energia
+    ligada) na outra. Selecione as peças de Estrutura que ligam as metades e use o menu do Criativo >
+    "Autodestruição" > DESTRUIR!. Em uns 15 s a 1ª barra dessa arma esvazia? (sim/não)
+C2. Desempenho: 10 paióis, 20 armas e 5 fábricas, todos com Fita. O jogo fica lento? No modo de construção, passe
+    o mouse / clique num paiol: uma cruzinha verde em volta é normal. Aparece algum retângulo do tamanho do navio
+    inteiro? (descreva)
+C3. Ligue este mod e o Star Wars: A Cosmos Divided juntos. Carrega? Monte um "Heavy Reinforced Reactor" ou
+    "WIP! Light Hypermatter Reactor" do SW com Overclock ligado, perto das peças da fita. As peças do SW continuam
+    recebendo energia, e as barras das peças da fita não mudam? (sim/não)
+
+Me mande: as respostas sim/não (A1-A7, incluindo A3b; B1-B3; C1-C3) e, se travar, o log mais recente da pasta Logs.
+
+O que cada resposta decide:
+ - A3 sim = fábrica -> paiol por teleporte funciona (o paiol "recebe"); A3b sim = o mesmo pelo jeito B;
+   A4 sim = paiol empurra; A5 sim = arma puxa.
+   Basta (A3 ou A3b) e (A4 ou A5) para a 2.0 usar a fita sem esteira. Se só um lado funcionar, uso esse lado.
+ - A6 sim = sem Fita a arma não recebe nada.  A7 sim = um tipo nunca vira outro.
+ - B1/B2/B3 sim = a reserva por tripulação continua.  C1 sim = a fita não passa para um navio separado.

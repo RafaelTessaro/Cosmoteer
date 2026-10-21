@@ -1,0 +1,69 @@
+// [TESTE] Bullet Strike 2.0 - "fita sem esteira" (teleporte de municao). Mod SEPARADO e descartavel.
+// Pergunta que ele responde: a municao (recurso que a tripulacao carrega) passa de uma peca para outra do MESMO navio,
+// sem tripulacao e sem nenhuma peca no caminho, usando o sistema de buffs (MultiResourceStorage + ViaBuffs)?
+// Mecanismo = o mesmo que o jogo base usa na Sala de Motores para mandar bateria aos propulsores
+// (Data/ships/terran/engine_room/engine_room.rules:98-110, buff vazio EnginePowerDistribution em buffs.rules:25-28)
+// e que o SW:ACD 0.30.4 usa nos reatores "sem fio" e no hiperpropulsor com nos (GridDistance 1000).
+// So recursos do jogo base: bullet (municao de canhao) e missile_part_he (peca de missil A.E.).
+// IDs comecam com rafaeltessaro.bs2f_ (nao colide com o Bullet Strike 1.x, com o kit BulletStrike_Teste2 nem com o SW:ACD).
+
+ID = rafaeltessaro.bs2_fita_teste
+Name = "[TESTE] Bullet Strike 2.0 - fita sem esteira"
+Version = 0.1.2
+CompatibleGameVersions = ["0.30.4", "0.30.4a", "0.30.4b", "0.30.4c"]
+ModifiesGameplay = true
+Author = "Rafael Tessaro"
+Logo = "logo.png"
+Description = "[TESTE] Fita de alimentação sem esteira: grude a peça Fita do lado da fábrica, do paiol e da arma, e a munição passa de uma para a outra sozinha (teletransporte), sem tripulação e sem peça no caminho. Use num jogo Criativo e siga o roteiro.\n\n---\n\n[TEST] Feed belt without a belt: stick the Fita part next to a factory, a depot and a gun, and ammo moves between them by itself (teleport), with no crew and no part in between. Use in a Creative game and follow the test script."
+StringsFolder = "strings"
+Actions
+[
+	// grupo proprio no menu de construcao (mesmo formato do kit BulletStrike_Teste2, que ja carregou no 0.30.4c)
+	{
+		Action = Overrides
+		OverrideIn = "<gui/game/designer/editor_groups.rules>"
+		Overrides
+		{
+			BS2Fita
+			{
+				NameKey = "EditorGroups/BS2Fita"
+				Icon
+				{
+					Texture
+					{
+						File = "gui/grupo_bs2fita.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+				SortOrder = 253
+			}
+		}
+	}
+	// tipos de buff proprios (padrao SW:ACD mod.rules:39-43)
+	{
+		Action = Overrides
+		OverrideIn = "<./Data/buffs/buffs.rules>"
+		Overrides = &<buffs/bs2f_buffs.rules>
+	}
+	{
+		Action = AddMany
+		AddTo = "<ships/terran/terran.rules>/Terran/Parts"
+		ManyToAdd
+		[
+			&<parts/bs2f_fita/bs2f_fita.rules>/Part
+			&<parts/bs2f_paiol/bs2f_paiol_bala.rules>/Part
+			&<parts/bs2f_paiol/bs2f_paiol_he.rules>/Part
+			&<parts/bs2f_fab/bs2f_fab_bala.rules>/Part
+			&<parts/bs2f_fab/bs2f_fab_bala_b.rules>/Part
+			&<parts/bs2f_fab/bs2f_fab_he.rules>/Part
+			&<parts/bs2f_arma/bs2f_arma.rules>/Part
+			&<parts/bs2f_arma/bs2f_arma_puxa.rules>/Part
+		]
+	}
+	{
+		Action = AddMany
+		AddTo = "<gui/game/parts/part_toggles.rules>/PartToggles"
+		ManyToAdd = &<gui/bs2f_part_toggles.rules>/PartToggles
+	}
+]

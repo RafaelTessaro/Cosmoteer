@@ -1,0 +1,307 @@
+// =====================================================================================================
+//  [TESTE] Arma de teste 2x2 "fita: o paiol empurra". Imita uma arma do Bullet Strike: buffer interno por tipo,
+//  seletor de tipo, gasta 4/s com "Atirar" ligado. Com uma Fita grudada, os paioies com fita do MESMO tipo enchem o
+//  buffer do tipo escolhido sozinhos, de qualquer lugar do navio (teleporte por buff). Sem fita = tripulacao (abaixo
+//  da metade do buffer), como hoje.
+// =====================================================================================================
+
+ARMA
+{
+	BUF_0 = 60          // buffer interno (bullet)
+	BUF_1 = 20          // buffer interno (missile_part_he)
+	METADE_0 = 30
+	METADE_1 = 10
+	PUXA_INTERVALO = 0.1        // so na arma que puxa: 1 unidade a cada 0,1 s = 10/s por arma
+	GASTA_INTERVALO = 0.25      // "tiro": 4 unidades/s
+}
+
+Part : <./Data/ships/terran/base_part_terran.rules>/Part
+{
+	NameKey = "Parts/BS2FArma"
+	IconNameKey = "Parts/BS2FArmaIcon"
+	DescriptionKey = "Parts/BS2FArmaDesc"
+	ID = rafaeltessaro.bs2f_arma
+	EditorGroups = ["BS2Fita"]
+	Resources
+	[
+		[steel, 20]
+	]
+	Size = [2, 2]
+	SelectionPriority = 1
+	MaxHealth = 4000
+	TypeCategories = [uses_ammo, bs2f_maquina]
+	ReceivableBuffs : ^/0/ReceivableBuffs [BS2F_FitaLink, BS2F_Fita]
+	EditorIcon
+	{
+		Texture
+		{
+			File = "icon.png"
+			SampleMode = Linear
+		}
+		Size = [64, 64]
+	}
+	Components : ^/0/Components
+	{
+		Atirar
+		{
+			Type = UIToggle
+			ToggleID = "on_off"
+			Default = 0
+			RequiresCommand = false
+		}
+		TipoMunicao
+		{
+			Type = UIToggle
+			ToggleID = "bs2f_tipo"
+			Default = 0
+			AlwaysAllowInBuildMode = true
+			RequiresCommand = false
+		}
+		ModoTipo0 { Type = ModeToggle; Mode = TipoMunicao; OnMode = 0 }
+		ModoTipo1 { Type = ModeToggle; Mode = TipoMunicao; OnMode = 1 }
+
+		// ---------------------------------------------------- buffers internos (guardados ao trocar de tipo)
+		Buffer0
+		{
+			Type = ResourceStorage
+			ResourceType = bullet
+			MaxResources = &~/ARMA/BUF_0
+			InitToMaxResources = 0		// comeca vazio (o Buffer1 herda)
+			UITileRect = [7/64, 1 + 7/64, 1 - 14/64, 1 - 14/64]
+			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
+		}
+		Buffer1 : Buffer0
+		{
+			ResourceType = missile_part_he
+			MaxResources = &~/ARMA/BUF_1
+			UITileRect = [1 + 7/64, 1 + 7/64, 1 - 14/64, 1 - 14/64]
+		}
+
+		// ---------------------------------------------------- tripulacao como reserva (so o tipo escolhido, so abaixo da metade)
+		// (V power_storage.rules:155-162 ResupplyThreshold; kit BulletStrike_Teste2 bs2t_arma.rules:79-96)
+		Consumidor0
+		{
+			Type = ResourceConsumer
+			ResourceType = bullet
+			Storage = Buffer0
+			DefaultPriority = &/PRIORITIES/Weapon_Supply
+			OperationalToggle = ModoTipo0
+			AllowNonOperationalMinPriorityDelivery = false
+			ResupplyThreshold = &~/ARMA/METADE_0
+		}
+		Consumidor1 : Consumidor0
+		{
+			ResourceType = missile_part_he
+			Storage = Buffer1
+			OperationalToggle = ModoTipo1
+			ResupplyThreshold = &~/ARMA/METADE_1
+		}
+
+		// ---------------------------------------------------- fita grudada? so o tipo escolhido recebe pela fita
+		FitaLigada
+		{
+			Type = BuffToggle
+			BuffType = BS2F_FitaLink
+		}
+		Alimenta0 { Type = MultiToggle; Toggles = [ModoTipo0, FitaLigada]; Mode = All }
+		Alimenta1 { Type = MultiToggle; Toggles = [ModoTipo1, FitaLigada]; Mode = All }
+
+		// ---------------------------------------------------- ENTRADA PELA FITA (os paioies EMPURRAM para ca)
+		// Os paioies com fita juntam estes componentes por ViaBuffs OutgoingBuffProviders/ComponentIDs = [FitaEntraBala] etc.
+		// Proxy desligado (ProxyToggle) = capacidade 0 = o paiol nao manda nada. Proxy com ProxyToggle e o padrao vanilla
+		// da Sala de Motores (engine_room.rules:121-136: CombinedBatteryStorageProxy com ProxyToggle/InvertProxyToggle).
+		FitaEntraBala
+		{
+			Type = ResourceStorageProxy
+			ResourceType = bullet
+			ComponentID = Buffer0
+			ProxyToggle = Alimenta0
+		}
+		FitaEntraHE
+		{
+			Type = ResourceStorageProxy
+			ResourceType = missile_part_he
+			ComponentID = Buffer1
+			ProxyToggle = Alimenta1
+		}
+
+		// ---------------------------------------------------- animacao "cartuchos entrando" (qualquer aumento do buffer)
+		Entrou0 { Type = ValueChangeTrigger; ValueSource = Buffer0; TriggerOnDecrease = false }
+		Entrou1 { Type = ValueChangeTrigger; ValueSource = Buffer1; TriggerOnDecrease = false }
+		EntrouAlgum { Type = MultiTrigger; Triggers = [Entrou0, Entrou1] }
+		EntrandoRecente
+		{
+			Type = Timer
+			Duration = 0.6
+			StartTrigger = EntrouAlgum
+			ResetTrigger = EntrouAlgum
+			StartExpired = true
+			InvertToggle = true
+		}
+		AnimEntrando
+		{
+			Type = Graphics
+			Location = [0.5, 0.5]
+			OperationalToggle = EntrandoRecente
+			OperationalRoofDoodad
+			{
+				Layer = "roof_doodads"
+				DamageLevels
+				[
+					{
+						AnimationFiles
+						[
+							"../fx/cartucho_entra1.png"
+							"../fx/cartucho_entra2.png"
+							"../fx/cartucho_entra3.png"
+							"../fx/cartucho_entra4.png"
+							"../fx/cartucho_entra5.png"
+							"../fx/cartucho_entra6.png"
+							"../fx/cartucho_entra7.png"
+							"../fx/cartucho_entra8.png"
+						]
+						Size = [1, 1]
+						AnimationInterval = 0.075
+					}
+				]
+			}
+			OperationalLighting
+			{
+				Layer = "lights_add"
+				DamageLevels
+				[
+					{
+						AnimationFiles
+						[
+							"../fx/brilho_entra1.png"
+							"../fx/brilho_entra2.png"
+							"../fx/brilho_entra3.png"
+							"../fx/brilho_entra4.png"
+							"../fx/brilho_entra5.png"
+							"../fx/brilho_entra6.png"
+							"../fx/brilho_entra7.png"
+							"../fx/brilho_entra8.png"
+						]
+						Size = [1, 1]
+						AnimationInterval = 0.075
+					}
+				]
+			}
+		}
+
+		// ---------------------------------------------------- responde para a Fita vizinha (luz verde na Fita)
+		AvisaFitaHorizontal
+		{
+			Type = AreaBuffProvider
+			BuffType = BS2F_FitaAck
+			BuffArea = [-1, 0, 4, 2]
+			Criteria
+			{
+				Category = bs2f_fita
+			}
+		}
+		AvisaFitaVertical : AvisaFitaHorizontal
+		{
+			BuffArea = [0, -1, 2, 4]
+		}
+
+		// ---------------------------------------------------- "tiro" = gastar o tipo escolhido
+		GastaLigado0 { Type = MultiToggle; Toggles = [Atirar, ModoTipo0]; Mode = All }
+		GastaLigado1 { Type = MultiToggle; Toggles = [Atirar, ModoTipo1]; Mode = All }
+		Gasta0
+		{
+			Type = ResourceConverter
+			OperationalToggle = GastaLigado0
+			FromStorage = Buffer0
+			FromQuantity = 1
+			Interval = &~/ARMA/GASTA_INTERVALO
+		}
+		Gasta1 : Gasta0
+		{
+			OperationalToggle = GastaLigado1
+			FromStorage = Buffer1
+		}
+
+		// ---------------------------------------------------- mostrador: as duas barras sempre (prova que nada e convertido)
+		Barra0
+		{
+			Type = ProgressBar
+			ShowProgressFor = Buffer0
+			LowColor = [255, 70, 30]
+			HighColor = [255, 200, 40]
+			FullColor = [110, 230, 90]
+		}
+		Barra1 : Barra0
+		{
+			ShowProgressFor = Buffer1
+			LowColor = [120, 60, 255]
+			HighColor = [180, 140, 255]
+			FullColor = [220, 200, 255]
+		}
+		GastouAlgum { Type = MultiTrigger; Triggers = [Gasta0, Gasta1] }
+		AtirouRecente
+		{
+			Type = Timer
+			Duration = 0.3
+			StartTrigger = GastouAlgum
+			ResetTrigger = GastouAlgum
+			StartExpired = true
+			InvertToggle = true
+		}
+		LuzTiro
+		{
+			Type = Graphics
+			Location = [1, 1]
+			OperationalToggle = AtirouRecente
+			OperationalLighting
+			{
+				Layer = "lights_add"
+				DamageLevels
+				[
+					{ File = "lamp_tiro.png"; Size = [2, 2] }
+				]
+			}
+		}
+		Graficos
+		{
+			Type = Graphics
+			Location = [1, 1]
+			Floor
+			{
+				Layer = "floors"
+				DamageLevels
+				[
+					{ File = "floor.png"; Size = [2, 2] }
+				]
+			}
+			Walls
+			{
+				Layer = "walls"
+				DamageLevels
+				[
+					{ File = "walls.png"; Size = [2, 2] }
+				]
+			}
+			Roof
+			{
+				Layer = "roofs"
+				DamageLevels
+				[
+					{ File = "roof.png"; NormalsFile = "roof_normals.png"; Size = [2, 2] }
+				]
+			}
+		}
+		Blueprints
+		{
+			Type = BlueprintSprite
+			File = "blueprints.png"
+			Size = [2, 2]
+		}
+		DestroyedEffects
+		{
+			Type = DeathEffects
+			MediaEffects = &/COMMON_EFFECTS/MedPartDestroyed
+			Location = [1, 1]
+		}
+	}
+}

@@ -1,0 +1,114 @@
+// =====================================================================================================
+//  [TESTE] Fita de alimentacao (1x1). E a peca que voce "gruda" do lado de uma fabrica, paiol ou arma.
+//  Ela NAO carrega nada e nao precisa de caminho ate as outras: so avisa a maquina vizinha "voce esta na rede"
+//  (buff BS2F_FitaLink nas 4 celulas vizinhas, em cruz). A maquina responde com BS2F_FitaAck e a luz verde acende.
+//  Evidencias: AreaBuffProvider + Criteria + BuffToggle = cadeia do railgun vanilla
+//  (Data/ships/terran/railgun_loader/railgun_loader.rules:163-191; railgun_accelerator.rules:130-140).
+//  Peca fechada como o cano de calor (Data/ships/terran/heat_pipe_adaptive/heat_pipe_adaptive.rules:15-25).
+// =====================================================================================================
+
+Part : <./Data/ships/terran/base_part_terran.rules>/Part
+{
+	NameKey = "Parts/BS2FFita"
+	IconNameKey = "Parts/BS2FFitaIcon"
+	DescriptionKey = "Parts/BS2FFitaDesc"
+	ID = rafaeltessaro.bs2f_fita
+	EditorGroups = ["BS2Fita"]
+	Resources
+	[
+		[steel, 4]
+		[coil, 1]
+	]
+	Size = [1, 1]
+	IsRotateable = false
+	IsFlippable = false
+	SelectionPriority = 0
+	MaxHealth = 800
+	TypeCategories = [bs2f_fita]
+	ReceivableBuffs : ^/0/ReceivableBuffs [BS2F_FitaAck]
+	AllowedDoorLocations = []
+	GeneratorRequiresDoor = false
+	CrewSpeedFactor = 0
+	EditorIcon
+	{
+		Texture
+		{
+			File = "icon.png"
+			SampleMode = Linear
+		}
+		Size = [32, 32]
+	}
+	Components : ^/0/Components
+	{
+		// ------------------------------------------------ "gruda" na maquina vizinha (em cruz: esquerda/direita e cima/baixo)
+		GrudaHorizontal
+		{
+			Type = AreaBuffProvider
+			BuffType = BS2F_FitaLink
+			BuffArea = [-1, 0, 3, 1]
+			Criteria
+			{
+				Category = bs2f_maquina
+			}
+		}
+		GrudaVertical : GrudaHorizontal
+		{
+			BuffArea = [0, -1, 1, 3]
+		}
+
+		// ------------------------------------------------ luz verde = encostada numa maquina da fita
+		Grudada
+		{
+			Type = BuffToggle
+			BuffType = BS2F_FitaAck
+		}
+		LuzGrudada
+		{
+			Type = Graphics
+			Location = [0.5, 0.5]
+			OperationalToggle = Grudada
+			OperationalLighting
+			{
+				Layer = "lights_add"
+				DamageLevels
+				[
+					{ File = "luz_grudada.png"; Size = [1, 1] }
+				]
+			}
+		}
+
+		Graficos
+		{
+			Type = Graphics
+			Location = [0.5, 0.5]
+			Floor
+			{
+				Layer = "floors"
+				DamageLevels
+				[
+					{ File = "floor.png"; Size = [1, 1] }
+				]
+			}
+			Roof
+			{
+				Layer = "roofs"
+				DamageLevels
+				[
+					{ File = "roof.png"; NormalsFile = "roof_normals.png"; Size = [1, 1] }
+				]
+			}
+		}
+		Blueprints
+		{
+			Type = BlueprintSprite
+			File = "blueprints.png"
+			Size = [1, 1]
+		}
+		DestroyedEffects
+		{
+			Type = DeathEffects
+			MediaEffects = &/COMMON_EFFECTS/SmallPartDestroyed
+			Location = [0.5, 0.5]
+		}
+	}
+}

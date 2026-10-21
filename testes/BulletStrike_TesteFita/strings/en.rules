@@ -1,0 +1,39 @@
+// Strings of the Bullet Strike 2.0 "feed belt without a belt" test mod (English). Do not put __Name / __DebugOnly in mod files.
+
+BS2FTag = "\n<s16><gray>Mod: [TESTE] Bullet Strike 2.0 - feed belt without a belt</gray></s16>"
+EditorGroups
+{
+	BS2Fita = "BS Test Fita"
+}
+Parts
+{
+	BS2FFita = "[TESTE] Feed belt"
+	BS2FFitaIcon = "Feed belt"
+	BS2FFitaDesc = "Stick it next to a factory, depot or gun of this test (touching it above, below, left or right). That machine joins the feed-belt network: ammo moves by itself, with no crew and no part in between, as if a belt ran under the ship. The green light turns on when the belt touches a machine, and the machine shows the belt icon.<string id='BS2FTag'/>"
+	BS2FPaiolBala = "[TESTE] Ammo depot (belt)"
+	BS2FPaiolBalaIcon = "Ammo depot"
+	BS2FPaiolBalaDesc = "SEALED depot (crew cannot enter) for 200 cannon ammo. Works only with a Feed belt stuck to it: receives from factories with a belt and sends to guns with a belt, anywhere on the ship (10 per second). Cartridges entering and leaving animation.<string id='BS2FTag'/>"
+	BS2FPaiolHE = "[TESTE] HE missile part depot (belt)"
+	BS2FPaiolHEIcon = "HE depot"
+	BS2FPaiolHEDesc = "SEALED depot for 50 HE missile parts. Same as the ammo depot, but it only takes and sends HE missile parts: one type never becomes the other.<string id='BS2FTag'/>"
+	BS2FFabBala = "[TESTE] Test factory - Ammo (belt A)"
+	BS2FFabBalaIcon = "Ammo fab. A"
+	BS2FFabBalaDesc = "Makes cannon ammo from nothing (test only): 10 every 1 s, in the output grid. With a Feed belt stuck to it, it sends from the grid to ammo depots that have a belt (10 per second, cartridges leaving animation). Without a belt, crew pick up from the grid like a normal factory.<string id='BS2FTag'/>"
+	BS2FFabBalaB = "[TESTE] Test factory - Ammo (belt B)"
+	BS2FFabBalaBIcon = "Ammo fab. B"
+	BS2FFabBalaBDesc = "Same as Ammo fab. A, but the link runs the other way (the factory reaches the depots). With a Feed belt stuck to it, it sends from the grid to ammo depots anywhere on the ship (10 per second). The depot does not need a belt to receive from this one. Used to compare both ways in game.<string id='BS2FTag'/>"
+	BS2FFabHE = "[TESTE] Test factory - HE missile part (belt)"
+	BS2FFabHEIcon = "HE fab."
+	BS2FFabHEDesc = "Makes HE missile parts from nothing (test only): 8 every 1 s. With a Feed belt stuck to it, it sends them to HE depots that have a belt.<string id='BS2FTag'/>"
+	BS2FArma = "[TESTE] Test gun - depot pushes"
+	BS2FArmaIcon = "Gun push"
+	BS2FArmaDesc = "Acts like a gun: uses 4 units per second of the chosen type while the on/off button is on (= firing). With a Feed belt stuck to it, depots of the same type that have a belt fill its internal stock by themselves (the depot pushes). Without a belt, crew refill it below half, as today. Two bars, one per type.<string id='BS2FTag'/>"
+	BS2FArmaPuxa = "[TESTE] Test gun - gun pulls"
+	BS2FArmaPuxaIcon = "Gun pull"
+	BS2FArmaPuxaDesc = "Same as the other test gun, but the other way round: this gun pulls from depots that have a belt (10 per second). Used to compare both ways in game.<string id='BS2FTag'/>"
+}
+PartToggles
+{
+	BS2FTipoBala = "Cannon ammo"
+	BS2FTipoHE = "HE missile part"
+}

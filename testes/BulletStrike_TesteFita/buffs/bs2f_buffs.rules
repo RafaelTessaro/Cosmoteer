@@ -1,0 +1,43 @@
+// [TESTE] Tipos de buff da "fita sem esteira". Registrados por Overrides em <./Data/buffs/buffs.rules> (padrao SW:ACD mod.rules:39-43).
+// Nenhum deles muda numero de nada: so servem de "fio invisivel" para o ViaBuffs, igual ao EnginePowerDistribution vanilla
+// ("Only exists to piggyback engine room power distribution off the buff system", Data/buffs/buffs.rules:25-28).
+
+BS2F_Fita               // rede do navio: cada paiol com fita grudada da este buff ao navio inteiro (GridDistance 1000)
+{
+	CombineMode = Max
+	// sem retangulo colorido no editor (o alcance e o navio todo, o desenho so atrapalharia)
+	RectBorderColor = [0, 0, 0, 0]
+	RectFillColor = [0, 0, 0, 0]
+}
+
+BS2F_FitaLink           // a peca Fita grudada do lado da maquina (fabrica, paiol ou arma): liga a maquina na rede
+{
+	CombineMode = Max
+	// o icone da fita aparece na maquina que esta com fita (igual ao icone do no do hiperpropulsor do SW:ACD buffs.rules:173-188)
+	Icon
+	{
+		Texture
+		{
+			File = "../gui/buff_fita.png"
+			MipLevels = 2
+			SampleMode = Linear
+		}
+		Size = [0.5, 0.5]
+	}
+	RectBorderColor = [110, 230, 120, 160]
+	RectFillColor = [110, 230, 120, 64]
+}
+
+BS2F_FitaAck            // resposta da maquina para a Fita: acende a luz verde da Fita quando ela esta grudada em algo
+{
+	CombineMode = Max
+	RectBorderColor = [110, 230, 120, 160]
+	RectFillColor = [110, 230, 120, 32]
+}
+
+BS2F_FitaFab            // variante B: a fabrica com fita da este buff ao navio inteiro e empurra para os paioes (GridDistance 1000)
+{
+	CombineMode = Max
+	RectBorderColor = [0, 0, 0, 0]
+	RectFillColor = [0, 0, 0, 0]
+}

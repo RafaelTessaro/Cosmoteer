@@ -1,0 +1,283 @@
+// =====================================================================================================
+//  [TESTE] Fabrica de teste 2x2 - VARIANTE B (a fabrica e quem "da" o buff).
+//  Igual a bs2f_fab_bala.rules, so muda o sentido do elo: aqui a FABRICA tem o GridBuffProvider (GridDistance 1000)
+//  e EMPURRA para os paioes de bullet pelo ViaBuffs OutgoingBuffProviders. E exatamente o formato que o SW:ACD 0.30.4
+//  ja usa nos reatores "sem fio" (ships/terran/reactor/hypermatter/creator_med/hypermatter_reactor_2x2.rules:256-292:
+//  ResourceConverter -> MultiResourceStorage ViaBuffs OutgoingBuffProviders -> BatteryStorage das pecas buffadas).
+//  Serve de plano B se o teste A3 (fabrica A, IncomingBuffTypes) falhar. O paiol de bullet nao precisa de Fita para
+//  receber desta fabrica (ele so lista BS2F_FitaFab em ReceivableBuffs); a Fita continua obrigatoria na fabrica.
+// =====================================================================================================
+
+FABRICA
+{
+	POR_CICLO = 10
+	INTERVALO = 1
+	ENVIO_INTERVALO = 0.1		// 10 por segundo pela fita
+}
+
+Part : <./Data/ships/terran/base_part_terran.rules>/Part
+{
+	NameKey = "Parts/BS2FFabBalaB"
+	IconNameKey = "Parts/BS2FFabBalaBIcon"
+	DescriptionKey = "Parts/BS2FFabBalaBDesc"
+	ID = rafaeltessaro.bs2f_fab_bala_b
+	EditorGroups = ["BS2Fita"]
+	Resources
+	[
+		[steel, 20]
+	]
+	Size = [2, 2]
+	SelectionPriority = 1
+	MaxHealth = 4000
+	TypeCategories = [provides_ammo, bs2f_maquina]
+	ReceivableBuffs : ^/0/ReceivableBuffs [BS2F_FitaLink]
+	EditorIcon
+	{
+		Texture
+		{
+			File = "bala/icon_b.png"
+			SampleMode = Linear
+		}
+		Size = [64, 64]
+	}
+	Components : ^/0/Components
+	{
+		PowerToggle
+		{
+			Type = UIToggle
+			ToggleID = "on_off"
+			Default = 1
+			RequiresCommand = false
+		}
+		// grade de saida igual a da fabrica vanilla: a tripulacao recolhe daqui quando nao ha fita
+		GradeSaida
+		{
+			Type = TypedResourceGrid
+			ResourceType = bullet
+			GridRect = [1, 1, 1, 1]
+			Layer = "doodads_low"
+			SpriteInset = [8/64, 6/64, 8/64, 9/64]
+			SuppliesResources = true
+			SupplyToggleButtonOffset = [0, -.4]
+			InitToMaxResources = 0
+			AllowExternalPickupAndDelivery = true
+		}
+		Produtor
+		{
+			Type = ResourceConverter
+			OperationalToggle = PowerToggle
+			ToStorage = GradeSaida
+			ToQuantity = &~/FABRICA/POR_CICLO
+			MinToQuantityForConversion = &~/FABRICA/POR_CICLO
+			Interval = &~/FABRICA/INTERVALO
+		}
+
+		// ------------------------------------------------ fita: teletransporte para os paioies com fita
+		FitaLigada
+		{
+			Type = BuffToggle
+			BuffType = BS2F_FitaLink
+		}
+		// ancora: um elemento sempre DESLIGADO (capacidade 0) para a lista nunca ficar vazia; os paioies/armas de verdade
+		// entram pelo ViaBuffs. Proxy com ProxyToggle desligado = estado vanilla (engine_room.rules:113-125, um dos dois
+		// proxies da Sala de Motores esta sempre desligado).
+		Desligado { Type = StaticToggle; ToggleOn = false }
+		Ancora
+		{
+			Type = ResourceStorageProxy
+			ResourceType = bullet
+			ComponentID = GradeSaida
+			ProxyToggle = Desligado
+		}
+		// o navio todo recebe o buff BS2F_FitaFab desta fabrica (so os paioes de bullet o aceitam), igual ao
+		// BuffStorageCollector do hiperpropulsor do SW:ACD (hyperdrive_med.rules:80-87, GridDistance = 1000)
+		RedeFab
+		{
+			Type = GridBuffProvider
+			BuffType = BS2F_FitaFab
+			BuffAmount = 1
+			GridDistance = 1000
+			OperationalToggle = FitaLigada
+		}
+		ParaPaiois
+		{
+			Type = MultiResourceStorage
+			ResourceType = bullet
+			ResourceStorages = [Ancora]
+			ViaBuffs
+			{
+				OutgoingBuffProviders = [RedeFab]
+				ComponentIDs = [PaiolBala]
+			}
+			AddMode = PrioritizeLeastResources
+		}
+		Envio
+		{
+			Type = ResourceConverter
+			OperationalToggle = FitaLigada
+			FromStorage = GradeSaida
+			FromQuantity = 1
+			MinFromQuantityForConversion = 1
+			ToStorage = ParaPaiois
+			ToQuantity = 1
+			Interval = &~/FABRICA/ENVIO_INTERVALO
+		}
+		SaindoRecente
+		{
+			Type = Timer
+			Duration = 0.6
+			StartTrigger = Envio
+			ResetTrigger = Envio
+			StartExpired = true
+			InvertToggle = true
+		}
+		AnimSaindo
+		{
+			Type = Graphics
+			Location = [1.5, 1.5]
+			OperationalToggle = SaindoRecente
+			OperationalRoofDoodad
+			{
+				Layer = "roof_doodads"
+				DamageLevels
+				[
+					{
+						AnimationFiles
+						[
+							"../fx/cartucho_sai1.png"
+							"../fx/cartucho_sai2.png"
+							"../fx/cartucho_sai3.png"
+							"../fx/cartucho_sai4.png"
+							"../fx/cartucho_sai5.png"
+							"../fx/cartucho_sai6.png"
+							"../fx/cartucho_sai7.png"
+							"../fx/cartucho_sai8.png"
+						]
+						Size = [1, 1]
+						AnimationInterval = 0.075
+					}
+				]
+			}
+			OperationalLighting
+			{
+				Layer = "lights_add"
+				DamageLevels
+				[
+					{
+						AnimationFiles
+						[
+							"../fx/brilho_sai1.png"
+							"../fx/brilho_sai2.png"
+							"../fx/brilho_sai3.png"
+							"../fx/brilho_sai4.png"
+							"../fx/brilho_sai5.png"
+							"../fx/brilho_sai6.png"
+							"../fx/brilho_sai7.png"
+							"../fx/brilho_sai8.png"
+						]
+						Size = [1, 1]
+						AnimationInterval = 0.075
+					}
+				]
+			}
+		}
+
+		// ------------------------------------------------ responde para a Fita vizinha (luz verde na Fita)
+		AvisaFitaHorizontal
+		{
+			Type = AreaBuffProvider
+			BuffType = BS2F_FitaAck
+			BuffArea = [-1, 0, 4, 2]
+			Criteria
+			{
+				Category = bs2f_fita
+			}
+		}
+		AvisaFitaVertical : AvisaFitaHorizontal
+		{
+			BuffArea = [0, -1, 2, 4]
+		}
+
+		// luz "produzindo" (Timer usado como interruptor, V chaingun.rules:197-207)
+		ProduziuRecente
+		{
+			Type = Timer
+			Duration = 1.5
+			StartTrigger = Produtor
+			ResetTrigger = Produtor
+			StartExpired = true
+			InvertToggle = true
+		}
+		Luz
+		{
+			Type = Graphics
+			Location = [1, 1]
+			OperationalToggle = ProduziuRecente
+			OperationalLighting
+			{
+				Layer = "lights_add"
+				DamageLevels
+				[
+					{ File = "bala/lamp.png"; Size = [2, 2] }
+				]
+			}
+		}
+		Graficos
+		{
+			Type = Graphics
+			Location = [1, 1]
+			Floor
+			{
+				Layer = "floors"
+				DamageLevels
+				[
+					{ File = "bala/floor.png"; Size = [2, 2] }
+				]
+			}
+			Walls
+			{
+				Layer = "walls"
+				DamageLevels
+				[
+					{ File = "bala/walls.png"; Size = [2, 2] }
+				]
+			}
+			Roof
+			{
+				Layer = "roofs"
+				DamageLevels
+				[
+					{ File = "bala/roof.png"; NormalsFile = "bala/roof_normals.png"; Size = [2, 2] }
+				]
+			}
+		}
+		Blueprints
+		{
+			Type = BlueprintSprite
+			File = "bala/blueprints.png"
+			Size = [2, 2]
+		}
+		Indicadores
+		{
+			Type = IndicatorSprites
+			Location = [1, 1]
+			Indicators
+			[
+				{
+					Toggle = PowerToggle
+					AtlasSprite
+					{
+						File = &/INDICATORS/PowerOff
+						Size = [1, 1]
+					}
+				}
+			]
+		}
+		DestroyedEffects
+		{
+			Type = DeathEffects
+			MediaEffects = &/COMMON_EFFECTS/MedPartDestroyed
+			Location = [1, 1]
+		}
+	}
+}

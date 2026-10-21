@@ -1,0 +1,326 @@
+// =====================================================================================================
+//  [TESTE] Paiol 1x1 de bullet para a "fita sem esteira". FECHADO: a tripulacao nao entra (V thermal_battery.rules:22-25).
+//  Enche e esvazia SO pela fita, por teletransporte (buffs), sem esteira e sem caminho:
+//   * com uma Fita grudada (BuffToggle BS2F_FitaLink), o paiol vira "centro da rede": da o buff BS2F_Fita ao navio
+//     inteiro (GridBuffProvider GridDistance 1000 = SW:ACD hyperdrive_med.rules:80-88, carregado no 0.30.4);
+//   * fabricas com fita EMPURRAM para o PaiolBala dele (ViaBuffs IncomingBuffTypes, lado "recebe-buff empurra",
+//     = propulsor vanilla mandando calor para a Sala de Motores, thruster_small.rules:199-216);
+//   * ele EMPURRA para as armas com fita (ViaBuffs OutgoingBuffProviders, lado "da-buff empurra", = Sala de Motores
+//     vanilla mandando bateria, engine_room.rules:98-110, e reator sem fio do SW:ACD hypermatter_reactor_2x2.rules:256-292).
+//  O componente PaiolBala so existe em paiol de bullet: municao de um tipo nunca entra em paiol/arma de outro.
+// =====================================================================================================
+
+PAIOL
+{
+	CAP = 200
+	EMPURRA_INTERVALO = 0.1		// 1 unidade a cada 0,1 s = 10/s por paiol
+}
+
+Part : <./Data/ships/terran/base_part_terran.rules>/Part
+{
+	NameKey = "Parts/BS2FPaiolBala"
+	IconNameKey = "Parts/BS2FPaiolBalaIcon"
+	DescriptionKey = "Parts/BS2FPaiolBalaDesc"
+	ID = rafaeltessaro.bs2f_paiol_bala
+	EditorGroups = ["BS2Fita"]
+	Resources
+	[
+		[steel, 8]
+	]
+	Size = [1, 1]
+	IsRotateable = false
+	IsFlippable = false
+	SelectionPriority = 0
+	MaxHealth = 2500
+	TypeCategories = [bs2f_maquina, bs2f_paiol]
+	// so a fita; o paiol NAO recebe BS2F_Fita (ele e quem da)
+	ReceivableBuffs : ^/0/ReceivableBuffs [BS2F_FitaLink, BS2F_FitaFab]
+	AllowedDoorLocations = []
+	GeneratorRequiresDoor = false
+	CrewSpeedFactor = 0
+	EditorIcon
+	{
+		Texture
+		{
+			File = "icon.png"
+			SampleMode = Linear
+		}
+		Size = [32, 32]
+	}
+	Components : ^/0/Components
+	{
+		PaiolBala
+		{
+			Type = ResourceStorage
+			ResourceType = bullet
+			MaxResources = &~/PAIOL/CAP
+			InitToMaxResources = 0		// comeca vazio mesmo em nave gerada "pronta" (V factory_ammo.rules:125)
+			DropResourcesWhenDestroyed = false
+		}
+
+		// ------------------------------------------------ fita grudada? entao vira centro da rede do navio
+		FitaLigada
+		{
+			Type = BuffToggle
+			BuffType = BS2F_FitaLink
+		}
+		Rede
+		{
+			Type = GridBuffProvider
+			BuffType = BS2F_Fita
+			BuffAmount = 1
+			GridDistance = 1000
+			OperationalToggle = FitaLigada
+		}
+
+		// ------------------------------------------------ teleporte para as armas (empurra; padrao reator sem fio do SW:ACD)
+		// ancora: um elemento sempre DESLIGADO (capacidade 0) para a lista nunca ficar vazia; os paioies/armas de verdade
+		// entram pelo ViaBuffs. Proxy com ProxyToggle desligado = estado vanilla (engine_room.rules:113-125, um dos dois
+		// proxies da Sala de Motores esta sempre desligado).
+		Desligado { Type = StaticToggle; ToggleOn = false }
+		Ancora
+		{
+			Type = ResourceStorageProxy
+			ResourceType = bullet
+			ComponentID = PaiolBala
+			ProxyToggle = Desligado
+		}
+		ParaArmas
+		{
+			Type = MultiResourceStorage
+			ResourceType = bullet
+			ResourceStorages = [Ancora]
+			ViaBuffs
+			{
+				OutgoingBuffProviders = [Rede]
+				ComponentIDs = [FitaEntraBala]
+			}
+			AddMode = PrioritizeLeastResources
+		}
+		Empurra
+		{
+			Type = ResourceConverter
+			OperationalToggle = FitaLigada
+			FromStorage = PaiolBala
+			FromQuantity = 1
+			MinFromQuantityForConversion = 1
+			ToStorage = ParaArmas
+			ToQuantity = 1
+			Interval = &~/PAIOL/EMPURRA_INTERVALO
+		}
+
+		// ------------------------------------------------ animacao: cartuchos entrando / saindo (so efeito, nada fisico)
+		Entrou
+		{
+			Type = ValueChangeTrigger
+			ValueSource = PaiolBala
+			TriggerOnDecrease = false
+		}
+		Saiu
+		{
+			Type = ValueChangeTrigger
+			ValueSource = PaiolBala
+			TriggerOnIncrease = false
+		}
+		EntrandoRecente
+		{
+			Type = Timer
+			Duration = 0.6
+			StartTrigger = Entrou
+			ResetTrigger = Entrou
+			StartExpired = true
+			InvertToggle = true
+		}
+		SaindoRecente
+		{
+			Type = Timer
+			Duration = 0.6
+			StartTrigger = Saiu
+			ResetTrigger = Saiu
+			StartExpired = true
+			InvertToggle = true
+		}
+		AnimEntrando
+		{
+			Type = Graphics
+			Location = [0.5, 0.5]
+			OperationalToggle = EntrandoRecente
+			OperationalRoofDoodad
+			{
+				Layer = "roof_doodads"
+				DamageLevels
+				[
+					{
+						AnimationFiles
+						[
+							"../fx/cartucho_entra1.png"
+							"../fx/cartucho_entra2.png"
+							"../fx/cartucho_entra3.png"
+							"../fx/cartucho_entra4.png"
+							"../fx/cartucho_entra5.png"
+							"../fx/cartucho_entra6.png"
+							"../fx/cartucho_entra7.png"
+							"../fx/cartucho_entra8.png"
+						]
+						Size = [1, 1]
+						AnimationInterval = 0.075
+					}
+				]
+			}
+			OperationalLighting
+			{
+				Layer = "lights_add"
+				DamageLevels
+				[
+					{
+						AnimationFiles
+						[
+							"../fx/brilho_entra1.png"
+							"../fx/brilho_entra2.png"
+							"../fx/brilho_entra3.png"
+							"../fx/brilho_entra4.png"
+							"../fx/brilho_entra5.png"
+							"../fx/brilho_entra6.png"
+							"../fx/brilho_entra7.png"
+							"../fx/brilho_entra8.png"
+						]
+						Size = [1, 1]
+						AnimationInterval = 0.075
+					}
+				]
+			}
+		}
+
+		AnimSaindo
+		{
+			Type = Graphics
+			Location = [0.5, 0.5]
+			OperationalToggle = SaindoRecente
+			OperationalRoofDoodad
+			{
+				Layer = "roof_doodads"
+				DamageLevels
+				[
+					{
+						AnimationFiles
+						[
+							"../fx/cartucho_sai1.png"
+							"../fx/cartucho_sai2.png"
+							"../fx/cartucho_sai3.png"
+							"../fx/cartucho_sai4.png"
+							"../fx/cartucho_sai5.png"
+							"../fx/cartucho_sai6.png"
+							"../fx/cartucho_sai7.png"
+							"../fx/cartucho_sai8.png"
+						]
+						Size = [1, 1]
+						AnimationInterval = 0.075
+					}
+				]
+			}
+			OperationalLighting
+			{
+				Layer = "lights_add"
+				DamageLevels
+				[
+					{
+						AnimationFiles
+						[
+							"../fx/brilho_sai1.png"
+							"../fx/brilho_sai2.png"
+							"../fx/brilho_sai3.png"
+							"../fx/brilho_sai4.png"
+							"../fx/brilho_sai5.png"
+							"../fx/brilho_sai6.png"
+							"../fx/brilho_sai7.png"
+							"../fx/brilho_sai8.png"
+						]
+						Size = [1, 1]
+						AnimationInterval = 0.075
+					}
+				]
+			}
+		}
+
+		// ------------------------------------------------ responde para a Fita vizinha (luz verde na Fita)
+		AvisaFitaHorizontal
+		{
+			Type = AreaBuffProvider
+			BuffType = BS2F_FitaAck
+			BuffArea = [-1, 0, 3, 1]
+			Criteria
+			{
+				Category = bs2f_fita
+			}
+		}
+		AvisaFitaVertical : AvisaFitaHorizontal
+		{
+			BuffArea = [0, -1, 1, 3]
+		}
+
+		// ------------------------------------------------ mostrador
+		BarraEstoque
+		{
+			Type = ProgressBar
+			ShowProgressFor = PaiolBala
+			LowColor = [255, 70, 30]
+			HighColor = [255, 200, 40]
+			FullColor = [110, 230, 90]
+			Height = 8
+		}
+		Placa
+		{
+			Type = Graphics
+			Location = [0.285, 0.285]
+			OperationalRoofDoodad
+			{
+				Layer = "roof_doodads"
+				DamageLevels
+				[
+					{ File = "placa_bala.png"; Size = [0.225, 0.225] }
+				]
+			}
+		}
+		Graficos
+		{
+			Type = Graphics
+			Location = [0.5, 0.5]
+			Floor
+			{
+				Layer = "floors"
+				DamageLevels
+				[
+					{ File = "floor.png"; Size = [1, 1] }
+				]
+			}
+			Walls
+			{
+				Layer = "walls"
+				DamageLevels
+				[
+					{ File = "walls.png"; Size = [1, 1] }
+				]
+			}
+			Roof
+			{
+				Layer = "roofs"
+				DamageLevels
+				[
+					{ File = "roof.png"; NormalsFile = "roof_normals.png"; Size = [1, 1] }
+				]
+			}
+		}
+		Blueprints
+		{
+			Type = BlueprintSprite
+			File = "blueprints.png"
+			Size = [1, 1]
+		}
+		DestroyedEffects
+		{
+			Type = DeathEffects
+			MediaEffects = &/COMMON_EFFECTS/SmallPartDestroyed
+			Location = [0.5, 0.5]
+		}
+	}
+}

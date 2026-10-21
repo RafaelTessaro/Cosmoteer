@@ -1,0 +1,42 @@
+// [TESTE] Seletor de tipo das armas de teste da fita (copia do seletor bs2t_tipo do kit BulletStrike_Teste2,
+// formato do seletor missile_type vanilla). 0 = municao de canhao (bullet), 1 = peca de missil A.E. (missile_part_he).
+
+PartToggles
+[
+	{
+		ToggleID = "bs2f_tipo"
+		Style = Popout
+		ShowInEditor = true
+		Choices
+		[
+			{
+				ChoiceID = "bs2f_tipo_bala"
+				Mode = 0
+				ButtonToolTipKey = "PartToggles/BS2FTipoBala"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "tipo_bala.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+			{
+				ChoiceID = "bs2f_tipo_he"
+				Mode = 1
+				ButtonToolTipKey = "PartToggles/BS2FTipoHE"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "tipo_he.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+		]
+	}
+]
