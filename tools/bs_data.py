@@ -5,14 +5,38 @@ e editavel a mao). Este arquivo converte o spec para o formato que o gerador usa
 dicas de implementacao (estilo de arte, tipo de cano, efeitos) que nao sao balanceamento.
 """
 
+import importlib
 import json
-import math
 import os
+import sys
 
 from rules_dsl import Q
 import art3d as A3
 from bsgen import plasma_fx as PFX
 from launcher_layout import cell_layout
+
+
+# modulos opcionais de efeitos (CONTRATOS secao 1): ausente = silencioso; BS_FX_EXT=0 desliga todos.
+# Um ModuleNotFoundError de OUTRO modulo (import quebrado dentro do modulo opcional) continua estourando.
+def _opt(name):
+    if os.environ.get("BS_FX_EXT", "1") == "0":
+        return None
+    try:
+        return importlib.import_module(name)
+    except ModuleNotFoundError as e:
+        if e.name != name:
+            raise
+        return None
+
+
+def _call(mod, fn, *a, **k):
+    f = getattr(mod, fn, None) if mod is not None else None
+    return f(*a, **k) if f is not None else None
+
+
+FXK = _opt("bsgen.fxkit")
+CFX = _opt("bsgen.caliber_fx")
+MFX = _opt("bsgen.missile_fx")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SPEC_PATH = os.path.join(HERE, "spec", "bullet_strike_spec.json")
@@ -191,6 +215,9 @@ AP_PEN_DAMAGE_FACTOR = 0.5
 APHE_ARMOR_FACTOR = 0.75
 # categorias de projetil do modo defesa da metralhadora hibrida (spec: padrao pd_shot / point_defense)
 PD_CATEGORIES = ["missile", "mine", "bullet"]
+# defesas (flak/CIWS): duas explosoes no mesmo HitNothing (padrao do flak_large vanilla, 2 ExplosiveDamage)
+ANTI_MISSILE_CATEGORIES = ["missile", "mine", "bullet"]   # carga dimensionada contra misseis (numeros de sempre)
+ANTI_LASER_CATEGORIES = ["laser", "ion_shot"]             # carga separada dimensionada contra os raios do SW:ACD
 
 
 def _shot_spec(w, ammo, t, oc=None, oc_range=None):
@@ -464,15 +491,31 @@ def _defense(w, hint, short, oc, ap):
     rng = w["range_m"]
     # so defesa: a explosao so danifica projeteis (sem a 2a explosao contra naves/escudos da flak vanilla);
     # damage_per_hit_std e 0 nas defesas (o feixe nao tem dano direto)
+    # duas cargas na mesma rajada (defense_design C1/C2): a de sempre contra misseis/minas/projeteis e uma mais forte
+    # so contra laser/ion_shot (raios do SW:ACD: 250-20000 de vida). O custo de municao por disparo nao muda.
     beam = {"kind": "flak", "file": f"bs_flak_{short.replace('bs_', '')}", "dir": short,
             "range": rng, "vs_shots": ap["damage_vs_shots"],
             "radius": ap["blast_radius_m"],
-            "categories": ["missile", "mine", "bullet", "laser", "ion_shot"],
-            "offset": list(w.get("random_offset_radius_m") or [0.5, max(2.0, rng / 60)]),
+            "categories": list(ANTI_MISSILE_CATEGORIES),
+            "laser_categories": list(ANTI_LASER_CATEGORIES),
+            "vs_lasers": ap.get("damage_vs_lasers", ap["damage_vs_shots"]),
+            "laser_radius": ap.get("blast_radius_vs_lasers_m", ap["blast_radius_m"]),
+            # dispersao da rajada (RandomOffsetRadius, cresce com a distancia, flak_large.rules l.4): do spec; sem
+            # ela, no maximo 2/3 do raio, para a rajada bem mirada sempre cobrir o alvo
+            "offset": list(w.get("random_offset_radius_m") or [0.5, min(2.0, 0.67 * ap["blast_radius_m"])]),
             # explosao com estilhacos + clarao + fumaca (flak_large.rules l.40-59) e volume perto do vanilla (.5):
             # a rajada que acerta tem que ser vista e ouvida
             "volume": 0.4, "max_conc": 12, "particles": 3}
+    if beam["offset"][1] >= min(beam["radius"], beam["laser_radius"]):
+        raise ValueError(f"{short}: o maximo do RandomOffsetRadius tem que ficar abaixo do raio da explosao "
+                         f"({beam['offset'][1]} >= {min(beam['radius'], beam['laser_radius'])})")
     SHOTS.append(beam)
+    # tolerancia de mira para acompanhar tiros rapidos (raios do SW:ACD a 140-350 m/s); a flak vanilla e a flak do
+    # SW:ACD usam 30d. 3-4 graus e o ponto ideal no simulador do projeto (vfx_design/pd_lasers/thr_final.txt: 1 grau
+    # nao ganha nada; 10+ desperdica municao). Inteiro quando redondo: ciws.py escreve f"{threshold}d" e o arquivo
+    # sai "4d", como no vanilla, e nao "4.0d"
+    thr = float(w.get("fire_threshold_deg") or 4)
+    thr = int(thr) if thr.is_integer() else thr
     nb = int(w.get("barrels") or 1)
     res = w["ammo_resource"]
     d = {
@@ -480,12 +523,7 @@ def _defense(w, hint, short, oc, ap):
         "name_en": w["name_en"], "name_pt": w["name_ptbr"], "codename": w.get("codename", ""), "tier": w["tier"],
         "size": w["size"], "crew": w["crew"], "cp": w["command_points"], "hp": w["max_health"], "cost": w["build_cost"],
         "ring": w.get("prohibit_ring_tiles", 1), "arc": w["firing_arc_deg"], "rotate": w["rotate_speed_deg_s"],
-        # tolerancia de mira = angulo do raio da explosao no alcance maximo (point_defense.rules l.381 usa 1d):
-        # com o cano assim alinhado, o erro de mira no alcance maximo fica no maximo igual ao raio e a rajada cai
-        # perto do alvo. O feixe ainda soma a dispersao aleatoria (RandomOffsetRadius, que cresce com a distancia,
-        # flak_large.rules l.4; ate 3 / 3,5 / 6 m no alcance maximo), entao uma rajada ainda pode errar. Nao
-        # apertar mais: no Tatu a dispersao maxima ja e igual ao raio (raio - dispersao = 0)
-        "threshold": round(math.degrees(math.atan(ap["blast_radius_m"] / rng)), 2),
+        "threshold": thr,
         "fire_interval": round(int(w.get("shots_per_trigger") or 1) / w["fire_rate_shots_per_s"], 4),
         "burst": int(w.get("shots_per_trigger") or 1), "beam": beam["file"],
         "ammo": {"res": res, "shots_per_unit": int(w.get("shots_per_resource_unit") or 1),
@@ -497,6 +535,10 @@ def _defense(w, hint, short, oc, ap):
         "fx": dict(FX["flak"]),
         "art": {"style": hint["style"], "barrel": hint["barrel"], "accent": hint["accent"]},
         "desc": w.get("visual_concept", ""), "spec": w,
+        # aquisicao de alvo da torre (lidas por bsgen/ciws.py, defense_design C4): segura o alvo 0,5 s depois de
+        # cancelar (point_defense.rules l.386), valida 4 candidatos por busca (padrao do jogo = 1) e faz 3 buscas
+        # imediatas quando perde o alvo (chaingun l.735 usa 5)
+        "hold_after_cancel": 0.5, "checks_per_search": 4, "instant_searches": 3,
     }
     if w.get("burst_delay_s"):
         d["burst_delay"] = w["burst_delay_s"]
@@ -1276,6 +1318,11 @@ def _mod_description():
 
 
 MOD["description"] = _mod_description()
+
+# seam D1: com todas as listas prontas (SHOTS, GUNS, DEFENSES, MISSILES, LAUNCHERS...), os modulos opcionais de
+# efeitos anotam os dicionarios (so chaves visuais: vfx, look, sprite..., fx de armas/lancadores; CONTRATOS 2.2/2.3)
+_call(CFX, "annotate", sys.modules[__name__])
+_call(MFX, "annotate", sys.modules[__name__])
 
 
 from bs_strings import strings  # noqa: E402,F401

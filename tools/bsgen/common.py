@@ -14,6 +14,24 @@ EDITOR_GROUP = "BulletStrike"
 # SW:ACD; categorias sao texto livre, entao nao causa erro quando o SW:ACD nao esta instalado.
 ANTI_SHOT_CATEGORIES = ["missile", "mine", "bullet", "laser", "ion_shot"]
 
+# Duas listas de busca automatica nas defesas (defense_design C3/C4): misseis e minas primeiro (lentos e letais,
+# sempre interceptados antes); granadas, raios laser e tiros ionicos numa segunda lista Overridable, que um missil
+# novo pode tomar. ANTI_SHOT_CATEGORIES continua sendo a uniao das duas (docs e a logica do Saci usam).
+PD_PRIORITY_TARGETS = ["missile", "mine"]
+PD_SECONDARY_TARGETS = ["bullet", "laser", "ion_shot"]
+if sorted(PD_PRIORITY_TARGETS + PD_SECONDARY_TARGETS) != sorted(ANTI_SHOT_CATEGORIES):
+    raise ValueError("PD_PRIORITY_TARGETS + PD_SECONDARY_TARGETS tem que ser igual a ANTI_SHOT_CATEGORIES")
+
+# Setor de cobertura da arma (o leque de alcance que aparece ao selecionar a arma ou mandar atacar). Na 0.30.3 /
+# 0.30.4 cada TurretWeapon declara o seu: cannon_deck.rules 0.30.3 l.637, point_defense.rules 0.30.3 l.403,
+# flak_cannon_large.rules 0.30.3 l.488; o SW:ACD (feito para a 0.30.4) declara em 120 de 125 torres
+# (turbolaser_flak_cannon01.rules l.389). Sem ele a 0.30.4c nao mostra o alcance. A 0.30.5 tirou o campo das
+# torres (passou para gui/game/sim_gui.rules) e ignora o que sobrar, entao manter e inofensivo. NAO usar
+# CoverageLine / DefaultWeaponCoverage* / AllowCustomCoverageEditing (so existem na 0.30.5).
+# Valor compartilhado: quem precisar mudar algum campo faz uma copia (dict(COVERAGE_SECTOR_ARC)).
+COVERAGE_SECTOR_ARC = {"Texture": "&/INDICATORS/VerticalGradient", "VertexColor": [255, 255, 255, 51],
+                       "QuadCount": 64}
+
 HEAT_TO_RESOURCE = "&<./Data/statuses/heat/heat.rules>/STATUS_TO_RESOURCE_RATIO"
 
 

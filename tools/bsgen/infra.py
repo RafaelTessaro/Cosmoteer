@@ -84,6 +84,10 @@ def part_stats(extra_ids=()):
         {"ID": "BSFactoryOutput", "FormatKey": Q("Stats/BSFactoryOutputFmt")},
     ]
     stats += [{"ID": sid, "FormatKey": Q(f"Stats/{sid}Fmt")} for sid in extra_ids]
+    # dano da 2a carga das defesas, so contra laser/ion_shot ([por disparo, por segundo], como o ShotDamage vanilla);
+    # valores em ciws.py StatsByCategory, texto em bs_strings (Stats/BSShotDamageVsLasersFmt). No fim da lista para
+    # nao mexer na posicao das linhas que ja existiam (no tooltip ela sai depois das linhas vanilla de todo jeito)
+    stats.append({"ID": "BSShotDamageVsLasers", "FormatKey": Q("Stats/BSShotDamageVsLasersFmt")})
     return render({"PartStats": stats}, "Linhas de estatistica do Bullet Strike (adicionadas com AddMany).")
 
 

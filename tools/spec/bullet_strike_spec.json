@@ -699,6 +699,7 @@
    "spread_deg_half": 1.0,
    "firing_arc_deg": 360,
    "rotate_speed_deg_s": 240,
+   "fire_threshold_deg": 4,
    "targets": [
     "missile",
     "mine",
@@ -708,8 +709,14 @@
    ],
    "anti_projectile": {
     "blast_radius_m": 3.0,
-    "damage_vs_shots": 1000
+    "damage_vs_shots": 1000,
+    "blast_radius_vs_lasers_m": 4.0,
+    "damage_vs_lasers": 2000
    },
+   "random_offset_radius_m": [
+    0.5,
+    2.0
+   ],
    "crew_stun": null,
    "prohibit_ring_tiles": 1,
    "shot_hp": 0,
@@ -738,16 +745,20 @@
     "anti_shot_pool_per_s": 3000.0,
     "anti_shot_pool_per_s_per_tile": 750.0,
     "anti_shot_pool_per_bullet_eq": 2000.0,
+    "anti_laser_pool_per_s": 6000.0,
+    "anti_laser_pool_per_s_per_tile": 1500.0,
+    "anti_laser_pool_note": "Separate ExplosiveDamage in the same HitNothing, only vs [laser, ion_shot] (Crew false; enemy filter by default, so our plasma and missiles are never hit); the missile pool above is unchanged and ammo per shot is unchanged. Stays below SW:ACD flak's 2750 per tile per second.",
     "airbursts_to_kill": {
      "SW light bolt": 1,
-     "SW heavy/faction bolt": 4,
+     "SW heavy/faction bolt": 2,
+     "SW concussion turret bolt": 10,
      "SW concussion missile": 8,
      "SW HEX missile": 10,
      "vanilla HE missile": 1,
      "vanilla nuke missile": 8
     }
    },
-   "visual_concept": "Armadillo-shell segmented dome with two stubby barrels; grey flak puffs (vanilla flak particles at 60 %) dotting the sky in front of small ships.",
+   "visual_concept": "Armadillo-shell segmented dome with two stubby barrels; grey flak puffs (vanilla flak particles at 60 %) dotting the sky in front of small ships, landing close around the aim point (RandomOffsetRadius [0.5, 2]); each puff carries an extra charge against laser and ion bolts.",
    "defend_only": true,
    "defend_only_note": "defend_only: true - never fires at ships (no fire_pref, no ShipParts AutoTarget, no ship blast)"
   },
@@ -1250,6 +1261,7 @@
    "spread_deg_half": 0.8,
    "firing_arc_deg": 360,
    "rotate_speed_deg_s": 240,
+   "fire_threshold_deg": 4,
    "targets": [
     "missile",
     "mine",
@@ -1259,11 +1271,13 @@
    ],
    "anti_projectile": {
     "blast_radius_m": 4.5,
-    "damage_vs_shots": 2000
+    "damage_vs_shots": 2000,
+    "blast_radius_vs_lasers_m": 6.0,
+    "damage_vs_lasers": 3000
    },
    "random_offset_radius_m": [
     0.5,
-    3.5
+    2.5
    ],
    "burst_delay_s": 0.08,
    "crew_stun": null,
@@ -1312,18 +1326,25 @@
     "anti_shot_pool_per_s": 10000.0,
     "anti_shot_pool_per_s_per_tile": 1111.1,
     "anti_shot_pool_per_bullet_eq": 2000.0,
+    "anti_laser_pool_per_s": 15000.0,
+    "anti_laser_pool_per_s_per_tile": 1666.7,
+    "anti_laser_pool_note": "Separate ExplosiveDamage in the same HitNothing, only vs [laser, ion_shot] (Crew false; enemy filter by default, so our plasma and missiles are never hit); the missile pool above is unchanged and ammo per shot is unchanged. Stays below SW:ACD flak's 2750 per tile per second.",
     "airbursts_to_kill": {
      "SW light bolt": 1,
      "SW heavy/faction bolt": 2,
+     "SW concussion turret bolt": 7,
      "SW concussion missile": 4,
      "SW HEX missile": 5,
      "vanilla HE missile": 1,
      "vanilla nuke missile": 4
     },
+    "airbursts_to_kill_note": "SW heavy/faction bolt: 2 sub-bursts of the same Burst-3 trigger (1 trigger).",
     "anti_shot_pool_per_s_overclock": 13000.0,
-    "anti_shot_pool_per_s_per_tile_overclock": 1444.4
+    "anti_shot_pool_per_s_per_tile_overclock": 1444.4,
+    "anti_laser_pool_per_s_overclock": 19500.0,
+    "anti_laser_pool_per_s_per_tile_overclock": 2166.7
    },
-   "visual_concept": "White radome over a 4-barrel rotary snout and a spinning radar dish; each trigger throws 3 airbursts scattered around the aim point (RandomOffsetRadius [0.5, 3.5]) - a crackling carpet of grey-orange flashes. Defense only: never fires at ships.",
+   "visual_concept": "White radome over a 4-barrel rotary snout and a spinning radar dish; each trigger throws 3 airbursts close around the aim point (RandomOffsetRadius [0.5, 2.5]) - a tight, crackling carpet of grey-orange flashes, each with an extra charge against laser and ion bolts. Defense only: never fires at ships.",
    "defend_only": true,
    "defend_only_note": "defend_only: true - never fires at ships (no fire_pref, no ShipParts AutoTarget, no ship blast)"
   },
@@ -1717,7 +1738,8 @@
    "fire_chance": 0.0,
    "spread_deg_half": 1.1,
    "firing_arc_deg": 360,
-   "rotate_speed_deg_s": 90,
+   "rotate_speed_deg_s": 120,
+   "fire_threshold_deg": 3,
    "targets": [
     "missile",
     "mine",
@@ -1727,11 +1749,13 @@
    ],
    "anti_projectile": {
     "blast_radius_m": 7.0,
-    "damage_vs_shots": 4000
+    "damage_vs_shots": 4000,
+    "blast_radius_vs_lasers_m": 9.0,
+    "damage_vs_lasers": 8000
    },
    "random_offset_radius_m": [
     1,
-    6
+    4
    ],
    "crew_stun": null,
    "prohibit_ring_tiles": 2,
@@ -1784,18 +1808,24 @@
     "anti_shot_pool_per_s": 12000.0,
     "anti_shot_pool_per_s_per_tile": 750.0,
     "anti_shot_pool_per_bullet_eq": 2400.0,
+    "anti_laser_pool_per_s": 24000.0,
+    "anti_laser_pool_per_s_per_tile": 1500.0,
+    "anti_laser_pool_note": "Separate ExplosiveDamage in the same HitNothing, only vs [laser, ion_shot] (Crew false; enemy filter by default, so our plasma and missiles are never hit); the missile pool above is unchanged and ammo per shot is unchanged. Stays below SW:ACD flak's 2750 per tile per second.",
     "airbursts_to_kill": {
      "SW light bolt": 1,
      "SW heavy/faction bolt": 1,
+     "SW concussion turret bolt": 3,
      "SW concussion missile": 2,
      "SW HEX missile": 3,
      "vanilla HE missile": 1,
      "vanilla nuke missile": 2
     },
     "anti_shot_pool_per_s_overclock": 16875.0,
-    "anti_shot_pool_per_s_per_tile_overclock": 1054.7
+    "anti_shot_pool_per_s_per_tile_overclock": 1054.7,
+    "anti_laser_pool_per_s_overclock": 30000.0,
+    "anti_laser_pool_per_s_per_tile_overclock": 1875.0
    },
-   "visual_concept": "Wide sea-teal mount with twin long 57 mm-style barrels and wave-shaped splash shields; each trigger throws 2 heavy airbursts scattered wide (RandomOffsetRadius [1, 6]) - big black-and-orange flak clouds.",
+   "visual_concept": "Wide sea-teal mount with twin long 57 mm-style barrels and wave-shaped splash shields; each trigger throws 2 heavy airbursts close around the aim point (RandomOffsetRadius [1, 4]) - a tight pair of big black-and-orange flak clouds, each with an extra charge against laser and ion bolts.",
    "defend_only": true,
    "defend_only_note": "defend_only: true - never fires at ships (no fire_pref, no ShipParts AutoTarget, no ship blast)"
   },
@@ -2088,7 +2118,7 @@
     "explosive_damage": 0,
     "emp_drain": 0,
     "fire_chance": 0.0,
-    "notes": "Hitscan BeamEmitter clipped to the aim point (ClipRangeToTarget), Burst 1, RandomOffsetRadius scatter. HitNothing -> Blast 1: 1000 pool r3.0 Slices = 1, Filter { Ships = false; Shields = false; Bullets = true; OnlyBulletCategories = [missile, mine, bullet, laser, ion_shot] }. No ship blast (defense only). Same category list in the turret AutoTargets BulletTargetCategories."
+    "notes": "Hitscan BeamEmitter clipped to the aim point (ClipRangeToTarget), Burst 1, RandomOffsetRadius scatter. HitNothing -> Blast 1: 1000 pool r3.0 Slices = 1, Filter { Ships = false; Shields = false; Bullets = true; OnlyBulletCategories = [missile, mine, bullet] }; Blast 2: 2000 pool r4.0 Slices = 1, Filter { Ships = false; Shields = false; Bullets = true; OnlyBulletCategories = [laser, ion_shot]; Crew = false } (extra charge against SW:ACD laser and ion bolts). No ship blast (defense only). Turret AutoTargets: [missile, mine] first, then [bullet, laser, ion_shot] (Overridable)."
    }
   },
   "rafaeltessaro.bs_quad_hmg": {
@@ -2232,7 +2262,7 @@
     "explosive_damage": 0,
     "emp_drain": 0,
     "fire_chance": 0.0,
-    "notes": "Hitscan BeamEmitter clipped to the aim point (ClipRangeToTarget), Burst 3, RandomOffsetRadius scatter. HitNothing -> Blast 1: 2000 pool r4.5 Slices = 1, Filter { Ships = false; Shields = false; Bullets = true; OnlyBulletCategories = [missile, mine, bullet, laser, ion_shot] }. No ship blast (defense only). Same category list in the turret AutoTargets BulletTargetCategories."
+    "notes": "Hitscan BeamEmitter clipped to the aim point (ClipRangeToTarget), Burst 3, RandomOffsetRadius scatter. HitNothing -> Blast 1: 2000 pool r4.5 Slices = 1, Filter { Ships = false; Shields = false; Bullets = true; OnlyBulletCategories = [missile, mine, bullet] }; Blast 2: 3000 pool r6.0 Slices = 1, Filter { Ships = false; Shields = false; Bullets = true; OnlyBulletCategories = [laser, ion_shot]; Crew = false } (extra charge against SW:ACD laser and ion bolts). No ship blast (defense only). Turret AutoTargets: [missile, mine] first, then [bullet, laser, ion_shot] (Overridable)."
    }
   },
   "rafaeltessaro.bs_rotary_30": {
@@ -2362,7 +2392,7 @@
     "explosive_damage": 0,
     "emp_drain": 0,
     "fire_chance": 0.0,
-    "notes": "Hitscan BeamEmitter clipped to the aim point (ClipRangeToTarget), Burst 2, RandomOffsetRadius scatter. HitNothing -> Blast 1: 4000 pool r7.0 Slices = 1, Filter { Ships = false; Shields = false; Bullets = true; OnlyBulletCategories = [missile, mine, bullet, laser, ion_shot] }. No ship blast (defense only). Same category list in the turret AutoTargets BulletTargetCategories."
+    "notes": "Hitscan BeamEmitter clipped to the aim point (ClipRangeToTarget), Burst 2, RandomOffsetRadius scatter. HitNothing -> Blast 1: 4000 pool r7.0 Slices = 1, Filter { Ships = false; Shields = false; Bullets = true; OnlyBulletCategories = [missile, mine, bullet] }; Blast 2: 8000 pool r9.0 Slices = 1, Filter { Ships = false; Shields = false; Bullets = true; OnlyBulletCategories = [laser, ion_shot]; Crew = false } (extra charge against SW:ACD laser and ion bolts). No ship blast (defense only). Turret AutoTargets: [missile, mine] first, then [bullet, laser, ion_shot] (Overridable)."
    }
   },
   "rafaeltessaro.bs_nuke_howitzer": {
@@ -2855,7 +2885,7 @@
   "OVERCLOCK (mid/late only; target +30-50 %% DPS or range, <= 550 DPS/tile): Saci x1.4 -> 465.5/tile, 300.0 m, 628.0 heat/s; Cigarra x1.5 -> 510.0/tile, 300.0 m, 1140.0 heat/s; Tambor x1.5 -> 468.8/tile, 340.0 m, 1330.0 heat/s; Boitatá x1.35 -> 360.0/tile, 352.0 m, 980.0 heat/s; Furacão x1.4 -> 525.0/tile, 500.0 m, 2116.0 heat/s; Trovão x1.3 -> 494.0/tile, 598.0 m, 2408.0 heat/s; Curupira x1.42 -> 383.4/tile, 600.0 m, 2580.0 heat/s; Boiúna x1.23 -> 329.2/tile, 600.0 m, 1700.0 heat/s; Mapinguari x1.33 -> 507.9/tile, 600.0 m, 4199.9 heat/s. Selector guns never swap the shell (rate/spin/stun/visuals only; Trovão's +15 %% range comes from a BuffRemap on the shells' own Range, pd_shot pattern). Vanilla deck cannon OC ~1520 heat/s.",
   "PLASMA SHIELD CAP (<= 750/tile base, <= 880 overclocked; SW heavy ion 938/tile, SW medium ion 1312, vanilla disruptor 1125): Boitatá 4500.0 shield DPS = 750.0/tile (OC 832.5/tile); Curupira 14400.0 = 720.0/tile (OC 842.4/tile). One Boitatá drops a SW medium bubble (20000) in 4.4 s, one Curupira a SW large bubble (80000) in 5.6 s.",
   "EMP (support, total shield effect 1.0x std): Cigarra EMP drains 360 part battery/s and removes 2064 shield HP/s (std 2040); vs a shield-overclocked target EMP keeps 0.7x while plasma keeps 0.5x, but Boitatá still out-shields a Tambor on EMP (375 vs 292 shield/tile vs an OC bubble). Vanilla disruptor: 1200 part + 1800 shield battery/s. SW heavy TL holds 20000 battery -> sustained EMP silences SW guns in ~20-60 s.",
-  "ANTI-SHOT (<= 1500 pool/s per tile incl. OC; 2000-2500 pool per bullet-eq, deliberately LESS efficient than vanilla flak's 3000): Tatu 3000.0/s (750.0/tile; OC -/tile), 2000.0 pool per bullet-eq, burns 1.5 ammo-eq/s; Tamanduá 10000.0/s (1111.1/tile; OC 1444.4/tile), 2000.0 pool per bullet-eq, burns 5.0 ammo-eq/s; Pororoca 12000.0/s (750.0/tile; OC 1054.7/tile), 2400.0 pool per bullet-eq, burns 5.0 ammo-eq/s. Vanilla flak 12000/s (667/tile, 4 bullets/s), SW PD4 8333/s, SW flak 66000/s. Saci adds 1330.0/s single-target vs missiles/mines/bullets.",
+  "ANTI-SHOT (<= 1500 pool/s per tile incl. OC; 2000-2500 pool per bullet-eq, deliberately LESS efficient than vanilla flak's 3000): Tatu 3000.0/s (750.0/tile; OC -/tile), 2000.0 pool per bullet-eq, burns 1.5 ammo-eq/s; Tamanduá 10000.0/s (1111.1/tile; OC 1444.4/tile), 2000.0 pool per bullet-eq, burns 5.0 ammo-eq/s; Pororoca 12000.0/s (750.0/tile; OC 1054.7/tile), 2400.0 pool per bullet-eq, burns 5.0 ammo-eq/s. Vanilla flak 12000/s (667/tile, 4 bullets/s), SW PD4 8333/s, SW flak 66000/s. Saci adds 1330.0/s single-target vs missiles/mines/bullets. LASER/ION POOL (separate blast vs [laser, ion_shot], SW:ACD bolts 250-20000 HP): Tatu 2000 r4 = 6000/s (1500/tile); Tamanduá 3000 r6 = 15000/s (1666.7/tile; OC 2166.7/tile); Pororoca 8000 r9 = 24000/s (1500/tile; OC 1875/tile). All below SW:ACD flak's 2750/tile/s; missile pool and ammo per shot unchanged.",
   "MULTI-TARGET: Tamanduá throws 3 airbursts per trigger and Pororoca 2, scattered by RandomOffsetRadius, each a shared Slices = 1 pool vs every shot in its radius. Kills per airburst: Tamanduá SW light bolt 1, SW heavy/faction bolt 2, SW concussion missile 4, SW HEX missile 5, vanilla HE missile 1, vanilla nuke missile 4; Pororoca SW light bolt 1, SW heavy/faction bolt 1, SW concussion missile 2, SW HEX missile 3, vanilla HE missile 1, vanilla nuke missile 2.",
   "LOGISTICS - CREW TRIPS/MIN at sustained max fire (vanilla deck cannon 24 for 6000 DPS, chaingun 22.5 for 18000): Marimbondo 0.97; Mangangá 1.8; Carcará 3.75; Tatu 4.5; Saci 2.8; Cigarra 4.8; Tambor 8.33; Boitatá 3.75; Tamanduá 10.0; Furacão 12.0; Trovão 16.0; Curupira 11.25; Pororoca 10.0; Boiúna 3.0; Mapinguari 30.0. Special magazines stack 4, so the same gun needs 1.5x the trips (e.g. Trovão 16.0 -> 24.0 on AP).",
   "INTERNAL STORAGE (seconds of max fire; vanilla deck cannon 12.5 s; strip guns hold strip tiles x MaxStackSize per mode): Marimbondo 30.8 s; Mangangá 25.0 s; Carcará 16.0 s; Tatu 13.3 s; Saci 21.4 s; Cigarra 25.0 s; Tambor 21.6 s; Boitatá 32.0 s; Tamanduá 12.0 s; Furacão 20.0 s; Trovão 17.5 s; Curupira 21.3 s; Pororoca 12.0 s; Boiúna 110.0 s; Mapinguari 15.0 s.",
@@ -2934,7 +2964,7 @@
    "ammo_pipeline": "bullet ResourceStorage (20) -> splitter 1:2 -> BeamEmitter (alternating 2 barrels)",
    "overclock": null,
    "base_part": "base_med_part_terran (no OC)",
-   "notes": "Category list [missile, mine, bullet, laser, ion_shot] in BOTH turret AutoTargets and blast filter.",
+   "notes": "Blast filter split: missile pool [missile, mine, bullet], laser pool [laser, ion_shot] (Crew false). Turret AutoTargets: [missile, mine] first, then [bullet, laser, ion_shot] (Overridable). FireThresholdAngle 4d (fire_threshold_deg).",
    "test_priority": 4
   },
   {
@@ -3023,7 +3053,7 @@
    "ammo_pipeline": "bs_mag_std ResourceStorage (12) + consumer -> splitter 1:5 -> BeamEmitter Burst 3",
    "overclock": "FireInterval BuffRemap 0.6 -> 0.4615 s; same beam",
    "base_part": "base_large_part_terran_overclock",
-   "notes": "RandomOffsetRadius [0.5, 3.5]. One TurretWeapon only.",
+   "notes": "RandomOffsetRadius [0.5, 2.5]. One TurretWeapon only. FireThresholdAngle 4d (fire_threshold_deg).",
    "test_priority": 3
   },
   {
@@ -3095,7 +3125,7 @@
    "ammo_pipeline": "bs_mag_std ResourceStorage (12) -> splitter 1:3 -> BeamEmitter Burst 2 / OC BeamEmitter",
    "overclock": "emitter swap to OC beam that spawns our field file",
    "base_part": "base_large_part_terran_overclock",
-   "notes": "Stretch goal (untested, note 03 s7): a second TurretWeapon with PreventOverlappingTargets = true, IncludeInFirepowerEstimation = false, CanBeGivenExplicitTarget = false; fallback = the Burst 2 scatter above.",
+   "notes": "Stretch goal (untested, note 03 s7): a second TurretWeapon with PreventOverlappingTargets = true, IncludeInFirepowerEstimation = false, CanBeGivenExplicitTarget = false; fallback = the Burst 2 scatter above. RandomOffsetRadius [1, 4], FireThresholdAngle 3d (fire_threshold_deg), RotateSpeed 120 (vanilla and SW:ACD flak).",
    "test_priority": 4
   },
   {
@@ -3202,8 +3232,8 @@
     "8-frame recoil, 8 px",
     "tiny casing ejection (chaingun_casing, Lower)"
    ],
-   "muzzle_effect": "chaingun_shoot at 45 % + chaingun_shoot_flash; very small star flash",
-   "impact": "sparks only (bullet_med hit at 50 %)",
+   "muzzle_effect": "chaingun_shoot at 42 % + chaingun_shoot_flash at 50 %; very small star flash",
+   "impact": "sparks only: chaingun sparks + hit flash at 60 % (hull, structure and shields)",
    "overclock_visual": null,
    "distinct_from": "Mangangá: single barrel, round cupola, no gun shield."
   },
@@ -3227,8 +3257,8 @@
     "alternating 8-frame recoil per barrel, 10 px",
     "belt links shimmer (2-frame loop while firing)"
    ],
-   "muzzle_effect": "chaingun_shoot at 60 %, 3-prong flash",
-   "impact": "sparks + small dust puff",
+   "muzzle_effect": "chaingun_shoot at 60 % + chaingun_shoot_flash at 70 %, 3-prong flash",
+   "impact": "sparks + small dust puff (chaingun sparks + chaingun_hit + hit flash at 75 %)",
    "overclock_visual": null,
    "distinct_from": "Marimbondo: twin barrels and a gun shield; Saci: only 2 barrels, closed shield."
   },
@@ -3251,8 +3281,8 @@
    "animation": [
     "alternating 8-frame recoil, 16 px"
    ],
-   "muzzle_effect": "chaingun_shoot at 70 % + small cannon flare",
-   "impact": "small HE puff (bullet_med hit 70 %) and orange sparks",
+   "muzzle_effect": "chaingun_shoot at 85 % + chaingun_shoot_flash at 90 % + small cannon flare (cannon_shoot_deck_flare at 30 %, a third of the sparks) + chaingun_shoot_smoke at 70 %; shake 0.01",
+   "impact": "small HE pop on the r1 charge (chaingun overclock hit + bullet_flash_med at 60 %) over the hit (chaingun_hit + bullet_med sparks + flash at 80 %) and orange sparks; pieces after the first at 55 %",
    "overclock_visual": null,
    "distinct_from": "Tatu shares its floor/roof but Carcará has a sharp wedge turret and long barrels."
   },
@@ -3276,8 +3306,8 @@
     "alternating recoil 12 px",
     "radar stub rotates slowly (looping 8 frames)"
    ],
-   "muzzle_effect": "flak_cannon_shoot_flash_large at 60 %",
-   "impact": "grey flak puffs (vanilla flak particles at 60 %) at the airburst point",
+   "muzzle_effect": "flak_cannon_shoot_flash_large at 60 % + chaingun_shoot_smoke puff at 60 %",
+   "impact": "grey flak puffs (flak_large flash + smoke at 60 %, light shrapnel copy with 30-40 fragments) at the airburst point",
    "overclock_visual": null,
    "distinct_from": "Tamanduá: Tatu is a squat dome with 2 short barrels, no radome."
   },
@@ -3301,9 +3331,9 @@
     "pair-alternating recoil (1+3 / 2+4), 10 px",
     "sight dome jitters while tracking"
    ],
-   "muzzle_effect": "chaingun_shoot at 80 % on two muzzles per shot",
-   "impact": "sparks; vs missiles: small white flash (pd hit)",
-   "overclock_visual": "red-hot barrel sprite toggled by IsOverclocked, chaingun_shoot 130 %, doubled casing stream",
+   "muzzle_effect": "chaingun_shoot at 60 % + chaingun_shoot_flash at 70 % on two muzzles per shot",
+   "impact": "sparks (chaingun sparks + chaingun_hit + hit flash at 75 %); vs missiles: small white flash (pd_shot_sparks at 60 %)",
+   "overclock_visual": "red-hot barrel sprite toggled by IsOverclocked, chaingun_shoot 75 % + flash 85 %, doubled casing stream",
    "distinct_from": "Only 2x2 gun with four barrels in a square block and a red cap."
   },
   "rafaeltessaro.bs_minigun": {
@@ -3327,9 +3357,9 @@
     "belt links crawl while firing",
     "magazine stripes in the strip change colour with the ammo mode"
    ],
-   "muzzle_effect": "chaingun_shoot at 100 % + flash; continuous casing fountain",
-   "impact": "spark streams; colour follows the tracer",
-   "overclock_visual": "barrels glow orange-red, chaingun_shoot 140 % + smoke, spin sound pitch +20 %",
+   "muzzle_effect": "chaingun_shoot at 50 % + chaingun_shoot_flash at 60 % per shot; continuous casing fountain",
+   "impact": "spark streams (chaingun sparks + hit flash at 60 %), colour follows the tracer; EMP: disruptor orb + flash at 35 %; APHE charge: small pop (chaingun overclock hit) at 35 %; pieces after the first at 45 %",
+   "overclock_visual": "barrels glow orange-red, chaingun_shoot 60 % + flash 70 % + chaingun_shoot_smoke 60 % (0.6 s), spin sound pitch +20 %",
    "distinct_from": "Boitatá shares the chassis but has 4 coil-wrapped glowing barrels.",
    "tracers": {
     "std": "#FFD23F yellow",
@@ -3359,9 +3389,9 @@
     "loader door opens/closes on the strip",
     "brass case ejected per shot"
    ],
-   "muzzle_effect": "cannon_shoot_deck at 70 % + cannon_smoke_deck smoke ring",
-   "impact": "HE fireball r2 (bullet_large hit) + debris",
-   "overclock_visual": "cannon_shoot_deck 90 %, screen shake 0.1, faster loader door cycle",
+   "muzzle_effect": "cannon_shoot_deck at 65 % (flash 65 %, flare 60 %) + cannon_smoke_deck smoke ring at 70 % + breech smoke puff (chaingun_shoot_smoke 120 %, 0.15 s later); shake 0.05",
+   "impact": "HE fireball r2 (missile_he hit at 50 %; APHE 40 %) over bullet_large hit at 90 % + debris; EMP 60 %; pieces after the first at 65 %; shake 0.05",
+   "overclock_visual": "cannon_shoot_deck 80 % (flash 80 %, flare 75 %, smoke 85 %), screen shake 0.08, faster loader door cycle",
    "distinct_from": "Only mid gun with one long naval barrel and faceted stealth faces.",
    "tracers": {
     "std": "#FFD23F yellow",
@@ -3418,8 +3448,8 @@
     "red light blinks"
    ],
    "muzzle_effect": "flak_cannon_shoot_flash_large at 70 %; hot-casing stream from the side",
-   "impact": "3 scattered grey-orange airbursts per trigger (flak_large particles 70 %)",
-   "overclock_visual": "dish spins 2x, flash 120 %, casing stream doubles",
+   "impact": "3 grey-orange airbursts per trigger close around the aim point (flak_large flash + smoke at 70 %, 30-40 shrapnel fragments each)",
+   "overclock_visual": "dish spins 2x, flash 85 %, casing stream doubles",
    "distinct_from": "Only turret with a white radome; Tatu is a low armadillo dome."
   },
   "rafaeltessaro.bs_rotary_30": {
@@ -3443,9 +3473,9 @@
     "chutes shake while firing",
     "magazine stripe colour follows ammo"
    ],
-   "muzzle_effect": "chaingun_shoot at 130 % + chaingun_shoot_smoke",
-   "impact": "short HE pops (r1) with tracer-coloured sparks",
-   "overclock_visual": "orange barrel glow, chaingun_shoot 160 %, screen shake 0.03",
+   "muzzle_effect": "chaingun_shoot at 115 % + chaingun_shoot_flash at 120 % + chaingun_shoot_smoke at 100 % (0.6 s); shake 0.015",
+   "impact": "short HE pops (r1; chaingun overclock hit + flash at 85 %, APHE 100 %) with tracer-coloured sparks (chaingun_hit + sparks + flash at 100 %); EMP 50 %; pieces after the first at 70 %",
+   "overclock_visual": "orange barrel glow, chaingun_shoot 145 % + flash 150 % + smoke 120 %, screen shake 0.025",
    "distinct_from": "Cigarra: 4x4, seven much thicker barrels, square striped mantlet.",
    "tracers": {
     "std": "#FFD23F yellow",
@@ -3475,9 +3505,9 @@
     "loader doors on the 4-tile strip",
     "rangefinder ears swivel"
    ],
-   "muzzle_effect": "cannon_shoot_deck at 100 % + cannon_smoke_deck + flare",
-   "impact": "HE fireball r3 (bullet_deck hit) + smoke",
-   "overclock_visual": "cannon_shoot_deck 130 % + flare, screen shake 0.25, barrels glow red between shots",
+   "muzzle_effect": "cannon_shoot_deck at 100 % + flash + flare + cannon_smoke_deck ring + railgun pressure-wave distortion, then a slow breech smoke puff (cannon_smoke_deck 80 %, 0.3 s later); shake 0.12",
+   "impact": "HE fireball r3 (missile_he at 75 %; APHE 56 %) over bullet_deck hit at 100 % + smoke; EMP 90 %; pieces after the first at 70 %; shake 0.15",
+   "overclock_visual": "cannon_shoot_deck 125 % (flare, smoke and distortion 120 %), screen shake 0.18, barrels glow red between shots",
    "distinct_from": "Curupira shares the footprint size but not the art; Trovão is angular grey steel.",
    "tracers": {
     "std": "#FFD23F yellow",
@@ -3532,9 +3562,9 @@
     "alternating recoil 24 px",
     "hopper shake while firing"
    ],
-   "muzzle_effect": "flak_cannon_shoot_flash_large at 110 % + flak_cannon_smoke_large",
-   "impact": "2 heavy black-and-orange airbursts per trigger (flak_large particles 130 %)",
-   "overclock_visual": "lingering sparkling teal-grey shrapnel clouds (own field art), flash 130 %",
+   "muzzle_effect": "flak_cannon_shoot_flash_large at 110 % + flak_cannon_smoke_large at 100 %",
+   "impact": "2 heavy black-and-orange airbursts per trigger (flak_large flash + smoke at 130 %, heavy shrapnel copy with 100-120 fragments); shake 0.03",
+   "overclock_visual": "lingering sparkling teal-grey shrapnel clouds (own field art), flash 130 % + smoke 120 %",
    "distinct_from": "Tamanduá: no radome, twin long barrels, wave shields."
   },
   "rafaeltessaro.bs_nuke_howitzer": {
@@ -3558,9 +3588,9 @@
     "rack shell slides into the breech",
     "vents breathe green"
    ],
-   "muzzle_effect": "cannon_shoot_deck at 150 % + huge smoke",
-   "impact": "bespoke nuke mushroom (budgeted) + vanilla missile_nuke explosion particles",
-   "overclock_visual": "mushroom 125 %, screen-wide white flash, green shell trail",
+   "muzzle_effect": "cannon_shoot_deck at 165 % (flash 180 %) + green radiation-trefoil muzzle light + flare 160 % + huge smoke (cannon_smoke_deck 180 %, 2.2 s) + railgun distortion 200 % + breech smoke 160 % (3 s); shake 0.3",
+   "impact": "vanilla missile_nuke explosion particles at 115 % + green shockwave ring + green afterglow; shot down: missile_nuke_flash + small green ring at 50 %; shake 0.5",
+   "overclock_visual": "mushroom 140 %, screen-wide white flash, green shell trail",
    "distinct_from": "Only black-and-yellow gun; single huge barrel on a carriage, no gun house."
   },
   "rafaeltessaro.bs_naval_406": {
@@ -3584,9 +3614,9 @@
     "three loader doors cycle",
     "screen shake 0.3"
    ],
-   "muzzle_effect": "bespoke 406 muzzle blast (three flames, each about cannon_shoot_deck at 160 % scale) + rolling smoke wall over half the ship (cannon_smoke_deck x3)",
-   "impact": "massive HE fireballs r4.5 + debris rain",
-   "overclock_visual": "muzzle blast 200 %, screen shake 0.5, barrels glow between salvos",
+   "muzzle_effect": "bespoke 406 muzzle blast: three flames 0 / 0.12 / 0.24 s apart, each cannon_shoot_deck at 160 % (flash 160 %, flare 150 %, smoke ring 160 %, railgun distortion 180 %) + rolling breech smoke (cannon_smoke_deck 140 %, 2.5 s); shake 0.12",
+   "impact": "massive HE fireballs r4.5 (missile_he + debris + nuke shockwave at 110 %; APHE 85 %) over bullet_deck hit at 150 % + debris rain (big_part_explode_debris on AP); EMP 130 %; shake 0.25",
+   "overclock_visual": "muzzle blast 200 % (distortion 220 %), screen shake 0.16, barrels glow between salvos",
    "distinct_from": "The only 3-barrel turret and by far the largest; red-banded dark steel.",
    "tracers": {
     "std": "#FFD23F yellow",

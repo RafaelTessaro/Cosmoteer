@@ -5,12 +5,18 @@ Uso (na raiz do repositorio):
     python3 tools/build_mod.py                # gera tudo em BulletStrike/
     python3 tools/build_mod.py --no-art       # so os .rules e textos (mais rapido)
     python3 tools/build_mod.py --vanilla <pasta Data do jogo ou clone>  # confere caminhos ./Data/...
+    python3 tools/build_mod.py --out <pasta>  # gera em outra pasta (build privado; tambem env BS_OUT)
+
+Modulos opcionais de efeitos (bsgen/fxkit.py, bsgen/caliber_fx.py, bsgen/missile_fx.py): entram pelos
+"seams" de bs_data.py, bsgen/shots.py e deste arquivo; se o modulo nao existir, o build segue igual.
+BS_FX_EXT=0 desliga todos (visual antigo).
 
 O resultado (pasta BulletStrike/) e o mod pronto: copie para
     %USERPROFILE%\\Saved Games\\Cosmoteer\\<SteamID>\\Mods\\BulletStrike
 """
 
 import argparse
+import importlib
 import os
 import re
 import shutil
@@ -28,6 +34,29 @@ import art3d as A3  # noqa: E402
 
 ROOT = os.path.normpath(os.path.join(HERE, "..", "BulletStrike"))
 HEADER = "Bullet Strike - arquivo gerado por tools/build_mod.py (nao edite a mao; edite tools/bs_data.py)."
+
+
+# modulos opcionais de efeitos (CONTRATOS secao 1): ausente = silencioso; BS_FX_EXT=0 desliga todos.
+# Um ModuleNotFoundError de OUTRO modulo (import quebrado dentro do modulo opcional) continua estourando.
+def _opt(name):
+    if os.environ.get("BS_FX_EXT", "1") == "0":
+        return None
+    try:
+        return importlib.import_module(name)
+    except ModuleNotFoundError as e:
+        if e.name != name:
+            raise
+        return None
+
+
+def _call(mod, fn, *a, **k):
+    f = getattr(mod, fn, None) if mod is not None else None
+    return f(*a, **k) if f is not None else None
+
+
+FXK = _opt("bsgen.fxkit")
+CFX = _opt("bsgen.caliber_fx")
+MFX = _opt("bsgen.missile_fx")
 
 
 class Out:
@@ -99,21 +128,43 @@ def shot_file(out, s):
 
 
 # ----------------------------------------------------------------------------- main
+def _is_mod_dir(root):
+    """Pasta que o gerador pode limpar: tem mod.rules, ou e um build nosso interrompido antes do mod.rules
+    (algum .rules comeca com o cabecalho HEADER). Protege --out apontado para uma pasta qualquer."""
+    if os.path.isfile(os.path.join(root, "mod.rules")):
+        return True
+    mark = f"// {HEADER}"
+    for dp, _dn, fn in os.walk(root):
+        for f in fn:
+            if f.endswith(".rules"):
+                try:
+                    with open(os.path.join(dp, f), encoding="utf-8") as fh:
+                        if fh.readline().rstrip("\n") == mark:
+                            return True
+                except (OSError, UnicodeDecodeError):
+                    pass
+    return False
+
+
 def build(args):
-    if os.path.isdir(ROOT) and not args.keep:
+    root = os.path.abspath(getattr(args, "out", None) or os.environ.get("BS_OUT") or ROOT)
+    if os.path.isdir(root) and not args.keep and os.listdir(root) and not _is_mod_dir(root):
+        sys.exit(f"ERRO: {root} nao esta vazia e nao tem mod.rules; nao apago uma pasta que nao e do mod "
+                 "(use uma pasta vazia ou nova em --out / BS_OUT)")
+    if os.path.isdir(root) and not args.keep:
         if args.no_art:
             # sem arte: apaga so os .rules (as imagens ja geradas continuam valendo)
-            for dp, _dn, fn in os.walk(ROOT):
+            for dp, _dn, fn in os.walk(root):
                 for f in fn:
                     if f.endswith(".rules"):
                         os.remove(os.path.join(dp, f))
         else:
-            for name in os.listdir(ROOT):
-                p = os.path.join(ROOT, name)
+            for name in os.listdir(root):
+                p = os.path.join(root, name)
                 if name in (".workshop",):
                     continue
                 shutil.rmtree(p) if os.path.isdir(p) else os.remove(p)
-    out = Out(ROOT)
+    out = Out(root)
     art = None
     if not args.no_art:
         import make_art as art  # noqa: E402
@@ -137,6 +188,10 @@ def build(args):
                  + "\n\n" + text)
     # efeitos de plasma da Boitata e do Curupira (texturas PIL + particulas; bsgen/plasma_fx.py)
     plasma_fx.write(out, HEADER + "\nEfeito de plasma (ver bsgen/plasma_fx.py e bsgen/plasma_tex.py)")
+    # seam B2: arquivos dos modulos opcionais de efeitos (particulas/texturas proprias; ausente = nada)
+    for m, note in ((FXK, "Efeito compartilhado (bsgen/fxkit.py)"), (CFX, "Efeito por calibre (bsgen/caliber_fx.py)"),
+                    (MFX, "Efeito de missil (bsgen/missile_fx.py)")):
+        _call(m, "write", out, HEADER + "\n" + note)
     # projeteis
     shot_rel = {}
     for s in DATA.SHOTS:
@@ -205,6 +260,10 @@ def build(args):
             art.launcher_art(out, pdir, lch, info)
         elif lch.get("art3d"):
             A3.copy_files(out.root, pdir, lch["short"], lch["art3d"])
+    # seam B3: arte dos projeteis (art3d/bs_missiles, art3d/bs_shells) copiada pelos modulos opcionais, com e
+    # sem --no-art (como as copias de art3d acima)
+    for m in (FXK, CFX, MFX):
+        _call(m, "copy_art", out)
     # gui / techs / strings / mod.rules
     out.text("gui/bs_part_stats.rules", infra.part_stats(factory.input_stat_ids(DATA.FACTORIES)))
     out.text("gui/bs_part_toggles.rules", infra.part_toggles(DATA.AMMO_CHOICES, DATA.missile_toggles()))
@@ -219,7 +278,7 @@ def build(args):
         art.misc_art(out)
 
     check_vanilla_paths(out, args.vanilla)
-    print(f"OK: {len(out.files)} arquivos .rules em {ROOT}")
+    print(f"OK: {len(out.files)} arquivos .rules em {root}")
 
 
 def vanilla_listing(vanilla):
@@ -261,6 +320,8 @@ def check_vanilla_paths(out, vanilla):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--no-art", action="store_true")
-    ap.add_argument("--keep", action="store_true", help="nao apaga a pasta BulletStrike antes")
+    ap.add_argument("--keep", action="store_true", help="nao apaga a pasta de saida antes")
     ap.add_argument("--vanilla", default=os.environ.get("COSMOTEER_DATA"))
+    ap.add_argument("--out", default=os.environ.get("BS_OUT") or ROOT,
+                    help="pasta de saida (padrao: BulletStrike/ do repositorio; env BS_OUT)")
     build(ap.parse_args())

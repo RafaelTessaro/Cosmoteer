@@ -5,9 +5,36 @@ Cada arquivo define constantes STAT_DAMAGE / STAT_PENETRATION na raiz: o jogo ig
 desconhecidos e as estatisticas das pecas leem esses valores (evita caminhos frageis).
 """
 
+import importlib
+import os
+
 from rules_dsl import Q, Inh
 from bsgen import trails as TR
 from bsgen import plasma_fx as PFX
+
+
+# modulos opcionais de efeitos (CONTRATOS secao 1): ausente = silencioso; BS_FX_EXT=0 desliga todos.
+# Um ModuleNotFoundError de OUTRO modulo (import quebrado dentro do modulo opcional) continua estourando.
+# Os modulos opcionais NAO importam este arquivo no nivel do modulo (ciclo de import).
+def _opt(name):
+    if os.environ.get("BS_FX_EXT", "1") == "0":
+        return None
+    try:
+        return importlib.import_module(name)
+    except ModuleNotFoundError as e:
+        if e.name != name:
+            raise
+        return None
+
+
+def _call(mod, fn, *a, **k):
+    f = getattr(mod, fn, None) if mod is not None else None
+    return f(*a, **k) if f is not None else None
+
+
+FXK = _opt("bsgen.fxkit")
+CFX = _opt("bsgen.caliber_fx")
+MFX = _opt("bsgen.missile_fx")
 
 D = "./Data/shots"
 
@@ -124,6 +151,10 @@ def _sprite_components(s):
     cauda animada, crepitar; o rastro do Curupira tambem e de la, nao de bsgen/trails.py)."""
     if s.get("plasma_fx"):
         return PFX.bolt_components(s["plasma_fx"], s.get("plasma_oc"))
+    # seam S1: visual em voo por calibre (bsgen/caliber_fx.py); None = caminho antigo abaixo
+    r = _call(CFX, "projectile_components", s, _trail_ref(s) if s.get("trail") else None)
+    if r is not None:
+        return r
     comps = {}
     look = s.get("look", "tracer")
     if look in ("tracer", "energy"):
@@ -242,7 +273,10 @@ def build_kinetic(s):
                              {"Type": "Impulse", "Impulse": _val(s.get("impulse", 5))}],
               "MediaEffects": "&../HitOperational/MediaEffects"}
     if s.get("bolt"):
-        return _bolt_kinetic(s, top, hit_op, hit_struct)
+        top = _bolt_kinetic(s, top, hit_op, hit_struct)
+        # seam S3 (tambem no disparo que se gasta no primeiro acerto; o modulo ignora os de plasma)
+        _call(CFX, "decorate", s, top)
+        return top
     hit = {
         "Type": "PenetratingHit",
         "Penetration": s["penetration"],
@@ -286,6 +320,8 @@ def build_kinetic(s):
                             "MediaEffects": [f"&<{D}/pd_shot/particles/pd_shot_sparks.rules>"]}
 
     top["Components"] = _kinetic_components(s, hit)
+    # seam S3: midia de impacto por calibre (bsgen/caliber_fx.py), so visual, altera top no lugar
+    _call(CFX, "decorate", s, top)
     return top
 
 
@@ -411,6 +447,8 @@ def build_explosive(s):
                            "ModifiesLinearVelocity": True, "VelocityCompensation": "100%"}
     comps.update(_sprite_components(s))
     top["Components"] = comps
+    # seam S3: midia de impacto por calibre (bsgen/caliber_fx.py), so visual, altera top no lugar
+    _call(CFX, "decorate", s, top)
     return top
 
 
@@ -520,6 +558,10 @@ def _glow_sprite(w, color, size):
 
 def _missile_visuals(s, glow=True, plume=True):
     """Corpo (missile_he.png escalado, BulletUpper3) + brilho da cor do tipo (Upper4) + luz do propulsor (Upper4)."""
+    # seam S2: arte propria por tipo de missil (bsgen/missile_fx.py); None = caminho antigo abaixo
+    r = _call(MFX, "visual_components", s, glow, plume)
+    if r is not None:
+        return r
     w, h = s["sprite_wh"]
     comps = {"Sprite": {"Type": "Sprite", "RenderBucket": "BulletUpper3", "IsLit": True,
                         "Sprite": {"Texture": {"File": Q(f"{MSL_D}/missile_he.png"), "MipLevels": "max"}, "Size": [w, h]},
@@ -794,6 +836,8 @@ def build_missile(s):
     comps["Targetable"] = _targetable(s["hp"])
     comps["Hit"] = pl["hit"]
     top["Components"] = comps
+    # seam S4: midia de missil por tipo (bsgen/missile_fx.py), so visual, altera top no lugar
+    _call(MFX, "decorate", s, top)
     return top
 
 
@@ -914,7 +958,10 @@ MISSILE_CHILD_BUILDERS = {"child": build_cluster_child, "charge": build_limpet_c
 
 def build_missile_part(c):
     """Arquivo filho de um missil (mesma pasta; referenciado pelo nome relativo, como o flak_oc)."""
-    return MISSILE_CHILD_BUILDERS[c["role"]](c)
+    top = MISSILE_CHILD_BUILDERS[c["role"]](c)
+    # seam S4: filhos (submunicao, carga, ogiva, isca) tambem passam pelo modulo de missil (c["role"] diz qual)
+    _call(MFX, "decorate", c, top)
+    return top
 
 
 def build_limpet_status(st):
@@ -936,11 +983,18 @@ def build_limpet_status(st):
 
 
 def build_flak_beam(s):
-    """Rajada antiprojetil: feixe instantaneo ate o ponto mirado + explosao em area (flak_large.rules)."""
+    """Rajada antiprojetil: feixe instantaneo ate o ponto mirado + explosao em area (flak_large.rules).
+
+    Duas cargas no mesmo HitNothing (defense_design C5; o flak_large vanilla tambem tem 2 ExplosiveDamage): a de
+    sempre contra misseis/minas/projeteis (s["categories"]) e uma mais forte so contra laser/ion_shot
+    (s["laser_categories"], raios do SW:ACD), sem tripulacao. O filtro padrao e Enemy: nosso plasma (categoria
+    laser) e nossos misseis nunca sao atingidos. O overclock da Pororoca (build_mod flak_oc) herda as duas."""
     cats = s["categories"]
     top = {
         "STAT_DAMAGE": s["vs_shots"],
         "STAT_RADIUS": s["radius"],
+        "STAT_LASER_DAMAGE": s["vs_lasers"],
+        "STAT_LASER_RADIUS": s["laser_radius"],
         "Range": s["range"],
         "IdealRange": round(s["range"] * 0.9),
         "ClipRangeToTarget": True,
@@ -952,7 +1006,11 @@ def build_flak_beam(s):
     fx = [
         {"Type": "ExplosiveDamage", "TotalDamage": _val(s["vs_shots"]), "Radius": s["radius"], "Slices": 1,
          "Filter": {"Ships": False, "Shields": False, "Bullets": True, "OnlyBulletCategories": cats, "Crew": True}},
-    ]  # so defesa: sem a 2a explosao contra naves e escudos da flak vanilla
+        # carga extra so contra raios laser/ion (SW:ACD: 250-20000 de vida), sem tripulacao
+        {"Type": "ExplosiveDamage", "TotalDamage": _val(s["vs_lasers"]), "Radius": s["laser_radius"], "Slices": 1,
+         "Filter": {"Ships": False, "Shields": False, "Bullets": True, "OnlyBulletCategories": s["laser_categories"],
+                    "Crew": False}},
+    ]  # so defesa: sem a explosao contra naves e escudos da flak vanilla
     if s.get("spawn_cloud"):
         fx.append({"Type": "SpawnBullets", "Bullet": f"&<{s['spawn_cloud']}>", "Count": 1})
     media = [f"&<{p}>" for p in PARTICLES["flak"][: s.get("particles", 2)]]
@@ -961,6 +1019,8 @@ def build_flak_beam(s):
     top["HitShield"] = "&HitNothing"
     top["HitOperational"] = "&HitNothing"
     top["HitStructural"] = "&HitNothing"
+    # seam S3: rajada por defesa (bsgen/caliber_fx.py), so visual, altera top no lugar (depois do HitNothing)
+    _call(CFX, "decorate", s, top)
     return top
 
 
@@ -1004,4 +1064,6 @@ def build_flak_cloud(s):
                              "MediaEffects": ["&<./Data/shots/flak_large/overclock/particles/flak_large_overclock_field_shrapnel.rules>"]},
         },
     }
+    # seam S3: nuvem de estilhacos (bsgen/caliber_fx.py), so visual, altera top no lugar
+    _call(CFX, "decorate", s, top)
     return top

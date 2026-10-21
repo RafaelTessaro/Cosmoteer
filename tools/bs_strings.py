@@ -119,9 +119,10 @@ def strings():
         crew_pt = f"{g['crew']} tripulante" + ("s" if g["crew"] > 1 else "")
         if g in D.DEFENSES:
             role_en = ("DEFENSE. Airburst flak that damages EVERY missile, mine, shell, laser bolt and ion shot inside its blast. "
-                       "Defense only: it never fires at ships.")
+                       "Defense only: it never fires at ships. Extra-strong charge against laser bolts and ion shots.")
             role_pt = ("DEFESA. Flak de explosão aérea que danifica TODOS os mísseis, minas, granadas, disparos laser e iônicos "
-                       "dentro da explosão. Só defende: nunca atira em naves.")
+                       "dentro da explosão. Só defende: nunca atira em naves. Carga reforçada contra disparos laser e "
+                       "iônicos.")
         else:
             role_en, role_pt = "", ""
         oc_en = " Can be overclocked." if g.get("oc") else ""
@@ -187,6 +188,12 @@ def strings():
     pt["Stats"]["BSShotsPerMagFmt"] = "<white>Disparos por carga:</white> <good>{0:0}</good>"
     en["Stats"]["BSFactoryOutputFmt"] = "<white>Production:</white> <good>{0:0.##}</good><gray>/sec</gray>"
     pt["Stats"]["BSFactoryOutputFmt"] = "<white>Produção:</white> <good>{0:0.##}</good><gray>/s</gray>"
+    # 2a carga das defesas (so laser/ion_shot); mesmo formato do ShotDamageFmt vanilla (en "Dmg vs Shots",
+    # pt-br "Dano x disparos")
+    en["Stats"]["BSShotDamageVsLasersFmt"] = ("<white>Dmg vs Lasers:</white> <good>{0:n0}</good><gray>/shot (</gray>"
+                                              "<good>{1:n0}</good><gray>/sec)</gray>")
+    pt["Stats"]["BSShotDamageVsLasersFmt"] = ("<white>Dano x lasers:</white> <good>{0:n0}</good><gray>/disparo (</gray>"
+                                              "<good>{1:n0}</good><gray>/s)</gray>")
     _factory_stat_strings(D, en, pt)
     _launcher_strings(D, en, pt, used)
     return en, pt
