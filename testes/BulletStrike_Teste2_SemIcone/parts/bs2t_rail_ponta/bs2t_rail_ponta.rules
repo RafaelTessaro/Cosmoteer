@@ -1,0 +1,677 @@
+// =====================================================================================================
+//  [TESTE] Ponta do railgun Tupa (3x4, fechada, aponta para cima). Copia do lancador vanilla 0.30.3
+//  (ships/terran/railgun_launcher/railgun_launcher.rules, "L:" = linhas dele) com:
+//   * buffs / categorias / portas proprios (sem conversa com pecas de railgun vanilla ou do SW:ACD);
+//   * SEM bateria propria: projetil (municao) e energia vem do carregador pelos proxies dos canos;
+//   * a sequencia "carrega e depois atira" do OVERCLOCK vanilla virou a sequencia NORMAL:
+//     1) gatilho -> 2) carga de 1,0 s + 0,25 s por cano com a onda de brilho culatra -> boca (rede de trilho)
+//     -> 3) o projetil corre pelo cano (RailgunProjectile, mais lento que o vanilla para dar para ver) -> 4) tiro;
+//   * sem overclock, sem portas de calor, sem CoverageLine (o 0.30.5 removeu).
+// =====================================================================================================
+
+RAIL
+{
+	INTERVALO_TIRO = 6          // s (vanilla 4)
+	CARGA_BASE = 1.0            // s (vanilla overclock 0.5, L:5)
+	CARGA_POR_CANO = 0.25       // s (vanilla overclock 0.125, L:6)
+	ENERGIA_POR_TIRO = 2000     // tirada do carregador por tiro (Int); canos A somam 500 cada, canos B idem pelo carregador
+	MUNICAO_POR_TIRO = 6        // municao de canhao por tiro (Int), igual ao vanilla
+	MAX_CANOS = 6
+	COMPRIMENTO_CANO = 3        // blocos = passo do YStartOffset
+	VEL_INICIO_ANIM = 6         // velocidade do projetil DENTRO do cano (so animacao): comeca devagar...
+	VEL_FIM_ANIM = 50           // ...e acelera (o vanilla usa a velocidade real do tiro e fica invisivel)
+}
+
+Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
+{
+	NameKey = "Parts/BS2TRailPonta"
+	IconNameKey = "Parts/BS2TRailPontaIcon"
+	DescriptionKey = "Parts/BS2TRailPontaDesc"
+	ID = rafaeltessaro.bs2t_rail_ponta
+	EditorGroups = ["BS2Teste"]
+	Resources
+	[
+		[steel, 40]
+		[coil, 10]
+	]
+	Size = [3, 4]
+	Density = 6
+	SelectionTypeID = "bs2t_rail"
+	SelectionPriority = 1
+	SelectionTypeByRotation = true
+	MaxHealth = 9000
+	TypeCategories = [weapon, uses_power, bs2t_rail, bs2t_rail_energia, non_flammable]
+	SignificanceToggle = ScorchedToggle
+	ProhibitAbove = 2
+	ReceivableBuffs : ^/0/ReceivableBuffs [BS2T_Rail, BS2T_RailShot, BS2T_RailOperation]
+	// fechada e blindada (V thermal_battery.rules:23-25)
+	AllowedDoorLocations = []
+	GeneratorRequiresDoor = false
+	CrewSpeedFactor = 0
+	EditorIcon
+	{
+		Texture
+		{
+			File = "icon.png"
+			SampleMode = Linear
+		}
+		Size = [69, 92]
+	}
+
+	Components : ^/0/Components
+	{
+		// ------------------------------------------------------------------ liga/desliga (L:103-131)
+		IsOperational
+		{
+			Type = MultiToggle
+			Toggles = [PowerToggle, RailOperationBuffToggle, CanosOk, ScorchedToggle]
+			Mode = All
+		}
+		CommandConsumptionToggle
+		{
+			Type = MultiToggle
+			Toggles = [PowerToggle, ScorchedToggle]
+			Mode = All
+		}
+		PowerToggle
+		{
+			Type = UIToggle
+			ToggleID = "on_off"
+			Default = 1
+			RequiresCommand = false
+		}
+		ScorchedToggle
+		{
+			Type = StatusToggle
+			StatusType = cosmoteer.scorched
+			MinStatusValue = 1
+			Invert = true
+		}
+		CommandConsumer
+		{
+			Type = CommandConsumer
+			OperationalToggle = CommandConsumptionToggle
+			CommandPoints = 2
+		}
+		FireModeToggle
+		{
+			Type = UIToggle
+			ToggleID = "fire_mode"
+			Default = 1
+			ToggledOnChoices = [0, 1, 2]
+		}
+		AutoTargetToggle
+		{
+			Type = ModeToggle
+			Mode = FireModeToggle
+			OnModes = [1, 2]
+		}
+		AutoFireToggle
+		{
+			Type = ModeToggle
+			Mode = FireModeToggle
+			OnMode = 2
+		}
+
+		// ------------------------------------------------------------------ buffs da cadeia (L:177-219)
+		RailBuffToggle
+		{
+			Type = BuffToggle
+			BuffType = BS2T_Rail
+		}
+		RailOperationBuffToggle
+		{
+			Type = BuffToggle
+			BuffType = BS2T_RailOperation
+		}
+		// 1 a 6 canos (BuffToggle com MinBuffValue/MaxBuffValue, membros do codigo 0.30.4c)
+		CanosOk
+		{
+			Type = BuffToggle
+			BuffType = BS2T_Rail
+			MinBuffValue = 1
+			MaxBuffValue = &~/RAIL/MAX_CANOS
+		}
+		ShotBuffProvider
+		{
+			Type = SelfBuffProvider
+			BuffType = BS2T_RailShot
+			ChainsFromBuffType = BS2T_Rail
+			BuffAmount = { BaseValue=0; BuffType=BS2T_Rail; BuffMode=Add; }
+		}
+		ReverseOperationBuffProvider
+		{
+			Type = AreaBuffProvider
+			BuffType = BS2T_RailReverseOperation
+			BuffArea = [0, 4, 3, 1]
+			OperationalToggle = IsOperational
+			Criteria
+			{
+				Category = bs2t_rail_municao
+				Rot = 0
+				Left = 0
+				Right = 3
+				Top = 4
+			}
+		}
+		// variante B: comeca a contagem reversa dos canos B com 0 (como o carregador comeca o BS2T_Rail)
+		ContagemInicio
+		{
+			Type = AreaBuffProvider
+			BuffType = BS2T_RailCount
+			BuffAmount = 0
+			BuffArea = [0, 4, 3, 1]
+			Criteria
+			{
+				Category = bs2t_rail_municao
+				Rot = 0
+				Left = 0
+				Right = 3
+				Top = 4
+			}
+		}
+
+		// ------------------------------------------------------------------ municao e energia vem do carregador (L:220-235)
+		ProjetilProxy
+		{
+			Type = ResourceStorageProxy
+			ResourceType = bullet
+			PartLocation = [0, 4]
+			PartCriteria
+			{
+				Category = bs2t_rail_municao
+				Rot = 0
+				Left = 0
+				Right = 3
+				Top = 4
+			}
+			ComponentID = LoadedAmmo
+		}
+		BateriaProxy : ProjetilProxy
+		{
+			ResourceType = battery
+			ComponentID = LoaderBattery
+		}
+
+		// ------------------------------------------------------------------ arma (L:236-256, sem CoverageLine)
+		Weapon
+		{
+			Type = FixedWeapon
+			Location = [1.5, .5]
+			Rotation = -90d
+			OperationalToggle = IsOperational
+			AutoFireToggle = AutoFireToggle
+			FireInterval = &~/RAIL/INTERVALO_TIRO
+			TargetingArc = 90d
+			AIFirepowerRating = { BaseValue=&~/Part/StatsByCategory/0/Stats/DamagePerSecond; BuffType=BS2T_RailShot; BuffMode=Multiply; }
+			Emitter = BulletEmitter
+			FirePermissionToggle = FirePermission
+			AutoTarget
+			{
+				TargetType = ShipParts
+				Toggle = AutoTargetToggle
+			}
+		}
+		// nao re-dispara enquanto carrega ou com projetil no cano (L:279-291)
+		FirePermission
+		{
+			Type = MultiToggle
+			Mode = All
+			Toggles = [ FireModeToggle, { Toggle=Carregando; Invert=true; }, { Toggle=ProjectileToggle; Invert=true; } ]
+		}
+		Carregando
+		{
+			Type = MultiToggle
+			Mode = All
+			Toggles = [ { Toggle = { ID=TimerCarga; ToggleID="IsRunning"; } } ]
+		}
+		ReloadProgressBar
+		{
+			Type = ProgressBar
+			OperationalToggle = IsOperational
+			ShowProgressFor = Weapon
+		}
+
+		// ------------------------------------------------------------------ 1) carga (cadeia de overclock vanilla L:379-499, agora sempre)
+		GatilhoArma
+		{
+			Type = TriggerProxy
+			ComponentID = Weapon
+			ProxyToggle = IsOperational
+		}
+		PerdeuOperacao
+		{
+			Type = ToggleTrigger
+			Toggle = IsOperational
+			TriggerWhenOn = false
+			TriggerWhenOff = true
+		}
+		ReiniciaCarga
+		{
+			Type = MultiTrigger
+			Triggers = [GatilhoArma, PerdeuOperacao]
+		}
+		TimerCarga
+		{
+			Type = Timer
+			OperationalToggle = IsOperational
+			Duration
+			{
+				BaseValue = &~/RAIL/CARGA_BASE
+				MaxValue = (&~/RAIL/INTERVALO_TIRO) - 1.5
+				Modifiers
+				[
+					{
+						Type = ScaledBuff
+						BuffType = BS2T_Rail
+						Scale = &~/RAIL/CARGA_POR_CANO
+						ModificationMode = Add
+					}
+				]
+			}
+			StartTrigger = GatilhoArma
+			ResetTrigger = ReiniciaCarga
+			StopTrigger = PerdeuOperacao
+		}
+		TimerCargaLido
+		{
+			Type = PolledValue
+			OperationalToggle = TimerCarga
+			InvertOperationalToggle = true
+			ValueSource = TimerCarga
+			DefaultValue = 1
+		}
+		ValorCarga
+		{
+			Type = MultiValue
+			Values = [ TimerCargaLido ]
+			Mode = Add
+			Invert = true
+		}
+		NumeroCanos
+		{
+			Type = BuffableValue
+			Value = { BaseValue = 1; BuffType = BS2T_Rail; BuffMode = Multiply; }
+			IncludeInBlueprints = true
+		}
+		Um { Type = StaticValue; Value = 1; }
+		ModulosCarregaveis
+		{
+			Type = MultiValue
+			Values = [NumeroCanos, Um]
+			Mode = Add
+		}
+		ModulosCarregados
+		{
+			Type = MultiValue
+			Values = [ValorCarga, ModulosCarregaveis]
+			Mode = Multiply
+		}
+		ModulosCarregadosRede
+		{
+			Type = NetworkValue
+			ValueSource = ModulosCarregados
+			Categories = [ rafaeltessaro.bs2t_carga ]
+		}
+		BlueprintNoTrilho
+		{
+			Type = NetworkBasicNode
+			IncludeInBlueprints = true
+		}
+		Porta_Trilho
+		{
+			Type = NetworkPort
+			Location = [1, 3]
+			Direction = Down
+			Types = [ rafaeltessaro.bs2t_trilho_baixo ]
+			CompatibleTypes = [ rafaeltessaro.bs2t_trilho_cima ]
+			RouteSource = ModulosCarregadosRede
+			RouteEndpoint = ModulosCarregadosRede
+			BlueprintRouteSource = BlueprintNoTrilho
+			BlueprintRouteEndpoint = BlueprintNoTrilho
+			Overlay
+			{
+				RouteDrawMode = Never
+				IconDrawMode = Never
+			}
+		}
+		SomCarga
+		{
+			Type = ContinuousEffects
+			OperationalToggle = Carregando
+			MediaEffectsRequireShipInView = false
+			ParentToShip = true
+			MediaEffects
+			[
+				: /BASE_SOUNDS/AudioExteriorLongRange
+				{
+					Sound = "./Data/ships/terran/railgun_launcher/sounds/railgun_charge_up_loop.wav"
+					OnlyWhenInSight = false
+					Volume = 1.5
+					RampUpTime = 0.5
+					RampDownTime = 0.1
+				}
+			]
+			StartMediaEffects
+			[
+				: /BASE_SOUNDS/AudioExteriorLongRange
+				{
+					Sound = "./Data/ships/terran/railgun_launcher/sounds/railgun_charge_up_start.wav"
+					OnlyWhenInSight = false
+					Volume = 1.5
+					VolumeOverIntensity = 1
+				}
+			]
+		}
+
+		// ------------------------------------------------------------------ 2) o projetil corre pelo cano (L:500-578)
+		ProjectileStartTrigger
+		{
+			Type = MultiTrigger
+			Triggers = [TimerCarga]
+		}
+		ProjectileToggle
+		{
+			Type = TriggeredToggle
+			OnTrigger = ProjectileStartTrigger
+			OffTrigger = Projectile
+			OperationalToggle = IsOperational
+		}
+		Projectile
+		{
+			Type = RailgunProjectile
+			Location = [1.5, 4.5]
+			OperationalToggle = ProjectileToggle
+			YStartOffset = { BaseValue=&~/RAIL/COMPRIMENTO_CANO; BuffType=BS2T_Rail; BuffMode=Multiply; }
+			YEndOffset = -4
+			SpeedStart = &~/RAIL/VEL_INICIO_ANIM
+			SpeedEnd = &~/RAIL/VEL_FIM_ANIM
+			Interpolate = true // AVISO vanilla: so para graficos (usar na logica causa dessincronizacao no multijogador)
+		}
+		ProjetilTerminou
+		{
+			Type = TriggerProxy
+			ComponentID = Projectile
+		}
+
+		// ------------------------------------------------------------------ 3) tiro (L:347-378)
+		BulletEmitter
+		{
+			Type = BulletEmitter
+			ChainedTo = Weapon
+			FireTrigger = ProjetilTerminou
+			GetTargetFrom = Weapon
+			OperationalToggle = IsOperational
+			DynamicDelayPredictor = Projectile
+			Bullet = &<../../shots/bs2t_slug/bs2t_slug.rules>
+			ResourceUsage
+			[
+				{
+					ResourceStorage = ProjetilProxy
+					ResourcesUsed = &~/RAIL/MUNICAO_POR_TIRO
+				}
+				{
+					ResourceStorage = BateriaProxy
+					ResourcesUsed = &~/RAIL/ENERGIA_POR_TIRO
+				}
+			]
+		}
+		// nome usado pelos proxies dos canos e do carregador
+		EmissionTriggered
+		{
+			Type = MultiTrigger
+			Triggers = [BulletEmitter]
+		}
+		FireEffect
+		{
+			Type = TriggeredEffects
+			ChainedTo = Weapon
+			Trigger = BulletEmitter
+			Location = [1.6, 0]
+			AnchorMediaEffects = true
+			MediaEffects
+			[
+				&<./Data/ships/terran/railgun_launcher/particles/railgun_shoot.rules>
+				&<./Data/ships/terran/railgun_launcher/particles/railgun_shoot_distortion.rules>
+			]
+		}
+
+		// ------------------------------------------------------------------ projetil visivel dentro do cano (L:728-777)
+		ProjetilVisivel
+		{
+			Type = ToggledComponents
+			Toggle = ProjectileToggle
+			Components
+			{
+				ProjetilBrilho
+				{
+					Type = Sprite
+					ChainedTo = Projectile
+					Layer = "lights_add"
+					AtlasSprite
+					{
+						File = "slug_glow.png"
+						Size = [1.2, 3.4]
+					}
+				}
+				ProjetilLuz
+				{
+					Type = Sprite
+					ChainedTo = Projectile
+					Layer = "roof_lights_fancy"
+					AtlasSprite
+					{
+						File = "./Data/ships/common/light_blob.png"
+						Size = [9, 9]
+						Z = 0.25
+						VertexColor
+						{
+							Rf = 1.0*12
+							Gf = 0.80*12
+							Bf = 0.45*12
+							Af = 1
+						}
+					}
+				}
+				ProjetilSprite
+				{
+					Type = Sprite
+					ChainedTo = Projectile
+					Layer = "walls"
+					AtlasSprite
+					{
+						File = "slug.png"
+						Size = [0.8, 3]
+					}
+				}
+			}
+		}
+		SomProjetil
+		{
+			Type = ContinuousEffects
+			ChainedTo = Projectile
+			OperationalToggle = ProjectileToggle
+			FactorMediaEffectsIntensityWith = Projectile
+			MediaEffects
+			[
+				: /BASE_SOUNDS/AudioExterior
+				{
+					Sound = "./Data/ships/terran/railgun_launcher/sounds/rail.wav"
+					Volume = 2
+					Speed = .8
+					RampUpTime = .05
+					RampDownTime = .25
+					AllowStacking = false
+					VolumeOverIntensity = 1
+					SpeedOverIntensity = [0.5, 1]
+				}
+			]
+		}
+
+		// ------------------------------------------------------------------ arte
+		Graficos
+		{
+			Type = Graphics
+			Location = [1.5, 2]
+			Floor
+			{
+				Layer = "floors"
+				DamageLevels
+				[
+					{ File = "floor.png"; Size = [3, 4] }
+				]
+			}
+			Walls
+			{
+				Layer = "walls"
+				DamageLevels
+				[
+					{ File = "walls.png"; Size = [3, 4] }
+				]
+			}
+			Roof
+			{
+				Layer = "roofs"
+				DamageLevels
+				[
+					{ File = "roof.png"; NormalsFile = "roof_normals.png"; Size = [3, 4] }
+				]
+			}
+		}
+		Trilhos
+		{
+			Type = Graphics
+			Location = [1.5, 2]
+			Floor
+			{
+				Layer = "doodads_low"
+				DamageLevels
+				[
+					{ File = "trilhos.png"; Size = [3, 4] }
+				]
+			}
+		}
+		// brilho de carga da ponta: acende por ultimo (L:993-1056)
+		BrilhoIntensidade
+		{
+			Type = ValueOperation
+			Operator = Subtract
+			ValueOne = ModulosCarregados
+			ValueTwo = NumeroCanos
+			MinValue = 0
+			MaxValue = 1
+		}
+		BrilhoCarga
+		{
+			Type = ValueSprites
+			Location = [1.5, 2]
+			ValueFrom = BrilhoIntensidade
+			Layer = "lights_add"
+			ResourceLevels
+			[
+				{
+					// quadro vazio
+				}
+				{ File = "carga1.png"; Size = [3, 4] }
+				{ File = "carga2.png"; Size = [3, 4] }
+				{ File = "carga3.png"; Size = [3, 4] }
+				{ File = "carga4.png"; Size = [3, 4] }
+				{ File = "carga5.png"; Size = [3, 4] }
+				{ File = "carga6.png"; Size = [3, 4] }
+			]
+		}
+		OperationEffects
+		{
+			Type = ToggleEffects
+			Location = [1.5, 2]
+			Toggle = IsOperational
+			ToggledOnMediaEffects = &/COMMON_EFFECTS/PowerOn
+			ToggledOffMediaEffects = &/COMMON_EFFECTS/PowerOff
+		}
+		ScorchedTrigger
+		{
+			Type = ToggleTrigger
+			Toggle = ScorchedToggle
+			TriggerWhenOn = false
+		}
+		ScorchedEffects
+		{
+			Type = TriggeredEffects
+			Trigger = ScorchedTrigger
+			Location = [1.5, 2]
+			MediaEffects = &/COMMON_EFFECTS/BigPartScorched
+		}
+		DestroyedEffects
+		{
+			Type = DeathEffects
+			MediaEffects = &/COMMON_EFFECTS/BigPartDestroyed
+			Location = [1.5, 2]
+		}
+		Indicators
+		{
+			Type = IndicatorSprites
+			Location = [1.5, 2]
+			Indicators
+			[
+				{
+					Toggle = ScorchedToggle
+					AtlasSprite = &/INDICATORS/Scorched
+					HidesIndicators = [1, 2]
+				}
+				// sem carregador, 0 canos ou mais de 6
+				{
+					Toggle = CanosOk
+					ShowInBuildMode = true
+					AtlasSprite
+					{
+						File = &/INDICATORS/MissingComponent
+						Size = [1, 1]
+					}
+				}
+				{
+					Toggle = PowerToggle
+					AtlasSprite
+					{
+						File = &/INDICATORS/PowerOff
+						Size = [1, 1]
+					}
+				}
+			]
+		}
+		Blueprints
+		{
+			Type = BlueprintSprite
+			File = "blueprints.png"
+			Size = [3, 4]
+		}
+	}
+
+	Stats
+	{
+		RecPower = &../StatsByCategory/0/Stats/PowerPerSecond
+	}
+	StatsByCategory
+	[
+		{
+			NameKey = "StatCategories/BulletRailgun"
+			Stats
+			{
+				DamagePerShot = &~/Part/Components/BulletEmitter/Bullet/Components/DamagePool/Damage/BaseValue
+				DamagePerSecond = (&DamagePerShot) * (&ROF)
+				Damage = [&../DamagePerShot, &../DamagePerSecond]
+				Penetration = &~/Part/Components/BulletEmitter/Bullet/Components/Hit/Penetration/BaseValue
+				ROF = 1 / (&~/Part/Components/Weapon/FireInterval)
+				RangeLimited = [&~/Part/Components/BulletEmitter/Bullet/Range/BaseValue, &~/Part/Components/BulletEmitter/Bullet/Range/MaxValue]
+				Arc = 0
+				ShotSpeed = &~/Part/Components/BulletEmitter/Bullet/Speed/BaseValue
+				ShotHP = &~/Part/Components/BulletEmitter/Bullet/Components/Targetable/Health
+				AmmoPerShot = &~/Part/Components/BulletEmitter/ResourceUsage/0/ResourcesUsed
+				AmmoPerSecond = (&AmmoPerShot) * (&ROF)
+				ShotAmmoUsage = [&../AmmoPerShot, &../AmmoPerSecond]
+				PowerPerShot = (&~/Part/Components/BulletEmitter/ResourceUsage/1/ResourcesUsed) / 1000
+				PowerPerSecond = (&PowerPerShot) * (&ROF)
+				ShotPowerUsage = [&../PowerPerShot, &../PowerPerSecond]
+			}
+		}
+	]
+}

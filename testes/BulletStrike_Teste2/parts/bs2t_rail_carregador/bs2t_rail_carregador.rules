@@ -1,0 +1,812 @@
+// =====================================================================================================
+//  [TESTE] Carregador do railgun Tupa (3x4, 2 tripulantes). Copia do carregador vanilla 0.30.3
+//  (ships/terran/railgun_loader/railgun_loader.rules, "D:" = linhas dele) com:
+//   * buffs / categorias / portas PROPRIOS (BS2T_*, bs2t_rail_*, rafaeltessaro.bs2t_trilho_*): nenhuma peca
+//     vanilla ou do SW:ACD conversa com ele;
+//   * a BATERIA do canhao inteiro fica aqui (canos e ponta usam por proxy) - regra do usuario: energia e
+//     municao so entram pelo carregador;
+//   * municao = municao de canhao do jogo (bullet, como o railgun vanilla), pela tripulacao OU pela esteira;
+//   * dreno B (variante reserva): 500 de energia por CANO B, cobrado aqui com o buff de contagem BS2T_RailCount
+//     (ResourceChange com ScaledBuff = vanilla railgun_launcher.rules Overclock_ShotHeatProducer);
+//   * sem overclock / portas de calor.
+//  Linha 0 = culatra (encosta no primeiro cano), linhas 1-2 = tripulacao e capacitores, linha 3 = municao.
+// =====================================================================================================
+
+CARREGADOR
+{
+	BATERIA = 6000              // Int
+	ENCHER_BATERIA = 100        // botao de TESTE "encher ja": +100 a cada 0,1 s = 6000 em 6 s (Int)
+	DRENO_B_POR_CANO = -500     // energia por cano B por tiro (Int)
+	CARREGA_INTERVALO = 0.15    // municao grade -> culatra (D:193-201)
+	ESTEIRA_INTERVALO = 0.2     // municao esteira -> grade
+}
+
+Part : <./Data/ships/terran/base_med_part_terran.rules>/Part
+{
+	NameKey = "Parts/BS2TRailCarregador"
+	IconNameKey = "Parts/BS2TRailCarregadorIcon"
+	DescriptionKey = "Parts/BS2TRailCarregadorDesc"
+	ID = rafaeltessaro.bs2t_rail_carregador
+	EditorGroups = ["BS2Teste"]
+	Resources
+	[
+		[steel, 40]
+		[coil, 10]
+	]
+	Size = [3, 4]
+	Density = 4
+	SelectionTypeID = "bs2t_rail"
+	SelectionPriority = 1
+	SelectionTypeByRotation = true
+	MaxHealth = 8000
+	TypeCategories = [weapon, uses_ammo, uses_power, is_crewed, bs2t_rail, bs2t_rail_municao]
+	ReceivableBuffs : ^/0/ReceivableBuffs [BS2T_RailReverseOperation, BS2T_RailCount]
+	AllowedDoorLocations
+	[
+		[-1, 1]
+		[-1, 2]
+		[3, 1]
+		[3, 2]
+		[1, 4]
+	]
+	ForceManhattanPathInPart = true
+	BlockedTravelCells
+	[
+		[0, 0]
+		[1, 0]
+		[2, 0]
+	]
+	EditorIcon
+	{
+		Texture
+		{
+			File = "icon.png"
+			SampleMode = Linear
+		}
+		Size = [69, 92]
+	}
+	Components : ^/0/Components
+	{
+		// ---------------------------------------------------------------- liga/desliga (D:57-104)
+		BuffOperational
+		{
+			Type = MultiToggle
+			Toggles = [PowerToggle, PartCrew, ScorchedToggle]
+			Mode = All
+		}
+		IsOperational
+		{
+			Type = MultiToggle
+			Toggles = [BuffOperational, RailReverseOperationBuffToggle]
+			Mode = All
+		}
+		CommandConsumptionToggle
+		{
+			Type = MultiToggle
+			Toggles = [PowerToggle, ScorchedToggle]
+			Mode = All
+		}
+		RailReverseOperationBuffToggle
+		{
+			Type = BuffToggle
+			BuffType = BS2T_RailReverseOperation
+		}
+		PowerToggle
+		{
+			Type = UIToggle
+			ToggleID = "on_off"
+			Default = 1
+			RequiresCommand = false
+		}
+		ScorchedToggle
+		{
+			Type = StatusToggle
+			StatusType = cosmoteer.scorched
+			MinStatusValue = 1
+			Invert = true
+		}
+		CommandConsumer
+		{
+			Type = CommandConsumer
+			OperationalToggle = CommandConsumptionToggle
+			CommandPoints = 2
+		}
+
+		// ---------------------------------------------------------------- energia do canhao inteiro
+		LoaderBattery
+		{
+			Type = ResourceStorage
+			ResourceType = battery
+			MaxResources = &~/CARREGADOR/BATERIA
+			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/PowerDeliver
+		}
+		// botao de TESTE da bateria (so neste mod): 0 = normal (a tripulacao recarrega), 1 = encher ja (sem tripulacao),
+		// 2 = travada (ninguem recarrega). Serve para medir o gasto por tiro SEM depender de quando a tripulacao recarrega:
+		// o significado exato do ResupplyThreshold (falta minima x nivel minimo) nao importa com a bateria travada.
+		ModoBateria
+		{
+			Type = UIToggle
+			ToggleID = "bs2t_bateria"
+			Default = 0
+			AlwaysAllowInBuildMode = true
+			RequiresCommand = false
+		}
+		BateriaNormal { Type = ModeToggle; Mode = ModoBateria; OnMode = 0 }
+		BateriaEncher { Type = ModeToggle; Mode = ModoBateria; OnMode = 1 }
+		RecargaLigada { Type = MultiToggle; Toggles = [PowerToggle, BateriaNormal]; Mode = All }
+		BatteryConsumer
+		{
+			Type = ResourceConsumer
+			ResourceType = battery
+			Storage = LoaderBattery
+			DefaultPriority = &/PRIORITIES/Weapon_Supply
+			// valor vanilla (railgun_launcher.rules:173). A leitura de energia do roteiro usa a bateria TRAVADA, entao
+			// funciona com qualquer significado do campo (wiki 0.30.4c: "falta minima" em resource-transfer-pipeline.md,
+			// "nivel minimo" em resource-economy.md). Int.
+			ResupplyThreshold = 500
+			OperationalToggle = RecargaLigada
+			// fora do modo normal a tripulacao nao entrega nem com prioridade minima (V chaingun.rules:424)
+			AllowNonOperationalMinPriorityDelivery = false
+		}
+		// "encher ja": conversor sem origem cria energia (V reactor_small.rules BatteryProducer)
+		TesteEncherBateria
+		{
+			Type = ResourceConverter
+			OperationalToggle = BateriaEncher
+			ToStorage = LoaderBattery
+			ToQuantity = &~/CARREGADOR/ENCHER_BATERIA
+			MinToQuantityForConversion = 1
+			Interval = 0.1
+		}
+		// barra da bateria (V hyperdrive_small.rules:79-84: ProgressBar de um ResourceStorage de battery). Verde = cheia
+		// (6000). Serve de leitura no Carregador sem contador.
+		BarraBateria
+		{
+			Type = ProgressBar
+			ShowProgressFor = LoaderBattery
+			LowColor = [255, 70, 30]
+			HighColor = [255, 200, 40]
+			FullColor = [110, 230, 90]
+		}
+
+		// ---------------------------------------------------------------- municao (D:122-201)
+		LoadedAmmo
+		{
+			Type = ResourceStorage
+			ResourceType = bullet
+			MaxResources = 6
+			DelayBeforeReadyToUse = .25
+			AnticipateMoreResourcesFrom = [AmmoStorage]
+			ToggleOnResources = 6
+			ToggleOffResources = 5
+			UITileRect = [1 + 7/64, 7/64, 1 - 14/64, 1 - 14/64]
+			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
+			DropResourcesWhenDestroyed = true
+		}
+		AmmoStorage
+		{
+			Type = TypedResourceGrid
+			ResourceType = bullet
+			GridRect = [1, 3, 1, 1]
+			Layer = "doodads_low"
+			SpriteInset = [7/64, 9/64, 7/64, 13/64]
+		}
+		AmmoConsumer
+		{
+			Type = TypedResourceGridConsumer
+			ResourceType = bullet
+			Storage = AmmoStorage
+			DefaultPriority = &/PRIORITIES/Weapon_Supply
+			OperationalToggle = CommandConsumptionToggle
+			ConsumptionToggleButtonOffset = [0, -.4]
+		}
+		AmmoPrereq
+		{
+			Type = MultiResourceStorage
+			ResourceType = bullet
+			ResourceStorages = [LoadedAmmo, AmmoStorage]
+			ToggleOnResources = 6
+			ToggleOffResources = 5
+		}
+		AmmoLoader
+		{
+			Type = ResourceConverter
+			FromStorage = AmmoStorage
+			ToStorage = LoadedAmmo
+			FromQuantity = 1
+			ToQuantity = 1
+			Interval = &~/CARREGADOR/CARREGA_INTERVALO
+		}
+		LoadEffects
+		{
+			Type = TriggeredEffects
+			Trigger = AmmoLoader
+			MediaEffects = &/COMMON_EFFECTS/AmmoLoadWithIntensity
+			FactorMediaEffectsWith = LoadedAmmo
+		}
+
+		// ---------------------------------------------------------------- entrada pela esteira (padrao da arma de teste)
+		NoEsteira
+		{
+			Type = NetworkValueReceiver
+			Mode = Max
+			Categories = [ rafaeltessaro.bs2t_atividade ]
+			AllowUncategorized = false
+		}
+		BlueprintNetworkNode
+		{
+			Type = NetworkBasicNode
+			IncludeInBlueprints = true
+		}
+		SaidaRede
+		{
+			Type = NetworkResourceOutput
+			ResourceType = bullet
+			Mode = DistributeProportionallyByAvailable
+			Categories = [ rafaeltessaro.bs2t_paiol ]
+			AllowUncategorized = false
+		}
+		RoteadorEsteira
+		{
+			Type = NetworkRouter
+			RouteGenerators
+			[
+				{
+					Type = Bidirectional
+					Routes
+					[
+						[NoEsteira, SaidaRede, 0]
+					]
+				}
+			]
+		}
+		AlimentadorEsteira
+		{
+			Type = ResourceConverter
+			OperationalToggle = CommandConsumptionToggle
+			FromStorage = SaidaRede
+			FromQuantity = 1
+			MinFromQuantityForConversion = 1
+			ToStorage = AmmoStorage
+			ToQuantity = 1
+			Interval = &~/CARREGADOR/ESTEIRA_INTERVALO
+		}
+		// portas da esteira so nos cantos de tras (as portas da tripulacao ficam nos lados e no meio de tras)
+		PortaEsteira_Esq
+		{
+			Type = NetworkPort
+			Location = [0, 3]
+			Direction = Left
+			Types = [ rafaeltessaro.bs2t_esteira ]
+			RouteSource = NoEsteira
+			RouteEndpoint = NoEsteira
+			BlueprintRouteSource = BlueprintNetworkNode
+			BlueprintRouteEndpoint = BlueprintNetworkNode
+			Overlay
+			{
+				OverlayIcon = "BS2TPortaEsteira"
+				RouteLine = "BS2TEsteira"
+				DrawRouteHub = false
+			}
+		}
+		PortaEsteira_TrasEsq : PortaEsteira_Esq { Location = [0, 3]; Direction = Down }
+		PortaEsteira_TrasDir : PortaEsteira_Esq { Location = [2, 3]; Direction = Down }
+		PortaEsteira_Dir : PortaEsteira_Esq { Location = [2, 3]; Direction = Right }
+
+		// ---------------------------------------------------------------- cadeias comecam aqui (D:163-192)
+		RailBuffProvider
+		{
+			Type = AreaBuffProvider
+			BuffType = BS2T_Rail
+			BuffAmount = 0
+			BuffArea = [0, -1, 3, 1]
+			Criteria
+			{
+				Category = bs2t_rail_energia
+				Rot = 0
+				Left = 0
+				Right = 3
+				Bottom = 0
+			}
+		}
+		OperationBuffProvider
+		{
+			Type = AreaBuffProvider
+			BuffType = BS2T_RailOperation
+			BuffArea = [0, -1, 3, 1]
+			OperationalToggle = BuffOperational
+			Criteria
+			{
+				Category = bs2t_rail_energia
+				Rot = 0
+				Left = 0
+				Right = 3
+				Bottom = 0
+			}
+		}
+		WeaponTrigger
+		{
+			Type = TriggerProxy
+			PartLocation = [0, -1]
+			PartCriteria
+			{
+				Category = bs2t_rail_energia
+				Rot = 0
+				Left = 0
+				Right = 3
+				Bottom = 0
+			}
+			ComponentID = Weapon
+		}
+		ProjectileStartTrigger : WeaponTrigger
+		{
+			ComponentID = ProjectileStartTrigger
+		}
+		EmitTrigger : WeaponTrigger
+		{
+			ComponentID = EmissionTriggered
+		}
+		// variante B: 500 por cano B, tirado da PROPRIA bateria (padrao 100% vanilla). Com canos A o buff nao chega e fica 0.
+		DrenoB
+		{
+			Type = ResourceChange
+			Trigger = EmitTrigger
+			ResourceStorage = LoaderBattery
+			Amount
+			{
+				BaseValue = 0
+				Modifiers
+				[
+					{
+						Type = ScaledBuff
+						BuffType = BS2T_RailCount
+						Scale = &~/CARREGADOR/DRENO_B_POR_CANO
+						ModificationMode = Add
+					}
+				]
+			}
+		}
+
+		// ---------------------------------------------------------------- tripulacao (D:258-288)
+		CrewLocation1
+		{
+			Type = CrewLocation
+			Location = [.6, 1.6]
+			Rotation = -13.5d
+		}
+		CrewLocation2
+		{
+			Type = CrewLocation
+			Location = [2.4, 1.6]
+			Rotation = 13.5d
+		}
+		PartCrew
+		{
+			Type = PartCrew
+			Crew = 2
+			DefaultPriority = &/PRIORITIES/Weapon_Crew
+			PrerequisitesBeforeCrewing = [CommandConsumptionToggle]
+			HighPriorityPrerequisites = [AmmoPrereq]
+			CrewDestinations
+			[
+				[.6, 1.6]
+				[2.4, 1.6]
+			]
+			CrewLocations
+			[
+				CrewLocation1
+				CrewLocation2
+			]
+		}
+
+		// ---------------------------------------------------------------- brilho da carga na culatra (D:735-783)
+		NoTrilho
+		{
+			Type = NetworkValueReceiver
+			Categories = [ rafaeltessaro.bs2t_carga ]
+			Mode = Max
+			AllowUncategorized = false
+		}
+		BlueprintNoTrilho
+		{
+			Type = NetworkBasicNode
+			IncludeInBlueprints = true
+		}
+		Porta_Trilho
+		{
+			Type = NetworkPort
+			Location = [1, 0]
+			Direction = Up
+			Types = [ rafaeltessaro.bs2t_trilho_cima ]
+			CompatibleTypes = [ rafaeltessaro.bs2t_trilho_baixo ]
+			RouteSource = NoTrilho
+			RouteEndpoint = NoTrilho
+			BlueprintRouteSource = BlueprintNoTrilho
+			BlueprintRouteEndpoint = BlueprintNoTrilho
+			Overlay
+			{
+				RouteDrawMode = Never
+				IconDrawMode = Never
+			}
+		}
+		Zero { Type = StaticValue; Value = 0; }
+		LuzCargaIntensidade
+		{
+			Type = ValueOperation
+			Operator = Subtract
+			ValueOne = NoTrilho
+			ValueTwo = Zero
+			MinValue = 0
+			MaxValue = 0.5
+		}
+		MeioQuadro { Type = StaticValue; Value = 0.5; }
+		LuzCargaNormal
+		{
+			Type = ValueOperation
+			Operator = Divide
+			ValueOne = LuzCargaIntensidade
+			ValueTwo = MeioQuadro
+			MinValue = 0
+			MaxValue = 1
+		}
+		LuzCarga
+		{
+			Type = ValueSprites
+			Location = [1.5, 0.5]
+			ValueFrom = LuzCargaNormal
+			Layer = "lights_add"
+			ResourceLevels
+			[
+				{
+					// quadro vazio
+				}
+				{
+					File = "luz_culatra1.png"
+					Size = [3, 1]
+				}
+				{
+					File = "luz_culatra2.png"
+					Size = [3, 1]
+				}
+			]
+		}
+
+		// contador da BATERIA do canhao (unidades de energia: 6000 = cheia). Le-se antes e depois de UM tiro.
+		BateriaContagem
+		{
+			Type = MultiResourceStorage
+			ResourceType = battery
+			ResourceStorages = [LoaderBattery]
+			ProvidedValueRange = 0
+			ProvidedValuePerResource = 1
+		}
+		Dez { Type = StaticValue; Value = 10 }
+		Cem { Type = StaticValue; Value = 100 }
+		Mil { Type = StaticValue; Value = 1000 }
+		// ---- contador de 4 digitos (energia guardada no carregador)
+		Dividido10 { Type = ValueOperation; Operator = Divide; ValueOne = BateriaContagem; ValueTwo = Dez }
+		Dividido100 { Type = ValueOperation; Operator = Divide; ValueOne = BateriaContagem; ValueTwo = Cem }
+		Dividido1000 { Type = ValueOperation; Operator = Divide; ValueOne = BateriaContagem; ValueTwo = Mil }
+		DigitoUnidade
+		{
+			Type = ResourceSprites
+			Location = [1.34, 2.6]
+			ResourceStorage = LoaderBattery
+			Layer = "roof_doodads"
+			Modulus = 10
+			Round = Up
+			HasZeroResourceSprite = true
+			ResourceLevels
+			[
+				{ File = "../../gui/digitos/digito0.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito1.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito2.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito3.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito4.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito5.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito6.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito7.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito8.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito9.png"; Size = [0.3, 0.5] }
+			]
+		}
+		DigitoDezena
+		{
+			Type = ValueSprites
+			Location = [1.01, 2.6]
+			ValueFrom = Dividido10
+			Layer = "roof_doodads"
+			Modulus = 10
+			Round = Down
+			HasZeroResourceSprite = true
+			ResourceLevels
+			[
+				{ File = "../../gui/digitos/digito0.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito1.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito2.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito3.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito4.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito5.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito6.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito7.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito8.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito9.png"; Size = [0.3, 0.5] }
+			]
+		}
+		DigitoCentena
+		{
+			Type = ValueSprites
+			Location = [0.68, 2.6]
+			ValueFrom = Dividido100
+			Layer = "roof_doodads"
+			Modulus = 10
+			Round = Down
+			HasZeroResourceSprite = true
+			ResourceLevels
+			[
+				{ File = "../../gui/digitos/digito0.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito1.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito2.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito3.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito4.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito5.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito6.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito7.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito8.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito9.png"; Size = [0.3, 0.5] }
+			]
+		}
+		DigitoMilhar
+		{
+			Type = ValueSprites
+			Location = [0.35, 2.6]
+			ValueFrom = Dividido1000
+			Layer = "roof_doodads"
+			Modulus = 10
+			Round = Down
+			HasZeroResourceSprite = true
+			ResourceLevels
+			[
+				{ File = "../../gui/digitos/digito0.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito1.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito2.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito3.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito4.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito5.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito6.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito7.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito8.png"; Size = [0.3, 0.5] }
+				{ File = "../../gui/digitos/digito9.png"; Size = [0.3, 0.5] }
+			]
+		}
+		// ---------------------------------------------------------------- graficos
+		Graficos
+		{
+			Type = Graphics
+			Location = [1.5, 2]
+			OperationalToggle = IsOperational
+			Floor
+			{
+				Layer = "floors"
+				DamageLevels
+				[
+					{ File = "floor.png"; Size = [3, 4] }
+				]
+			}
+			Walls
+			{
+				Layer = "walls"
+				DamageLevels
+				[
+					{ File = "walls.png"; Size = [3, 4] }
+				]
+			}
+			Roof
+			{
+				Layer = "roofs"
+				DamageLevels
+				[
+					{ File = "roof.png"; NormalsFile = "roof_normals.png"; Size = [3, 4] }
+				]
+			}
+		}
+		// culatra fecha quando a municao entra e abre depois do tiro (D:564-683: DoodadToggle = LoadedAmmo)
+		CulatraGraficos
+		{
+			Type = Graphics
+			Location = [1.5, 0.5]
+			OperationalToggle = IsOperational
+			DoodadToggle = LoadedAmmo
+			ShowToggledDoodadsWhenNotOperational = true
+			ToggleOnDoodad
+			{
+				Layer = "doodads_high"
+				DamageLevels
+				[
+					{
+						AnimationFiles
+						[
+							"culatra0.png"
+							"culatra1.png"
+							"culatra2.png"
+							"culatra3.png"
+						]
+						Size = [3, 1]
+						AnimationInterval = 0.08
+						ClampAnimation = true
+					}
+				]
+			}
+			ToggleOffDoodad
+			{
+				Layer = "doodads_high"
+				DamageLevels
+				[
+					{
+						AnimationFiles
+						[
+							"culatra3.png"
+							"culatra2.png"
+							"culatra1.png"
+							"culatra0.png"
+						]
+						Size = [3, 1]
+						AnimationInterval = 0.08
+						ClampAnimation = true
+					}
+				]
+			}
+		}
+		AmmoHideToggle
+		{
+			Type = TriggeredToggle
+			OnTrigger = WeaponTrigger
+			OffTrigger = EmitTrigger
+			OperationalToggle = IsOperational
+		}
+		MunicaoNaCulatra
+		{
+			Type = ToggledComponents
+			Toggle = AmmoHideToggle
+			Invert = true
+			Components
+			{
+				MunicaoNaCulatraSprites
+				{
+					Type = ResourceSprites
+					Location = [1.5, 0.5]
+					ResourceStorage = LoadedAmmo
+					Layer = "doodads_low"
+					ResourceLevels
+					[
+						{ File = "balas1.png"; Size = [3, 1] }
+						{ File = "balas2.png"; Size = [3, 1] }
+						{ File = "balas3.png"; Size = [3, 1] }
+						{ File = "balas4.png"; Size = [3, 1] }
+						{ File = "balas5.png"; Size = [3, 1] }
+						{ File = "balas6.png"; Size = [3, 1] }
+					]
+				}
+			}
+		}
+		Capacitores
+		{
+			Type = ResourceSprites
+			Location = [1.5, 2.6]
+			ResourceStorage = LoaderBattery
+			Layer = "doodads_high"
+			ResourceLevels
+			[
+				{ File = "capacitores1.png"; Size = [3, 1] }
+				{ File = "capacitores2.png"; Size = [3, 1] }
+				{ File = "capacitores3.png"; Size = [3, 1] }
+			]
+		}
+
+		FireEffect
+		{
+			Type = TriggeredEffects
+			Trigger = ProjectileStartTrigger
+			Location = [1.5, 0.5]
+			MediaEffects
+			[
+				: /BASE_SOUNDS/AudioExterior
+				{
+					RandomSounds = ["./Data/ships/terran/railgun_loader/sounds/railgun_shot_01.wav",
+									"./Data/ships/terran/railgun_loader/sounds/railgun_shot_02.wav",
+									"./Data/ships/terran/railgun_loader/sounds/railgun_shot_03.wav"]
+					Volume = 1
+					SpeedVariation = .15
+				}
+			]
+		}
+		OperationEffects
+		{
+			Type = ToggleEffects
+			Location = [1.5, 2]
+			Toggle = IsOperational
+			ToggledOnMediaEffects = &/COMMON_EFFECTS/MachinesOn
+			ToggledOffMediaEffects = &/COMMON_EFFECTS/MachinesOff
+		}
+		ScorchedTrigger
+		{
+			Type = ToggleTrigger
+			Toggle = ScorchedToggle
+			TriggerWhenOn = false
+		}
+		ScorchedEffects
+		{
+			Type = TriggeredEffects
+			Trigger = ScorchedTrigger
+			Location = [1.5, 2]
+			MediaEffects = &/COMMON_EFFECTS/BigPartScorched
+		}
+		DestroyedEffects
+		{
+			Type = DeathEffects
+			MediaEffects = &/COMMON_EFFECTS/BigPartDestroyed
+			Location = [1.5, 2]
+		}
+		Indicators
+		{
+			Type = IndicatorSprites
+			Location = [1.5, 2]
+			Indicators
+			[
+				{
+					Toggle = ScorchedToggle
+					AtlasSprite = &/INDICATORS/Scorched
+					HidesIndicators = [1, 2, 3, 4]
+				}
+				{
+					Toggle = PowerToggle
+					AtlasSprite
+					{
+						File = &/INDICATORS/PowerOff
+						Size = [1, 1]
+					}
+					HidesIndicators = [2, 3, 4]
+				}
+				{
+					Toggle = AmmoPrereq
+					Delay = 6
+					AtlasSprite
+					{
+						File = &/INDICATORS/NoAmmo
+						Size = [1, 1]
+					}
+				}
+				{
+					Toggle = LoaderBattery
+					Delay = 6
+					AtlasSprite
+					{
+						File = &/INDICATORS/NoPower
+						Size = [1, 1]
+					}
+				}
+				{
+					Toggle = PartCrew
+					AtlasSprite
+					{
+						File = &/INDICATORS/NoCrew
+						Size = [1, 1]
+					}
+				}
+			]
+		}
+		Blueprints
+		{
+			Type = BlueprintSprite
+			File = "blueprints.png"
+			Size = [3, 4]
+		}
+	}
+
+	Stats
+	{
+		CrewRequired = &~/Part/Components/PartCrew/Crew
+		AmmoCapacity = (&~/Part/Components/AmmoStorage/GridRect/2) * (&~/Part/Components/AmmoStorage/GridRect/3) * (&<./Data/resources/bullet/bullet.rules>/MaxStackSize) + (&~/Part/Components/LoadedAmmo/MaxResources)
+		PowerCapacity = (&~/Part/Components/LoaderBattery/MaxResources) / 1000
+	}
+}

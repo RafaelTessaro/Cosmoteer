@@ -1,0 +1,158 @@
+// [TESTE] Seletores do mod de testes (formato do seletor missile_type vanilla e de BulletStrike/gui/bs_part_toggles.rules).
+// bs2t_tipo: 0 = municao de canhao (bullet), 1 = peca de missil A.E. (missile_part_he).
+// bs2t_estoque: botoes de teste do paiol (0 normal, 1 +1 por segundo, 2 encher rapido, 3 esvaziar rapido).
+// bs2t_bateria: botao de teste da bateria do Carregador do Tupa (0 normal = tripulacao recarrega, 1 encher ja, 2 travada).
+
+PartToggles
+[
+	{
+		ToggleID = "bs2t_tipo"
+		Style = Popout
+		ShowInEditor = true
+		Choices
+		[
+			{
+				ChoiceID = "bs2t_tipo_bala"
+				Mode = 0
+				ButtonToolTipKey = "PartToggles/BS2TTipoBala"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "tipo_bala.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+			{
+				ChoiceID = "bs2t_tipo_he"
+				Mode = 1
+				ButtonToolTipKey = "PartToggles/BS2TTipoHE"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "tipo_he.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+		]
+	}
+	{
+		ToggleID = "bs2t_estoque"
+		Style = Popout
+		ShowInEditor = true
+		Choices
+		[
+			{
+				ChoiceID = "bs2t_estoque_normal"
+				Mode = 0
+				ButtonToolTipKey = "PartToggles/BS2TEstoqueNormal"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "estoque_normal.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+			{
+				ChoiceID = "bs2t_estoque_mais1"
+				Mode = 1
+				ButtonToolTipKey = "PartToggles/BS2TEstoqueMais1"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "estoque_mais1.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+			{
+				ChoiceID = "bs2t_estoque_encher"
+				Mode = 2
+				ButtonToolTipKey = "PartToggles/BS2TEstoqueEncher"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "estoque_encher.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+			{
+				ChoiceID = "bs2t_estoque_esvaziar"
+				Mode = 3
+				ButtonToolTipKey = "PartToggles/BS2TEstoqueEsvaziar"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "estoque_esvaziar.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+		]
+	}
+	{
+		ToggleID = "bs2t_bateria"
+		Style = Popout
+		ShowInEditor = true
+		Choices
+		[
+			{
+				ChoiceID = "bs2t_bateria_normal"
+				Mode = 0
+				ButtonToolTipKey = "PartToggles/BS2TBateriaNormal"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "bateria_normal.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+			{
+				ChoiceID = "bs2t_bateria_encher"
+				Mode = 1
+				ButtonToolTipKey = "PartToggles/BS2TBateriaEncher"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "bateria_encher.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+			{
+				ChoiceID = "bs2t_bateria_travada"
+				Mode = 2
+				ButtonToolTipKey = "PartToggles/BS2TBateriaTravada"
+				ButtonSprite
+				{
+					Texture
+					{
+						File = "bateria_travada.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+			}
+		]
+	}
+]

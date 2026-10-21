@@ -1,0 +1,217 @@
+// =====================================================================================================
+//  [TESTE] Tremonha 1x1 (sala onde a tripulacao entra). A tripulacao traz municao do porao ou da grade de uma
+//  fabrica (ResourceConsumer, como numa arma) e um conversor joga cada unidade na esteira, para os paiois
+//  com esse tipo selecionado (mesmo padrao do Retorno da fabrica de teste). Sem paiol com espaco, ela enche e para.
+// =====================================================================================================
+
+TREMONHA
+{
+	CAP_0 = 20
+	CAP_1 = 10
+	EMPURRA_INTERVALO = 0.1
+}
+
+Part : <./Data/ships/terran/base_part_terran.rules>/Part
+{
+	NameKey = "Parts/BS2TTremonha"
+	IconNameKey = "Parts/BS2TTremonhaIcon"
+	DescriptionKey = "Parts/BS2TTremonhaDesc"
+	ID = rafaeltessaro.bs2t_tremonha
+	EditorGroups = ["BS2Teste"]
+	Resources
+	[
+		[steel, 8]
+	]
+	Size = [1, 1]
+	SelectionPriority = 1
+	MaxHealth = 1500
+	TypeCategories = [uses_ammo]
+	ReceivableBuffs : ^/0/ReceivableBuffs []
+	EditorIcon
+	{
+		Texture
+		{
+			File = "icon.png"
+			SampleMode = Linear
+		}
+		Size = [32, 32]
+	}
+	Components : ^/0/Components
+	{
+		TipoMunicao
+		{
+			Type = UIToggle
+			ToggleID = "bs2t_tipo"
+			Default = 0
+			AlwaysAllowInBuildMode = true
+			RequiresCommand = false
+		}
+		ModoTipo0 { Type = ModeToggle; Mode = TipoMunicao; OnMode = 0 }
+		ModoTipo1 { Type = ModeToggle; Mode = TipoMunicao; OnMode = 1 }
+
+		Funil0
+		{
+			Type = ResourceStorage
+			ResourceType = bullet
+			MaxResources = &~/TREMONHA/CAP_0
+			UITileRect = [7/64, 7/64, 1 - 14/64, 1 - 14/64]
+			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
+		}
+		Funil1 : Funil0
+		{
+			ResourceType = missile_part_he
+			MaxResources = &~/TREMONHA/CAP_1
+		}
+		Consumidor0
+		{
+			Type = ResourceConsumer
+			ResourceType = bullet
+			Storage = Funil0
+			DefaultPriority = &/PRIORITIES/Weapon_Supply
+			OperationalToggle = ModoTipo0
+			AllowNonOperationalMinPriorityDelivery = false
+			ResupplyThreshold = &~/TREMONHA/CAP_0
+		}
+		Consumidor1 : Consumidor0
+		{
+			ResourceType = missile_part_he
+			Storage = Funil1
+			OperationalToggle = ModoTipo1
+			ResupplyThreshold = &~/TREMONHA/CAP_1
+		}
+
+		NoEsteira
+		{
+			// no de roteamento da esteira = receptor do sinal "esteira andando" (padrao do cano de calor vanilla
+			// e do medidor do exemplo coolant, rodado no motor 0.30.4c)
+			Type = NetworkValueReceiver
+			Mode = Max
+			Categories = [ rafaeltessaro.bs2t_atividade ]
+			AllowUncategorized = false
+		}
+		BlueprintNetworkNode
+		{
+			Type = NetworkBasicNode
+			IncludeInBlueprints = true
+		}
+		EntradaRede0
+		{
+			Type = NetworkResourceInput
+			ResourceType = bullet
+			Mode = DistributeProportionallyByAvailable
+			Categories = [ rafaeltessaro.bs2t_paiol ]
+			AllowUncategorized = false
+		}
+		EntradaRede1 : EntradaRede0
+		{
+			ResourceType = missile_part_he
+		}
+		Roteador
+		{
+			Type = NetworkRouter
+			RouteGenerators
+			[
+				{
+					Type = Bidirectional
+					Routes
+					[
+						[NoEsteira, EntradaRede0, 0]
+						[NoEsteira, EntradaRede1, 0]
+					]
+				}
+			]
+		}
+		// cada funil esvazia sempre (mesmo o tipo desmarcado), assim nada fica preso
+		Empurra0
+		{
+			Type = ResourceConverter
+			FromStorage = Funil0
+			FromQuantity = 1
+			ToStorage = EntradaRede0
+			ToQuantity = 1
+			Interval = &~/TREMONHA/EMPURRA_INTERVALO
+		}
+		Empurra1 : Empurra0
+		{
+			FromStorage = Funil1
+			ToStorage = EntradaRede1
+		}
+		PortaEsteira_Up_0_0
+		{
+			Type = NetworkPort
+			Location = [0, 0]
+			Direction = Up
+			Types = [ rafaeltessaro.bs2t_esteira ]
+			RouteSource = NoEsteira
+			RouteEndpoint = NoEsteira
+			BlueprintRouteSource = BlueprintNetworkNode
+			BlueprintRouteEndpoint = BlueprintNetworkNode
+			Overlay
+			{
+				OverlayIcon = "ThermalPort"
+				RouteLine = "Thermal"
+				DrawRouteHub = false
+			}
+		}
+		PortaEsteira_Right_0_0 : PortaEsteira_Up_0_0 { Location = [0, 0]; Direction = Right }
+		PortaEsteira_Down_0_0 : PortaEsteira_Up_0_0 { Location = [0, 0]; Direction = Down }
+		PortaEsteira_Left_0_0 : PortaEsteira_Up_0_0 { Location = [0, 0]; Direction = Left }
+
+		Barra0
+		{
+			Type = ProgressBar
+			ShowProgressFor = Funil0
+			LowColor = [255, 70, 30]
+			HighColor = [255, 200, 40]
+			FullColor = [110, 230, 90]
+		}
+		Barra1 : Barra0
+		{
+			ShowProgressFor = Funil1
+			LowColor = [120, 60, 255]
+			HighColor = [180, 140, 255]
+			FullColor = [220, 200, 255]
+		}
+		Graficos
+		{
+			Type = Graphics
+			Location = [0.5, 0.5]
+			Floor
+			{
+				Layer = "floors"
+				DamageLevels
+				[
+					{ File = "floor.png"; Size = [1, 1] }
+				]
+			}
+			Walls
+			{
+				Layer = "walls"
+				DamageLevels
+				[
+					{ File = "walls.png"; Size = [1, 1] }
+				]
+			}
+			Roof
+			{
+				Layer = "roofs"
+				DamageLevels
+				[
+					{ File = "roof.png"; NormalsFile = "roof_normals.png"; Size = [1, 1] }
+				]
+			}
+		}
+		Blueprints
+		{
+			Type = BlueprintSprite
+			File = "blueprints.png"
+			Size = [1, 1]
+		}
+		DestroyedEffects
+		{
+			Type = DeathEffects
+			MediaEffects = &/COMMON_EFFECTS/SmallPartDestroyedDry
+			Location = [0.5, 0.5]
+		}
+	}
+}

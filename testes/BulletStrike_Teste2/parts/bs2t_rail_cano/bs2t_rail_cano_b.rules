@@ -1,0 +1,62 @@
+// =====================================================================================================
+//  [TESTE] Cano do railgun Tupa - VARIANTE B (reserva). Igual ao cano A, mas SEM dreno de energia aqui:
+//  cada cano B passa para tras o buff de contagem BS2T_RailCount (1 + o que recebeu); o carregador recebe N e
+//  cobra 500 x N da propria bateria (ResourceChange com ScaledBuff, padrao 100% vanilla). A ponta comeca a
+//  contagem com 0. Faixa azul no teto para diferenciar do cano A. Nao misture A e B no mesmo canhao.
+// =====================================================================================================
+
+Part : <bs2t_rail_cano.rules>/CANO_COMUM
+{
+	NameKey = "Parts/BS2TRailCanoB"
+	IconNameKey = "Parts/BS2TRailCanoBIcon"
+	DescriptionKey = "Parts/BS2TRailCanoBDesc"
+	ID = rafaeltessaro.bs2t_rail_cano_b
+	ReceivableBuffs : ^/0/ReceivableBuffs [BS2T_RailCount]
+	EditorIcon
+	{
+		Texture
+		{
+			File = "icon_b.png"
+			SampleMode = Linear
+		}
+		Size = [69, 69]
+	}
+	Components : ^/0/Components
+	{
+		ContagemBuffToggle
+		{
+			Type = BuffToggle
+			BuffType = BS2T_RailCount
+		}
+		ContagemProvider
+		{
+			Type = AreaBuffProvider
+			BuffType = BS2T_RailCount
+			BuffAmount = { BaseValue=1; BuffType=BS2T_RailCount; BuffMode=Add; }
+			BuffArea = [0, 3, 3, 1]
+			OperationalToggle = ContagemBuffToggle
+			ChainsFromBuffType = BS2T_RailCount
+			Criteria
+			{
+				Category = bs2t_rail_municao
+				Rot = 0
+				Left = 0
+				Right = 3
+				Top = 3
+			}
+		}
+		FaixaB
+		{
+			Type = Graphics
+			Location = [1.5, 1.5]
+			OperationalRoofDoodad
+			{
+				Layer = "roof_doodads"
+				DamageLevels
+				[
+					{ File = "faixa_b.png"; Size = [3, 3] }
+				]
+			}
+		}
+	}
+}

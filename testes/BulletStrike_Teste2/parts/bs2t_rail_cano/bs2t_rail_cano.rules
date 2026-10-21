@@ -1,0 +1,393 @@
+// =====================================================================================================
+//  [TESTE] Cano do railgun Tupa (3x3, fechado e blindado, encadeavel de 1 a 6). Copia do acelerador vanilla 0.30.3
+//  (ships/terran/railgun_accelerator/railgun_accelerator.rules, "A:" = linhas dele) com:
+//   * SEM bateria, SEM tripulacao, SEM portas: energia e municao vem do carregador por proxy;
+//   * buffs / categorias / portas proprios;
+//   * sem overclock / portas de calor.
+//  Todo cano e bs2t_rail_municao (passa LoadedAmmo / LoaderBattery para a peca da frente) e bs2t_rail_energia
+//  (passa Weapon / ProjectileStartTrigger / EmissionTriggered para a peca de tras), como A:20.
+//  CANO_COMUM = tudo menos o dreno. Variante A (este arquivo, Part) = cada cano tira 500 da bateria do carregador
+//  pelo PROXY [NAO VERIFICADO]. Variante B (bs2t_rail_cano_b.rules) = sem dreno aqui; o carregador cobra 500 por cano.
+// =====================================================================================================
+
+CANO_COMUM : <./Data/ships/terran/base_med_part_terran.rules>/Part
+{
+	EditorGroups = ["BS2Teste"]
+	Resources
+	[
+		[steel, 30]
+		[coil, 6]
+	]
+	Size = [3, 3]
+	Density = 6
+	SelectionTypeID = "bs2t_rail"
+	SelectionPriority = 1
+	SelectionTypeByRotation = true
+	MaxHealth = 9000
+	TypeCategories = [weapon, bs2t_rail, bs2t_rail_municao, bs2t_rail_energia, non_flammable]
+	ReceivableBuffs : ^/0/ReceivableBuffs [BS2T_Rail, BS2T_RailOperation, BS2T_RailReverseOperation]
+	// fechado (V thermal_battery.rules:23-25)
+	AllowedDoorLocations = []
+	GeneratorRequiresDoor = false
+	CrewSpeedFactor = 0
+	EditorIcon
+	{
+		Texture
+		{
+			File = "icon.png"
+			SampleMode = Linear
+		}
+		Size = [69, 69]
+	}
+
+	Components : ^/0/Components
+	{
+		ScorchedToggle
+		{
+			Type = StatusToggle
+			StatusType = cosmoteer.scorched
+			MinStatusValue = 1
+			Invert = true
+		}
+		RailBuffToggle
+		{
+			Type = BuffToggle
+			BuffType = BS2T_Rail
+		}
+		RailOperationBuffToggle
+		{
+			Type = BuffToggle
+			BuffType = BS2T_RailOperation
+		}
+		RailReverseOperationBuffToggle
+		{
+			Type = BuffToggle
+			BuffType = BS2T_RailReverseOperation
+		}
+		BuffOperational
+		{
+			Type = MultiToggle
+			Toggles = [RailOperationBuffToggle, ScorchedToggle]
+			Mode = All
+		}
+		IsOperational
+		{
+			Type = MultiToggle
+			Toggles = [BuffOperational, RailReverseOperationBuffToggle]
+			Mode = All
+		}
+		CommandConsumer
+		{
+			Type = CommandConsumer
+			OperationalToggle = ScorchedToggle
+			CommandPoints = 1
+		}
+
+		// ---------------------------------------------------------------- cadeias (A:142-195)
+		RailBuffProvider
+		{
+			Type = AreaBuffProvider
+			BuffType = BS2T_Rail
+			BuffAmount = { BaseValue=1; BuffType=BS2T_Rail; BuffMode=Add; }
+			BuffArea = [0, -1, 3, 1]
+			OperationalToggle = RailBuffToggle
+			ChainsFromBuffType = BS2T_Rail
+			Criteria
+			{
+				Category = bs2t_rail_energia
+				Rot = 0
+				Left = 0
+				Right = 3
+				Bottom = 0
+			}
+		}
+		RailOperationBuffProvider
+		{
+			Type = AreaBuffProvider
+			BuffType = BS2T_RailOperation
+			BuffArea = [0, -1, 3, 1]
+			OperationalToggle = BuffOperational
+			ChainsFromBuffType = BS2T_RailOperation
+			Criteria
+			{
+				Category = bs2t_rail_energia
+				Rot = 0
+				Left = 0
+				Right = 3
+				Bottom = 0
+			}
+		}
+		ReverseBuffOperationProvider
+		{
+			Type = AreaBuffProvider
+			BuffType = BS2T_RailReverseOperation
+			BuffArea = [0, 3, 3, 1]
+			OperationalToggle = RailReverseOperationBuffToggle
+			ChainsFromBuffType = BS2T_RailReverseOperation
+			Criteria
+			{
+				Category = bs2t_rail_municao
+				Rot = 0
+				Left = 0
+				Right = 3
+				Top = 3
+			}
+		}
+
+		// ---------------------------------------------------------------- recursos passam para a frente (A:197-211)
+		LoadedAmmo
+		{
+			Type = ResourceStorageProxy
+			ResourceType = bullet
+			PartLocation = [0, 3]
+			PartCriteria
+			{
+				Category = bs2t_rail_municao
+				Rot = 0
+				Left = 0
+				Right = 3
+				Top = 3
+			}
+			ComponentID = LoadedAmmo
+		}
+		LoaderBattery : LoadedAmmo
+		{
+			ResourceType = battery
+			ComponentID = LoaderBattery
+		}
+
+		// ---------------------------------------------------------------- gatilhos passam para tras (A:212-256; nomes iguais)
+		Weapon // chama "Weapon" para a peca de tras poder fazer proxy dele (A:212)
+		{
+			Type = TriggerProxy
+			PartLocation = [0, -1]
+			PartCriteria
+			{
+				Category = bs2t_rail_energia
+				Rot = 0
+				Left = 0
+				Right = 3
+				Bottom = 0
+			}
+			ComponentID = Weapon
+		}
+		ProjectileStartTrigger : Weapon
+		{
+			ComponentID = ProjectileStartTrigger
+		}
+		EmissionTriggered : Weapon
+		{
+			ComponentID = EmissionTriggered
+		}
+
+		// ---------------------------------------------------------------- onda de carga (A:328-379 e 571-643)
+		NoTrilho
+		{
+			Type = NetworkValueReceiver
+			Categories = [ rafaeltessaro.bs2t_carga ]
+			Mode = Max
+			AllowUncategorized = false
+		}
+		BlueprintNoTrilho
+		{
+			Type = NetworkBasicNode
+			IncludeInBlueprints = true
+		}
+		Porta_Trilho_Cima
+		{
+			Type = NetworkPort
+			Location = [1, 0]
+			Direction = Up
+			Types = [ rafaeltessaro.bs2t_trilho_cima ]
+			CompatibleTypes = [ rafaeltessaro.bs2t_trilho_baixo ]
+			RouteSource = NoTrilho
+			RouteEndpoint = NoTrilho
+			BlueprintRouteSource = BlueprintNoTrilho
+			BlueprintRouteEndpoint = BlueprintNoTrilho
+			Overlay
+			{
+				RouteDrawMode = Never
+				IconDrawMode = Never
+			}
+		}
+		Porta_Trilho_Baixo : Porta_Trilho_Cima
+		{
+			Location = [1, 2]
+			Direction = Down
+			Types = [ rafaeltessaro.bs2t_trilho_baixo ]
+			CompatibleTypes = [ rafaeltessaro.bs2t_trilho_cima ]
+		}
+		// indice deste cano = quantos canos ha atras dele (o 1o recebe 0 do carregador)
+		IndiceCano
+		{
+			Type = BuffableValue
+			Value = { BaseValue = 1; BuffType = BS2T_Rail; BuffMode = Multiply; }
+		}
+		CargaIntensidade
+		{
+			Type = ValueOperation
+			Operator = Subtract
+			ValueOne = NoTrilho
+			ValueTwo = IndiceCano
+			MinValue = 0
+			MaxValue = 1.5
+		}
+		UmEMeio { Type = StaticValue; Value = 1.5; }
+		CargaNormal
+		{
+			Type = ValueOperation
+			Operator = Divide
+			ValueOne = CargaIntensidade
+			ValueTwo = UmEMeio
+			MinValue = 0
+			MaxValue = 1
+		}
+		// trilhos com as bobinas acendendo (arte do prototipo: 9 niveis, 1 = descarregado)
+		Trilhos
+		{
+			Type = ValueSprites
+			Location = [1.5, 1.5]
+			ValueFrom = CargaNormal
+			Layer = "doodads_low"
+			ResourceLevels
+			[
+				{ File = "trilhos1.png"; Size = [3, 3] }
+				{ File = "trilhos2.png"; Size = [3, 3] }
+				{ File = "trilhos3.png"; Size = [3, 3] }
+				{ File = "trilhos4.png"; Size = [3, 3] }
+				{ File = "trilhos5.png"; Size = [3, 3] }
+				{ File = "trilhos6.png"; Size = [3, 3] }
+				{ File = "trilhos7.png"; Size = [3, 3] }
+				{ File = "trilhos8.png"; Size = [3, 3] }
+				{ File = "trilhos9.png"; Size = [3, 3] }
+			]
+		}
+		// plano de brilho aditivo crescendo da culatra para a boca (licao do prototipo de arte)
+		BrilhoCarga
+		{
+			Type = ValueSprites
+			Location = [1.5, 1.5]
+			ValueFrom = CargaNormal
+			Layer = "lights_add"
+			ResourceLevels
+			[
+				{
+					// quadro vazio
+				}
+				{ File = "carga1.png"; Size = [3, 3] }
+				{ File = "carga2.png"; Size = [3, 3] }
+				{ File = "carga3.png"; Size = [3, 3] }
+				{ File = "carga4.png"; Size = [3, 3] }
+				{ File = "carga5.png"; Size = [3, 3] }
+				{ File = "carga6.png"; Size = [3, 3] }
+				{ File = "carga7.png"; Size = [3, 3] }
+				{ File = "carga8.png"; Size = [3, 3] }
+			]
+		}
+
+		// ---------------------------------------------------------------- arte (teto aberto no canal: o projetil aparece passando)
+		Graficos
+		{
+			Type = Graphics
+			Location = [1.5, 1.5]
+			Floor
+			{
+				Layer = "floors"
+				DamageLevels
+				[
+					{ File = "floor.png"; Size = [3, 3] }
+				]
+			}
+			Walls
+			{
+				Layer = "walls"
+				DamageLevels
+				[
+					{ File = "walls.png"; Size = [3, 3] }
+				]
+			}
+			Roof
+			{
+				Layer = "roofs"
+				DamageLevels
+				[
+					{ File = "roof.png"; NormalsFile = "roof_normals.png"; Size = [3, 3] }
+				]
+			}
+		}
+		ScorchedTrigger
+		{
+			Type = ToggleTrigger
+			Toggle = ScorchedToggle
+			TriggerWhenOn = false
+		}
+		ScorchedEffects
+		{
+			Type = TriggeredEffects
+			Trigger = ScorchedTrigger
+			Location = [1.5, 1.5]
+			MediaEffects = &/COMMON_EFFECTS/BigPartScorched
+		}
+		DestroyedEffects
+		{
+			Type = DeathEffects
+			MediaEffects = &/COMMON_EFFECTS/BigPartDestroyed
+			Location = [1.5, 1.5]
+		}
+		Indicators
+		{
+			Type = IndicatorSprites
+			Location = [1.5, 1.5]
+			Indicators
+			[
+				{
+					Toggle = ScorchedToggle
+					AtlasSprite = &/INDICATORS/Scorched
+					HidesIndicators = [1]
+				}
+				// sem carregador atras (cadeia quebrada)
+				{
+					Toggle = RailBuffToggle
+					ShowInBuildMode = true
+					AtlasSprite
+					{
+						File = &/INDICATORS/MissingComponent
+						Size = [1, 1]
+					}
+				}
+			]
+		}
+		Blueprints
+		{
+			Type = BlueprintSprite
+			File = "blueprints.png"
+			Size = [3, 3]
+		}
+	}
+}
+
+// ------------------------------------------------------------------------------------------------- variante A
+Part : CANO_COMUM
+{
+	NameKey = "Parts/BS2TRailCano"
+	IconNameKey = "Parts/BS2TRailCanoIcon"
+	DescriptionKey = "Parts/BS2TRailCanoDesc"
+	ID = rafaeltessaro.bs2t_rail_cano
+	Components : ^/0/Components
+	{
+		// cada cano A tira 500 da bateria do CARREGADOR pelo proxy LoaderBattery (o vanilla tira da bateria do proprio
+		// acelerador, A:258-264). [NAO VERIFICADO] ResourceChange num ResourceStorageProxy; o vanilla ja usa ResourceChange
+		// num MultiResourceStorage (base_part_overclock HeatDistributionStorage), entao a referencia aceita "qualquer deposito".
+		PowerDrainOnShoot
+		{
+			Type = ResourceChange
+			Trigger = EmissionTriggered
+			ResourceStorage = LoaderBattery
+			Amount = -500
+		}
+	}
+	Stats
+	{
+		PowerPerShot = 0.5
+	}
+}

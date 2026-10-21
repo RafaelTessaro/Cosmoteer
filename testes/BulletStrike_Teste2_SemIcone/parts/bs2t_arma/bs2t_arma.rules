@@ -1,0 +1,308 @@
+// =====================================================================================================
+//  [TESTE] Arma de teste 2x2 (com tripulacao circulando). Faz o papel de uma arma do Bullet Strike: buffer interno
+//  por tipo (MagStorage_k como tools/bsgen/guns.py), seletor de tipo, e GASTA 4 unidades/s quando "Atirar" esta ligado.
+//  Entrada pela esteira = lancador de misseis termico vanilla: NetworkResourceOutput (puxa de depositos filtrados)
+//  + ResourceConverter da saida para o deposito local (V missile_launcher_thermal.rules:91-108 e 240-246).
+//  Um alimentador por tipo, ligado so no tipo escolhido: um tipo nunca vira outro e o buffer desmarcado fica guardado.
+//  Tripulacao continua como reserva, so abaixo da metade do buffer (ResupplyThreshold, V power_storage.rules:155-162).
+// =====================================================================================================
+
+ARMA
+{
+	BUF_0 = 60          // buffer interno (bullet)
+	BUF_1 = 20          // buffer interno (missile_part_he)
+	METADE_0 = 30
+	METADE_1 = 10
+	ALIMENTA_INTERVALO = 0.1    // esteira: 1 unidade a cada 0,1 s = 10/s por arma
+	GASTA_INTERVALO = 0.25      // "tiro": 4 unidades/s
+}
+
+Part : <./Data/ships/terran/base_part_terran.rules>/Part
+{
+	NameKey = "Parts/BS2TArma"
+	IconNameKey = "Parts/BS2TArmaIcon"
+	DescriptionKey = "Parts/BS2TArmaDesc"
+	ID = rafaeltessaro.bs2t_arma
+	EditorGroups = ["BS2Teste"]
+	Resources
+	[
+		[steel, 20]
+	]
+	Size = [2, 2]
+	SelectionPriority = 1
+	MaxHealth = 4000
+	TypeCategories = [uses_ammo]
+	ReceivableBuffs : ^/0/ReceivableBuffs []
+	EditorIcon
+	{
+		Texture
+		{
+			File = "icon.png"
+			SampleMode = Linear
+		}
+		Size = [64, 64]
+	}
+	Components : ^/0/Components
+	{
+		Atirar
+		{
+			Type = UIToggle
+			ToggleID = "on_off"
+			Default = 0
+			RequiresCommand = false
+		}
+		TipoMunicao
+		{
+			Type = UIToggle
+			ToggleID = "bs2t_tipo"
+			Default = 0
+			AlwaysAllowInBuildMode = true
+			RequiresCommand = false
+		}
+		ModoTipo0 { Type = ModeToggle; Mode = TipoMunicao; OnMode = 0 }
+		ModoTipo1 { Type = ModeToggle; Mode = TipoMunicao; OnMode = 1 }
+
+		// ---------------------------------------------------- buffers internos (guardados ao trocar de tipo)
+		Buffer0
+		{
+			Type = ResourceStorage
+			ResourceType = bullet
+			MaxResources = &~/ARMA/BUF_0
+			UITileRect = [7/64, 1 + 7/64, 1 - 14/64, 1 - 14/64]
+			ReceiveResourceMediaEffects = &/COMMON_EFFECTS/AmmoDeliver
+		}
+		Buffer1 : Buffer0
+		{
+			ResourceType = missile_part_he
+			MaxResources = &~/ARMA/BUF_1
+			UITileRect = [1 + 7/64, 1 + 7/64, 1 - 14/64, 1 - 14/64]
+		}
+
+		// ---------------------------------------------------- tripulacao como reserva (so o tipo escolhido)
+		Consumidor0
+		{
+			Type = ResourceConsumer
+			ResourceType = bullet
+			Storage = Buffer0
+			DefaultPriority = &/PRIORITIES/Weapon_Supply
+			OperationalToggle = ModoTipo0
+			AllowNonOperationalMinPriorityDelivery = false
+			ResupplyThreshold = &~/ARMA/METADE_0
+		}
+		Consumidor1 : Consumidor0
+		{
+			ResourceType = missile_part_he
+			Storage = Buffer1
+			OperationalToggle = ModoTipo1
+			ResupplyThreshold = &~/ARMA/METADE_1
+		}
+
+		// ---------------------------------------------------- entrada pela esteira (uma por tipo)
+		NoEsteira
+		{
+			// no de roteamento da esteira = receptor do sinal "esteira andando" (padrao do cano de calor vanilla
+			// e do medidor do exemplo coolant, rodado no motor 0.30.4c)
+			Type = NetworkValueReceiver
+			Mode = Max
+			Categories = [ rafaeltessaro.bs2t_atividade ]
+			AllowUncategorized = false
+		}
+		BlueprintNetworkNode
+		{
+			Type = NetworkBasicNode
+			IncludeInBlueprints = true
+		}
+		SaidaRede0
+		{
+			Type = NetworkResourceOutput
+			ResourceType = bullet
+			Mode = DistributeProportionallyByAvailable
+			Categories = [ rafaeltessaro.bs2t_paiol ]
+			AllowUncategorized = false
+		}
+		SaidaRede1 : SaidaRede0
+		{
+			ResourceType = missile_part_he
+		}
+		Roteador
+		{
+			Type = NetworkRouter
+			RouteGenerators
+			[
+				{
+					Type = Bidirectional
+					Routes
+					[
+						[NoEsteira, SaidaRede0, 0]
+						[NoEsteira, SaidaRede1, 0]
+					]
+				}
+			]
+		}
+		Alimentador0
+		{
+			Type = ResourceConverter
+			OperationalToggle = ModoTipo0
+			FromStorage = SaidaRede0
+			FromQuantity = 1
+			MinFromQuantityForConversion = 1
+			ToStorage = Buffer0
+			ToQuantity = 1
+			Interval = &~/ARMA/ALIMENTA_INTERVALO
+		}
+		Alimentador1 : Alimentador0
+		{
+			OperationalToggle = ModoTipo1
+			FromStorage = SaidaRede1
+			ToStorage = Buffer1
+		}
+		PortaEsteira_Up_0_0
+		{
+			Type = NetworkPort
+			Location = [0, 0]
+			Direction = Up
+			Types = [ rafaeltessaro.bs2t_esteira ]
+			RouteSource = NoEsteira
+			RouteEndpoint = NoEsteira
+			BlueprintRouteSource = BlueprintNetworkNode
+			BlueprintRouteEndpoint = BlueprintNetworkNode
+			Overlay
+			{
+				OverlayIcon = "ThermalPort"
+				RouteLine = "Thermal"
+				DrawRouteHub = false
+			}
+		}
+		PortaEsteira_Up_1_0 : PortaEsteira_Up_0_0 { Location = [1, 0]; Direction = Up }
+		PortaEsteira_Right_1_0 : PortaEsteira_Up_0_0 { Location = [1, 0]; Direction = Right }
+		PortaEsteira_Right_1_1 : PortaEsteira_Up_0_0 { Location = [1, 1]; Direction = Right }
+		PortaEsteira_Down_0_1 : PortaEsteira_Up_0_0 { Location = [0, 1]; Direction = Down }
+		PortaEsteira_Down_1_1 : PortaEsteira_Up_0_0 { Location = [1, 1]; Direction = Down }
+		PortaEsteira_Left_0_0 : PortaEsteira_Up_0_0 { Location = [0, 0]; Direction = Left }
+		PortaEsteira_Left_0_1 : PortaEsteira_Up_0_0 { Location = [0, 1]; Direction = Left }
+
+		// ---------------------------------------------------- "tiro" = gastar o tipo escolhido
+		GastaLigado0 { Type = MultiToggle; Toggles = [Atirar, ModoTipo0]; Mode = All }
+		GastaLigado1 { Type = MultiToggle; Toggles = [Atirar, ModoTipo1]; Mode = All }
+		Gasta0
+		{
+			Type = ResourceConverter
+			OperationalToggle = GastaLigado0
+			FromStorage = Buffer0
+			FromQuantity = 1
+			Interval = &~/ARMA/GASTA_INTERVALO
+		}
+		Gasta1 : Gasta0
+		{
+			OperationalToggle = GastaLigado1
+			FromStorage = Buffer1
+		}
+
+		// ---------------------------------------------------- mostrador: as duas barras sempre (prova que nada e convertido)
+		Barra0
+		{
+			Type = ProgressBar
+			ShowProgressFor = Buffer0
+			LowColor = [255, 70, 30]
+			HighColor = [255, 200, 40]
+			FullColor = [110, 230, 90]
+		}
+		Barra1 : Barra0
+		{
+			ShowProgressFor = Buffer1
+			LowColor = [120, 60, 255]
+			HighColor = [180, 140, 255]
+			FullColor = [220, 200, 255]
+		}
+		// luz verde "alimentada pela esteira": acesa 1 s depois de cada carga vinda da esteira
+		AlimentouAlgum { Type = MultiTrigger; Triggers = [Alimentador0, Alimentador1] }
+		AlimentadaRecente
+		{
+			Type = Timer
+			Duration = 1
+			StartTrigger = AlimentouAlgum
+			ResetTrigger = AlimentouAlgum
+			StartExpired = true
+			InvertToggle = true
+		}
+		LuzEsteira
+		{
+			Type = Graphics
+			Location = [1, 1]
+			OperationalToggle = AlimentadaRecente
+			OperationalLighting
+			{
+				Layer = "lights_add"
+				DamageLevels
+				[
+					{ File = "lamp_fita.png"; Size = [2, 2] }
+				]
+			}
+		}
+		GastouAlgum { Type = MultiTrigger; Triggers = [Gasta0, Gasta1] }
+		AtirouRecente
+		{
+			Type = Timer
+			Duration = 0.3
+			StartTrigger = GastouAlgum
+			ResetTrigger = GastouAlgum
+			StartExpired = true
+			InvertToggle = true
+		}
+		LuzTiro
+		{
+			Type = Graphics
+			Location = [1, 1]
+			OperationalToggle = AtirouRecente
+			OperationalLighting
+			{
+				Layer = "lights_add"
+				DamageLevels
+				[
+					{ File = "lamp_tiro.png"; Size = [2, 2] }
+				]
+			}
+		}
+		Graficos
+		{
+			Type = Graphics
+			Location = [1, 1]
+			Floor
+			{
+				Layer = "floors"
+				DamageLevels
+				[
+					{ File = "floor.png"; Size = [2, 2] }
+				]
+			}
+			Walls
+			{
+				Layer = "walls"
+				DamageLevels
+				[
+					{ File = "walls.png"; Size = [2, 2] }
+				]
+			}
+			Roof
+			{
+				Layer = "roofs"
+				DamageLevels
+				[
+					{ File = "roof.png"; NormalsFile = "roof_normals.png"; Size = [2, 2] }
+				]
+			}
+		}
+		Blueprints
+		{
+			Type = BlueprintSprite
+			File = "blueprints.png"
+			Size = [2, 2]
+		}
+		DestroyedEffects
+		{
+			Type = DeathEffects
+			MediaEffects = &/COMMON_EFFECTS/MedPartDestroyed
+			Location = [1, 1]
+		}
+	}
+}

@@ -1,0 +1,319 @@
+// =====================================================================================================
+//  [TESTE] Controle - Tanque de calor 1x1 (copia do Paiol simples com calor no lugar da municao) - Bullet Strike 2.0 (mod de testes). NAO e conteudo final.
+//  Fechado (sem tripulacao), so a esteira enche e esvazia. Recursos do jogo: heat (calor; recurso que o jogo ja move por rede: V thermal_battery.rules:73-89).
+//  Evidencias (V = dados vanilla, AW = wiki do codigo 0.30.4c, H = exemplo coolant rodado no motor 0.30.4c):
+//   * peca fechada .................. V thermal_battery.rules:23-25
+//   * deposito na rede .............. V thermal_battery.rules:86-92; H coolant_tank.rules (deposito = no da porta)
+//   * deposito por tipo em bloco ligado/desligado .. V missile_launcher_thermal.rules:225-254
+//   * empurrar para a rede .......... V base_part_overclock.rules:165-171; H coolant_pump.rules
+//   * barra / medidor ............... V base_part_overclock.rules:132-142, thermal_battery.rules:131-175
+//   * contador de 4 digitos ......... campo Modulus das sprites de valor (vanilla 0.30.3 factory_emp.rules:337-343
+//                                     usa ResourceSprites com Modulus = 20); SEM o operador Modulo (enum nao comprovado)
+//   * botao detonar ................. V explosive_charge.rules:35-60 (UITrigger "detonate" + dano 999999)
+//   * conversor sem origem / destino . V reactor_small.rules (cria), radiator.rules / H heat_sink (destroi)
+// =====================================================================================================
+PAIOL
+{
+	CAP_0 = 200		// Int32: so inteiros
+	EXPULSAR_QTD = 10		// tipo desmarcado sai a 10 por 0,1 s = 100 unidades/s
+	ENCHER_QTD = 100		// botao de teste: +100 a cada 0,1 s
+}
+
+Part : <./Data/ships/terran/base_part_terran.rules>/Part
+{
+	NameKey = "Parts/BS2TControleTanque"
+	IconNameKey = "Parts/BS2TControleTanqueIcon"
+	DescriptionKey = "Parts/BS2TControleTanqueDesc"
+	ID = rafaeltessaro.bs2t_controle_tanque
+	EditorGroups = ["BS2Teste"]
+	Resources
+	[
+		[steel, 8]
+	]
+	Size = [1, 1]
+	IsRotateable = false
+	IsFlippable = false
+	SelectionPriority = 0
+	MaxHealth = 2500
+	TypeCategories = [bs2t_paiol]
+	ReceivableBuffs : ^/0/ReceivableBuffs []
+	// fechado: sem interior, sem portas, a tripulacao nao entra (V thermal_battery.rules:22-25)
+	AllowedDoorLocations = []
+	GeneratorRequiresDoor = false
+	CrewSpeedFactor = 0
+	EditorIcon
+	{
+		Texture
+		{
+			File = "icon_controle.png"
+			SampleMode = Linear
+		}
+		Size = [32, 32]
+	}
+	Components : ^/0/Components
+	{
+		// ------------------------------------------------------------ um deposito por tipo (guardado ao trocar de tipo)
+		Estoque0
+		{
+			Type = ResourceStorage
+			ResourceType = heat
+			MaxResources = &~/PAIOL/CAP_0
+			DropResourcesWhenDestroyed = false
+		}
+
+		// ------------------------------------------------------------ rede (padrao H coolant_tank: o deposito e o no das portas)
+		Deposito0
+		{
+			Type = NetworkResourceStore
+			ResourceType = heat
+			ResourceStorage = Estoque0
+			Categories = [ rafaeltessaro.bs2t_paiol ]
+		}
+		BlueprintNetworkNode
+		{
+			Type = NetworkBasicNode
+			IncludeInBlueprints = true
+		}
+		Mudou0 { Type = ValueChangeTrigger; ValueSource = Estoque0 }
+		MudouAlgum
+		{
+			Type = MultiTrigger
+			Triggers = [ Mudou0 ]
+		}
+		AtividadeTimer
+		{
+			Type = Timer
+			Duration = 1
+			StartTrigger = MudouAlgum
+			ResetTrigger = MudouAlgum
+			StartExpired = true
+			InvertToggle = true
+		}
+		Zero { Type = StaticValue; Value = 0 }
+		Um { Type = StaticValue; Value = 1 }
+		AtividadeValor
+		{
+			Type = ToggleValueSelector
+			Toggle = AtividadeTimer
+			ToggleOnValue = Um
+			ToggleOffValue = Zero
+		}
+		AtividadeSaida
+		{
+			Type = NetworkValue
+			ValueSource = AtividadeValor
+			Categories = [ rafaeltessaro.bs2t_atividade ]
+		}
+		Roteador
+		{
+			Type = NetworkRouter
+			RouteGenerators
+			[
+				{
+					Type = Bidirectional
+					Routes
+					[
+						[Deposito0, AtividadeSaida, 0]
+					]
+				}
+			]
+		}
+		PortaEsteira_Up_0_0
+		{
+			Type = NetworkPort
+			Location = [0, 0]
+			Direction = Up
+			Types = [ rafaeltessaro.bs2t_esteira ]
+			RouteSource = Deposito0
+			RouteEndpoint = Deposito0
+			BlueprintRouteSource = BlueprintNetworkNode
+			BlueprintRouteEndpoint = BlueprintNetworkNode
+			Overlay
+			{
+				OverlayIcon = "ThermalPort"
+				RouteLine = "Thermal"
+				DrawRouteHub = false
+			}
+		}
+		PortaEsteira_Right_0_0 : PortaEsteira_Up_0_0 { Location = [0, 0]; Direction = Right }
+		PortaEsteira_Down_0_0 : PortaEsteira_Up_0_0 { Location = [0, 0]; Direction = Down }
+		PortaEsteira_Left_0_0 : PortaEsteira_Up_0_0 { Location = [0, 0]; Direction = Left }
+		NaEsteira
+		{
+			Type = MultiToggle
+			Toggles = [ PortaEsteira_Up_0_0, PortaEsteira_Right_0_0, PortaEsteira_Down_0_0, PortaEsteira_Left_0_0 ]
+			Mode = Any
+		}
+
+		// ------------------------------------------------------------ botoes de TESTE do estoque (so neste mod)
+		// 0 = normal, 1 = +1 por segundo (contagem lenta), 2 = encher rapido, 3 = esvaziar rapido.
+		// Atuam no tipo selecionado. Conversor sem origem cria; sem destino destroi (vanilla reactor_small / radiator).
+		ModoEstoque
+		{
+			Type = UIToggle
+			ToggleID = "bs2t_estoque"
+			Default = 0
+			AlwaysAllowInBuildMode = true
+			RequiresCommand = false
+		}
+		ModoMais1 { Type = ModeToggle; Mode = ModoEstoque; OnMode = 1 }
+		ModoEncher { Type = ModeToggle; Mode = ModoEstoque; OnMode = 2 }
+		ModoEsvaziar { Type = ModeToggle; Mode = ModoEstoque; OnMode = 3 }
+		TesteMais1_0
+		{
+			Type = ResourceConverter
+			OperationalToggle = ModoMais1
+			ToStorage = Estoque0
+			ToQuantity = 1
+			Interval = 1
+		}
+		TesteEncher0
+		{
+			Type = ResourceConverter
+			OperationalToggle = ModoEncher
+			ToStorage = Estoque0
+			ToQuantity = &~/PAIOL/ENCHER_QTD
+			MinToQuantityForConversion = 1
+			Interval = 0.1
+		}
+		TesteEsvaziar0
+		{
+			Type = ResourceConverter
+			OperationalToggle = ModoEsvaziar
+			FromStorage = Estoque0
+			FromQuantity = &~/PAIOL/ENCHER_QTD
+			MinFromQuantityForConversion = 1
+			Interval = 0.1
+		}
+		// botao vanilla "Detonar" (mesmo da carga explosiva): destroi o paiol e dispara as DeathEffects
+		// RequiresCommand = false: o padrao e true (PartUITriggerRules, manifesto 0.30.4c) e a nave-bomba do teste
+		// de explosao nao tem ponte; sem isto o botao fica cinza. Campo bool, igual aos UIToggle vanilla.
+		Detonar
+		{
+			Type = UITrigger
+			TriggerID = "detonate"
+			RequiresCommand = false
+		}
+		DetonarEfeito
+		{
+			Type = TriggeredEffects
+			Trigger = Detonar
+			Location = [0.5, 0.5]
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage = 999999
+					Filter
+					{
+						Friendlies = true
+						IgnoreInvulnerability = true
+					}
+				}
+			]
+		}
+
+		// ------------------------------------------------------------ mostrador
+		BarraEstoque0
+		{
+			Type = ProgressBar
+			ShowProgressFor = Estoque0
+			LowColor = [255, 70, 30]
+			HighColor = [255, 200, 40]
+			FullColor = [110, 230, 90]
+			Height = 8
+		}
+		MedidorSprites0
+		{
+			Type = ResourceSprites
+			Location = [0.5, 0.5]
+			ResourceStorage = Estoque0
+			Layer = "roof_doodads"
+			HasZeroResourceSprite = false
+			Round = Up
+			ResourceLevels
+			[
+				{ File = "gauge_controle_1.png"; Size = [1, 1] }
+				{ File = "gauge_controle_2.png"; Size = [1, 1] }
+				{ File = "gauge_controle_3.png"; Size = [1, 1] }
+				{ File = "gauge_controle_4.png"; Size = [1, 1] }
+				{ File = "gauge_controle_5.png"; Size = [1, 1] }
+			]
+		}
+		Placa0
+		{
+			Type = Graphics
+			Location = [0.285, 0.285]
+			OperationalRoofDoodad
+			{
+				Layer = "roof_doodads"
+				DamageLevels
+				[
+					{ File = "placa_calor.png"; Size = [0.225, 0.225] }
+				]
+			}
+		}
+		Indicadores
+		{
+			Type = IndicatorSprites
+			Location = [0.5, 0.5]
+			Indicators
+			[
+				// fora da esteira (nenhuma porta conectada)
+				{
+					Toggle = NaEsteira
+					AtlasSprite
+					{
+						File = &/INDICATORS/NoResource
+						Size = [1, 1]
+					}
+				}
+			]
+		}
+
+		// peca de CONTROLE: sem explosao propria (o calor guardado nao importa para o teste).
+
+		// ------------------------------------------------------------ graficos (arte provisoria do estudo de arte)
+		Graficos
+		{
+			Type = Graphics
+			Location = [0.5, 0.5]
+			Floor
+			{
+				Layer = "floors"
+				DamageLevels
+				[
+					{ File = "floor_controle.png"; Size = [1, 1] }
+				]
+			}
+			Walls
+			{
+				Layer = "walls"
+				DamageLevels
+				[
+					{ File = "walls_controle.png"; Size = [1, 1] }
+				]
+			}
+			Roof
+			{
+				Layer = "roofs"
+				DamageLevels
+				[
+					{ File = "roof_controle.png"; NormalsFile = "roof_normals_controle.png"; Size = [1, 1] }
+				]
+			}
+		}
+		Blueprints
+		{
+			Type = BlueprintSprite
+			File = "blueprints_controle.png"
+			Size = [1, 1]
+		}
+		DestroyedEffects
+		{
+			Type = DeathEffects
+			MediaEffects = &/COMMON_EFFECTS/MedPartDestroyed
+			Location = [0.5, 0.5]
+		}
+	}
+}

@@ -1,0 +1,200 @@
+// =====================================================================================================
+//  [TESTE] Controle - Fonte de calor 1x1 (fechada). CONTROLE POSITIVO do T-REDE: faz exatamente o que a Fabrica de
+//  teste faz (conversor sem origem -> MultiResourceStorage InOrder [entrada da rede, sobra]), mas com CALOR (heat),
+//  recurso que o jogo ja move por rede: V resonance_beam_turret.rules:322-343 (HeatGenerationConverter ->
+//  HeatDistributionStorage = [NetworkHeatInput, OverflowHeatStorage]) e SW:ACD 0.30.4 base_part_terran_sw_overclock.
+//  Mesma esteira, mesmo tipo de porta (rafaeltessaro.bs2t_esteira) e mesma categoria (rafaeltessaro.bs2t_paiol) da municao. Leitura:
+//   Tanque de calor enche e Paiol simples nao -> a esteira do kit esta certa, o jogo nao move a municao em rede;
+//   nenhum dos dois enche -> o defeito e a esteira do kit (portas / no / roteador), nao a municao.
+//  A sobra e um ResourceStorage simples (sem efeito de status), diferente do vanilla (ResourceConsumingStorage).
+// =====================================================================================================
+
+CONTROLE
+{
+	POR_CICLO = 10
+	INTERVALO = 1
+	SOBRA = 10
+}
+
+Part : <./Data/ships/terran/base_part_terran.rules>/Part
+{
+	NameKey = "Parts/BS2TControleFonte"
+	IconNameKey = "Parts/BS2TControleFonteIcon"
+	DescriptionKey = "Parts/BS2TControleFonteDesc"
+	ID = rafaeltessaro.bs2t_controle_fonte
+	EditorGroups = ["BS2Teste"]
+	Resources
+	[
+		[steel, 8]
+	]
+	Size = [1, 1]
+	IsRotateable = false
+	IsFlippable = false
+	SelectionPriority = 0
+	MaxHealth = 1500
+	TypeCategories = [bs2t_controle]
+	ReceivableBuffs : ^/0/ReceivableBuffs []
+	// fechada: sem interior, a tripulacao nao entra (V thermal_battery.rules:22-25)
+	AllowedDoorLocations = []
+	GeneratorRequiresDoor = false
+	CrewSpeedFactor = 0
+	EditorIcon
+	{
+		Texture
+		{
+			File = "icon.png"
+			SampleMode = Linear
+		}
+		Size = [32, 32]
+	}
+	Components : ^/0/Components
+	{
+		PowerToggle
+		{
+			Type = UIToggle
+			ToggleID = "on_off"
+			Default = 1
+			RequiresCommand = false
+		}
+		// lado da esteira: so para depositos da categoria do kit (igual a EntradaRede da fabrica de teste)
+		EntradaRede
+		{
+			Type = NetworkResourceInput
+			ResourceType = heat
+			Mode = DistributeProportionallyByAvailable
+			Categories = [ rafaeltessaro.bs2t_paiol ]
+			AllowUncategorized = false
+		}
+		Sobra
+		{
+			Type = ResourceStorage
+			ResourceType = heat
+			MaxResources = &~/CONTROLE/SOBRA
+		}
+		// primeiro a rede, depois a sobra (InOrder), como a fabrica de teste e o vanilla
+		RoteadorSaida
+		{
+			Type = MultiResourceStorage
+			ResourceType = heat
+			ResourceStorages = [EntradaRede, Sobra]
+			AddMode = InOrder
+			RemoveMode = InReverseOrder
+		}
+		Produtor
+		{
+			Type = ResourceConverter
+			OperationalToggle = PowerToggle
+			ToStorage = RoteadorSaida
+			ToQuantity = &~/CONTROLE/POR_CICLO
+			MinToQuantityForConversion = &~/CONTROLE/POR_CICLO
+			Interval = &~/CONTROLE/INTERVALO
+		}
+		BlueprintNetworkNode
+		{
+			Type = NetworkBasicNode
+			IncludeInBlueprints = true
+		}
+		PortaEsteira_Up_0_0
+		{
+			Type = NetworkPort
+			Location = [0, 0]
+			Direction = Up
+			Types = [ rafaeltessaro.bs2t_esteira ]
+			RouteSource = EntradaRede
+			RouteEndpoint = EntradaRede
+			BlueprintRouteSource = BlueprintNetworkNode
+			BlueprintRouteEndpoint = BlueprintNetworkNode
+			Overlay
+			{
+				OverlayIcon = "BS2TPortaEsteira"
+				RouteLine = "BS2TEsteira"
+				DrawRouteHub = false
+			}
+		}
+		PortaEsteira_Right_0_0 : PortaEsteira_Up_0_0 { Location = [0, 0]; Direction = Right }
+		PortaEsteira_Down_0_0 : PortaEsteira_Up_0_0 { Location = [0, 0]; Direction = Down }
+		PortaEsteira_Left_0_0 : PortaEsteira_Up_0_0 { Location = [0, 0]; Direction = Left }
+
+		// luz "mandando calor": acesa enquanto o produtor roda (sem tanque com espaco, a sobra enche e ela apaga)
+		ProduziuRecente
+		{
+			Type = Timer
+			Duration = 1.5
+			StartTrigger = Produtor
+			ResetTrigger = Produtor
+			StartExpired = true
+			InvertToggle = true
+		}
+		Luz
+		{
+			Type = Graphics
+			Location = [0.5, 0.5]
+			OperationalToggle = ProduziuRecente
+			OperationalLighting
+			{
+				Layer = "lights_add"
+				DamageLevels
+				[
+					{ File = "lamp.png"; Size = [1, 1] }
+				]
+			}
+		}
+		Graficos
+		{
+			Type = Graphics
+			Location = [0.5, 0.5]
+			Floor
+			{
+				Layer = "floors"
+				DamageLevels
+				[
+					{ File = "floor.png"; Size = [1, 1] }
+				]
+			}
+			Walls
+			{
+				Layer = "walls"
+				DamageLevels
+				[
+					{ File = "walls.png"; Size = [1, 1] }
+				]
+			}
+			Roof
+			{
+				Layer = "roofs"
+				DamageLevels
+				[
+					{ File = "roof.png"; NormalsFile = "roof_normals.png"; Size = [1, 1] }
+				]
+			}
+		}
+		Blueprints
+		{
+			Type = BlueprintSprite
+			File = "blueprints.png"
+			Size = [1, 1]
+		}
+		Indicadores
+		{
+			Type = IndicatorSprites
+			Location = [0.5, 0.5]
+			Indicators
+			[
+				{
+					Toggle = PowerToggle
+					AtlasSprite
+					{
+						File = &/INDICATORS/PowerOff
+						Size = [1, 1]
+					}
+				}
+			]
+		}
+		DestroyedEffects
+		{
+			Type = DeathEffects
+			MediaEffects = &/COMMON_EFFECTS/SmallPartDestroyedDry
+			Location = [0.5, 0.5]
+		}
+	}
+}

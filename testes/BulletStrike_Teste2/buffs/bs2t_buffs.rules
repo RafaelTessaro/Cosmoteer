@@ -1,0 +1,42 @@
+// [TESTE] Tipos de buff PROPRIOS do railgun Tupa de teste. Registrados por acao Overrides em <./Data/buffs/buffs.rules>
+// (mesmo padrao do SW:ACD mod.rules:39-43, que adiciona ~30 tipos de buff assim no 0.30.4).
+// Nomes proprios de proposito: o acelerador vanilla da o buff "Railgun" a QUALQUER peca na frente dele
+// (Criteria sem Category, railgun_accelerator.rules:142-158). Nossas pecas so recebem os buffs BS2T_*.
+// Formula (AW buff-system.md): final = pow(soma, Exponent) * Multiplier + BaseValue, preso em [MinValue, MaxValue].
+
+BS2T_Rail                     // contador da cadeia: carregador da 0, cada cano da 1 + o que recebeu
+{
+	CombineMode = Add
+}
+
+BS2T_RailShot                 // multiplicador do tiro = 1 + 25% * N^0.85 (vanilla RailgunShot: 1 + 20% * N^0.8)
+{
+	CombineMode = Add
+	Exponent = 0.85
+	Multiplier = 25%
+	BaseValue = 100%
+	MaxValue = 2.1466         // trava em 6 canos (1 + 0.25 * 6^0.85); a ponta tambem recusa mais de 6
+	IconTextFormatKey = "BuildBox/BuffPercentageFmt"
+	IconTextMultiply = 100
+	IconTextAdd = -100
+	ShowIconTextForZeroValue = false
+}
+
+BS2T_RailOperation            // cadeia para frente: "tudo atras de mim funciona" (vanilla RailgunOperation)
+{
+	CombineMode = Add
+	RectBorderColor = [255, 170, 60, 160]
+	RectFillColor = [255, 170, 60, 64]
+}
+
+BS2T_RailReverseOperation     // cadeia para tras: "tudo na minha frente funciona" (vanilla RailgunReverseOperation)
+{
+	CombineMode = Add
+	RectBorderColor = [255, 170, 60, 160]
+	RectFillColor = [255, 170, 60, 64]
+}
+
+BS2T_RailCount                // variante B: contagem dos canos B de tras para frente; o carregador recebe N
+{
+	CombineMode = Add
+}

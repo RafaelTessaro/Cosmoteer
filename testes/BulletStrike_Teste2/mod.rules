@@ -1,0 +1,165 @@
+// [TESTE] Bullet Strike 2.0 - kit de testes (paiol + esteira + contador + explosao + railgun Tupa).
+// Mod SEPARADO e descartavel: so serve para responder as perguntas da 2.0 numa partida Criativa de ~20 minutos.
+// Usa so recursos do jogo base (bullet = municao de canhao, missile_part_he = peca de missil A.E., battery; heat = calor,
+// so nas duas pecas de controle do teste da esteira).
+// Todos os IDs comecam com rafaeltessaro.bs2t_ (nao colide com o Bullet Strike 1.x nem com o SW:ACD).
+// Pode ser carregado sozinho ou junto do Bullet Strike e do Star Wars: A Cosmos Divided.
+
+ID = rafaeltessaro.bs2_testes
+Name = "[TESTE] Bullet Strike 2.0 - kit de testes"
+Version = 0.1.0
+CompatibleGameVersions = ["0.30.4", "0.30.4a", "0.30.4b", "0.30.4c"]
+ModifiesGameplay = true
+Author = "Rafael Tessaro"
+Logo = "logo.png"
+Description = "[TESTE] Peças de teste da 2.0 do Bullet Strike: paiol (1x1, 2x2, 3x3), esteira de munição (fechada e corredor), tremonha, fábricas e arma de teste, peças de controle (calor), paióis de explosão, contador de 4 dígitos e o railgun Tupã (carregador, cano e ponta). Use num jogo Criativo e siga o roteiro de testes.\n\n---\n\n[TEST] Bullet Strike 2.0 test parts: ammo depot (paiol), feed belt, hopper, test factories and gun, heat control parts, explosion depots, 4-digit counter and the Tupã railgun. Use in a Creative game and follow the test script."
+StringsFolder = "strings"
+Actions
+[
+	// grupo proprio no menu de construcao (mesmo formato do Bullet Strike 1.x, carregado no 0.30.4c)
+	{
+		Action = Overrides
+		OverrideIn = "<gui/game/designer/editor_groups.rules>"
+		Overrides
+		{
+			BS2Teste
+			{
+				NameKey = "EditorGroups/BS2Teste"
+				Icon
+				{
+					Texture
+					{
+						File = "gui/grupo_bs2teste.png"
+						MipLevels = 2
+						SampleMode = Linear
+					}
+				}
+				SortOrder = 252
+			}
+		}
+	}
+	// tipos de buff proprios do railgun (padrao SW:ACD mod.rules:39-43)
+	{
+		Action = Overrides
+		OverrideIn = "<./Data/buffs/buffs.rules>"
+		Overrides = &<buffs/bs2t_buffs.rules>
+	}
+	{
+		Action = AddMany
+		AddTo = "<ships/terran/terran.rules>/Terran/Parts"
+		ManyToAdd
+		[
+			&<parts/bs2t_fab/bs2t_fab_bala.rules>/Part
+			&<parts/bs2t_fab/bs2t_fab_he.rules>/Part
+			&<parts/bs2t_controle/bs2t_controle_fonte.rules>/Part
+			&<parts/bs2t_paiol/bs2t_controle_tanque.rules>/Part
+			&<parts/bs2t_paiol/bs2t_paiol_simples.rules>/Part
+			&<parts/bs2t_paiol/bs2t_paiol_1x1.rules>/Part
+			&<parts/bs2t_paiol/bs2t_paiol_1x1_b.rules>/Part
+			&<parts/bs2t_paiol/bs2t_paiol_2x2.rules>/Part
+			&<parts/bs2t_paiol/bs2t_paiol_3x3.rules>/Part
+			&<parts/bs2t_paiol/bs2t_paiol_explosao.rules>/Part
+			&<parts/bs2t_paiol/bs2t_paiol_explosao_solta.rules>/Part
+			&<parts/bs2t_esteira/bs2t_esteira.rules>/Part
+			&<parts/bs2t_esteira_corredor/bs2t_esteira_corredor.rules>/Part
+			&<parts/bs2t_tremonha/bs2t_tremonha.rules>/Part
+			&<parts/bs2t_arma/bs2t_arma.rules>/Part
+			&<parts/bs2t_rail_carregador/bs2t_rail_carregador.rules>/Part
+			&<parts/bs2t_rail_carregador/bs2t_rail_carregador_sc.rules>/Part
+			&<parts/bs2t_rail_cano/bs2t_rail_cano.rules>/Part
+			&<parts/bs2t_rail_cano/bs2t_rail_cano_b.rules>/Part
+			&<parts/bs2t_rail_ponta/bs2t_rail_ponta.rules>/Part
+		]
+	}
+	{
+		Action = AddMany
+		AddTo = "<gui/game/parts/part_toggles.rules>/PartToggles"
+		ManyToAdd = &<gui/bs2t_part_toggles.rules>/PartToggles
+	}
+	// icone e linha PROPRIOS da esteira no modo "redes" do editor. O arquivo gui/game/parts/networks/part_networks.rules,
+	// com OverlayIcons/ThermalPort e RouteLines/Thermal identicos, existe no vanilla 0.30.2 (e07af76) e no 0.30.5 RC1/RC4,
+	// logo existe no 0.30.4c. A wiki do codigo 0.30.4c (07-networks-and-resources.md:534-536) manda adicionar chaves proprias.
+	// Os dois blocos sao COPIAS ESCRITAS POR EXTENSO do vanilla (sem heranca com dois-pontos e sem referencia '&' dentro da acao,
+	// porque o 0.30.3b registrou crash com heranca na lista Actions). Valores iguais aos do vanilla, so a cor muda.
+	// Se der erro aqui, use a pasta BulletStrike_Teste2_SemIcone (gerada pelo build.sh, mesmo ID, sem estes dois blocos).
+	{
+		Action = Add
+		AddTo = "<gui/game/parts/networks/part_networks.rules>/OverlayIcons"
+		Name = BS2TPortaEsteira
+		ToAdd
+		{
+			Sprite
+			{
+				File = "gui/rede/porta_esteira.png"
+				VertexColor = [110, 230, 120, 255]
+				Size = [0.3, 0.3]
+			}
+			// valores do ThermalPort vanilla ja calculados (EdgeOffset = -Size*24/64, RouteLineOffset = EdgeOffset - Size*16/64)
+			EdgeOffset = -0.1125
+			RouteLineOffset = -0.1875
+			DrawLineToEdgeWhenConnected = true
+			// todos os icones vanilla deste arquivo (ThermalPort, ThermalDot, DefaultPortSprite, DefaultRouteHubSprite) definem
+			// este campo, ate o ThermalDot minimo; sem ele o 0.30.4c pode dar "Unable to find node" (AW 04-creating-parts.md:320-330)
+			UnroutableColorFactor = [255, 255, 255, 170]
+		}
+	}
+	{
+		Action = Add
+		AddTo = "<gui/game/parts/networks/part_networks.rules>/RouteLines"
+		Name = BS2TEsteira
+		ToAdd
+		{
+			// copia de RouteLines/Thermal (igual no 0.30.2 e no 0.30.5); so ColorFactor muda (amarelo -> verde-oliva)
+			Type = CappedLine
+			RenderToSeparateTexture = true
+			LineSprite
+			{
+				Texture
+				{
+					File = "./Data/gui/line_split_channel.png"
+					SampleMode = Linear
+					MipLevels = max
+					UMode = Wrap
+				}
+				Shader = "./Data/gui/line_split_channel.shader"
+				_baseColor = [255, 217, 0, 204]
+				_glowColor = [255, 111, 0, 204]
+				TargetBlendMode = Max
+			}
+			BeginCapSprite
+			{
+				Texture
+				{
+					File = "./Data/gui/line_split_channel_endcap_flipped.png"
+					SampleMode = Linear
+					MipLevels = max
+				}
+				Shader = "./Data/gui/line_split_channel.shader"
+				_baseColor = [255, 217, 0, 204]
+				_glowColor = [255, 111, 0, 204]
+				TargetBlendMode = Max
+			}
+			// vanilla = [LineThickness / 2, LineThickness] com LineThickness = 0.4
+			BeginCapSize = [0.2, 0.4]
+			EndCapSprite
+			{
+				Texture
+				{
+					File = "./Data/gui/line_split_channel_endcap.png"
+					SampleMode = Linear
+					MipLevels = max
+				}
+				Shader = "./Data/gui/line_split_channel.shader"
+				_baseColor = [255, 217, 0, 204]
+				_glowColor = [255, 111, 0, 204]
+				TargetBlendMode = Max
+			}
+			EndCapSize = [0.2, 0.4]
+			LineThickness = 0.4
+			// vanilla = 0.8 / LineThickness
+			LineUPerLength = 2
+			ColorFactor = [90, 255, 140, 255]
+			UnroutableColorFactor = [255, 255, 255, 170]
+		}
+	}
+]

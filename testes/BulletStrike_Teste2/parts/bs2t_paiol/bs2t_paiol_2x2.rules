@@ -1,0 +1,870 @@
+// =====================================================================================================
+//  [TESTE] Paiol 2x2 (seletor de tipo, contador) - Bullet Strike 2.0 (mod de testes). NAO e conteudo final.
+//  Fechado (sem tripulacao), so a esteira enche e esvazia. Recursos do jogo: bullet (municao de canhao) e missile_part_he (peca de missil A.E.).
+//  Evidencias (V = dados vanilla, AW = wiki do codigo 0.30.4c, H = exemplo coolant rodado no motor 0.30.4c):
+//   * peca fechada .................. V thermal_battery.rules:23-25
+//   * deposito na rede .............. V thermal_battery.rules:86-92; H coolant_tank.rules (deposito = no da porta)
+//   * deposito por tipo em bloco ligado/desligado .. V missile_launcher_thermal.rules:225-254
+//   * empurrar para a rede .......... V base_part_overclock.rules:165-171; H coolant_pump.rules
+//   * barra / medidor ............... V base_part_overclock.rules:132-142, thermal_battery.rules:131-175
+//   * contador de 4 digitos ......... campo Modulus das sprites de valor (vanilla 0.30.3 factory_emp.rules:337-343
+//                                     usa ResourceSprites com Modulus = 20); SEM o operador Modulo (enum nao comprovado)
+//   * botao detonar ................. V explosive_charge.rules:35-60 (UITrigger "detonate" + dano 999999)
+//   * conversor sem origem / destino . V reactor_small.rules (cria), radiator.rules / H heat_sink (destroi)
+// =====================================================================================================
+PAIOL
+{
+	CAP_0 = 1839		// Int32: so inteiros
+	CAP_1 = 459		// Int32: so inteiros
+	EXPULSAR_QTD = 10		// tipo desmarcado sai a 10 por 0,1 s = 100 unidades/s
+	ENCHER_QTD = 100		// botao de teste: +100 a cada 0,1 s
+	EXPLOSAO_OP = 240000	// dano operacional do paiol CHEIO (Int; escala com o enchimento)
+	EXPLOSAO_ESTR = 60000	// dano estrutural do paiol CHEIO (Int)
+	RAIO_OP = 4
+	RAIO_ESTR = 3
+}
+
+Part : <./Data/ships/terran/base_part_terran.rules>/Part
+{
+	NameKey = "Parts/BS2TPaiol2x2"
+	IconNameKey = "Parts/BS2TPaiol2x2Icon"
+	DescriptionKey = "Parts/BS2TPaiol2x2Desc"
+	ID = rafaeltessaro.bs2t_paiol_2x2
+	EditorGroups = ["BS2Teste"]
+	Resources
+	[
+		[steel, 32]
+	]
+	Size = [2, 2]
+	IsRotateable = false
+	IsFlippable = false
+	SelectionPriority = 0
+	MaxHealth = 10000
+	TypeCategories = [bs2t_paiol]
+	ReceivableBuffs : ^/0/ReceivableBuffs []
+	// fechado: sem interior, sem portas, a tripulacao nao entra (V thermal_battery.rules:22-25)
+	AllowedDoorLocations = []
+	GeneratorRequiresDoor = false
+	CrewSpeedFactor = 0
+	EditorIcon
+	{
+		Texture
+		{
+			File = "icon_2x2.png"
+			SampleMode = Linear
+		}
+		Size = [48, 48]
+	}
+	Components : ^/0/Components
+	{
+		// ------------------------------------------------------------ seletor do tipo de municao
+		TipoMunicao
+		{
+			Type = UIToggle
+			ToggleID = "bs2t_tipo"
+			Default = 0
+			AlwaysAllowInBuildMode = true
+			RequiresCommand = false
+		}
+		EhTipo0 { Type = ModeToggle; Mode = TipoMunicao; OnMode = 0 }
+		EhTipo1 { Type = ModeToggle; Mode = TipoMunicao; OnMode = 1 }
+		NaoTipo0 { Type = ModeToggle; Mode = TipoMunicao; OnModes = [1] }
+		NaoTipo1 { Type = ModeToggle; Mode = TipoMunicao; OnModes = [0] }
+
+		// ------------------------------------------------------------ um deposito por tipo (guardado ao trocar de tipo)
+		Estoque0
+		{
+			Type = ResourceStorage
+			ResourceType = bullet
+			MaxResources = &~/PAIOL/CAP_0
+			DropResourcesWhenDestroyed = false
+		}
+		Estoque1
+		{
+			Type = ResourceStorage
+			ResourceType = missile_part_he
+			MaxResources = &~/PAIOL/CAP_1
+			DropResourcesWhenDestroyed = false
+		}
+
+		// ------------------------------------------------------------ rede
+		NoEsteira
+		{
+			// no de roteamento da esteira = receptor do sinal "esteira andando" (padrao do cano de calor vanilla
+			// e do medidor do exemplo coolant, rodado no motor 0.30.4c)
+			Type = NetworkValueReceiver
+			Mode = Max
+			Categories = [ rafaeltessaro.bs2t_atividade ]
+			AllowUncategorized = false
+		}
+		BlueprintNetworkNode
+		{
+			Type = NetworkBasicNode
+			IncludeInBlueprints = true
+		}
+		// MECANISMO A do seletor: so o tipo SELECIONADO fica visivel na rede (deposito + roteador dentro de um bloco
+		// ligado/desligado, como o lancador termico vanilla troca seus nos de rede). [INFERIDO] o roteador de dentro do
+		// bloco cita NoEsteira, que fica fora (sempre existe, entao nao ha referencia quebrada).
+		BlocoDeposito0
+		{
+			Type = ToggledComponents
+			Toggle = EhTipo0
+			Components
+			{
+				Deposito0
+				{
+					Type = NetworkResourceStore
+					ResourceType = bullet
+					ResourceStorage = Estoque0
+					Categories = [ rafaeltessaro.bs2t_paiol ]
+				}
+				RoteadorDeposito0
+				{
+					Type = NetworkRouter
+					RouteGenerators
+					[
+						{
+							Type = Bidirectional
+							Routes
+							[
+								[NoEsteira, Deposito0, 0]
+							]
+						}
+					]
+				}
+			}
+		}
+		BlocoDeposito1
+		{
+			Type = ToggledComponents
+			Toggle = EhTipo1
+			Components
+			{
+				Deposito1
+				{
+					Type = NetworkResourceStore
+					ResourceType = missile_part_he
+					ResourceStorage = Estoque1
+					Categories = [ rafaeltessaro.bs2t_paiol ]
+				}
+				RoteadorDeposito1
+				{
+					Type = NetworkRouter
+					RouteGenerators
+					[
+						{
+							Type = Bidirectional
+							Routes
+							[
+								[NoEsteira, Deposito1, 0]
+							]
+						}
+					]
+				}
+			}
+		}
+		// expulsao: o tipo desmarcado volta para a esteira, para OUTRO paiol que tenha esse tipo selecionado
+		// (o deposito deste tipo aqui esta desligado, entao nao volta para si mesmo). Nada e convertido.
+		Expulsar0
+		{
+			Type = ResourceConverter
+			OperationalToggle = NaoTipo0
+			FromStorage = Estoque0
+			FromQuantity = &~/PAIOL/EXPULSAR_QTD
+			MinFromQuantityForConversion = 1
+			ToStorage = SaidaExpulsao0
+			ToQuantity = &~/PAIOL/EXPULSAR_QTD
+			MinToQuantityForConversion = 1
+			Interval = 0.1
+		}
+		SaidaExpulsao0
+		{
+			Type = NetworkResourceInput
+			ResourceType = bullet
+			Mode = DistributeProportionallyByAvailable
+			Categories = [ rafaeltessaro.bs2t_paiol ]
+			AllowUncategorized = false
+		}
+		Expulsar1
+		{
+			Type = ResourceConverter
+			OperationalToggle = NaoTipo1
+			FromStorage = Estoque1
+			FromQuantity = &~/PAIOL/EXPULSAR_QTD
+			MinFromQuantityForConversion = 1
+			ToStorage = SaidaExpulsao1
+			ToQuantity = &~/PAIOL/EXPULSAR_QTD
+			MinToQuantityForConversion = 1
+			Interval = 0.1
+		}
+		SaidaExpulsao1
+		{
+			Type = NetworkResourceInput
+			ResourceType = missile_part_he
+			Mode = DistributeProportionallyByAvailable
+			Categories = [ rafaeltessaro.bs2t_paiol ]
+			AllowUncategorized = false
+		}
+		Mudou0 { Type = ValueChangeTrigger; ValueSource = Estoque0 }
+		Mudou1 { Type = ValueChangeTrigger; ValueSource = Estoque1 }
+		MudouAlgum
+		{
+			Type = MultiTrigger
+			Triggers = [ Mudou0, Mudou1 ]
+		}
+		AtividadeTimer
+		{
+			Type = Timer
+			Duration = 1
+			StartTrigger = MudouAlgum
+			ResetTrigger = MudouAlgum
+			StartExpired = true
+			InvertToggle = true
+		}
+		Zero { Type = StaticValue; Value = 0 }
+		Um { Type = StaticValue; Value = 1 }
+		AtividadeValor
+		{
+			Type = ToggleValueSelector
+			Toggle = AtividadeTimer
+			ToggleOnValue = Um
+			ToggleOffValue = Zero
+		}
+		AtividadeSaida
+		{
+			Type = NetworkValue
+			ValueSource = AtividadeValor
+			Categories = [ rafaeltessaro.bs2t_atividade ]
+		}
+		Roteador
+		{
+			Type = NetworkRouter
+			RouteGenerators
+			[
+				{
+					Type = Bidirectional
+					Routes
+					[
+						[NoEsteira, SaidaExpulsao0, 0]
+						[NoEsteira, SaidaExpulsao1, 0]
+						[NoEsteira, AtividadeSaida, 0]
+					]
+				}
+			]
+		}
+		PortaEsteira_Up_0_0
+		{
+			Type = NetworkPort
+			Location = [0, 0]
+			Direction = Up
+			Types = [ rafaeltessaro.bs2t_esteira ]
+			RouteSource = NoEsteira
+			RouteEndpoint = NoEsteira
+			BlueprintRouteSource = BlueprintNetworkNode
+			BlueprintRouteEndpoint = BlueprintNetworkNode
+			Overlay
+			{
+				OverlayIcon = "BS2TPortaEsteira"
+				RouteLine = "BS2TEsteira"
+				DrawRouteHub = false
+			}
+		}
+		PortaEsteira_Up_1_0 : PortaEsteira_Up_0_0 { Location = [1, 0]; Direction = Up }
+		PortaEsteira_Right_1_0 : PortaEsteira_Up_0_0 { Location = [1, 0]; Direction = Right }
+		PortaEsteira_Right_1_1 : PortaEsteira_Up_0_0 { Location = [1, 1]; Direction = Right }
+		PortaEsteira_Down_0_1 : PortaEsteira_Up_0_0 { Location = [0, 1]; Direction = Down }
+		PortaEsteira_Down_1_1 : PortaEsteira_Up_0_0 { Location = [1, 1]; Direction = Down }
+		PortaEsteira_Left_0_0 : PortaEsteira_Up_0_0 { Location = [0, 0]; Direction = Left }
+		PortaEsteira_Left_0_1 : PortaEsteira_Up_0_0 { Location = [0, 1]; Direction = Left }
+		NaEsteira
+		{
+			Type = MultiToggle
+			Toggles = [ PortaEsteira_Up_0_0, PortaEsteira_Up_1_0, PortaEsteira_Right_1_0, PortaEsteira_Right_1_1, PortaEsteira_Down_0_1, PortaEsteira_Down_1_1, PortaEsteira_Left_0_0, PortaEsteira_Left_0_1 ]
+			Mode = Any
+		}
+
+		// ------------------------------------------------------------ botoes de TESTE do estoque (so neste mod)
+		// 0 = normal, 1 = +1 por segundo (contagem lenta), 2 = encher rapido, 3 = esvaziar rapido.
+		// Atuam no tipo selecionado. Conversor sem origem cria; sem destino destroi (vanilla reactor_small / radiator).
+		ModoEstoque
+		{
+			Type = UIToggle
+			ToggleID = "bs2t_estoque"
+			Default = 0
+			AlwaysAllowInBuildMode = true
+			RequiresCommand = false
+		}
+		ModoMais1 { Type = ModeToggle; Mode = ModoEstoque; OnMode = 1 }
+		ModoEncher { Type = ModeToggle; Mode = ModoEstoque; OnMode = 2 }
+		ModoEsvaziar { Type = ModeToggle; Mode = ModoEstoque; OnMode = 3 }
+		Mais1Ligado0 { Type = MultiToggle; Toggles = [EhTipo0, ModoMais1]; Mode = All }
+		EncherLigado0 { Type = MultiToggle; Toggles = [EhTipo0, ModoEncher]; Mode = All }
+		EsvaziarLigado0 { Type = MultiToggle; Toggles = [EhTipo0, ModoEsvaziar]; Mode = All }
+		TesteMais1_0
+		{
+			Type = ResourceConverter
+			OperationalToggle = Mais1Ligado0
+			ToStorage = Estoque0
+			ToQuantity = 1
+			Interval = 1
+		}
+		TesteEncher0
+		{
+			Type = ResourceConverter
+			OperationalToggle = EncherLigado0
+			ToStorage = Estoque0
+			ToQuantity = &~/PAIOL/ENCHER_QTD
+			MinToQuantityForConversion = 1
+			Interval = 0.1
+		}
+		TesteEsvaziar0
+		{
+			Type = ResourceConverter
+			OperationalToggle = EsvaziarLigado0
+			FromStorage = Estoque0
+			FromQuantity = &~/PAIOL/ENCHER_QTD
+			MinFromQuantityForConversion = 1
+			Interval = 0.1
+		}
+		Mais1Ligado1 { Type = MultiToggle; Toggles = [EhTipo1, ModoMais1]; Mode = All }
+		EncherLigado1 { Type = MultiToggle; Toggles = [EhTipo1, ModoEncher]; Mode = All }
+		EsvaziarLigado1 { Type = MultiToggle; Toggles = [EhTipo1, ModoEsvaziar]; Mode = All }
+		TesteMais1_1
+		{
+			Type = ResourceConverter
+			OperationalToggle = Mais1Ligado1
+			ToStorage = Estoque1
+			ToQuantity = 1
+			Interval = 1
+		}
+		TesteEncher1
+		{
+			Type = ResourceConverter
+			OperationalToggle = EncherLigado1
+			ToStorage = Estoque1
+			ToQuantity = &~/PAIOL/ENCHER_QTD
+			MinToQuantityForConversion = 1
+			Interval = 0.1
+		}
+		TesteEsvaziar1
+		{
+			Type = ResourceConverter
+			OperationalToggle = EsvaziarLigado1
+			FromStorage = Estoque1
+			FromQuantity = &~/PAIOL/ENCHER_QTD
+			MinFromQuantityForConversion = 1
+			Interval = 0.1
+		}
+		// botao vanilla "Detonar" (mesmo da carga explosiva): destroi o paiol e dispara as DeathEffects
+		// RequiresCommand = false: o padrao e true (PartUITriggerRules, manifesto 0.30.4c) e a nave-bomba do teste
+		// de explosao nao tem ponte; sem isto o botao fica cinza. Campo bool, igual aos UIToggle vanilla.
+		Detonar
+		{
+			Type = UITrigger
+			TriggerID = "detonate"
+			RequiresCommand = false
+		}
+		DetonarEfeito
+		{
+			Type = TriggeredEffects
+			Trigger = Detonar
+			Location = [0.5, 0.5]
+			HitEffects
+			[
+				{
+					Type = Damage
+					Damage = 999999
+					Filter
+					{
+						Friendlies = true
+						IgnoreInvulnerability = true
+					}
+				}
+			]
+		}
+
+		// ------------------------------------------------------------ mostrador
+		BarraEstoque0
+		{
+			Type = ProgressBar
+			OperationalToggle = EhTipo0
+			ShowProgressFor = Estoque0
+			LowColor = [255, 70, 30]
+			HighColor = [255, 200, 40]
+			FullColor = [110, 230, 90]
+			Height = 8
+		}
+		MostradorTipo0
+		{
+			Type = ToggledComponents
+			Toggle = EhTipo0
+			Components
+			{
+				MedidorSprites0
+				{
+					Type = ResourceSprites
+					Location = [1, 1]
+					ResourceStorage = Estoque0
+					Layer = "roof_doodads"
+					HasZeroResourceSprite = false
+					Round = Up
+					ResourceLevels
+					[
+						{ File = "gauge_2x2_1.png"; Size = [2, 2] }
+						{ File = "gauge_2x2_2.png"; Size = [2, 2] }
+						{ File = "gauge_2x2_3.png"; Size = [2, 2] }
+						{ File = "gauge_2x2_4.png"; Size = [2, 2] }
+						{ File = "gauge_2x2_5.png"; Size = [2, 2] }
+						{ File = "gauge_2x2_6.png"; Size = [2, 2] }
+						{ File = "gauge_2x2_7.png"; Size = [2, 2] }
+						{ File = "gauge_2x2_8.png"; Size = [2, 2] }
+					]
+				}
+				Placa0
+				{
+					Type = Graphics
+					Location = [0.5, 0.5]
+					OperationalRoofDoodad
+					{
+						Layer = "roof_doodads"
+						DamageLevels
+						[
+							{ File = "placa_bala.png"; Size = [0.54, 0.54] }
+						]
+					}
+				}
+			}
+		}
+		BarraEstoque1
+		{
+			Type = ProgressBar
+			OperationalToggle = EhTipo1
+			ShowProgressFor = Estoque1
+			LowColor = [255, 70, 30]
+			HighColor = [255, 200, 40]
+			FullColor = [110, 230, 90]
+			Height = 8
+		}
+		MostradorTipo1
+		{
+			Type = ToggledComponents
+			Toggle = EhTipo1
+			Components
+			{
+				MedidorSprites1
+				{
+					Type = ResourceSprites
+					Location = [1, 1]
+					ResourceStorage = Estoque1
+					Layer = "roof_doodads"
+					HasZeroResourceSprite = false
+					Round = Up
+					ResourceLevels
+					[
+						{ File = "gauge_2x2_1.png"; Size = [2, 2] }
+						{ File = "gauge_2x2_2.png"; Size = [2, 2] }
+						{ File = "gauge_2x2_3.png"; Size = [2, 2] }
+						{ File = "gauge_2x2_4.png"; Size = [2, 2] }
+						{ File = "gauge_2x2_5.png"; Size = [2, 2] }
+						{ File = "gauge_2x2_6.png"; Size = [2, 2] }
+						{ File = "gauge_2x2_7.png"; Size = [2, 2] }
+						{ File = "gauge_2x2_8.png"; Size = [2, 2] }
+					]
+				}
+				Placa1
+				{
+					Type = Graphics
+					Location = [0.5, 0.5]
+					OperationalRoofDoodad
+					{
+						Layer = "roof_doodads"
+						DamageLevels
+						[
+							{ File = "placa_he.png"; Size = [0.54, 0.54] }
+						]
+					}
+				}
+			}
+		}
+		// contagem absoluta (MultiResourceStorage com ProvidedValueRange = 0, V missile_launcher_thermal.rules:81-89)
+		Contagem0
+		{
+			Type = MultiResourceStorage
+			ResourceType = bullet
+			ResourceStorages = [Estoque0]
+			ProvidedValueRange = 0
+			ProvidedValuePerResource = 1
+		}
+		// contagem absoluta (MultiResourceStorage com ProvidedValueRange = 0, V missile_launcher_thermal.rules:81-89)
+		Contagem1
+		{
+			Type = MultiResourceStorage
+			ResourceType = missile_part_he
+			ResourceStorages = [Estoque1]
+			ProvidedValueRange = 0
+			ProvidedValuePerResource = 1
+		}
+		Dez { Type = StaticValue; Value = 10 }
+		Cem { Type = StaticValue; Value = 100 }
+		Mil { Type = StaticValue; Value = 1000 }
+		ContadorTipo0
+		{
+			Type = ToggledComponents
+			Toggle = EhTipo0
+			Components
+			{
+				// ---- contador de 4 digitos (estoque do tipo selecionado)
+				Dividido10_Tipo0 { Type = ValueOperation; Operator = Divide; ValueOne = Contagem0; ValueTwo = Dez }
+				Dividido100_Tipo0 { Type = ValueOperation; Operator = Divide; ValueOne = Contagem0; ValueTwo = Cem }
+				Dividido1000_Tipo0 { Type = ValueOperation; Operator = Divide; ValueOne = Contagem0; ValueTwo = Mil }
+				DigitoUnidade_Tipo0
+				{
+					Type = ResourceSprites
+					Location = [1.32, 1.57]
+					ResourceStorage = Estoque0
+					Layer = "roof_doodads"
+					Modulus = 10
+					Round = Up
+					HasZeroResourceSprite = true
+					ResourceLevels
+					[
+						{ File = "../../gui/digitos/digito0.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito1.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito2.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito3.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito4.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito5.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito6.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito7.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito8.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito9.png"; Size = [0.3, 0.5] }
+					]
+				}
+				DigitoDezena_Tipo0
+				{
+					Type = ValueSprites
+					Location = [0.99, 1.57]
+					ValueFrom = Dividido10_Tipo0
+					Layer = "roof_doodads"
+					Modulus = 10
+					Round = Down
+					HasZeroResourceSprite = true
+					ResourceLevels
+					[
+						{ File = "../../gui/digitos/digito0.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito1.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito2.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito3.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito4.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito5.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito6.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito7.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito8.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito9.png"; Size = [0.3, 0.5] }
+					]
+				}
+				DigitoCentena_Tipo0
+				{
+					Type = ValueSprites
+					Location = [0.66, 1.57]
+					ValueFrom = Dividido100_Tipo0
+					Layer = "roof_doodads"
+					Modulus = 10
+					Round = Down
+					HasZeroResourceSprite = true
+					ResourceLevels
+					[
+						{ File = "../../gui/digitos/digito0.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito1.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito2.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito3.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito4.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito5.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito6.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito7.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito8.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito9.png"; Size = [0.3, 0.5] }
+					]
+				}
+				DigitoMilhar_Tipo0
+				{
+					Type = ValueSprites
+					Location = [0.33, 1.57]
+					ValueFrom = Dividido1000_Tipo0
+					Layer = "roof_doodads"
+					Modulus = 10
+					Round = Down
+					HasZeroResourceSprite = true
+					ResourceLevels
+					[
+						{ File = "../../gui/digitos/digito0.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito1.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito2.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito3.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito4.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito5.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito6.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito7.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito8.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito9.png"; Size = [0.3, 0.5] }
+					]
+				}
+			}
+		}
+		ContadorTipo1
+		{
+			Type = ToggledComponents
+			Toggle = EhTipo1
+			Components
+			{
+				// ---- contador de 4 digitos (estoque do tipo selecionado)
+				Dividido10_Tipo1 { Type = ValueOperation; Operator = Divide; ValueOne = Contagem1; ValueTwo = Dez }
+				Dividido100_Tipo1 { Type = ValueOperation; Operator = Divide; ValueOne = Contagem1; ValueTwo = Cem }
+				Dividido1000_Tipo1 { Type = ValueOperation; Operator = Divide; ValueOne = Contagem1; ValueTwo = Mil }
+				DigitoUnidade_Tipo1
+				{
+					Type = ResourceSprites
+					Location = [1.32, 1.57]
+					ResourceStorage = Estoque1
+					Layer = "roof_doodads"
+					Modulus = 10
+					Round = Up
+					HasZeroResourceSprite = true
+					ResourceLevels
+					[
+						{ File = "../../gui/digitos/digito0.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito1.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito2.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito3.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito4.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito5.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito6.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito7.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito8.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito9.png"; Size = [0.3, 0.5] }
+					]
+				}
+				DigitoDezena_Tipo1
+				{
+					Type = ValueSprites
+					Location = [0.99, 1.57]
+					ValueFrom = Dividido10_Tipo1
+					Layer = "roof_doodads"
+					Modulus = 10
+					Round = Down
+					HasZeroResourceSprite = true
+					ResourceLevels
+					[
+						{ File = "../../gui/digitos/digito0.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito1.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito2.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito3.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito4.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito5.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito6.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito7.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito8.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito9.png"; Size = [0.3, 0.5] }
+					]
+				}
+				DigitoCentena_Tipo1
+				{
+					Type = ValueSprites
+					Location = [0.66, 1.57]
+					ValueFrom = Dividido100_Tipo1
+					Layer = "roof_doodads"
+					Modulus = 10
+					Round = Down
+					HasZeroResourceSprite = true
+					ResourceLevels
+					[
+						{ File = "../../gui/digitos/digito0.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito1.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito2.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito3.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito4.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito5.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito6.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito7.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito8.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito9.png"; Size = [0.3, 0.5] }
+					]
+				}
+				DigitoMilhar_Tipo1
+				{
+					Type = ValueSprites
+					Location = [0.33, 1.57]
+					ValueFrom = Dividido1000_Tipo1
+					Layer = "roof_doodads"
+					Modulus = 10
+					Round = Down
+					HasZeroResourceSprite = true
+					ResourceLevels
+					[
+						{ File = "../../gui/digitos/digito0.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito1.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito2.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito3.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito4.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito5.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito6.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito7.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito8.png"; Size = [0.3, 0.5] }
+						{ File = "../../gui/digitos/digito9.png"; Size = [0.3, 0.5] }
+					]
+				}
+			}
+		}
+		TemMunicao0 { Type = MultiToggle; Toggles = [EhTipo0, Estoque0]; Mode = All }
+		TemMunicao1 { Type = MultiToggle; Toggles = [EhTipo1, Estoque1]; Mode = All }
+		TemMunicao { Type = MultiToggle; Toggles = [TemMunicao0, TemMunicao1]; Mode = Any }
+		Indicadores
+		{
+			Type = IndicatorSprites
+			Location = [1, 1]
+			Indicators
+			[
+				// fora da esteira (nenhuma porta conectada)
+				{
+					Toggle = NaEsteira
+					AtlasSprite
+					{
+						File = &/INDICATORS/NoResource
+						Size = [1, 1]
+					}
+					HidesIndicators = [1]
+				}
+				// tipo selecionado vazio
+				{
+					Toggle = TemMunicao
+					Delay = 1
+					AtlasSprite
+					{
+						File = &/INDICATORS/NoAmmo
+						Size = [1, 1]
+					}
+				}
+			]
+		}
+
+		// ------------------------------------------------------------ explosao propria (escala com o enchimento, V thermal_battery.rules:94-122)
+		ExplosaoPropria0
+		{
+			Type = DeathEffects
+			Location = [1, 1]
+			FactorHitEffectsWith = Estoque0
+			IncludeWhenUnderConstruction = false
+			HitEffects
+			[
+				{
+					Type = ExplosiveDamage
+					TotalDamage = { BaseValue = &~/PAIOL/EXPLOSAO_OP; EffectScaleExponent = 1 }
+					Radius = &~/PAIOL/RAIO_OP
+					Delay = .05
+					Filter
+					{
+						OperationalHealth = true
+						StructuralHealth = false
+						Friendlies = true
+					}
+				}
+				{
+					Type = ExplosiveDamage
+					TotalDamage = { BaseValue = &~/PAIOL/EXPLOSAO_ESTR; EffectScaleExponent = 1 }
+					Radius = &~/PAIOL/RAIO_ESTR
+					Delay = .05
+					Filter
+					{
+						OperationalHealth = false
+						StructuralHealth = true
+						Friendlies = true
+						Crew = false
+					}
+				}
+			]
+		}
+		ExplosaoPropria1
+		{
+			Type = DeathEffects
+			Location = [1, 1]
+			FactorHitEffectsWith = Estoque1
+			IncludeWhenUnderConstruction = false
+			HitEffects
+			[
+				{
+					Type = ExplosiveDamage
+					TotalDamage = { BaseValue = &~/PAIOL/EXPLOSAO_OP; EffectScaleExponent = 1 }
+					Radius = &~/PAIOL/RAIO_OP
+					Delay = .05
+					Filter
+					{
+						OperationalHealth = true
+						StructuralHealth = false
+						Friendlies = true
+					}
+				}
+				{
+					Type = ExplosiveDamage
+					TotalDamage = { BaseValue = &~/PAIOL/EXPLOSAO_ESTR; EffectScaleExponent = 1 }
+					Radius = &~/PAIOL/RAIO_ESTR
+					Delay = .05
+					Filter
+					{
+						OperationalHealth = false
+						StructuralHealth = true
+						Friendlies = true
+						Crew = false
+					}
+				}
+			]
+		}
+
+		// ------------------------------------------------------------ graficos (arte provisoria do estudo de arte)
+		Graficos
+		{
+			Type = Graphics
+			Location = [1, 1]
+			Floor
+			{
+				Layer = "floors"
+				DamageLevels
+				[
+					{ File = "floor_2x2.png"; Size = [2, 2] }
+				]
+			}
+			Walls
+			{
+				Layer = "walls"
+				DamageLevels
+				[
+					{ File = "walls_2x2.png"; Size = [2, 2] }
+				]
+			}
+			Roof
+			{
+				Layer = "roofs"
+				DamageLevels
+				[
+					{ File = "roof_2x2.png"; NormalsFile = "roof_normals_2x2.png"; Size = [2, 2] }
+				]
+			}
+		}
+		Blueprints
+		{
+			Type = BlueprintSprite
+			File = "blueprints_2x2.png"
+			Size = [2, 2]
+		}
+		DestroyedEffects
+		{
+			Type = DeathEffects
+			MediaEffects = &/COMMON_EFFECTS/MedPartDestroyed
+			Location = [1, 1]
+		}
+	}
+
+	Stats
+	{
+		AmmoCapacity = &~/PAIOL/CAP_0
+	}
+}

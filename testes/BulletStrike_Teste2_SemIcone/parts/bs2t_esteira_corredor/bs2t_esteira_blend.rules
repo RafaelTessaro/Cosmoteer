@@ -1,0 +1,49 @@
+// Sprites que se ligam sozinhos (codigo URDL = portas conectadas). Estrutura igual a do vanilla
+// heat_pipe_blend_sprites.rules (ToggledBlendSprites; existe no codigo 0.30.4c e o SW:ACD copiou o arquivo vanilla em 2025-11).
+HUB { SituationCode = "0000"; AllowRotation = false }
+STUB { SituationCode = "0010" }
+STRAIGHT { SituationCode = "1010" }
+CORNER { SituationCode = "0110" }
+SPLIT_3WAY { SituationCode = "1110" }
+SPLIT_4WAY { SituationCode = "1111" }
+
+BASE_BLEND_SPRITES
+{
+	Type = ToggledBlendSprites
+	Location = [0.5, 0.5]
+	SituationToggles
+	[
+		Port_Up
+		Port_Right
+		Port_Down
+		Port_Left
+	]
+}
+
+FloorBlendSprites : BASE_BLEND_SPRITES
+{
+	Layer = "floors"
+	AmbiguousSprites
+	[
+		: ~/HUB { DamageLevelSprites [ { File = "floor_hub.png" } ] }
+		: ~/STUB { DamageLevelSprites [ { File = "floor_stub.png" } ] }
+		: ~/STRAIGHT { DamageLevelSprites [ { File = "floor_straight.png" } ] }
+		: ~/CORNER { DamageLevelSprites [ { File = "floor_corner.png" } ] }
+		: ~/SPLIT_3WAY { DamageLevelSprites [ { File = "floor_3way.png" } ] }
+		: ~/SPLIT_4WAY { DamageLevelSprites [ { File = "floor_4way.png" } ] }
+	]
+}
+
+BlueprintBlendSprites : BASE_BLEND_SPRITES
+{
+	Type = BlueprintToggledBlendSprites
+	AmbiguousSprites
+	[
+		: ~/HUB { DamageLevelSprites [ { File = "blueprints_hub.png" } ] }
+		: ~/STUB { DamageLevelSprites [ { File = "blueprints_stub.png" } ] }
+		: ~/STRAIGHT { DamageLevelSprites [ { File = "blueprints_straight.png" } ] }
+		: ~/CORNER { DamageLevelSprites [ { File = "blueprints_corner.png" } ] }
+		: ~/SPLIT_3WAY { DamageLevelSprites [ { File = "blueprints_3way.png" } ] }
+		: ~/SPLIT_4WAY { DamageLevelSprites [ { File = "blueprints_4way.png" } ] }
+	]
+}

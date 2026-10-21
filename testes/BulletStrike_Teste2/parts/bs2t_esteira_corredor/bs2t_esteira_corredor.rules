@@ -1,0 +1,247 @@
+// =====================================================================================================
+//  [TESTE] Corredor com esteira: a tripulacao anda por cima (velocidade de corredor) e a esteira corre por
+//  baixo da grade do piso (cartuchos na camada doodads_low, como a esteira rolante vanilla; a grade esta
+//  desenhada em cada quadro). E o mais perto de "esteira por baixo da nave" que o jogo permite (uma peca por bloco).
+//  Corpo de corredor = padrao do SW:ACD storage_1x1_hidden.rules (IsWalled = false, categoria corridor,
+//  paredes vanilla walls.rules que se ligam aos corredores). Rede = igual a esteira fechada.
+// =====================================================================================================
+
+Part : <./Data/ships/terran/base_part_terran.rules>/Part
+{
+	NameKey = "Parts/BS2TEsteiraCorredor"
+	IconNameKey = "Parts/BS2TEsteiraCorredorIcon"
+	DescriptionKey = "Parts/BS2TEsteiraCorredorDesc"
+	ID = rafaeltessaro.bs2t_esteira_corredor
+	EditorGroups = ["BS2Teste"]
+	Resources
+	[
+		[steel, 6]
+		[coil, 1]
+	]
+	Size = [1, 1]
+	IsRotateable = false
+	IsFlippable = false
+	MaxHealth = 1000
+	IsWalled = false
+	GeneratorRequiresDoor = false
+	CrewSpeedFactor = 1
+	TypeCategories = [corridor, bs2t_esteira]
+	ReceivableBuffs : ^/0/ReceivableBuffs []
+	EditorIcon
+	{
+		Texture
+		{
+			File = "icon.png"
+			SampleMode = Linear
+		}
+		Size = [32, 32]
+	}
+	Components : ^/0/Components
+	{
+		WallsBlend : <./Data/ships/terran/walls/walls.rules>
+		{
+			Type = BlendSprite
+			Location = [0.5, 0.5]
+			BlendsWithCategories = [corridor]
+		}
+		BlueprintWalls : &<./Data/ships/terran/walls/blueprint_walls.rules>
+		{
+			Location = [0.5, 0.5]
+			BlendsWithCategories = [corridor]
+		}
+		Teto
+		{
+			Type = Graphics
+			Location = [0.5, 0.5]
+			Roof
+			{
+				Layer = "roofs"
+				DamageLevels
+				[
+					{ File = "roof.png"; NormalsFile = "roof_normals.png"; Size = [1, 1] }
+				]
+			}
+		}
+		NoEsteira
+		{
+			// no de roteamento da esteira = receptor do sinal "esteira andando" (padrao do cano de calor vanilla
+			// e do medidor do exemplo coolant, rodado no motor 0.30.4c)
+			Type = NetworkValueReceiver
+			Mode = Max
+			Categories = [ rafaeltessaro.bs2t_atividade ]
+			AllowUncategorized = false
+		}
+		Andando
+		{
+			// liga quando algum paiol desta rede mudou o estoque no ultimo segundo (V railgun_loader IsOverclocked: mesmo padrao)
+			Type = ThresholdToggle
+			ValueFrom = NoEsteira
+			MinAmount = 0
+			MaxAmount = 0
+			Invert = true
+		}
+		BlueprintNetworkNode
+		{
+			Type = NetworkBasicNode
+			IncludeInBlueprints = true
+		}
+		Port_Up
+		{
+			Type = NetworkPort
+			Location = [0, 0]
+			Direction = Up
+			Types = [ rafaeltessaro.bs2t_esteira ]
+			RouteSource = NoEsteira
+			RouteEndpoint = NoEsteira
+			BlueprintRouteSource = BlueprintNetworkNode
+			BlueprintRouteEndpoint = BlueprintNetworkNode
+			Overlay
+			{
+				OverlayIcon = "BS2TPortaEsteira"
+				IconDrawMode = Never
+				RouteDrawMode = Connected
+				RouteLine = "BS2TEsteira"
+				DrawRouteHub = false
+			}
+		}
+		Port_Right : Port_Up { Direction = Right }
+		Port_Down : Port_Up { Direction = Down }
+		Port_Left : Port_Up { Direction = Left }
+
+		FloorBlendSprites : <bs2t_esteira_blend.rules>/FloorBlendSprites {}
+		BlueprintBlendSprites : <bs2t_esteira_blend.rules>/BlueprintBlendSprites {}
+
+		// esteira por baixo da grade do piso (doodads_low = abaixo da tripulacao e do teto)
+		Cartuchos_U
+		{
+			// meia esteira do centro ate esta borda; aparece se a porta estiver ligada e anda quando a rede tem atividade
+			Type = Graphics
+			Location = [0.5, 0.5]
+			OperationalToggle = Port_Up
+			AnimationToggle = Andando
+			OperationalDoodad
+			{
+				Layer = "doodads_low"
+				DamageLevels
+				[
+					{
+						AnimationFiles
+						[
+							"carts_U1.png"
+							"carts_U2.png"
+							"carts_U3.png"
+							"carts_U4.png"
+							"carts_U5.png"
+							"carts_U6.png"
+							"carts_U7.png"
+							"carts_U8.png"
+						]
+						Size = [1, 1]
+						AnimationInterval = .0333
+						AnimationStartTime = Zero
+					}
+				]
+			}
+		}
+		Cartuchos_R
+		{
+			// meia esteira do centro ate esta borda; aparece se a porta estiver ligada e anda quando a rede tem atividade
+			Type = Graphics
+			Location = [0.5, 0.5]
+			OperationalToggle = Port_Right
+			AnimationToggle = Andando
+			OperationalDoodad
+			{
+				Layer = "doodads_low"
+				DamageLevels
+				[
+					{
+						AnimationFiles
+						[
+							"carts_R1.png"
+							"carts_R2.png"
+							"carts_R3.png"
+							"carts_R4.png"
+							"carts_R5.png"
+							"carts_R6.png"
+							"carts_R7.png"
+							"carts_R8.png"
+						]
+						Size = [1, 1]
+						AnimationInterval = .0333
+						AnimationStartTime = Zero
+					}
+				]
+			}
+		}
+		Cartuchos_D
+		{
+			// meia esteira do centro ate esta borda; aparece se a porta estiver ligada e anda quando a rede tem atividade
+			Type = Graphics
+			Location = [0.5, 0.5]
+			OperationalToggle = Port_Down
+			AnimationToggle = Andando
+			OperationalDoodad
+			{
+				Layer = "doodads_low"
+				DamageLevels
+				[
+					{
+						AnimationFiles
+						[
+							"carts_D1.png"
+							"carts_D2.png"
+							"carts_D3.png"
+							"carts_D4.png"
+							"carts_D5.png"
+							"carts_D6.png"
+							"carts_D7.png"
+							"carts_D8.png"
+						]
+						Size = [1, 1]
+						AnimationInterval = .0333
+						AnimationStartTime = Zero
+					}
+				]
+			}
+		}
+		Cartuchos_L
+		{
+			// meia esteira do centro ate esta borda; aparece se a porta estiver ligada e anda quando a rede tem atividade
+			Type = Graphics
+			Location = [0.5, 0.5]
+			OperationalToggle = Port_Left
+			AnimationToggle = Andando
+			OperationalDoodad
+			{
+				Layer = "doodads_low"
+				DamageLevels
+				[
+					{
+						AnimationFiles
+						[
+							"carts_L1.png"
+							"carts_L2.png"
+							"carts_L3.png"
+							"carts_L4.png"
+							"carts_L5.png"
+							"carts_L6.png"
+							"carts_L7.png"
+							"carts_L8.png"
+						]
+						Size = [1, 1]
+						AnimationInterval = .0333
+						AnimationStartTime = Zero
+					}
+				]
+			}
+		}
+
+		DestroyedEffects
+		{
+			Type = DeathEffects
+			MediaEffects = &/COMMON_EFFECTS/SmallPartDestroyedDry
+			Location = [0.5, 0.5]
+		}
+	}
+}
