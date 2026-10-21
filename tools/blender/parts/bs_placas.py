@@ -28,7 +28,7 @@ from parts import _bs2_logistica_helpers as LG
 
 PX_PLATE = 48
 SIDE = PX_PLATE / 64.0                # 0,75 quadro
-FIELD = 0.50                          # lado do campo escuro (quadros, de SIDE)
+FIELD = 0.54                          # lado do campo escuro (quadros, de SIDE)
 SSF = 4                               # superamostragem do simbolo
 
 PART = {
@@ -62,7 +62,7 @@ def _bezel():
     B.camera(SIDE, SIDE, (0, 0))
     bpy.context.scene.cycles.samples = 64
     tags = ("bezel",)
-    s = SIDE - 0.035
+    s = SIDE - 0.03
     fa, fp = B.shard("frame", B.rpoly(0, 0, s, s, 0, chamfer=0.075), 0.0, 0.06, A, slope=0.022, groove=0.014,
                      panel_h=0.016, tags=tags)
     hole = B.rpoly(0, 0, FIELD + 0.02, FIELD + 0.02, 0, chamfer=0.05)
@@ -73,8 +73,8 @@ def _bezel():
     B.loft("field", field, field, 0.0, 0.016, B.mat_metal("lg_plate_field", (0.012, 0.013, 0.016), rough=0.55,
                                                            metal=0.3), bevel=0.0, tags=tags)
     for k, (sx, sy) in enumerate(((-1, 1), (1, -1))):
-        c = (s / 2 - 0.045)
-        B.cyl(f"bolt{k}", sx * c, sy * c, 0.075, 0.017, 0.016, S, axis="Z", verts=10, bevel=0.004, tags=tags)
+        c = (s / 2 - 0.052)
+        B.cyl(f"bolt{k}", sx * c, sy * c, 0.078, 0.021, 0.018, S, axis="Z", verts=10, bevel=0.005, tags=tags)
     # 2 entalhes na moldura (cantos sem parafuso): linha de painel curta
     if fp is not None:
         B.cut(fp, [B.rbox(f"nick{k}", sx * (s / 2 - 0.05), sy * (s / 2 - 0.05), 0.010, 0.06, 0.07, 0.5, K,
@@ -112,10 +112,8 @@ def silhouette(kind):
     """Mascaras (corpo, destaque) do tipo, Image 'L' em 96 x 96 x SS (as do Pen)."""
     U, p = _pen()
     if kind == "he":
-        U.shell(p, 48, 10, 86, 30, tip=0.40, sharp=0.9)
-        for y in (54, 64):                                   # 2 frestas de luva + anel do sensor
-            p.gap(30, y, 66, y + 2.6)
-        p.gap(40, 24, 56, 26.2)
+        U.shell(p, 48, 10, 86, 32, tip=0.42, sharp=0.9)
+        p.gap(30, 60, 66, 62.8)                              # fresta da luva
     elif kind == "ap":
         cx = 48
         p.poly([(cx, 6), (cx + 6, 26), (cx + 6, 50), (cx - 6, 50), (cx - 6, 26)])
@@ -266,7 +264,7 @@ def symbol(kind, size):
 def plate(P, layer, px, variant="he", **kw):
     img = _bezel().copy()
     fpx = int(round(FIELD * 64))                              # 32 px de campo
-    sym = symbol(variant, fpx - 4)
+    sym = symbol(variant, fpx - 2)
     o = (PX_PLATE - sym.width) // 2
     img.alpha_composite(sym, (o, o))
     return img

@@ -38,6 +38,7 @@ import sys
 
 if __name__ == "__main__":   # rodado como script: o kit (bs3d, models, render_layered) fica em tools/blender
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    import bpy  # noqa: F401  (o bpy registra o bmesh que o bs3d importa)
 
 import bs3d as B
 import models as Mo
