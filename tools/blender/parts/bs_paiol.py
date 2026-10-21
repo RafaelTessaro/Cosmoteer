@@ -58,6 +58,12 @@ AMBER_DIGIT = (255, 170, 40)          # palette.boiuna_amber.led (o ambar dos LE
 UNLIT_SEG = (34, 38, 45)              # celula do medidor apagada (vidro escuro)
 UNLIT_DIGIT = (38, 34, 29)            # segmento de digito apagado, bem fraco (o "8888" fantasma nao poluir a 1x)
 FREE_PAD = {"1x1": 0.17, "2x2": 0.30, "3x3": 0.42}   # raio da plataforma de teletransporte no corredor
+# FX da Fita (bs_fita_fx, roof_doodads) no paiol: Location PADRAO = o painel pintado LIVRE (coordenadas da peca, +y para
+# baixo) e Size em quadros. 1x1: centro da placa (o unico lugar fora do medidor); 2x2: a faixa livre entre o encaixe da
+# placa (borda de baixo 1,005) e a janela dos digitos (borda de cima 1,305); 3x3: o painel livre embaixo da grelha, entre
+# a janela dos digitos e o medidor. No centro da peca o FX passava por cima do encaixe e da grelha (2x2/3x3).
+FITA_FX = {"1x1": {"location": [0.32, 0.5], "size": 0.8}, "2x2": {"location": [0.54, 1.16], "size": 0.7},
+           "3x3": {"location": [2.03, 2.36], "size": 0.8}}
 RACK = {"1x1": 0.19, "2x2": 0.25, "3x3": 0.30}       # profundidade das estantes do perimetro
 
 
@@ -68,6 +74,10 @@ FOLDER_NOTES = [
     "parts.<n>.ids.<familia> (rafaeltessaro.bs_paiol_<familia>_<n>). Para o WP10 (check_art3d) e o bsgen/layered.py.",
     "Spec: art3d_owner_map chama a pasta de 'bs_paiol_comum'; a arte esta em art3d/bs_paiol (art_dir do spec) e "
     "e publicada em parts/bs_paiol_comum/ (regras: '../bs_paiol_comum/<arquivo>').",
+    "PARA O WP05/WP10 (atualizar o spec ao ligar): SPEC_2.0 art_assets.palette.family_chip.projeteis ainda diz violeta "
+    "(150, 105, 255), e palette.rail (violet/glow/chip) tambem. A arte segue a USER_NOTES (Tupa azul): o chip dos "
+    "projeteis e AZUL (64, 128, 255) com pontas LARANJA (255, 140, 40) (meta parts.<n>.family_chip / family_chip_tip "
+    "e helpers.FAMILY_CHIP / FAMILY_CHIP_TIP). Troque o spec, nao a arte.",
 ]
 
 
@@ -117,6 +127,10 @@ def _part(n):
                       "files": plates, "native_px": [48, 48]},
             "gauge_levels": N,
             "family_chip": {f: list(LG.FAMILY_CHIP[f]) for f in FAMS},
+            "family_chip_tip": {f: list(c) for f, c in LG.FAMILY_CHIP_TIP.items()},
+            "fita_fx": {"location": FITA_FX[n]["location"], "size": [FITA_FX[n]["size"]] * 2,
+                        "files": "../bs_fita_fx/cartucho_sai|entra<1..8>.png (roof_doodads), brilho_* (lights_add)",
+                        "default": True},
             "digits": {"rects": dr, "files": [f"digito{i}.png" for i in range(10)], "switch": "paiol_counter",
                        "publish_as": "gui/digitos/digito<i>.png"} if dr else None,
         },
@@ -129,10 +143,11 @@ def _part(n):
             "seletor (MostradorTipo_<k>); projeteis = placa fixa (placa_slug.png).",
             "digitos (opcional, switch paiol_counter): 4 ValueSprites com digito0..9.png (24 x 40) nos rects de "
             "'digits'; os segmentos apagados ja estao pintados na janela do teto.",
-            "FX da Fita (bs_fita_fx cartucho_sai/entra, roof_doodads 1x1 no centro da maquina): no paiol 1x1 o FX "
-            "cruza a placa e o medidor e no 2x2 a placa e os digitos, todos em roof_doodads (ordem indefinida na mesma "
-            "camada). Aceitavel (0,6 s por envio), ou ponha o Location do FX do paiol no centro do quadro livre "
-            "(1x1: [0.32, 0.5] com Size 0.8; 2x2/3x3: o centro da peca ja cai entre placa, digitos e escotilhas).",
+            f"FX da Fita (bs_fita_fx cartucho_sai/entra, roof_doodads; brilho_* em lights_add) no paiol {n}: PADRAO "
+            f"Location {FITA_FX[n]['location']} com Size {FITA_FX[n]['size']} (meta 'fita_fx': o painel pintado livre; "
+            "no centro da peca o FX passava por cima do encaixe da placa e da grelha). No 1x1 nao ha painel livre: o "
+            "FX fica no centro da placa (cruza so a placa, nao o medidor). Tudo em roof_doodads, ordem indefinida na "
+            "mesma camada; 0,6 s por envio.",
             f"gauge rect {L['gauge_rect']} = {L['gauge_rect'][2] * 64:.2f} x {L['gauge_rect'][3] * 64:.2f} px no jogo; "
             "a textura e o arredondamento disso (o jogo reamostra um pouco: os vaos de 1 px podem sair macios).",
         ],

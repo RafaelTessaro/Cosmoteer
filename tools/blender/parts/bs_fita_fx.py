@@ -43,9 +43,9 @@ PART = {
         {"name": "cartucho_entra", "fn": "pil:cassettes_in", "game_layer": "roof_doodads",
          "file": "cartucho_entra{i}.png", "frames": N, "interval": INTERVAL, "islands": True},
         {"name": "brilho_sai", "fn": "pil:glow_out", "game_layer": "lights_add", "file": "brilho_sai{i}.png",
-         "frames": N, "interval": INTERVAL, "blend": "add", "islands": True},
+         "frames": N, "interval": INTERVAL, "blend": "add", "emission_only": True, "islands": True},
         {"name": "brilho_entra", "fn": "pil:glow_in", "game_layer": "lights_add", "file": "brilho_entra{i}.png",
-         "frames": N, "interval": INTERVAL, "blend": "add", "islands": True},
+         "frames": N, "interval": INTERVAL, "blend": "add", "emission_only": True, "islands": True},
     ],
     "notes": [
         "Um conjunto so para todas as maquinas e tipos: Graphics com Location = centro da maquina e Size [1, 1]; "
@@ -61,9 +61,13 @@ PART = {
         "cartucho_* (roof_doodads) aparecem, e e o suficiente (o cassete ja tem o tom ciano do teletransporte). Se "
         "quiser o rastro tambem com o teto ligado, use o MESMO brilho_* num Graphics em roof_lights_fancy (como as "
         "fabricas vanilla, factory_he.rules: luz acima do teto), com o mesmo Location/Size.",
-        "Paiois: o FX no centro da peca cruza a placa e o medidor (1x1) ou a placa e os digitos (2x2), todos em "
-        "roof_doodads (ordem indefinida na mesma camada). Dura 0,6 s; aceitavel, ou ponha o Location do FX do paiol "
-        "1x1 em [0.32, 0.5] (centro da placa) com Size 0.8.",
+        "Paiois: Location/Size PADRAO do FX = o painel pintado livre da tampa (meta do paiol, parts.<n>.fita_fx: 1x1 "
+        "[0.32, 0.5] Size 0.8 = centro da placa, fora do medidor; 2x2 [0.54, 1.16] Size 0.7 = faixa entre o encaixe "
+        "da placa e os digitos; 3x3 [2.03, 2.36] Size 0.8 = painel livre embaixo da grelha). No centro da peca o FX "
+        "passava por cima do encaixe e da grelha.",
+        "brilho_*: emission_only = true no meta (como a luz_grudada da bs_fita): sao luz pura (lights_add), fora da "
+        "conta do emissivo <= 2% das camadas iluminadas. cartucho_*: alfa < 4 zerado (sem ilhas invisiveis de 1 px "
+        "de alfa) e RGB = 0 sob alfa 0.",
     ],
 }
 
@@ -211,12 +215,19 @@ def _frame_glow(k):
     return im.filter(ImageFilter.GaussianBlur(1.2 * HI)).resize((64, 64), Image.LANCZOS)
 
 
+def _clean(img, amin=4):
+    """Alfa < amin -> 0 (as franjas de alfa 1-3 do LANCZOS viravam ilhas invisiveis soltas) e RGB = 0 sob alfa 0."""
+    a = np.asarray(img.convert("RGBA")).copy()
+    a[a[..., 3] < amin] = 0
+    return Image.fromarray(a, "RGBA")
+
+
 def cassettes_out(P, layer, px, frame=1, **kw):
-    return LG.paint_safe(_frame_cassettes(frame))[0]     # o tom ciano sobre as tampas nao vira "verde de pintura"
+    return _clean(LG.paint_safe(_frame_cassettes(frame))[0])   # o tom ciano sobre as tampas nao vira "verde de pintura"
 
 
 def cassettes_in(P, layer, px, frame=1, **kw):
-    return LG.paint_safe(_frame_cassettes(N + 1 - frame))[0]
+    return _clean(LG.paint_safe(_frame_cassettes(N + 1 - frame))[0])
 
 
 def glow_out(P, layer, px, frame=1, **kw):
