@@ -118,8 +118,13 @@ IARA_PLATE = (0.15, 0.155, 0.165)   # placas da Iara (composito medio escuro: co
 ORANGE = (0.95, 0.30, 0.03)         # colar quente do mini-missil (tinta)
 
 # ---- LEDs por tipo (emissao; forca ~1 sai ~ a cor do palette na vista Standard)
-LED = {"he": (1.0, 0.45, 0.05), "cluster": (1.0, 0.74, 0.08), "emp": (0.05, 0.60, 1.0),
+LED = {"he": (1.0, 0.45, 0.05), "cluster": (1.0, 0.85, 0.10), "emp": (0.02, 0.72, 1.0),
        "nuke": (0.15, 1.0, 0.01)}
+# BS_M2_CLUSTER=palette: variante so para a prev/decisao (laranja palette.cluster.band 255,150,40 do spec de arte);
+# o padrao e o AMARELO-limao (o mesmo amarelo dos narizes da Piranha nos casulos e do escapamento da Fase B)
+CLUSTER_PALETTE = os.environ.get("BS_M2_CLUSTER", "") == "palette"
+if CLUSTER_PALETTE:
+    LED["cluster"] = (1.0, 0.305, 0.021)
 
 # faixas pintadas por tipo (o mesmo material dos narizes carregados nos casulos)
 BAND_LOOK = {"he": "he", "cluster": "cluster", "emp": "emp", "nuke": "nuclear"}
@@ -150,6 +155,14 @@ def _mats(M):
 
 
 def _band(look):
+    if look == "cluster" and CLUSTER_PALETTE:
+        m = B.mat_metal("m2_band_cluster_pal", (0.80, 0.244, 0.017), rough=0.65, metal=0.0)
+        b = m.node_tree.nodes["Principled BSDF"]
+        b.inputs["Specular IOR Level"].default_value = 0.0
+        b.inputs["Emission Color"].default_value = (1.0, 0.305, 0.021, 1)
+        b.inputs["Emission Strength"].default_value = 0.12
+        m["bs_glow"] = 0.12
+        return m
     return Mo.band_mat(BAND_LOOK[look])
 
 
@@ -418,7 +431,7 @@ def _he(M, X, T, LT, k, tier):
     Rb, R = 0.106, 0.092
     _nozzle(X, tags, -1.23, 0.070, 0.082, 0.07)
     octo("btail", [(Rb * 0.78, -1.17), (Rb * 0.97, -1.07)], X["graph"], tags)
-    ring("bspine", -1.17, -0.40, Rb * 0.86, X["core"], tags)
+    bspine = ring("bspine", -1.17, -0.40, Rb * 0.86, X["core"], tags)
     xs = [-1.07, -0.82, -0.62]
     ends = [-0.84, -0.64, -0.49]
     for i, (a, b) in enumerate(zip(xs, ends)):
@@ -429,7 +442,7 @@ def _he(M, X, T, LT, k, tier):
     for s in (1, -1):
         B.box(f"bclaw{s}", -0.99, s * Rb * 0.98, 0.30, 0.034, -0.035, 0.038, X["graph"], bevel=0.005, tags=tags)
     sep = ring("sep", -0.485, -0.405, Rb * 1.02, X["graph"], tags)
-    zf = slot([sep], "seps", -0.445, 0.0, 0.050, 0.12, Rb * 1.02 * COS8, 0.026, X, tags)
+    zf = slot([sep, bspine], "seps", -0.445, 0.0, 0.050, 0.12, Rb * 1.02 * COS8, 0.026, X, tags)
     for i in range(3):
         on = 1.2 if i == k else 0.0
         B.box(f"spip{i}", -0.445, (i - 1) * 0.04, 0.036, 0.028, zf + 0.0005, zf + 0.008, _led("he", on), bevel=0.0,
@@ -442,7 +455,7 @@ def _he(M, X, T, LT, k, tier):
         ring(f"seg{i}", a, b, R, X["comp"], tags, ch=0.012)
         top_panel(f"pn{i}", a + 0.03, b - 0.03, R, X["comp"], tags)
         side_panels(f"ps{i}", a + 0.03, b - 0.03, R, X["comp"], tags)
-    fin("strake", [(0.42, R * 0.6), (0.30, 0.14), (-0.22, 0.14), (-0.31, R * 0.6)], -0.01, 0.014, X["comp_d"],
+    fin("strake", [(0.40, R * 0.6), (0.16, 0.118), (-0.22, 0.118), (-0.31, R * 0.6)], -0.01, 0.014, X["comp_d"],
         tags)
     ring("band0", 0.63, 0.665, R * 1.03, band, tags, ch=0.004)
     ring("band1", 0.685, 0.715, R * 1.03, band, tags, ch=0.004)
@@ -461,7 +474,7 @@ def _petal_ring(prof_r, x, a_from, a_to):
     """Pontos (x, y, z) da superficie do octogono (vertices em 22.5 + 45k graus) de raio prof_r entre os angulos
     a_from e a_to (graus), com os vertices do octogono no meio."""
     angs = [a_from]
-    v = 22.5
+    v = 22.5 - 360.0                       # vertices tambem nos angulos negativos (petala centrada em 0 graus)
     while v < a_to - 1e-6:
         if v > a_from + 1e-6:
             angs.append(v)
@@ -522,9 +535,9 @@ def petal_mesh(name, prof, a_c, half, X, tags, thick=0.82):
 CL = {
     # R, bocal, fim da cauda, baias (de, ate), n baias, nariz, envergadura das aletas, minis por janela
     "m": {"R": 0.150, "x0": -0.855, "xt": -0.62, "bays": (-0.595, 0.215), "nb": 3, "xn": 0.855, "span": 0.352,
-          "nmini": 3, "gap": 8.5},
+          "nmini": 3, "gap": 17.0},
     "l": {"R": 0.200, "x0": -1.23, "xt": -0.92, "bays": (-0.895, 0.385), "nb": 4, "xn": 1.23, "span": 0.48,
-          "nmini": 3, "gap": 7.0},
+          "nmini": 3, "gap": 14.0},
 }
 
 
@@ -542,7 +555,7 @@ def cluster_nose_profile(tier):
 def _mini_in_bay(name, x_tip, y, zbed, r, length, X, tags):
     """Mini-missil deitado no fundo da janela, apontando para +X: corpo escuro, faixa amarela, nariz claro."""
     zc = zbed + r * 0.95
-    lc = r * 2.4
+    lc = r * 3.0
     bw = max(0.016, r * 0.55)
     octo(name + "_b", [(r, x_tip - length), (r, x_tip - lc - bw)], X["graph"], tags, zc=zc, y=y)
     octo(name + "_band", [(r * 1.02, x_tip - lc - bw), (r * 1.02, x_tip - lc)], _band("cluster"), tags, zc=zc, y=y)
@@ -558,7 +571,7 @@ def _cluster(M, X, T, LT, k, tier):
     # cauda: bocal, cone de grafite, 2 aletas de lado + dorsal de quina
     _nozzle(X, tags, x0, R * 0.42, R * 0.50, 0.06 * sc)
     octo("tail", [(R * 0.56, x0 + 0.05 * sc), (R * 0.96, xt)], X["graph"], tags)
-    ring("spine", xt - 0.02, b1 + 0.06 * sc, R * 0.86, X["core"], tags)
+    spine = ring("spine", xt - 0.02, b1 + 0.06 * sc, R * 0.86, X["core"], tags)
     fin("fin", [(xt + 0.02, R * 0.7), (xt - 0.08 * sc, c["span"]), (x0 + 0.06 * sc, c["span"]),
                 (x0 + 0.055 * sc, R * 0.7)], 0.0, 0.026 * sc, X["comp"], tags)
     dorsal("dors", x0 + 0.08 * sc, xt - 0.01, R * 0.80 * COS8, 0.05 * sc, X["comp"], tags, w=0.024 * sc)
@@ -573,7 +586,7 @@ def _cluster(M, X, T, LT, k, tier):
         bay = ring(f"bay{i}", a, b, R, X["comp"], tags, ch=0.014 * sc)
         cx = (a + b) / 2
         wl = blen * 0.66
-        zf = slot([bay], f"win{i}", cx, 0.0, wl, ww, zt, 0.045 * sc, X, tags)
+        zf = slot([bay, spine], f"win{i}", cx, 0.0, wl, ww, zt, 0.045 * sc, X, tags)
         n = c["nmini"]
         pitch = ww / n
         rm = pitch * 0.40
@@ -622,14 +635,14 @@ def _mini(M, X, T):
     claro, faixa amarela, nariz escuro; 2 aletas pequenas (>= 2 px)."""
     tags = (T,)
     R = 0.036
-    octo("collar", [(R * 0.80, -0.232), (R * 0.95, -0.214), (R * 0.95, -0.188)], X["orange"], tags)
-    ring("collar_k", -0.236, -0.226, R * 0.62, X["black"], tags)
+    octo("collar", [(R * 0.80, -0.226), (R * 0.95, -0.210), (R * 0.95, -0.188)], X["orange"], tags)
+    ring("collar_k", -0.229, -0.221, R * 0.62, X["black"], tags)
     ring("body", -0.19, 0.105, R, X["comp"], tags, ch=0.006)
     ring("band", 0.100, 0.132, R * 1.04, _band("cluster"), tags)
     og = _ogive_to(R, 0.20 - 0.130, R * 0.50, 0.130, n=8)
     octo("og", og, X["graph"], tags)
-    lens_tip("eye", 0.198, 0.232, R * 0.50, X, tags)
-    fin("fin", [(-0.10, R * 0.55), (-0.165, 0.086), (-0.215, 0.086), (-0.215, R * 0.55)], 0.0, 0.014, X["comp"],
+    lens_tip("eye", 0.198, 0.228, R * 0.50, X, tags)
+    fin("fin", [(-0.10, R * 0.55), (-0.160, 0.072), (-0.205, 0.072), (-0.205, R * 0.55)], 0.0, 0.014, X["comp"],
         tags, slope=0.004, groove=0.003, ph=0.003)
 
 
@@ -664,9 +677,8 @@ def _eel_fins(name, x0, x1, r0, h0, h1, n, X, tags, th=0.016):
         t = (k + 0.5) / n
         h = h0 + (h1 - h0) * t
         xa = x1 - k * L
-        xb = xa - L - 0.01
-        poly = [(xa + 0.01, r0 * 0.6), (xa - L * 0.25, r0 + h), (xa - L * 0.45, r0 + h * 0.97), (xb, r0 + h * 0.45),
-                (xb, r0 * 0.6)]
+        # lamina varrida para tras: bordo de ataque longo, ponta curta, bordo de fuga varrido (dente de serra)
+        poly = [(xa, r0 * 0.6), (xa - L * 0.78, r0 + h), (xa - L * 1.08, r0 + h), (xa - L * 0.88, r0 * 0.6)]
         fin(f"{name}{k}", poly, 0.004 * (n - k), th, X["comp"], tags)
 
 
@@ -677,25 +689,25 @@ def _emp(M, X, T, LT, k, tier):
         R, x0, xn = 0.088, -0.855, 0.855
         x_sl0, x_sl1 = -0.70, -0.08
         coils = [0.03, 0.205, 0.38]
-        cw, turns = 0.13, 3
+        cw, turns = 0.12, 3
         x_nose0 = 0.48
     else:
         R, x0, xn = 0.104, -1.23, 1.105
         x_sl0, x_sl1 = -1.03, -0.30
         coils = [-0.20, -0.01, 0.18, 0.37, 0.56]
-        cw, turns = 0.14, 3
+        cw, turns = 0.13, 3
         x_nose0 = 0.665
     sc = R / 0.088
     _nozzle(X, tags, x0, R * 0.52, R * 0.62, 0.055 * sc)
     octo("tail", [(R * 0.66, x0 + 0.045 * sc), (R * 0.97, x_sl0)], X["graph"], tags)
-    ring("spine", x_sl0 - 0.02, x_nose0 + 0.02, R * 0.86, X["core"], tags)
+    spine = ring("spine", x_sl0 - 0.02, x_nose0 + 0.02, R * 0.86, X["core"], tags)
     # cauda: blindagem de composito (m: luva em divisa com 2 LEDs ciano; l: 3 segmentos com paineis e o anel
     # ciano da base) e as barbatanas-fita da enguia
     lit = []          # (nome, funcao que desenha com a forca s): a carga corre na ordem da lista
     if not late:
         sl = Mo.chevron_sleeve("sl", x_sl0, x_sl1 - 0.05 * sc, R, X["comp"], tags, dv=0.05 * sc, rear=False)
         cxs = (x_sl0 + x_sl1) / 2 - 0.04
-        zf = slot([sl], "sled", cxs, 0.0, 0.11, 0.032, R * COS8, 0.03, X, tags)
+        zf = slot([sl, spine], "sled", cxs, 0.0, 0.11, 0.032, R * COS8, 0.042, X, tags)
 
         def rear(s, zf=zf, cxs=cxs):
             for i in range(2):
@@ -723,7 +735,7 @@ def _emp(M, X, T, LT, k, tier):
         gw = coils[i + 1] - coils[i] - cw
 
         def gap(s, i=i, xg=xg, gw=gw):
-            _lit_band(X, f"gap{i}", xg, gw * 0.40, R, "emp", s, tags, LT, lip=gw * 0.25)
+            _lit_band(X, f"gap{i}", xg, gw * 0.56, R, "emp", s, tags, LT, lip=gw * 0.20)
         lit.append(gap)
     # emissor do nariz: colar de aco, cone escuro com 2 aneis de aco, olho ciano na lente da ponta
     xc1 = coils[-1] + cw / 2 + 0.01
@@ -804,24 +816,27 @@ def _iara(M, X, T, LT, k, xt, xn, boosters):
                      disc_r=0.120, hub_mat=BLK, a0=0.0, depth=0.03)
     B.bolts("tbolt", [(px0 + 0.02, 0.10), (px0 + 0.02, -0.10), (px1 - 0.03, 0.07), (px1 - 0.03, -0.07)],
             ztp + 0.002, 0.012, S, tags=tags)
-    # placas dos ombros com as JANELAS DE CONTENCAO (3 por lado, verdes acesas com 1 barra de aco)
-    for s in (1, -1):
-        sh = top_panel(f"sh{s}", px0 - 0.01, px1 + 0.01, RW, P, tags, th=0.018, inset=0.012)
-        sh.rotation_euler = (math.radians(45 * s), 0.0, 0.0)
+    # placas dos ombros com as JANELAS DE CONTENCAO (3 por lado): recesso cortado na placa ainda deitada em cima,
+    # leito preto, tira verde acesa e 1 barra de aco; depois a placa e tudo dela giram 45 graus para o ombro
     nwin = 3
     wl = (px1 - px0 - 0.06) / nwin - 0.03
-    for j in range(nwin):
-        wx = px0 + 0.045 + wl / 2 + j * (wl + 0.03)
-        for s in (1, -1):
-            # janela no plano do ombro (girada 45 graus): leito preto + tira acesa + barra de aco
-            zf = apw + 0.018 - 0.016
-            for nm, sy, z0, z1, mat, tg in (("k", 0.050, zf - 0.006, zf + 0.002, BLK, tags),
-                                            ("l", 0.030, zf + 0.001, zf + 0.008, _led("nuke", 0.85 * br + 0.15),
-                                             LT)):
-                ob = B.box(f"win{j}{s}{nm}", wx, 0.0, wl, sy, z0 + 0.012, z1 + 0.012, mat, bevel=0.0, tags=tg)
-                ob.rotation_euler = (math.radians(45 * s), 0.0, 0.0)
-            bar = B.box(f"winb{j}{s}", wx, 0.0, 0.012, 0.056, zf + 0.012, zf + 0.026, S, bevel=0.002, tags=tags)
-            bar.rotation_euler = (math.radians(45 * s), 0.0, 0.0)
+    wglow = _led("nuke", 0.80 * br + 0.12)
+    for s in (1, -1):
+        sh = top_panel(f"sh{s}", px0 - 0.01, px1 + 0.01, RW, P, tags, th=0.022, inset=0.012)
+        zt = apw + 0.022
+        made = [sh]
+        for j in range(nwin):
+            wx = px0 + 0.045 + wl / 2 + j * (wl + 0.03)
+            nm = f"win{j}{s}"
+            zf = slot([sh], nm, wx, 0.0, wl, 0.048, zt, 0.030, X, tags)
+            made.append(B.box(nm + "_l", wx, 0.0, wl - 0.016, 0.026, zf + 0.0005, zf + 0.008, wglow, bevel=0.0,
+                              tags=LT))
+            made.append(B.box(nm + "_bar", wx, 0.0, 0.014, 0.052, zt - 0.012, zt + 0.002, S, bevel=0.002,
+                              tags=tags))
+            import bpy
+            made.append(bpy.data.objects[nm + "_bed"])
+        for ob in made:
+            ob.rotation_euler = (math.radians(45 * s), 0.0, 0.0)
     # ---- nariz blindado: colar de grafite + domo de LENTE com o anel verde do sensor
     xc0 = xw1 + 0.008
     octo("cap", [(RW * 0.985, xc0), (RW * 0.95, xc0 + 0.08), (RW * 0.80, xc0 + 0.17), (RW * 0.60, xn - 0.10)],
