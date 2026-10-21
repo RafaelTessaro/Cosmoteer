@@ -173,7 +173,10 @@ _NOTE_TRANCO = ("TRANCO (pedido do usuario: 'efeito de tranco quando ela dispara
                 "[0,6,13,13,9,5,2,0] (1 quadro depois da boca: o tranco corre da boca para a culatra; as molas "
                 "comprimem o mesmo curso). Os desenhos que andam SAIRAM dos tetos/weapon fixos: sem a Graphics do "
                 "tranco a peca fica sem eles. Nunca reacender plano de carga no tranco (a luz do tiro e o clarao e o "
-                "anel de choque).")
+                "anel de choque). Refino r2: nas camadas que andam inteiras (weapon_tranco, tambores_tranco, "
+                "tambor_tranco) X2..X8 SAO o X1 deslocado (cor e normais, bit a bit: sem ruido de render entre os "
+                "quadros); na culatra (as molas mudam de forma) cada quadro e um render. Os tetos do cano e da ponta "
+                "levam a sombra de contato FRACA (50%) das pecas que andam, na posicao de repouso.")
 _NOTE_PALETTE = ("Paleta nova (referencia do usuario, substitui palette.rail violeta/ouro): azul [45,115,255], azul "
                  "claro [100,175,255], nucleo branco-azulado [205,228,255], laranja-OURO [215,145,40] (matiz ~36 "
                  "graus; r2: o laranja [230,135,40] da 1a versao azul caia no cobre da PEM) so em detalhes pintados, "
@@ -205,22 +208,24 @@ PARTS = {
         "layers": [
             {"name": "floor", "fn": "loader_floor", "game_layer": "floors", "opaque": True},
             {"name": "projeteis", "fn": "loader_magazine", "game_layer": "doodads_low",
-             "rect": [1.75, 2.625, 1.5, 2.25], "file": "projeteis{i}.png", "levels": 6, "islands": True},
+             "rect": [1.75, 2.625, 1.5, 2.25], "file": "projeteis{i}.png", "levels": 6, "islands": True,
+             "post": "clean_post"},
             {"name": "culatra_projetil", "fn": "loader_chambered", "game_layer": "doodads_low",
              "rect": [2.0, 0.0, 1.0, 2.0], "file": "culatra_projetil.png", "islands": True,
-             "fade": {"bottom": 0.12}, "same_as": {"layer": "culatra_carrega", "index": 6}},
+             "fade": {"bottom": 0.12}, "same_as": {"layer": "culatra_carrega", "index": 6}, "post": "clean_post"},
             # o mesmo console nos 2 postos (simetrico): rects no meta.json
             {"name": "consola", "fn": "loader_console", "game_layer": "walls", "rect": [1.0, 1.5, 1.0, 1.0],
-             "at": [[1.0, 1.5], [3.0, 1.5]], "file": "consola{i}.png", "frames": 4, "interval": 0.1, "islands": True},
+             "at": [[1.0, 1.5], [3.0, 1.5]], "file": "consola{i}.png", "frames": 4, "interval": 0.1, "islands": True,
+             "post": "clean_post"},
             {"name": "culatra_abre", "fn": "loader_jaws", "game_layer": "walls", "rect": [2.0, 0.0, 1.0, 1.0],
-             "file": "culatra_abre{i}.png", "frames": 3, "interval": 0.0666, "islands": True},
+             "file": "culatra_abre{i}.png", "frames": 3, "interval": 0.0666, "islands": True, "post": "clean_post"},
             {"name": "culatra_carrega", "fn": "loader_load", "game_layer": "walls", "rect": [2.0, 0.0, 1.0, 2.0],
              "file": "culatra_carrega{i}.png", "frames": 6, "interval": 0.2, "islands": True,
-             "fade": {"bottom": 0.12}},
+             "fade": {"bottom": 0.12}, "post": "clean_post"},
             {"name": "weapon", "fn": "loader_breech", "game_layer": "weapons", "rect": [1.0, 0.0, 3.0, 1.0],
-             "normals": True, "islands": True},
+             "normals": True, "islands": True, "post": "clean_post"},
             {"name": "capacitores", "fn": "loader_caps", "game_layer": "doodads_high", "rect": [0.0, 2.625, 5.0, 2.0],
-             "file": "capacitores{i}.png", "levels": 3, "islands": True},
+             "file": "capacitores{i}.png", "levels": 3, "islands": True, "post": "clean_post"},
             {"name": "luz_culatra", "fn": "pil:glow_loader", "game_layer": "lights_add", "rect": [1.0, 0.0, 3.0, 1.0],
              "file": "luz_culatra{i}.png", "levels": 2, "blend": "add"},
             {"name": "roof", "fn": "loader_roof", "game_layer": "roofs", "normals": True, "islands": True,
@@ -268,7 +273,7 @@ PARTS = {
         "layers": [
             {"name": "floor", "fn": "cano_floor", "game_layer": "floors", "opaque": True},
             {"name": "trilhos", "fn": "cano_rails", "game_layer": "doodads_low", "file": "trilhos{i}.png",
-             "levels": 9, "islands": True},
+             "levels": 9, "islands": True, "post": "clean_post"},
             {"name": "carga", "fn": "pil:glow_cano", "game_layer": "lights_add", "file": "carga{i}.png", "levels": 8,
              "blend": "add"},
             {"name": "roof", "fn": "cano_roof", "game_layer": "roofs", "normals": True, "islands": True,
@@ -276,7 +281,7 @@ PARTS = {
             # TRANCO: os 3 tambores EM + a garra do meio (por cima do teto)
             {"name": "tambores_tranco", "fn": "cano_drums", "game_layer": "roof_turrets", "rect": [0.0, 0.0, 3.0, 3.0],
              "file": "tambores_tranco{i}.png", "frames": 8, "interval": 0.05, "normals": True, "islands": True,
-             "post": "kick_post"},
+             "post": "kick_shift_post"},
         ],
         "icon": {"size": [69, 69], "layers": ["floor", "trilhos", "roof", "tambores_tranco"], "pick": {"trilhos": 6},
                  "lights": {"carga": [5, 0.8]}},
@@ -302,7 +307,8 @@ PARTS = {
         "walls": {"open": [["bottom", 1.0, 2.0], ["top", 0.92, 2.08]]},
         "layers": [
             {"name": "floor", "fn": "ponta_floor", "game_layer": "floors", "opaque": True},
-            {"name": "trilhos", "fn": "ponta_rails", "game_layer": "doodads_low", "islands": True},
+            {"name": "trilhos", "fn": "ponta_rails", "game_layer": "doodads_low", "islands": True,
+             "post": "clean_post"},
             {"name": "weapon", "fn": "ponta_crown", "game_layer": "weapons", "rect": [0.0, 0.0, 3.0, 1.5],
              "normals": True, "islands": True},
             # TRANCO: a frente em escudo + as bochechas brancas recuam 13 px (rect ate o fim das bochechas + o curso);
@@ -322,7 +328,7 @@ PARTS = {
             # TRANCO: o tambor EM da emenda (por cima do teto)
             {"name": "tambor_tranco", "fn": "ponta_drum_kick", "game_layer": "roof_turrets",
              "rect": [0.875, 3.0, 1.25, 1.0], "file": "tambor_tranco{i}.png", "frames": 8, "interval": 0.05,
-             "normals": True, "islands": True, "post": "kick_post"},
+             "normals": True, "islands": True, "post": "kick_shift_post"},
         ],
         "icon": {"size": [69, 92], "layers": ["floor", "trilhos", "weapon_tranco", "roof", "tambor_tranco"],
                  "lights": {"carga": [4, 0.8]}},
@@ -353,7 +359,9 @@ PARTS = {
                   "estao no piso/trilhos); paredes de grafite, tiras brancas, bochechas e ombros brancos.",
                   "roof.png: canal largo so na emenda (x 1.1-1.9), a cinta EM em y 3.5 da peca e depois a FENDA "
                   "estreita do nucleo (x 1.34-1.66) ate a boca, entre os segmentos de grafite; 2 BURACOS (x "
-                  "0.235-1.055 e 1.945-2.765, y 1.5-3.3 da peca) onde ficam as bochechas brancas de weapon_tranco.",
+                  "0.235-1.055 e 1.945-2.765, y 1.5-3.3 da peca; um calco escuro de 2 px no topo da borda de fora: no "
+                  "tranco o piso nao aparece na quina da coroa) onde ficam as bochechas brancas de weapon_tranco; o "
+                  "teto leva a sombra de contato FRACA delas e do tambor em repouso (fixa).",
                   "walls.png da ponta: aberta embaixo (emenda com o cano) e em cima na boca (x 0.92-2.08), por onde o "
                   "projetil sai; a moldura nao atravessa a boca.",
                   "carga1..6: a onda sobe da emenda ate a boca; na boca o plano fica DENTRO da abertura; 5 e 6 enchem "
@@ -904,7 +912,9 @@ def cano_roof(M, T="roof"):
         wa, wp = wplate(f"wr{sx}", poly, 0.0, 0.20, X, tags, slope=0.04, panel_h=0.03)
         panel_lines(wp, f"wrl{sx}", [(sx * 1.0125, yy, 0.12, 0) for yy in (-0.5, 0.5)], 0.17, X)
         bolts(f"wr_bo{sx}", [(sx * 1.0125, yy) for yy in (-0.75, 0.75)], 0.235, X, tags, r=0.016)
-    # os 3 TAMBORES e a garra do meio NAO estao aqui: andam no tranco (camada tambores_tranco, cano_drums)
+    # os 3 TAMBORES e a garra do meio NAO estao aqui: andam no tranco (camada tambores_tranco, cano_drums); so a
+    # sombra de contato fraca deles em repouso fica assada no teto (critica tranco-r2)
+    _shadow_casters(lambda: cano_drums(M, T, frame=1))
     seam_clip("sct", 1, X, tags)
     seam_clip("scb", -1, X, tags)
     coaming("coam", -1.5 - EXT, 1.5 + EXT, X, tags)
@@ -1044,6 +1054,11 @@ WD_T = [(0.48, CROWN_Y0 - 0.03), (0.90, CROWN_Y0 - 0.03), (0.93, CROWN_Y0 - 0.06
         (0.48, -1.10)]
 # buraco do teto no lugar da bochecha (aberto ate a borda da frente do teto, y = CROWN_Y0)
 WD_HOLE = [(0.46, CROWN_Y0 + 0.05), (1.25, CROWN_Y0 + 0.05), (1.25, -0.50), (0.70, -1.28), (0.46, -1.28)]
+# critica tranco-r2: no tranco a quina chanfrada da coroa (borda de fora em 1.24) desce 13 px para dentro do topo do
+# buraco (borda de fora 1.265) e 1-2 px do piso apareciam ali (x 15-16 e 175 px, y 96-109). Um calco escuro do teto
+# (x 1.23-1.27) cobre so essa faixa de cima (y 0.26 ate a borda do teto): em repouso cai sobre a quina de fora da
+# bochecha (~1 px em 15 px), o resto da borda da bochecha fica como no desenho aprovado
+WD_FILL = (1.23, 1.27, CROWN_Y0 - STROKE - 0.04, CROWN_Y0)
 
 
 def inflate(poly, d):
@@ -1609,9 +1624,12 @@ def _recoil_spring(X, tags, sx, dy):
 # Critica tranco-r1 (o usuario: "e que pra mim esta parado"): os cursos foram para o TOPO da faixa pedida (0,2 quadro =
 # 13 px a 64 px/quadro em TODAS as pecas que andam; eram 0,12-0,18), o curso inteiro SEGURA 2 quadros (0,1 s: le na
 # escala do jogo), o bloco da culatra bate 1 quadro DEPOIS da boca (o tranco corre da boca para a culatra) e os
-# deslocamentos sao px INTEIROS (cada quadro e o mesmo render deslocado, sem o meio pixel borrado).
-def _snap_alpha(path, lo=4, hi=247):
-    """Alfa quase cheio vira cheio e quase zero vira zero (sem o veu de alfa 252 nos corpos dos tambores e do bloco)."""
+# deslocamentos sao px INTEIROS (sem o meio pixel borrado). Refino tranco-r2: nas camadas que andam inteiras os quadros
+# 2..8 sao o quadro 1 deslocado de verdade (kick_shift_post), bit a bit.
+def _snap_alpha(path, lo=5, hi=240):
+    """Alfa quase cheio vira cheio e quase zero vira zero (sem o veu de alfa 241-254 nos corpos dos tambores, da coroa
+    e do bloco da culatra; critica tranco-r2: o limite era 247 e sobravam 140-175 px de 241-247 por quadro na
+    culatra)."""
     import numpy as np
     from PIL import Image
     a = np.asarray(Image.open(path).convert("RGBA")).copy()
@@ -1622,9 +1640,102 @@ def _snap_alpha(path, lo=4, hi=247):
     Image.fromarray(a, "RGBA").save(path)
 
 
+SHADOW_K = 0.50                    # forca da sombra de contato assada no teto (0 = nenhuma, 1 = a sombra cheia)
+
+
+def _shadow_mat(k):
+    """Material so de SOMBRA parcial (Cycles): mistura transparente/difuso; o raio de sombra passa (1 - k)."""
+    import bpy
+    name = f"rl_shadow_{int(round(k * 100))}"
+    if name in bpy.data.materials:
+        return bpy.data.materials[name]
+    m = bpy.data.materials.new(name)
+    m.use_nodes = True
+    nt = m.node_tree
+    for n in list(nt.nodes):
+        nt.nodes.remove(n)
+    out = nt.nodes.new("ShaderNodeOutputMaterial")
+    mix = nt.nodes.new("ShaderNodeMixShader")
+    tr = nt.nodes.new("ShaderNodeBsdfTransparent")
+    df = nt.nodes.new("ShaderNodeBsdfDiffuse")
+    df.inputs["Color"].default_value = (0.02, 0.02, 0.025, 1.0)
+    mix.inputs[0].default_value = k
+    nt.links.new(tr.outputs[0], mix.inputs[1])
+    nt.links.new(df.outputs[0], mix.inputs[2])
+    nt.links.new(mix.outputs[0], out.inputs["Surface"])
+    return m
+
+
+def _shadow_casters(build, k=SHADOW_K, drop=()):
+    """Constroi com build() as pecas que andam NA POSICAO DE REPOUSO como so-sombra (invisiveis para a camera, sem
+    reflexo; material _shadow_mat(k)). Critica tranco-r2: os tambores e as bochechas sairam do teto e o teto ficou
+    sem a sombra deles (130-260 px de 1 px de borda diferentes do desenho aprovado em repouso): agora o teto leva uma
+    sombra de contato FRACA e fixa sob/ao lado deles (no tranco a peca anda e a sombra fica: por isso fraca).
+    drop = prefixos de nome que nao fazem sombra (ex.: o fundo escuro das bochechas, abaixo do teto)."""
+    import bpy
+    sc = bpy.context.scene
+    before = {o.name for o in sc.objects}
+    build()
+    mat = _shadow_mat(k)
+    for o in list(sc.objects):
+        if o.name in before:
+            continue
+        if any(o.name.startswith(d) for d in drop):
+            bpy.data.objects.remove(o, do_unlink=True)
+            continue
+        o.visible_camera = False
+        o.visible_glossy = False
+        o.visible_transmission = False
+        o.visible_volume_scatter = False
+        o.visible_shadow = True                     # (visible_diffuse fica: a luz ambiente tambem escurece um pouco)
+        if o.type == "MESH":
+            o.data.materials.clear()
+            o.data.materials.append(mat)
+            for poly in o.data.polygons:
+                poly.material_index = 0
+
+
 def kick_post(P, layer, path, **kw):
     """post das camadas do tranco: limpa o alfa (as normais recebem o alfa de novo depois)."""
     _snap_alpha(path)
+
+
+def _shift_rows(img, dy, fill):
+    """Desloca a imagem dy px para baixo (dy < 0: para cima); as linhas que entram recebem fill."""
+    from PIL import Image
+    out = Image.new(img.mode, img.size, fill)
+    out.paste(img, (0, int(dy)))
+    return out
+
+
+def kick_shift_post(P, layer, path, frame=1, **kw):
+    """post das camadas que andam INTEIRAS (tambores_tranco, tambor_tranco, weapon_tranco): limpa o alfa e, nos
+    quadros 2..8, troca o render pelo quadro 1 (repouso) deslocado KICK_PX px, cor E normais. Critica tranco-r2: cada
+    quadro re-renderizado diferia do X1 deslocado em ~2k px (ruido do render, |d| medio ~5: um brilho que tremia);
+    agora X2..X8 sao o X1 deslocado bit a bit. O render de cada quadro continua (as normais e o alfa saem iguais),
+    so o resultado e trocado. A culatra NAO usa isto: la as molas comprimem (a forma muda)."""
+    import os
+    from PIL import Image
+    _snap_alpha(path)
+    if frame == 1:
+        return
+    d = os.path.dirname(path)
+    src = os.path.join(d, layer["file"].format(i=1))
+    dy = KICK_PX[KICK_LAYER[layer["name"]]][frame - 1]
+    col = Image.open(src).convert("RGBA")
+    _shift_rows(col, dy, (0, 0, 0, 0)).save(path)
+    nsrc, npath = src[:-4] + "_normals.png", path[:-4] + "_normals.png"
+    if os.path.exists(nsrc):
+        nm = Image.open(nsrc).convert("RGBA")
+        # o que entra pela borda e transparente (o renderer copia o alfa da cor para as normais depois)
+        _shift_rows(nm, dy, (128, 128, 255, 0)).save(npath)
+
+
+def clean_post(P, layer, path, **kw):
+    """post das camadas fixas fora do teto: zera os pixels de alfa <= 4 (critica tranco-r2: 2 px verde-puro de alfa 1
+    em capacitores3.png; o mesmo ruido de borda, invisivel mas 'cor de pintura' fora do teto, aparecia em 1-3 px de
+    projeteis/consola/culatra_*/weapon/trilhos). O resto do sprite fica igual."""
+    _snap_alpha(path, lo=5, hi=255)
 
 
 def _kick_camera(dy):
@@ -1909,6 +2020,9 @@ def ponta_roof(M, T="roof"):
     for sx in (-1, 1):
         hole = inflate(WD_HOLE if sx > 0 else mirror_x(WD_HOLE), 0.015)
         B.cut(ucore[sx], [B.loft(f"u_wdh{sx}", hole, hole, -0.5, 1.5, X["black"], bevel=0.0)])
+        fx0, fx1, fy0, fy1 = WD_FILL
+        B.box(f"u_wdf{sx}", sx * (fx0 + fx1) / 2, (fy0 + fy1) / 2, fx1 - fx0, fy1 - fy0, -0.06, 0.0, X["gap"],
+              bevel=0.0, tags=tags)
     # blocos de grafite de tras (abaixo da diagonal das cunhas) + o pescoco que encosta no cano
     for sx, poly in sides([(0.70, -1.74), (1.10, -1.74), (1.25, -1.58), (1.25, -0.585), (0.70, -1.32)]):
         a, p = gplate(f"bb{sx}", poly, 0.0, 0.20, X, tags, slope=0.045, groove=0.014, panel_h=0.028)
@@ -1920,7 +2034,10 @@ def ponta_roof(M, T="roof"):
         B.box(f"nkoi{sx}", sx * 0.90, -1.88, 0.10, 0.03, zb, zb + 0.045, X["orange"], bevel=0.004, tags=tags)
     for sx, poly in sides([(CH + 0.04, -1.985), (0.66, -1.985), (0.66, -1.70), (CH + 0.04, -1.70)]):
         gplate(f"nki{sx}", poly, 0.0, 0.15, X, tags, slope=0.03, groove=0.012, panel_h=0.02)
-    # o tambor EM da emenda NAO esta aqui: anda no tranco (camada tambor_tranco, ponta_drum_kick)
+    # o tambor EM da emenda NAO esta aqui: anda no tranco (camada tambor_tranco, ponta_drum_kick); as bochechas e o
+    # tambor deixam no teto so a sombra de contato FRACA da posicao de repouso (critica tranco-r2)
+    _shadow_casters(lambda: (ponta_cheeks(X, tags), clamp("cl", PONTA_CLAMP, X, tags, card_hw=CHEEK_IN)),
+                    drop=("wd_under",))
 
 
 def ponta_cheeks(X, tags):
@@ -1953,11 +2070,12 @@ def ponta_crown_kick(M, T="weapon_tranco", phase=0.0, frame=1):
 
 
 def crown_rest_copy(P, layer, path, frame=1, **kw):
-    """post de weapon_tranco: limpa o alfa e, no quadro 1 (repouso), weapon.png / weapon_normals.png [0,0,3,1.5]
-    viram o recorte exato dele (as duas imagens do repouso sao a mesma, sem o ruido de 2 renders)."""
+    """post de weapon_tranco: limpa o alfa; nos quadros 2..8 o X1 deslocado (kick_shift_post); no quadro 1 (repouso),
+    weapon.png / weapon_normals.png [0,0,3,1.5] viram o recorte exato dele (as duas imagens do repouso sao a mesma,
+    sem o ruido de 2 renders)."""
     import os
     from PIL import Image
-    _snap_alpha(path)
+    kick_shift_post(P, layer, path, frame=frame, **kw)
     if frame != 1:
         return
     d = os.path.dirname(path)
