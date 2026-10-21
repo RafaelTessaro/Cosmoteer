@@ -330,7 +330,8 @@ PARTS = {
         "meta_extra": {
             "layer_flags": {
                 "weapon": {"rest_only": True, "exclusive_with": "weapon_tranco",
-                           "use": "so NonOperationalDoodad / Graphics antiga; NUNCA junto com weapon_tranco"},
+                           "use": ("so a coroa em repouso (icone / contrato antigo); com o roof.png novo o "
+                                   "NonOperationalDoodad e weapon_tranco1; NUNCA junto com weapon_tranco")},
                 "weapon_tranco": {"exclusive_with": "weapon", "required_with": "roof",
                                   "use": "Graphics animada da frente + bochechas (o roof.png novo tem o buraco delas)"},
                 "tambor_tranco": {"required_with": "roof"}},

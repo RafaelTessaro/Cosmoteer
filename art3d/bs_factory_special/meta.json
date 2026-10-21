@@ -154,5 +154,5 @@
   "LIGACAO: a pasta antiga art3d/bs_factory_mag_ap (3x3, 1.x) tem o mesmo id; o bsgen deve ler esta pasta (meta.art3d_dir) e o art3d_owner_map do spec deve trocar F2 'bs_factory_mag_ap' por 'bs_factory_special' (ou aposentar a pasta antiga), senao duas pastas reivindicam o mesmo id"
  ],
  "lights_gain": 1.185,
- "roof_led_safe_px": 60
+ "roof_led_safe_px": 46
 }
