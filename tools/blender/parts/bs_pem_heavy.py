@@ -4,14 +4,17 @@ assinatura PEM. So o ID entra nos nomes de arquivo (o codinome "Mae-do-Ouro" e p
 Cabeca 4x4 larga e baixa: duas ombreiras claras de bisel duplo em cunha que avancam como garras ao lado dos canos
 (com fendas de pips azuis), cada uma com uma BOBINA DE CAMPO deitada num rebaixo (espiras de cobre sobre um nucleo
 azul fraco); bercos escuros dos canos; proa central em ponta de flecha entre os canos com a fileira de ELETRODOS de
-cobre (de onde saltam os arcos antes do tiro); bancos de CAPACITORES em pe atras dos bercos (tampas de cobre com
-anel azul); espinha de dois niveis com janela do sensor e o pulso PEM gravado; baia de exaustao traseira com 6 pips
+cobre (de onde saltam os arcos antes do tiro); bancos de CAPACITORES em pe atras dos bercos (aro de cobre
+escuro, anel azul fino, tampa escura em degrau e botao de aco); vao de recuo dos bercos com trilhos-guia e ripas;
+espinha de dois niveis com janela do sensor e o pulso PEM gravado; baia de exaustao traseira com 6 pips
 azuis; placas traseiras em degrau.
 Canos longos de 155 mm em PILHAS DE BOBINAS que brilham (espiras de cobre com frestas azuis acesas), luvas claras com
 canal e o ANEL PARA-RAIOS na boca (aro claro largo com duas hastes de para-raios de ponta de cobre). Depois do tiro as
 bobinas da frente e a boca brilham em azul (heat_color azul).
-Brilho de carga (charge_glow1..4, opcao do render_part "charge_glow"): 0,5 s antes de cada tiro as bobinas de campo,
-os capacitores e os eletrodos da proa acendem em rampa e arcos azuis saltam entre os canos (quadros 3 e 4).
+Brilho de carga (charge_glow1..4, opcao do render_part "charge_glow"): 0,5 s antes de cada tiro linhas azuis acendem
+nas frestas das bobinas de campo e das bobinas da raiz dos canos (enchendo da raiz para a frente), mais os aneis dos
+capacitores e os eletrodos da proa, em rampa de azul PEM para azul-branco; arcos azuis saltam entre os canos (quadros
+3 e 4). Os quadros sao desenhados por cima da torre E dos canos (meta: blend "alpha", layer "above_barrels").
 Kit da familia PEM: parts/bs_pem_light.py (pem, coil, rslot, stroke).
 """
 
@@ -45,7 +48,10 @@ PART = {
         "interval": 0.08,
     },
     # brilho de carga antes do tiro (spec de arte render_kinds.gun.new_option.charge_glow): 4 quadros de 0,125 s
-    "charge_glow": {"frames": 4, "interval": 0.125, "color": "pem"},
+    # color = luz dinamica/tinta do brilho (RGB); blend = como o gerador desenha os quadros (alpha: sprite normal
+    # por cima dos CANOS e da torre, como o turret_oc dos lancadores); layer = acima dos canos
+    "charge_glow": {"frames": 4, "interval": 0.125, "color": [90, 150, 255], "blend": "alpha",
+                    "layer": "above_barrels"},
     "lights": [
         {"at": [0.0, -1.32], "size": 1.7, "color": [60, 150, 255], "z": 0.9},
         {"at": [0.0, 1.10], "size": 1.2, "color": [60, 150, 255], "z": 0.9},
@@ -65,6 +71,8 @@ FCOIL_WIRE = 0.020
 # capacitores em pe atras dos bercos: (x, y) do lado direito
 CAPS = [(0.52, -0.20), (0.76, -0.20), (0.52, 0.12), (0.76, 0.12)]
 CAP_R = 0.112
+CAP_R_RING, CAP_R_CAP = CAP_R * 0.80, CAP_R * 0.68   # anel azul fino entre o aro de cobre e a tampa escura
+COPPER_DARK = (0.42, 0.17, 0.07)   # cobre escurecido (oxidado) do aro dos capacitores
 # eletrodos da proa (lado direito): pinos de cobre na borda da proa, de onde saltam os arcos
 ELECTRODES = [(0.13, 1.30), (0.12, 1.50), (0.10, 1.68)]
 # tambores de celulas PEM na traseira (lado direito)
@@ -95,6 +103,7 @@ def head(M, T="head", phase=0.0):
     tags = (T,)
     X = pem(M)
     A, AM, K, KM, S = M["armor"], M["armor_mid"], M["core"], M["core_mid"], M["steel"]
+    cu_dark = B.mat_metal("pem_copper_dark", COPPER_DARK, rough=0.32, metal=1.0)
 
     # ---------------------------------------------------------------- anel e nucleo escuro
     B.cyl("ring", 0, 0, 0.04, 1.56, 0.08, KM, axis="Z", verts=96, bevel=0.01, tags=tags)
@@ -112,9 +121,17 @@ def head(M, T="head", phase=0.0):
         B.cut(c, [B.box(f"crad_c{i}", y, (y0c + 1.66) / 2, 0.46, 1.66 - y0c - 0.14, 0.48, 1.0, K, bevel=0.0)])
         B.box(f"cradbed{i}", y, (y0c + 1.66) / 2, 0.46, 1.66 - y0c - 0.14, 0.475, 0.485, M["black"], bevel=0.0,
               tags=tags)
-        for j in range(3):
-            B.box(f"cradled{i}{j}", y, y0c + 0.14 + j * 0.08, 0.10, 0.026, 0.48, 0.49,
-                  X["glow_dim"] if j < 2 else M["black"], bevel=0.0, tags=tags)
+        # vao de recuo atras da culatra: dois trilhos-guia de aco, ripas escuras transversais e 2 LEDs no fundo
+        # entre as ripas (STYLE 8: nada de area lisa grande)
+        for k in (-1, 1):
+            B.box(f"cradrail{i}{k}", y + k * 0.165, (y0c + ROOT) / 2 + 0.04, 0.035, ROOT - y0c + 0.02, 0.48, 0.515,
+                  S, bevel=0.005, tags=tags)
+        for j in range(5):
+            B.box(f"cradslat{i}{j}", y, y0c + 0.07 + j * 0.075, 0.29, 0.024, 0.48, 0.505, KM, bevel=0.004,
+                  tags=tags)
+        for j in range(2):
+            B.box(f"cradled{i}{j}", y, y0c + 0.1075 + j * 0.15, 0.09, 0.022, 0.485, 0.492, X["glow_dim"], bevel=0.0,
+                  tags=tags)
         B.cyl(f"mouth{i}", y, 1.66, ZB - 0.02, 0.30, 0.10, KM, axis="Y", verts=8, bevel=0.01, tags=tags)
         B.cyl(f"mouthr{i}", y, 1.61, ZB - 0.02, 0.31, 0.03, S, axis="Y", verts=8, bevel=0.005, tags=tags)
 
@@ -137,13 +154,19 @@ def head(M, T="head", phase=0.0):
     for sx in (-1, 1):
         B.box(f"capbay{sx}", sx * 0.64, -0.04, 0.52, 0.60, 0.38, 0.44, M["black"], bevel=0.0, tags=tags)
         for k, (cx, cy) in enumerate(CAPS):
+            # terminal do capacitor visto de cima: aro de cobre escuro, anel azul fino, tampa escura em degrau
+            # (bisel) e botao de aco no meio (o disco de cobre liso com miolo azul lia como biscoito/botao)
             x = sx * cx
             B.cyl(f"cap{sx}{k}", x, cy, 0.52, CAP_R, 0.18, X["navy"], axis="Z", verts=12, bevel=0.008, tags=tags)
-            B.cyl(f"capcu{sx}{k}", x, cy, 0.615, CAP_R * 0.92, 0.02, X["copper"], axis="Z", verts=12, bevel=0.0,
+            B.cyl(f"capcu{sx}{k}", x, cy, 0.615, CAP_R * 0.96, 0.02, cu_dark, axis="Z", verts=12, bevel=0.004,
                   tags=tags)
-            B.cyl(f"caprim{sx}{k}", x, cy, 0.628, CAP_R * 0.53, 0.012, X["glow_dim"], axis="Z", verts=12,
+            B.cyl(f"caprim{sx}{k}", x, cy, 0.624, CAP_R_RING, 0.008, X["glow_dim"], axis="Z", verts=12,
                   bevel=0.0, tags=tags)
-            B.cyl(f"capcap{sx}{k}", x, cy, 0.638, CAP_R * 0.40, 0.022, S, axis="Z", verts=8, bevel=0.003,
+            B.cyl(f"capcap{sx}{k}", x, cy, 0.632, CAP_R_CAP, 0.024, KM, axis="Z", verts=12, bevel=0.007,
+                  tags=tags)
+            B.cyl(f"capstep{sx}{k}", x, cy, 0.648, CAP_R_CAP * 0.62, 0.012, K, axis="Z", verts=12, bevel=0.003,
+                  tags=tags)
+            B.cyl(f"capbtn{sx}{k}", x, cy, 0.658, CAP_R * 0.24, 0.016, S, axis="Z", verts=8, bevel=0.004,
                   tags=tags)
         # barramento de cobre dos capacitores ate o berco
         B.box(f"busb{sx}", sx * 0.64, 0.37, 0.50, 0.07, 0.40, 0.445, KM, bevel=0.004, tags=tags)
@@ -243,6 +266,10 @@ def head(M, T="head", phase=0.0):
 
 
 # ============================================================================ brilho de carga (charge_glow)
+def _lerp(a, b, t):
+    return tuple(x + (y - x) * t for x, y in zip(a, b))
+
+
 def _arc(name, p, q, k, amp, z, w, mat, tags, rng):
     """Arco eletrico em zigue-zague de p ate q (k segmentos, desvio lateral amp)."""
     dx, dy = q[0] - p[0], q[1] - p[1]
@@ -258,43 +285,56 @@ def _arc(name, p, q, k, amp, z, w, mat, tags, rng):
         stroke(f"{name}{i}", pts[i], pts[i + 1], w, z, z + 0.01, mat, tags)
 
 
+def _glow_rings(name, x, y0, y1, z, R, wire, every, f, mat, tags, y_off=0.0, y_max=None):
+    """Linhas acesas nas frestas de uma bobina (cada `every` frestas): aneis finos POR CIMA das espiras (visiveis
+    inteiros, nao frestas sub-pixel com halo virando um veu). A carga enche da raiz para a frente: com f < 1 so a
+    fracao de tras das linhas acende."""
+    ys = coil_layout(y0, y1, wire, SPACING)
+    gaps = [(ys[i] + ys[i + 1]) / 2 for i in range(len(ys) - 1)]
+    k0 = (len(gaps) - 1) % every // 2
+    sel = gaps[k0::every]
+    n_on = max(1, int(math.ceil(len(sel) * min(1.0, 0.35 + 0.65 * f))))
+    for i, y in enumerate(sel[:n_on]):
+        if y_max is not None and y + y_off > y_max:
+            continue
+        turn(f"{name}{i}", x, y + y_off, z, R - wire * 0.45, wire * 0.62, mat, tags, seg=24)
+
+
 def charge_glow(M, T="charge", phase=1.0):
     """So as partes que acendem antes do tiro (emissivas, etiqueta T); no render a cabeca entra como Holdout.
-    phase = k/4 (k = 1..4): bobinas de campo, frestas das bobinas da raiz dos canos (dentro do quadro da torre),
-    capacitores e eletrodos sobem em rampa; arcos entre os canos nos quadros 3 e 4."""
+    phase = k/4 (k = 1..4): linhas azuis nas frestas das bobinas de campo e das bobinas da raiz dos canos (dentro do
+    quadro da torre, enchendo da raiz para a frente), aneis dos capacitores, eletrodos e LEDs da proa sobem em rampa
+    de azul PEM para azul-branco; arcos entre os canos nos quadros 3 e 4."""
     tags = (T,)
-    X = pem(M)
+    pem(M)
     f = max(0.0, min(1.0, phase))
-    # azul puxado para o anil: misturado ao reflexo do cobre o azul mais ciano saia esverdeado (verde = nuclear)
-    gap = B.mat_glow(f"pem_charge_gap{int(f * 100)}", (0.05, 0.36, 1.0), 0.55 + 1.25 * f)
-    hot = B.mat_glow(f"pem_charge_hot{int(f * 100)}", (0.25, 0.58, 1.0), 0.6 + 1.0 * f)
-    arc = B.mat_glow("pem_charge_arc", (0.50, 0.80, 1.0), 2.4)
+    # rampa em AZUL PEM -> azul-branco: o canal verde fica baixo e nenhum canal passa de 1 (Standard corta canal a
+    # canal: azul forte demais virava ciano/verde-agua, matiz ~188, e o veu translucido sobre o cobre saia menta)
+    k = int(f * 100)
+    line = B.mat_glow(f"pem_charge_line{k}", _lerp((0.06, 0.22, 1.0), (0.34, 0.50, 1.0), f), 0.70 + 0.30 * f)
+    hot = B.mat_glow(f"pem_charge_hot{k}", _lerp((0.10, 0.30, 1.0), (0.42, 0.56, 1.0), f), 0.60 + 0.40 * f)
+    arc = B.mat_glow("pem_charge_arc", (0.62, 0.72, 1.0), 1.0)
     fa_, fb_ = FCOIL_Y
     for sx in (-1, 1):
-        # nucleo aceso da bobina de campo (aparece nas frestas; as espiras da cabeca tampam o resto)
-        B.cyl(f"cg_fcoil{sx}", sx * FCOIL_X, (fa_ + fb_) / 2, FCOIL_Z, FCOIL_R - FCOIL_WIRE * 1.25, fb_ - fa_ - 0.01,
-              gap, axis="Y", verts=12, bevel=0.0, tags=tags)
-        for k, (cx, cy) in enumerate(CAPS):
-            B.cyl(f"cg_cap{sx}{k}", sx * cx, cy, 0.629, CAP_R * 0.62, 0.012, hot, axis="Z", verts=12, bevel=0.0,
+        # bobina de campo: uma linha acesa a cada 3 frestas (as espiras de cobre continuam visiveis entre elas)
+        _glow_rings(f"cg_fc{sx}_", sx * FCOIL_X, fa_, fb_, FCOIL_Z, FCOIL_R, FCOIL_WIRE, 3, f, line, tags)
+        for j, (cx, cy) in enumerate(CAPS):
+            # so o anel fino entre o aro de cobre e a tampa (a tampa da cabeca entra como Holdout por cima)
+            B.cyl(f"cg_cap{sx}{j}", sx * cx, cy, 0.629, CAP_R_RING, 0.006, hot, axis="Z", verts=12, bevel=0.0,
                   tags=tags)
-        for k, (ex, ey) in enumerate(ELECTRODES):
-            B.cyl(f"cg_el{sx}{k}", sx * (ex + 0.075), ey, 0.80, 0.028, 0.03, hot, axis="X", verts=8, bevel=0.0,
+        for j, (ex, ey) in enumerate(ELECTRODES):
+            B.cyl(f"cg_el{sx}{j}", sx * (ex + 0.075), ey, 0.80, 0.028, 0.03, hot, axis="X", verts=8, bevel=0.0,
                   tags=tags)
-        B.box(f"cg_bus{sx}", sx * 0.64, 0.37, 0.42, 0.018, 0.47, 0.475, gap, bevel=0.0, tags=tags)
+        B.box(f"cg_bus{sx}", sx * 0.64, 0.37, 0.42, 0.018, 0.47, 0.475, line, bevel=0.0, tags=tags)
     for i in range(4):
         B.box(f"cg_prow{i}", 0, 0.76 + i * 0.15, 0.026, 0.06, 0.918, 0.924, hot, bevel=0.0, tags=tags)
-    # bobinas da raiz dos canos que caem dentro do quadro da torre (cano em repouso): nucleo aceso + espiras
-    # copiadas como Holdout (etiqueta "head"), entao so as frestas acendem por cima do sprite do cano
+    # bobinas da raiz dos canos que caem dentro do quadro da torre (cano em repouso): linhas acesas por cima das
+    # espiras, so ate a borda do quadro
     for x in YS:
         for a, b, R in stack_segments():
-            ya, yb = ROOT + a, min(ROOT + b, BOX)
-            if ya >= BOX - 0.02:
+            if ROOT + a >= BOX - 0.02:
                 continue
-            B.cyl(f"cg_bc{x}{a}", x, (ya + yb) / 2, ZB, R - WIRE * 1.3, yb - ya, gap, axis="Y", verts=12, bevel=0.0,
-                  tags=tags)
-            for i, y in enumerate(coil_layout(a, b, WIRE, SPACING)):
-                if ROOT + y < BOX + 0.05:
-                    turn(f"cg_bt{x}{a}_{i}", x, ROOT + y, ZB, R - WIRE, WIRE, X["copper"], ("head",))
+            _glow_rings(f"cg_bc{x}_{a}_", x, a, b, ZB, R, WIRE, 3, f, line, tags, y_off=ROOT, y_max=BOX - 0.02)
     # arcos entre os canos: dos eletrodos da proa ate as bobinas da raiz (e de cano a cano na frente da proa)
     rng = random.Random(int(round(f * 4)) * 7 + 3)
     if f > 0.6:
@@ -321,6 +361,11 @@ def barrel(M, L=2.95, T="barrel", phase=0.0):
     B.cyl("b_root", 0, 0.21, z, 0.24, 0.42, KM, axis="Y", verts=8, bevel=0.012, tags=tags)
     B.cyl("b_rootring", 0, 0.43, z, 0.25, 0.035, S, axis="Y", verts=8, bevel=0.006, tags=tags)
     B.box("b_rootslot", 0, 0.21, 0.06, 0.30, z + 0.20, z + 0.24, M["black"], bevel=0.0, tags=tags)
+    # culatra com aneis escuros em relevo e nervuras laterais de aco (le como bloco de culatra, nao caixa lisa)
+    for i in range(4):
+        B.cyl(f"b_rootrib{i}", 0, 0.065 + i * 0.095, z, 0.252, 0.032, K, axis="Y", verts=8, bevel=0.004, tags=tags)
+    for sx in (-1, 1):
+        B.box(f"b_rootside{sx}", sx * 0.195, 0.21, 0.035, 0.36, z + 0.06, z + 0.215, S, bevel=0.006, tags=tags)
     B.cyl("b_core", 0, 1.50, z, 0.15, 2.10, K, axis="Y", verts=12, tags=tags)
     # pilhas de bobinas: espiras de cobre com frestas azuis acesas, colares claros nas pontas e escuros no meio
     for j, (a, b, R) in enumerate(stack_segments()):

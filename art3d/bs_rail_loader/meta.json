@@ -45,6 +45,22 @@
    "emission_only": false,
    "islands": true
   },
+  "culatra_projetil": {
+   "game_layer": "doodads_low",
+   "rect": [
+    1.0,
+    0.0,
+    1.0,
+    2.0
+   ],
+   "files": [
+    "culatra_projetil.png"
+   ],
+   "normals": null,
+   "opaque": false,
+   "emission_only": false,
+   "islands": true
+  },
   "consola": {
    "game_layer": "walls",
    "rect": [
@@ -64,7 +80,21 @@
    "interval": 0.1,
    "opaque": false,
    "emission_only": false,
-   "islands": true
+   "islands": true,
+   "rects": [
+    [
+     0.1,
+     1.1,
+     1.0,
+     1.0
+    ],
+    [
+     1.9,
+     1.1,
+     1.0,
+     1.0
+    ]
+   ]
   },
   "culatra_abre": {
    "game_layer": "walls",
@@ -197,6 +227,13 @@
    1.6
   ]
  ],
+ "notes": [
+  "culatra_abre e culatra_carrega ficam na MESMA camada (walls) e no mesmo lugar: ligue uma OU outra (toggle), nunca as duas juntas (a ordem de desenho dentro de uma camada nao e garantida); culatra_carrega1..6 ja traz as folhas abertas.",
+  "culatra_projetil.png = o dardo assentado na camara, em doodads_low (ABAIXO das folhas da culatra, que estao em walls), rect [1,0,1,2]: ResourceSprites de LoadedAmmo (1 nivel, HasZeroResourceSprite) dentro de um ToggledComponents com AmmoHideToggle invertido (como MunicaoNaCulatra, kit de teste bs2t_rail_carregador.rules:667-691). E o mesmo dardo, no mesmo lugar, de culatra_carrega6 (pixels do dardo identicos): quando a carga termina e a culatra fecha (culatra_abre ao contrario), as folhas fecham POR CIMA dele; o AmmoHideToggle o esconde quando o tiro sai. Todos os projeteis do Tupa sao o MESMO objeto (o modelo 'slug' de bs_shells2: haste de tungstenio claro, 6 aletas, 4 colares EM violeta, ponta ouro-branca): 0,9 quadro no paiol (projeteis1..6), 1,78 na camara (culatra_*), 2,9 no cano (slug.png) e em voo. culatra_carrega1..6 e culatra_projetil somem suavemente nos 0,12 quadro de baixo do rect (o dardo sobe do elevador em vez de sair cortado).",
+  "DESCARGA (critica r2: o climax nao pode murchar): carga1..8 + trilhos (canos), carga1..6 (ponta) e luz_culatra NAO apagam todos no ProjectileStartTrigger. Cada cano SEGURA a carga cheia (trilhos9 + carga8) ate a PONTA do dardo entrar nele e entao descarrega (trilhos1, carga escondida): o canal escuro atras e o rastro que persegue o dardo, o cano a frente continua carregado ate o dardo chegar e o dardo claro corre sempre no canal escuro (licao 1: sob a carga cheia ele some). luz_culatra e o 1o cano descarregam no ProjectileStartTrigger (a ponta do dardo ja esta no 1o cano); a ponta (carga + anel EM da coroa) descarrega junto com o clarao (EmissionTriggered / ProjectileFinished). Ligacao (variante 'delay' de rail.charge_wave): em cada cano um DelayTrigger iniciado pelo ProjectileStartTrigger desliga um toggle 'CargaRetida' que segura o nivel cheio; Delay_i = t(3i - 4) para o cano i (1 = junto da culatra), com t(d) = (-6 + sqrt(36 + 88 d / T)) / (44 / T) (t(d <= 0) = 0), T = (3N + 4) / 28 s (cinematica do RailgunProjectile 6 -> 50 quadros/s em 3N + 4 quadros = barrel_anim_s do spec). Tabela (s, cano 1..N): N1 [0]; N2 [0, 0.14]; N3 [0, 0.15, 0.27]; N4 [0, 0.16, 0.29, 0.38]; N5 [0, 0.17, 0.31, 0.41, 0.50]; N6 [0, 0.18, 0.33, 0.44, 0.53, 0.61]. O cano sabe i pela corrente do carregador e N - i + 1 pela corrente reversa da ponta. Minimo aceitavel se o atraso por cano nao der: segurar trilhos e carga acesos ate o EmissionTriggered e apagar tudo junto com o clarao. Nunca reacender um plano de carga depois do disparo (nem a ponta).",
+  "consola: o mesmo sprite nos 2 postos da tripulacao (rects [0.1,1.1] e [1.9,1.1], crew_pos).",
+  "luz_culatra1..2 (lights_add [0,0,3,1]): so a costura das folhas, as lentes das folhas e os emissores da camara acendem (mascarado: nada e somado sobre a blindagem)."
+ ],
  "files": [
   "blueprints.png",
   "capacitores1.png",
@@ -215,6 +252,7 @@
   "culatra_carrega4.png",
   "culatra_carrega5.png",
   "culatra_carrega6.png",
+  "culatra_projetil.png",
   "floor.png",
   "icon.png",
   "luz_culatra1.png",

@@ -30,9 +30,11 @@ import bs3d as B
 VIOLET = (0.30, 0.135, 1.0)          # (150, 105, 255) na vista Standard com forca ~1
 GOLD = (1.0, 0.58, 0.10)             # (255, 200, 90)
 CORE_W = (1.0, 0.87, 0.58)           # (255, 240, 200)
-GRAPH = (0.021, 0.022, 0.026)        # grafite da blindagem (painel)
+GRAPH = (0.055, 0.057, 0.063)        # grafite da blindagem (painel; grafite-chumbo, nao preto: le no casco escuro)
 GRAPH_D = (0.026, 0.027, 0.031)      # grafite escuro (estrutura sob as placas)
-EDGE = (0.36, 0.37, 0.39)            # bisel claro das placas de grafite
+EDGE = (0.24, 0.245, 0.26)           # bisel das placas de grafite (o chanfro virado para a luz acende, o outro
+                                     # escurece: placa entalhada, nao contorno branco)
+GROOVE_MAX = 0.016                   # anel plano entre o chanfro e o painel (fino: sem "contorno" a 1x)
 TROUGH = (0.085, 0.088, 0.096)       # fundo do canal (mais claro que o prototipo: licao 1)
 RAIL = (0.50, 0.51, 0.53)            # trilho de aco claro
 TUNG = (0.36, 0.37, 0.39)            # tungstenio claro (igual ao slug de bs_shells2)
@@ -44,7 +46,9 @@ RAIL_IN, RAIL_OUT = 0.215, 0.305     # faces do trilho
 RING_IN, RING_OUT = 0.335, 0.635     # blocos laterais dos aneis EM
 TR = 0.43                            # meia largura do fundo do canal
 LANE = 0.13                          # meia largura da faixa central escura do fundo (caminho do projetil)
-CHEEK_OUT = 0.86                     # bochecha de grafite do teto: x CH..CHEEK_OUT
+CHEEK_OUT = 0.875                    # bochecha de grafite do teto: x CH..CHEEK_OUT
+BAND_IN, BAND_OUT = 0.88, 1.25       # faixa blindada de fora (o cano blindado ocupa quase os 3 quadros)
+STRIP_IN = 1.28                      # tira de casco pintado (verde) na borda: x STRIP_IN..1.5
 BRIDGE_Y = 0.95                      # pontes de travamento do cano (y 0.55 e 2.45 da peca)
 BRIDGE_HW = 0.15
 CANO_RINGS = (-0.5, 0.0, 0.5)        # 3 aneis EM por cano (de tras para a frente)
@@ -52,20 +56,38 @@ GLOW_HW = 0.62                       # meia largura dos planos de carga (identic
 EXT = 0.14                           # o que passa da borda da camera (sem chanfro na emenda)
 
 # ============================================================================ pecas (PARTS)
-_LOADER_ICON = {"size": [69, 92], "layers": ["floor", "projeteis", "capacitores", "weapon", "culatra_abre", "roof"],
-                "pick": {"projeteis": 5, "capacitores": 2}, "lights": {"luz_culatra": [1, 1.0]}}
+# icone: a culatra ABERTA com o dardo assentado (lentes das folhas acesas) aparece pela fenda do teto (critica r2)
+_LOADER_ICON = {"size": [69, 92], "layers": ["floor", "projeteis", "capacitores", "weapon", "culatra_carrega", "roof"],
+                "pick": {"projeteis": 5, "capacitores": 2, "culatra_carrega": 5}}
 _NOTE_TOGGLE = ("culatra_abre e culatra_carrega ficam na MESMA camada (walls) e no mesmo lugar: ligue uma OU outra "
                 "(toggle), nunca as duas juntas (a ordem de desenho dentro de uma camada nao e garantida); "
                 "culatra_carrega1..6 ja traz as folhas abertas.")
-_NOTE_SLUG = ("culatra_projetil.png = o projetil assentado na camara, em doodads_low (ABAIXO das folhas da culatra, que "
+_NOTE_SLUG = ("culatra_projetil.png = o dardo assentado na camara, em doodads_low (ABAIXO das folhas da culatra, que "
               "estao em walls), rect [1,0,1,2]: ResourceSprites de LoadedAmmo (1 nivel, HasZeroResourceSprite) dentro "
               "de um ToggledComponents com AmmoHideToggle invertido (como MunicaoNaCulatra, kit de teste "
-              "bs2t_rail_carregador.rules:667-691). E o mesmo projetil, no mesmo lugar, de culatra_carrega6: quando a "
-              "carga termina e a culatra fecha (culatra_abre ao contrario), as folhas fecham POR CIMA dele; o "
-              "AmmoHideToggle o esconde quando o tiro sai.")
-_NOTE_DARK = ("carga (canos e ponta) e luz_culatra voltam ao nivel 0 (escondidos) quando o projetil parte "
-              "(ProjectileStartTrigger): sob a carga cheia o projetil claro some no brilho. O TimerCargaLido do kit de "
-              "teste ja faz isso.")
+              "bs2t_rail_carregador.rules:667-691). E o mesmo dardo, no mesmo lugar, de culatra_carrega6 (pixels do "
+              "dardo identicos): quando a carga termina e a culatra fecha (culatra_abre ao contrario), as folhas fecham "
+              "POR CIMA dele; o AmmoHideToggle o esconde quando o tiro sai. Todos os projeteis do Tupa sao o MESMO "
+              "objeto (o modelo 'slug' de bs_shells2: haste de tungstenio claro, 6 aletas, 4 colares EM violeta, ponta "
+              "ouro-branca): 0,9 quadro no paiol (projeteis1..6), 1,78 na camara (culatra_*), 2,9 no cano (slug.png) "
+              "e em voo. culatra_carrega1..6 e culatra_projetil somem suavemente nos 0,12 quadro de baixo do rect (o "
+              "dardo sobe do elevador em vez de sair cortado).")
+_NOTE_WAKE = ("DESCARGA (critica r2: o climax nao pode murchar): carga1..8 + trilhos (canos), carga1..6 (ponta) e "
+              "luz_culatra NAO apagam todos no ProjectileStartTrigger. Cada cano SEGURA a carga cheia (trilhos9 + "
+              "carga8) ate a PONTA do dardo entrar nele e entao descarrega (trilhos1, carga escondida): o canal escuro "
+              "atras e o rastro que persegue o dardo, o cano a frente continua carregado ate o dardo chegar e o "
+              "dardo claro corre sempre no canal escuro (licao 1: sob a carga cheia ele some). luz_culatra e o 1o "
+              "cano descarregam no ProjectileStartTrigger (a ponta do dardo ja esta no 1o cano); a ponta (carga + anel "
+              "EM da coroa) descarrega junto com o clarao (EmissionTriggered / ProjectileFinished). Ligacao "
+              "(variante 'delay' de rail.charge_wave): em cada cano um DelayTrigger iniciado pelo ProjectileStartTrigger "
+              "desliga um toggle 'CargaRetida' que segura o nivel cheio; Delay_i = t(3i - 4) para o cano i (1 = junto "
+              "da culatra), com t(d) = (-6 + sqrt(36 + 88 d / T)) / (44 / T) (t(d <= 0) = 0), T = (3N + 4) / 28 s "
+              "(cinematica do RailgunProjectile 6 -> 50 quadros/s em 3N + 4 quadros = barrel_anim_s do spec). Tabela "
+              "(s, cano 1..N): N1 [0]; N2 [0, 0.14]; N3 [0, 0.15, 0.27]; N4 [0, 0.16, 0.29, 0.38]; N5 [0, 0.17, 0.31, "
+              "0.41, 0.50]; N6 [0, 0.18, 0.33, 0.44, 0.53, 0.61]. O cano sabe i pela corrente do carregador e N - i + 1 "
+              "pela corrente reversa da ponta. Minimo aceitavel se o atraso por cano nao der: segurar trilhos e carga "
+              "acesos ate o EmissionTriggered e apagar tudo junto com o clarao. Nunca reacender um plano de carga "
+              "depois do disparo (nem a ponta).")
 PARTS = {
     "bs_rail_loader": {
         "id": "rafaeltessaro.bs_rail_loader", "kind": "layered", "size": [3, 4], "accent": "violet",
@@ -76,14 +98,16 @@ PARTS = {
             {"name": "projeteis", "fn": "loader_magazine", "game_layer": "doodads_low", "rect": [0.6, 2.8, 1.8, 1.0],
              "file": "projeteis{i}.png", "levels": 6, "islands": True},
             {"name": "culatra_projetil", "fn": "loader_chambered", "game_layer": "doodads_low",
-             "rect": [1.0, 0.0, 1.0, 2.0], "file": "culatra_projetil.png", "islands": True},
+             "rect": [1.0, 0.0, 1.0, 2.0], "file": "culatra_projetil.png", "islands": True,
+             "fade": {"bottom": 0.12}, "same_as": {"layer": "culatra_carrega", "index": 6}},
             # o mesmo console nos 2 postos (simetrico): rects no meta.json
             {"name": "consola", "fn": "loader_console", "game_layer": "walls", "rect": [0.1, 1.1, 1.0, 1.0],
              "at": [[0.1, 1.1], [1.9, 1.1]], "file": "consola{i}.png", "frames": 4, "interval": 0.1, "islands": True},
             {"name": "culatra_abre", "fn": "loader_jaws", "game_layer": "walls", "rect": [1.0, 0.0, 1.0, 1.0],
              "file": "culatra_abre{i}.png", "frames": 3, "interval": 0.0666, "islands": True},
             {"name": "culatra_carrega", "fn": "loader_load", "game_layer": "walls", "rect": [1.0, 0.0, 1.0, 2.0],
-             "file": "culatra_carrega{i}.png", "frames": 6, "interval": 0.2, "islands": True},
+             "file": "culatra_carrega{i}.png", "frames": 6, "interval": 0.2, "islands": True,
+             "fade": {"bottom": 0.12}},
             {"name": "weapon", "fn": "loader_breech", "game_layer": "weapons", "rect": [0.0, 0.0, 3.0, 1.0],
              "normals": True, "islands": True},
             {"name": "capacitores", "fn": "loader_caps", "game_layer": "doodads_high", "rect": [0.0, 2.1, 3.0, 1.0],
@@ -95,7 +119,7 @@ PARTS = {
         ],
         "icon": _LOADER_ICON,
         "blueprint_layers": ["weapon", "roof"],
-        "notes": [_NOTE_TOGGLE, _NOTE_SLUG, _NOTE_DARK,
+        "notes": [_NOTE_TOGGLE, _NOTE_SLUG, _NOTE_WAKE,
                   "consola: o mesmo sprite nos 2 postos da tripulacao (rects [0.1,1.1] e [1.9,1.1], crew_pos).",
                   "luz_culatra1..2 (lights_add [0,0,3,1]): so a costura das folhas, as lentes das folhas e os emissores "
                   "da camara acendem (mascarado: nada e somado sobre a blindagem)."],
@@ -115,10 +139,10 @@ PARTS = {
         "icon": {"size": [69, 69], "layers": ["floor", "trilhos", "roof"], "pick": {"trilhos": 6},
                  "lights": {"carga": [5, 0.8]}},
         "blueprint_layers": ["trilhos", "roof"],
-        "notes": [_NOTE_DARK,
-                  "carga1..8: plano aditivo de largura identica em todos os canos (as emendas casam); sob as 2 pontes "
-                  "de travamento (y 0.55 e 2.45 da peca) o plano cai para um vazamento fraco (as pontes nao parecem "
-                  "translucidas)."],
+        "notes": [_NOTE_WAKE,
+                  "carga1..8: plano aditivo de largura identica em todos os canos (as emendas casam); sob as 2 cintas "
+                  "de travamento (y 0.55 e 2.45 da peca) o plano cai a 55% (com o teto o jogo ja cobre; na vista do "
+                  "interior o canal nao ganha entalhes escuros)."],
     },
     "bs_rail_muzzle": {
         "id": "rafaeltessaro.bs_rail_muzzle", "kind": "layered", "size": [3, 4], "accent": "violet",
@@ -140,7 +164,7 @@ PARTS = {
         ],
         "icon": {"size": [69, 92], "layers": ["floor", "trilhos", "weapon", "roof"], "lights": {"carga": [4, 0.8]}},
         "blueprint_layers": ["weapon", "roof"],
-        "notes": [_NOTE_DARK,
+        "notes": [_NOTE_WAKE,
                   "walls.png da ponta: aberta embaixo (emenda com o cano) e em cima na boca (x 0.92-2.08), por onde o "
                   "projetil sai; a moldura nao atravessa a boca.",
                   "slug.png (walls) e slug_glow.png (lights_add): ChainedTo Projectile; o halo e oco para o projetil "
@@ -155,12 +179,112 @@ def _spec(m, v):
     return m
 
 
+LIGHT_XY = (-0.7071, 0.7071)         # direcao (vista de cima) de onde vem a luz principal das torres: cima-esquerda
+
+
+def lit_mat(name, flat, lit, mid, dark, rough=0.40, metal=0.25, spec=0.35, grime=0.05, scale=5.0):
+    """Blindagem com o bisel "pintado pela luz" (estrutura de valores da familia, critica r2): a cor de base depende
+    da normal de cada face. Face de cima (plana) = flat; chanfro virado para a luz (cima/esquerda) = lit; de lado
+    para a luz = mid; virado para longe (baixo/direita) = dark. A luz da cena (sol de cima-esquerda) reforca o
+    mesmo sentido. Funciona com booleanas e bisel (le a normal no shader), sem material por face."""
+    import bpy
+    m = bpy.data.materials.get(name)
+    if m is not None:
+        return m
+    m = bpy.data.materials.new(name)
+    m.use_nodes = True
+    nt = m.node_tree
+    N, L = nt.nodes, nt.links
+    b = N["Principled BSDF"]
+    geo = N.new("ShaderNodeNewGeometry")
+    sep = N.new("ShaderNodeSeparateXYZ")
+    L.new(geo.outputs["Normal"], sep.inputs[0])
+    dot = N.new("ShaderNodeVectorMath")
+    dot.operation = "DOT_PRODUCT"
+    dot.inputs[1].default_value = (LIGHT_XY[0], LIGHT_XY[1], 0.0)
+    L.new(geo.outputs["Normal"], dot.inputs[0])
+    # inclinacao t = |N_xy| = sqrt(1 - nz^2)
+    sq = N.new("ShaderNodeMath")
+    sq.operation = "MULTIPLY"
+    L.new(sep.outputs[2], sq.inputs[0])
+    L.new(sep.outputs[2], sq.inputs[1])
+    om = N.new("ShaderNodeMath")
+    om.operation = "SUBTRACT"
+    om.inputs[0].default_value = 1.0
+    L.new(sq.outputs[0], om.inputs[1])
+    tt = N.new("ShaderNodeMath")
+    tt.operation = "SQRT"
+    tt.use_clamp = True
+    L.new(om.outputs[0], tt.inputs[0])
+    tmax = N.new("ShaderNodeMath")
+    tmax.operation = "MAXIMUM"
+    tmax.inputs[1].default_value = 1e-3
+    L.new(tt.outputs[0], tmax.inputs[0])
+    cos = N.new("ShaderNodeMath")
+    cos.operation = "DIVIDE"
+    L.new(dot.outputs["Value"], cos.inputs[0])
+    L.new(tmax.outputs[0], cos.inputs[1])
+    u = N.new("ShaderNodeMath")
+    u.operation = "MULTIPLY_ADD"
+    u.use_clamp = True
+    u.inputs[1].default_value = 0.5
+    u.inputs[2].default_value = 0.5
+    L.new(cos.outputs[0], u.inputs[0])
+    ramp = N.new("ShaderNodeValToRGB")
+    els = ramp.color_ramp.elements
+    els[0].position, els[0].color = 0.18, (*dark, 1)
+    els[1].position, els[1].color = 0.82, (*lit, 1)
+    e = els.new(0.5)
+    e.color = (*mid, 1)
+    L.new(u.outputs[0], ramp.inputs[0])
+    # peso do chanfro: faces quase planas (bisel fino das quinas) ficam na cor plana
+    w = N.new("ShaderNodeMapRange")
+    w.inputs[1].default_value = 0.20
+    w.inputs[2].default_value = 0.55
+    L.new(tt.outputs[0], w.inputs[0])
+    fl = N.new("ShaderNodeRGB")
+    fl.outputs[0].default_value = (*flat, 1)
+    mix = N.new("ShaderNodeMix")
+    mix.data_type = "RGBA"
+    L.new(w.outputs[0], mix.inputs[0])
+    L.new(fl.outputs[0], mix.inputs[6])
+    L.new(ramp.outputs[0], mix.inputs[7])
+    # sujeira leve (ruido): so escurece um pouco
+    noise = N.new("ShaderNodeTexNoise")
+    noise.inputs["Scale"].default_value = scale
+    noise.inputs["Detail"].default_value = 6
+    g = N.new("ShaderNodeMapRange")
+    g.inputs[3].default_value = 1.0
+    g.inputs[4].default_value = 1.0 - grime
+    L.new(noise.outputs["Fac"], g.inputs[0])
+    mul = N.new("ShaderNodeMix")
+    mul.data_type = "RGBA"
+    mul.blend_type = "MULTIPLY"
+    mul.inputs[0].default_value = 1.0
+    L.new(mix.outputs[2], mul.inputs[6])
+    L.new(g.outputs[0], mul.inputs[7])
+    L.new(mul.outputs[2], b.inputs["Base Color"])
+    b.inputs["Metallic"].default_value = metal
+    b.inputs["Roughness"].default_value = rough
+    b.inputs["Specular IOR Level"].default_value = spec
+    return m
+
+
+# valores (linear) afinados por medida no sprite final (64 px/quadro, vista Standard): face de grafite ~100-115,
+# chanfro aceso ~195-215, chanfro na sombra ~60-80, frestas < 25 (alvo da critica r2: ~10% < 40 e 8-12% > 190)
+EDGE_V = dict(flat=(0.020, 0.021, 0.024), lit=(0.72, 0.73, 0.76), mid=(0.20, 0.205, 0.215),
+              dark=(0.050, 0.052, 0.058))
+GRAPH_V = dict(flat=(0.072, 0.074, 0.082), lit=(0.36, 0.365, 0.38), mid=(0.10, 0.102, 0.11),
+               dark=(0.026, 0.027, 0.030))
+
+
 def mats(M):
     """Materiais do Tupa (nomes "rl_*": o cache do bs3d e por nome)."""
     return {
-        "graph": _spec(B.mat_paint("rl_graph", GRAPH, rough=0.40, metal=0.30, wear=0.10, grime=0.05, scale=5), 0.35),
+        "graph": lit_mat("rl_graph_l", **GRAPH_V, rough=0.40, metal=0.30, spec=0.35),
         "graph_d": _spec(B.mat_metal("rl_graph_d", GRAPH_D, rough=0.45, metal=0.6), 0.3),
-        "edge": _spec(B.mat_paint("rl_edge", EDGE, rough=0.34, metal=0.12, wear=0.10, grime=0.03, scale=4), 0.4),
+        "edge": lit_mat("rl_edge_l", **EDGE_V, rough=0.34, metal=0.12, spec=0.4, grime=0.03, scale=4),
+        "gap": _spec(B.mat_metal("rl_gap", (0.003, 0.003, 0.004), rough=0.9, metal=0.0), 0.05),
         "trough": _spec(B.mat_metal("rl_trough", TROUGH, rough=0.42, metal=0.75), 0.35),
         "rail": B.mat_metal("rl_rail", RAIL, rough=0.26, metal=0.85),
         "rib": _spec(B.mat_metal("rl_rib", (0.12, 0.125, 0.135), rough=0.40, metal=0.7), 0.3),
@@ -168,6 +292,7 @@ def mats(M):
         "lens": _spec(B.mat_metal("rl_lens", (0.030, 0.012, 0.085), rough=0.12, metal=0.0), 0.8),
         "tipgold": _spec(B.mat_metal("rl_tipgold", (0.46, 0.36, 0.19), rough=0.32, metal=0.5), 0.3),
         "vio_paint": _spec(B.mat_metal("rl_vio_paint", (0.11, 0.045, 0.36), rough=0.35, metal=0.4), 0.3),
+        "void": _spec(B.mat_metal("rl_void", (0.002, 0.002, 0.003), rough=1.0, metal=0.0), 0.0),
         "jawface": _spec(B.mat_paint("rl_jawface", JAWFACE, rough=0.36, metal=0.25, wear=0.10, grime=0.04, scale=4),
                          0.4),
         "green": B.mat_roof_green(),
@@ -191,14 +316,17 @@ def hot(color, s, base, name):
     return m
 
 
-def amber(s=1.0):
-    return B.mat_glow(f"rl_amber_{int(round(s * 100)):03d}", (1.0, 0.42, 0.04), s)
+def gold_led(s=1.0):
+    """LED de estado ouro (palette.rail.gold 255,200,90), fraco: o Tupa fica so com violeta + ouro-branco (sem ambar)."""
+    m = B.mat_glow(f"rl_goldled_{int(round(s * 100)):03d}", GOLD, s)
+    m.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.05, 0.035, 0.012, 1)
+    return m
 
 
 # ============================================================================ utilidades de forma
-def gplate(name, poly, z0, z1, X, tags, slope=0.05, groove=0.028, panel_h=0.03, panel=None):
-    """Placa de blindagem de grafite com bisel duplo CLARO: base clara chanfrada + painel grafite elevado."""
-    return B.shard(name, poly, z0, z1, X["edge"], slope=slope, groove=groove, panel_h=panel_h,
+def gplate(name, poly, z0, z1, X, tags, slope=0.056, groove=0.028, panel_h=0.03, panel=None):
+    """Placa de blindagem de grafite com bisel duplo: base chanfrada + painel grafite elevado."""
+    return B.shard(name, poly, z0, z1, X["edge"], slope=slope, groove=min(groove, GROOVE_MAX), panel_h=panel_h,
                    panel_mat=panel or X["graph"], tags=tags)
 
 
@@ -368,7 +496,7 @@ def cano_rails(M, T="trilhos", level=1):
 def _deck_plates(prefix, x0, x1, ys, X, tags, vent_at=None):
     """Placas do casco pintado (verde) com bisel duplo, uma por quadro, entre x0 e x1 (um lado)."""
     for k, (yc, hy) in enumerate(ys):
-        poly = B.rpoly((x0 + x1) / 2, yc, x1 - x0 - 0.06, hy - 0.06, 0, chamfer=0.07)
+        poly = B.rpoly((x0 + x1) / 2, yc, x1 - x0 - 0.03, hy - 0.035, 0, chamfer=0.09)
         _, pnl = B.shard(f"{prefix}{k}", poly, 0.0, 0.06, X["green"], slope=0.025, groove=0.05, panel_h=0.02,
                          tags=tags)
         if pnl is not None and k % 2 == 0:
@@ -381,12 +509,12 @@ def _deck_plates(prefix, x0, x1, ys, X, tags, vent_at=None):
                             bevel=0.0) for i in range(5)])
 
 
-def cheek(name, y0, y1, X, tags, c0=0.10, c1=0.10, x_out=CHEEK_OUT, z1=0.13, leds=0):
+def cheek(name, y0, y1, X, tags, c0=0.10, c1=0.10, x_out=CHEEK_OUT, z1=0.15, leds=0, x_in=CH + 0.02):
     """Placa de bochecha de grafite ao longo do canal (os dois lados). c0/c1 = chanfro de fora em baixo/em cima
     (0 = reta: a placa passa da camera e continua no cano vizinho)."""
     out = []
     for sx in (-1, 1):
-        poly = chamfer_rect(CH + 0.02, y0, x_out, y1, (0.0, c0, c1, 0.0))
+        poly = chamfer_rect(x_in, y0, x_out, y1, (0.0, c0, c1, 0.0))
         if sx < 0:
             poly = mirror_x(poly)
         a, p = gplate(f"{name}{sx}", poly, 0.0, z1, X, tags)
@@ -399,26 +527,28 @@ def cheek(name, y0, y1, X, tags, c0=0.10, c1=0.10, x_out=CHEEK_OUT, z1=0.13, led
 
 
 def coaming(name, y0, y1, X, tags, z=0.13):
-    """Labio de aco claro na borda do canal (desenha o canal a 1x no espaco e no casco branco)."""
+    """Labio ESCURO na borda do canal (critica r2: as bordas do canal quase pretas; o canal se desenha pelo contraste
+    entre os chanfros das bochechas, acesos de um lado e na sombra do outro, e o fundo claro do canal)."""
     for sx in (-1, 1):
-        B.box(f"{name}{sx}", sx * (CH + 0.018), (y0 + y1) / 2, 0.036, y1 - y0, 0.0, z + 0.02, X["rail"], bevel=0.008,
+        B.box(f"{name}{sx}", sx * (CH + 0.010), (y0 + y1) / 2, 0.020, y1 - y0, 0.0, z * 0.6, X["gap"], bevel=0.0,
               tags=tags)
 
 
-def bridge(name, y, X, tags, hw=0.96, hy=BRIDGE_HW, z0=0.10, z1=0.27):
-    """Ponte de travamento blindada sobre o canal (esconde o projetil por um instante: 'dentro do cano')."""
-    poly = [(-hw, y - hy + 0.06), (-hw + 0.06, y - hy), (hw - 0.06, y - hy), (hw, y - hy + 0.06),
-            (hw, y + hy - 0.06), (hw - 0.06, y + hy), (-hw + 0.06, y + hy), (-hw, y + hy - 0.06)]
-    B.box(f"{name}_under", 0, y, 2 * hw - 0.1, 2 * hy - 0.06, 0.0, z0 + 0.02, X["graph_d"], bevel=0.0, tags=tags)
-    a, p = gplate(name, poly, z0, z1, X, tags, slope=0.04, groove=0.024, panel_h=0.03)
-    # recesso central com 3 pips violeta (estado da trava) e garras das pontas
-    ledslot(f"{name}_led", 0, y, 0.34, 0.05, z1 + 0.03, 3, X, tags, [p, a], violet(0.6), vertical=False)
+def bridge(name, y, X, tags, hy=BRIDGE_HW, z1=0.12):
+    """Ponte de travamento sobre o canal (esconde o projetil por um instante: 'dentro do cano'). Critica r2: nada de
+    barra clara de lado a lado. E uma CINTA baixa de grafite so sobre o canal, que passa POR BAIXO das bochechas
+    (mais altas): le como uma braçadeira do furo, subordinada a blindagem longa. Centro rebaixado e escuro com os 3
+    pips violeta da trava; 2 parafusos de cada lado."""
+    sw = CH + 0.10
+    strap = chamfer_rect(-sw, y - hy + 0.02, sw, y + hy - 0.02, (0.0, 0.0, 0.0, 0.0))
+    B.box(f"{name}_under", 0, y, 2 * sw, 2 * hy - 0.06, 0.0, 0.06, X["gap"], bevel=0.0, tags=tags)
+    sa, sp = gplate(f"{name}_s", strap, 0.04, z1, X, tags, slope=0.045, groove=0.016, panel_h=0.02)
+    ledslot(f"{name}_led", 0, y, 0.36, 0.10, z1 + 0.02, 3, X, tags, [sp, sa], violet(0.6), vertical=False,
+            depth=0.06, pip=0.35)
     for sx in (-1, 1):
-        B.cut(p if p is not None else a, [B.box(f"{name}_n{sx}", sx * 0.58, y, 0.016, 2 * hy, z1 - 0.02, z1 + 0.3,
-                                                 X["black"], bevel=0.0)])
-        bolts(f"{name}_b{sx}", [(sx * (hw - 0.10), y - 0.06), (sx * (hw - 0.10), y + 0.06)], z1 + 0.035, X, tags,
-              r=0.016)
-    return a
+        bolts(f"{name}_b{sx}", [(sx * (CH - 0.06), y - 0.07), (sx * (CH - 0.06), y + 0.07)], z1 + 0.025, X, tags,
+              r=0.015)
+    return sa
 
 
 def chevron_plate(name, y0, y1, X, tags, x_in=0.50, x_out=0.79, lean=0.16, z0=0.13, z1=0.21, leds=0):
@@ -438,20 +568,78 @@ def chevron_plate(name, y0, y1, X, tags, x_in=0.50, x_out=0.79, lean=0.16, z0=0.
     return out
 
 
+def paint_strips(prefix, ys, X, tags):
+    """Tiras de casco pintado (verde) na borda de fora, uma por quadro (periodo 1: casa nas emendas)."""
+    for sx in (-1, 1):
+        for k, (yc, hy) in enumerate(ys):
+            poly = chamfer_rect(STRIP_IN + 0.02, yc - hy / 2 + 0.025, 1.485, yc + hy / 2 - 0.025, (0.07, 0.07, 0.07, 0.07))
+            if sx < 0:
+                poly = mirror_x(poly)
+            B.plate(f"{prefix}{sx}{k}", poly, 0.0, 0.06, X["green"], slope=0.02, tags=tags)
+
+
+BLADE_IN, BLADE_OUT = 0.89, 1.27           # laminas de flanco (faixa blindada de fora)
+BLADE_GAP = 0.05                           # fresta preta entre laminas (tambem na emenda dos canos: 0.025 + 0.025)
+BLADE_CUT = (0.30, 0.20)                   # corte do canto de FORA da frente (y, x): a lamina aponta para a boca
+
+
+def flank_blade(name, y0, y1, X, tags, vent=False, leds=0, z1=0.20, cut=BLADE_CUT, back_c=0.07, front=True):
+    """Lamina de flanco (os dois lados), x BLADE_IN..BLADE_OUT, de y0 a y1: placa longa de grafite com bisel largo
+    (aceso em cima/esquerda, sombra embaixo/direita), traseira reta e a FRENTE com o canto de fora cortado em cunha
+    (o canto de dentro avanca: o par espelhado forma uma divisa apontando para a boca, como as laminas do Trovao).
+    vent = respiro escuro com venezianas no meio; leds = fenda com pips violeta perto da frente."""
+    for sx in (-1, 1):
+        cy, cx = cut if front else (0.06, 0.06)
+        poly = [(BLADE_IN, y0 + 0.06), (BLADE_IN + 0.06, y0), (BLADE_OUT - back_c, y0), (BLADE_OUT, y0 + back_c),
+                (BLADE_OUT, y1 - cy), (BLADE_OUT - cx, y1), (BLADE_IN, y1)]
+        if sx < 0:
+            poly = mirror_x(poly)
+        a, p = gplate(f"{name}{sx}", poly, 0.0, z1, X, tags, slope=0.058, groove=0.016, panel_h=0.03)
+        xm = sx * (BLADE_IN + BLADE_OUT) / 2 - sx * 0.02
+        zt = z1 + 0.03
+        if vent and p is not None:
+            ym, L = (y0 + y1) / 2 - 0.08, min(0.56, (y1 - y0) - 0.62)
+            v = B.box(f"{name}_v{sx}", xm, ym, 0.20, L, zt - 0.012, zt + 0.02, X["graph_d"], bevel=0.006, tags=tags)
+            n = max(3, int(L / 0.075))
+            B.cut(v, [B.box(f"{name}_vc{sx}{i}", xm, ym - L / 2 + (i + 0.5) * L / n, 0.15, 0.032, zt - 0.005, 0.6,
+                            X["black"], bevel=0.0) for i in range(n)])
+            B.box(f"{name}_vb{sx}", xm, ym, 0.16, L - 0.03, zt - 0.02, zt - 0.006, X["gap"], bevel=0.0, tags=tags)
+            bolts(f"{name}_vbo{sx}", [(xm, ym - L / 2 - 0.09), (xm, ym + L / 2 + 0.09)], zt + 0.004, X, tags,
+                  r=0.016)
+        if leds and p is not None:
+            ledslot(f"{name}_led{sx}", xm - sx * 0.03, y1 - 0.62, 0.055, 0.42, zt, leds, X, tags, [p, a],
+                    violet(0.55))
+        if p is not None:
+            # linha de painel inclinada (paralela ao corte da frente) atras do corte
+            B.cut(p, [B.rbox(f"{name}_pl{sx}", sx * (BLADE_IN + BLADE_OUT) / 2, y1 - 0.30, 0.30, 0.016, z1 - 0.02,
+                             0.6, X["black"], rot=sx * 34, bevel=0.0)])
+
+
 def cano_roof(M, T="roof"):
+    """Teto do cano: canal aberto no meio (x 1.10-1.90 da peca) com a borda escura, bochechas de grafite com as placas
+    em divisa e LEDs, LAMINAS DE FLANCO longas apontando para a boca (2 por cano: respiro na de tras, LEDs na da
+    frente), 2 pontes de travamento SO sobre o canal e as bochechas (garras + cinta rebaixada) e tiras finas de casco
+    pintado na borda. Frestas pretas; chanfros largos acesos em cima/esquerda (critica r2: estrutura de valores da
+    familia). O corpo blindado ocupa ~2,6 dos 3 quadros (massa de canhao colossal)."""
     X = mats(M)
     tags = (T,)
     for sx in (-1, 1):
-        B.box(f"under{sx}", sx * (CH + 1.5) / 2, 0, 1.5 - CH, 3.0 + 2 * EXT, -0.06, 0.0, X["core"], bevel=0.0,
+        B.box(f"under{sx}", sx * (CH + 1.5) / 2, 0, 1.5 - CH, 3.0 + 2 * EXT, -0.06, 0.0, X["gap"], bevel=0.0,
               tags=tags)
-        _deck_plates(f"dk{sx}", CHEEK_OUT if sx > 0 else -1.5, 1.5 if sx > 0 else -CHEEK_OUT,
-                     [(1.0, 1.0), (0.0, 1.0), (-1.0, 1.0)], X, tags, vent_at=1)
-    # bochechas de grafite: o trecho do meio (entre as pontes) e as pontas (continuam no cano vizinho)
-    yb0, yb1 = BRIDGE_Y - BRIDGE_HW, BRIDGE_Y + BRIDGE_HW
-    cheek("chk_m", -yb0 + 0.02, yb0 - 0.02, X, tags, c0=0.12, c1=0.12)
-    chevron_plate("chv", -yb0 + 0.10, yb0 - 0.10, X, tags, leds=3)
-    cheek("chk_t", yb1 - 0.02, 1.5 + EXT, X, tags, c0=0.12, c1=0.0)
-    cheek("chk_b", -1.5 - EXT, -yb1 + 0.02, X, tags, c0=0.0, c1=0.12)
+    paint_strips("dk", [(1.0, 1.0), (0.0, 1.0), (-1.0, 1.0)], X, tags)
+    # bochechas de grafite LONGAS (uma por cano, de emenda a emenda) por cima das cintas das pontes, com a placa em
+    # divisa no meio (LEDs), linhas de painel e os parafusos das bracadeiras
+    g = BLADE_GAP / 2
+    for (a, p) in cheek("chk", -1.5 + g, 1.5 - g, X, tags, c0=0.10, c1=0.16, x_in=CH + 0.035):
+        if p is not None:
+            B.cut(p, [B.box(f"{p.name}_pl{i}", 0, yy, 4.0, 0.016, 0.12, 0.6, X["black"], bevel=0.0)
+                      for i, yy in enumerate((-1.18, 1.18))])
+    chevron_plate("chv", -BRIDGE_Y + 0.22, BRIDGE_Y - 0.22, X, tags, z0=0.15, z1=0.23, leds=3)
+    for sx in (-1, 1):
+        for j, yy in enumerate((-BRIDGE_Y, BRIDGE_Y)):
+            bolts(f"cbo{sx}{j}", [(sx * 0.66, yy - 0.06), (sx * 0.66, yy + 0.06)], 0.20, X, tags, r=0.017)
+    flank_blade("bl_b", -1.5 + g, 0.0 - g, X, tags, vent=True)
+    flank_blade("bl_f", 0.0 + g, 1.5 - g, X, tags, leds=3)
     coaming("coam", -1.5 - EXT, 1.5 + EXT, X, tags)
     bridge("br_t", BRIDGE_Y, X, tags)
     bridge("br_b", -BRIDGE_Y, X, tags)
@@ -524,7 +712,7 @@ def _plane(px, rect_tiles, part_h, y_lo, y_hi, k_core, edge=0.30, rings=(), ring
     return np.clip(rgb, 0, 1) if as_array else _to_img(rgb)
 
 
-SPILL = 0.16                              # o que vaza do plano de carga sob uma ponte/colar blindado
+SPILL = 0.55                              # o que vaza do plano de carga sob uma ponte/colar blindado
 
 
 def _bridge_mask(bridges, spill=SPILL):
@@ -556,7 +744,7 @@ def glow_loader(P, layer, px, level=1):
     DENTRO acende: a costura entre as folhas fechadas, as lentes da bobina nos recessos das folhas e os emissores
     da camara nos cantos do bloco. 1 = violeta; 2 = mais forte + nucleo ouro-branco na costura."""
     np = _np()
-    from PIL import Image, ImageFilter
+    from PIL import ImageFilter
     H = P["size"][1]
     X, Y = _grid(px, layer["rect"], H)
     g = {1: 0.75, 2: 1.0}[level]
@@ -594,7 +782,7 @@ def _ring_mask(X, Y):
     """O sulco do anel EM em U (as mesmas medidas de _ring_cutters): 1 no fundo do sulco."""
     np = _np()
     g0, g1 = GROOVE
-    gm, gw = (g0 + g1) / 2, (g1 - g0) * 0.5
+    gm, gw = (g0 + g1) / 2, (g1 - g0) * 0.7
     hw = MOUTH_A0 + (MOUTH_A1 - MOUTH_A0) * np.clip((Y - MOUTH_Y0) / (CROWN_YF - MOUTH_Y0), 0, None)
     side = np.clip((gw / 2 - np.abs(np.abs(X) - hw - gm)) / 0.012 + 0.5, 0, 1) * (Y > MOUTH_Y0 - g1) * \
         (Y < CROWN_YF + 0.02)
@@ -623,9 +811,9 @@ def glow_ponta(P, layer, px, level=1):
         rm = _ring_mask(X, Y) * ring_k
         vio = np.array([150, 105, 255], np.float32) / 255.0
         gw = np.array([255, 225, 150], np.float32) / 255.0
-        ring = rm[..., None] * vio * 1.05
+        ring = rm[..., None] * vio * 0.95
         if level == 6:
-            ring = ring + (rm * 0.35)[..., None] * gw
+            ring = ring + (rm * 0.14)[..., None] * gw
         img = _to_img(ring)
         halo = np.asarray(img.filter(ImageFilter.GaussianBlur(1.6)), np.float32)[..., :3] / 255.0
         rgb = rgb + ring + halo * 0.45 * rm.max()
@@ -663,24 +851,29 @@ LOADER_RING = 1.78
 PONTA_RINGS = (-1.0, -0.5, 0.0)
 
 
-# ============================================================================ projetil curto (carregador)
-def slug_round(name, cx, cy, L, R, X, tags, tip_glow=0.9):
-    """Projetil do Tupa como municao: haste de tungstenio CLARO octogonal ao longo de +Y (ponta para a frente), base
-    de sabot escura, 2 colares violeta anodizados e ponta ouro (o mesmo visual do slug de bs_shells2, curto)."""
-    yb, yt = cy - L / 2, cy + L / 2
-    lt = min(0.16, L * 0.2)
-    B.cyl(f"{name}_base", cx, yb + 0.04, 0.16, R * 1.30, 0.08, X["graph_d"], axis="Y", verts=8, bevel=0.004,
-          tags=tags)
-    B.cyl(f"{name}_rod", cx, (yb + 0.08 + yt - lt) / 2, 0.16, R, yt - lt - yb - 0.08, X["tung"], axis="Y", verts=8,
-          bevel=0.004, tags=tags)
-    for i, f in enumerate((0.36, 0.62)):
-        B.cyl(f"{name}_col{i}", cx, yb + L * f, 0.16, R * 1.28, max(0.03, L * 0.05), X["vio_paint"], axis="Y",
-              verts=8, bevel=0.003, tags=tags)
-    B.cyl(f"{name}_tip", cx, yt - lt / 2, 0.16, R, lt, X["tipgold"], axis="Y", verts=8, bevel=0.0, r2=R * 0.35,
-          tags=tags)
-    if tip_glow > 0:
-        B.cyl(f"{name}_hot", cx, yt - 0.025, 0.16, R * 0.40, 0.05, hot(GOLD, tip_glow, (0.42, 0.34, 0.20), "tip"),
-              axis="Y", verts=8, bevel=0.0, r2=R * 0.12, tags=tags)
+# ============================================================================ o dardo (o mesmo objeto em toda parte)
+SLUG_X0, SLUG_X1 = -1.44, 1.47          # extensao do modelo "slug" de bs_shells2 (aletas .. ponta), eixo X
+
+
+def dart(name, M, T, cx, cy, length, radial, z=0.12, phase=0.0):
+    """O dardo do Tupa: o MESMO modelo do projetil em voo (parts/bs_shells2.py, item "slug" = slug.png): haste fina
+    de tungstenio claro, 6 aletas curtas na cauda, 4 colares EM violeta e a ponta quente ouro-branca. De pe (ponta
+    para +Y), centrado em (cx, cy), com o comprimento total 'length' (quadros) e a escala radial 'radial' (1 = a
+    grossura do slug.png). Critica r2: o projetil que entra na culatra e o mesmo que corre pelo cano e voa."""
+    import bpy
+    from parts import bs_shells2
+    sc = bpy.context.scene
+    before = set(o.name for o in sc.objects)
+    bs_shells2.model(M, "slug", T, phase)
+    emp = bpy.data.objects.new(name + "_root", None)
+    sc.collection.objects.link(emp)
+    for o in [o for o in sc.objects if o.name not in before and o.parent is None and o is not emp]:
+        o.parent = emp
+    k = length / (SLUG_X1 - SLUG_X0)
+    emp.scale = (k, radial, radial)            # X local = eixo do projetil
+    emp.rotation_euler.z = math.radians(90)
+    emp.location = (cx, cy - (SLUG_X0 + SLUG_X1) / 2 * k, z)
+    return emp
 
 
 # ============================================================================ CARREGADOR (3x4)
@@ -688,11 +881,12 @@ def slug_round(name, cx, cy, L, R, X, tags, tip_glow=0.9):
 CREW = ((-0.9, 0.4), (0.9, 0.4))         # (0.6, 1.6) e (2.4, 1.6) da peca
 JAW_W = 0.36                            # meia largura da camara / folha da culatra fechada
 JAW_OPEN = 0.30                         # curso de cada folha ao abrir
-ROUND_L, ROUND_R = 1.16, 0.095          # projetil na camara (mais longo que os do paiol: o mesmo projetil enorme)
-CHAMBER_Y = 1.89 - ROUND_L / 2          # centro do projetil assentado (ponta ouro na fenda do teto, y 1.10-1.90)
-TRAY_Y = 0.02 + ROUND_L / 2             # centro do projetil quando sobe do elevador para a bandeja
-MAG_N, MAG_PITCH = 12, 0.14             # paiol interno: 12 projeteis em pe
-MAG_Y, MAG_L, MAG_R = -1.30, 0.80, 0.055
+ROUND_L, ROUND_R = 1.78, 0.75          # dardo na camara: comprimento (quadros) e escala radial (1 = slug.png)
+CHAMBER_Y = 1.91 - ROUND_L / 2          # centro do dardo assentado (ponta na fenda do teto, y 1.10-1.90; cauda 0.13)
+TRAY_Y = -0.25                          # centro do dardo no 1o quadro da carga (sai de baixo da borda do sprite)
+FADE_B = 0.12                           # culatra_*: o alfa some nos 0.12 quadro de baixo (o dardo emerge)
+MAG_N, MAG_PITCH = 12, 0.14             # paiol interno: 12 dardos em pe
+MAG_Y, MAG_L, MAG_R = -1.30, 0.90, 0.36   # dardo do paiol: comprimento e escala radial (aletas < passo)
 CAP_YS = (-0.27, -0.60, -0.93)          # celulas do banco de capacitores (de frente para tras)
 
 
@@ -732,12 +926,12 @@ def loader_floor(M, T="floor"):
     B.cut(lift, [B.box(f"liftc{i}", -0.18 + i * 0.12, -0.72, 0.05, 0.22, 0.03, 0.2, X["black"], bevel=0.0)
                  for i in range(4)])
     # berco do paiol: 12 encaixes escuros com separadores de aco
-    cradle = B.box("cradle", 0, MAG_Y, 1.78, 0.96, 0.0, 0.05, X["graph_d"], bevel=0.01, tags=tags)
-    B.cut(cradle, [B.box(f"slot{j}", _mag_x(j), MAG_Y, 0.11, 0.86, 0.02, 0.2, X["black"], bevel=0.0)
+    cradle = B.box("cradle", 0, MAG_Y, 1.78, 1.0, 0.0, 0.05, X["graph_d"], bevel=0.01, tags=tags)
+    B.cut(cradle, [B.box(f"slot{j}", _mag_x(j), MAG_Y, 0.11, 0.94, 0.02, 0.2, X["black"], bevel=0.0)
                    for j in range(MAG_N)])
     for j in range(MAG_N):
-        B.box(f"slotb{j}", _mag_x(j), MAG_Y, 0.11, 0.86, 0.0, 0.022, X["black"], bevel=0.0, tags=tags)
-    for e, y in enumerate((MAG_Y - 0.47, MAG_Y + 0.47)):
+        B.box(f"slotb{j}", _mag_x(j), MAG_Y, 0.11, 0.94, 0.0, 0.022, X["black"], bevel=0.0, tags=tags)
+    for e, y in enumerate((MAG_Y - 0.49, MAG_Y + 0.49)):
         B.box(f"cradle_bar{e}", 0, y, 1.80, 0.04, 0.04, 0.08, X["steel"], bevel=0.006, tags=tags)
     # bancos de capacitores: encaixes vazios nas laterais (as celulas sao a camada capacitores)
     for sx in (-1, 1):
@@ -767,13 +961,13 @@ def loader_magazine(M, T="projeteis", level=1):
     X = mats(M)
     tags = (T,)
     for n, j in enumerate(_mag_order()[:2 * level]):
-        slug_round(f"mr{j}", _mag_x(j), MAG_Y, MAG_L, MAG_R, X, tags, tip_glow=0.0)
+        dart(f"mr{j}", M, T, _mag_x(j), MAG_Y, MAG_L, MAG_R, z=0.06)
 
 
 def loader_console(M, T="consola", phase=0.0, frame=1):
     """Console de um posto (o mesmo sprite nos 2 postos: simetrico). Mesa em arco na frente do tripulante (para a
     culatra), 2 telas com barras violeta que correm, uma fileira de 4 LEDs (perseguicao) num recesso cortado na
-    borda de tras da mesa e um LED ambar de estado num recesso da asa direita (STYLE 1.6: LEDs so em recessos)."""
+    borda de tras da mesa e um LED ouro fraco de estado num recesso da asa direita (STYLE 1.6: LEDs so em recessos)."""
     X = mats(M)
     tags = (T,)
     cx, cy = CREW[0]
@@ -803,13 +997,14 @@ def loader_console(M, T="consola", phase=0.0, frame=1):
     # fileira de LEDs (um corre por quadro): fenda passante na mesa (base + painel) com leito preto embaixo
     ledslot("led", cx, cy + 0.215, 0.30, 0.05, 0.22, 4, X, tags, [p, a],
             [violet(1.2 if i == k else 0.25) for i in range(4)], vertical=False, depth=0.07)
-    # LED ambar de estado: recesso na asa direita da mesa
+    # LED ouro de estado (fraco): recesso na asa direita da mesa
     ledslot("ledamb", cx + 0.37, cy + 0.215, 0.06, 0.06, 0.22, 1, X, tags, [p, a],
-            amber(0.9 if k % 2 == 0 else 0.35), depth=0.07, pip=0.6)
+            gold_led(0.55 if k % 2 == 0 else 0.22), depth=0.07, pip=0.6)
 
 
-def _jaws(X, tags, off, name="jaw"):
-    """As 2 folhas da culatra (deslizam para os lados). off = 0 fechada .. JAW_OPEN aberta."""
+def _jaws(X, tags, off, name="jaw", lens=0.55, edge=0.0):
+    """As 2 folhas da culatra (deslizam para os lados). off = 0 fechada .. JAW_OPEN aberta. lens = forca da lente
+    violeta da bobina na face de dentro (mais forte com a culatra aberta: a recarga le pela fenda do teto a 1x)."""
     for sx in (-1, 1):
         x0, x1 = off + 0.004, off + JAW_W
         poly = chamfer_rect(x0, 1.08, x1, 1.92, (0.08, 0.0, 0.0, 0.08))
@@ -829,8 +1024,15 @@ def _jaws(X, tags, off, name="jaw"):
             if t is not None:
                 B.cut(t, [B.box(f"{name}_lc{sx}{t.name}", lx, 1.50, 0.05, 0.62, 0.14, 0.6, X["black"], bevel=0.0)])
         B.box(f"{name}_lb{sx}", lx, 1.50, 0.05, 0.62, 0.13, 0.145, X["black"], bevel=0.0, tags=tags)
-        B.box(f"{name}_ll{sx}", lx, 1.50, 0.028, 0.56, 0.145, 0.152, violet(0.55, "rl_jawlens"), bevel=0.0,
-              tags=tags)
+        B.box(f"{name}_ll{sx}", lx, 1.50, 0.028, 0.56, 0.145, 0.152, violet(lens), bevel=0.0, tags=tags)
+        # luz-guia na borda de DENTRO (entre os dentes): com a culatra aberta e a unica parte da folha que fica fora
+        # do bloco da culatra (weapon.png cobre x > JAW_W), entao e ela que mostra a recarga pela fenda do teto a 1x
+        ex = sx * (x0 + 0.036)
+        for t in (a, p):
+            if t is not None:
+                B.cut(t, [B.box(f"{name}_ec{sx}{t.name}", ex, 1.50, 0.026, 0.26, 0.15, 0.6, X["black"], bevel=0.0)])
+        B.box(f"{name}_eb{sx}", ex, 1.50, 0.026, 0.26, 0.135, 0.15, X["black"], bevel=0.0, tags=tags)
+        B.box(f"{name}_el{sx}", ex, 1.50, 0.016, 0.22, 0.15, 0.156, violet(edge), bevel=0.0, tags=tags)
         # nervuras de pega na parte de fora
         for i in range(3):
             B.box(f"{name}_r{sx}{i}", sx * (x1 - 0.07), 1.30 + i * 0.2, 0.07, 0.03, 0.22, 0.25, X["steel"],
@@ -840,7 +1042,7 @@ def _jaws(X, tags, off, name="jaw"):
 def loader_jaws(M, T="culatra_abre", phase=0.0, frame=1):
     """culatra_abre1..3: 1 = fechada, 3 = aberta (o jogo toca ao contrario para fechar)."""
     X = mats(M)
-    _jaws(X, (T,), JAW_OPEN * (frame - 1) / 2)
+    _jaws(X, (T,), JAW_OPEN * (frame - 1) / 2, lens=(0.55, 1.15, 1.6)[frame - 1], edge=(0.0, 1.0, 1.6)[frame - 1])
 
 
 _LOAD_S = (0.0, 0.10, 0.32, 0.62, 0.88, 1.0)
@@ -849,8 +1051,7 @@ _LOAD_S = (0.0, 0.10, 0.32, 0.62, 0.88, 1.0)
 def loader_chambered(M, T="culatra_projetil"):
     """culatra_projetil.png (doodads_low, [1,0,1,2]): o projetil assentado na camara, IGUAL ao de culatra_carrega6
     (mesmo modelo, mesmo lugar, sem o soquete). Fica abaixo das folhas (walls): a culatra fecha por cima dele."""
-    X = mats(M)
-    slug_round("round", 0, CHAMBER_Y, ROUND_L, ROUND_R, X, (T,), tip_glow=0.9)
+    dart("round", M, T, 0, CHAMBER_Y, ROUND_L, ROUND_R)
 
 
 def loader_load(M, T="culatra_carrega", phase=0.0, frame=1):
@@ -858,9 +1059,9 @@ def loader_load(M, T="culatra_carrega", phase=0.0, frame=1):
     abertas, iguais a culatra_abre3)."""
     X = mats(M)
     tags = (T,)
-    _jaws(X, tags, JAW_OPEN)
+    _jaws(X, tags, JAW_OPEN, lens=1.6, edge=1.6)
     y = TRAY_Y + (CHAMBER_Y - TRAY_Y) * _LOAD_S[frame - 1]
-    slug_round("round", 0, y, ROUND_L, ROUND_R, X, tags, tip_glow=0.9)
+    dart("round", M, T, 0, y, ROUND_L, ROUND_R)
     # soquete: cabeca de aco atras da base + haste telescopica escura ate a borda de baixo do sprite
     yb = y - ROUND_L / 2
     B.box("ram_head", 0, yb - 0.04, 0.24, 0.06, 0.06, 0.22, X["steel"], bevel=0.01, tags=tags)
@@ -923,34 +1124,33 @@ def loader_caps(M, T="capacitores", level=1):
 
 def loader_roof(M, T="roof"):
     """Teto do carregador: casa da culatra de grafite (continua as bochechas do cano) com a FENDA aberta sobre a
-    camara (x 1.0-2.0, y 0.1-0.9 da peca), espinha com janela de sensor, casco pintado nas laterais com escotilhas
-    sobre os postos, respiros dos capacitores e a porta blindada do paiol atras."""
+    camara (x 1.0-2.0, y 0.1-0.9 da peca), casa de tras em camadas (laje + 2 laminas inclinadas para a frente +
+    espinha elevada com a janela do sensor), casco pintado nas laterais com 2 PERISCOPIOS rebaixados sobre os postos,
+    respiros dos capacitores e, atras, o COMPARTIMENTO DE VENTILACAO do paiol (recesso escuro com venezianas e uma
+    fileira de LEDs violeta entre 2 laminas em divisa; STYLE 1.4). Critica r2: frestas pretas, chanfros acesos, sem
+    LED ambar e sem LED na borda de cima."""
     X = mats(M)
     tags = (T,)
     SX, SY0, SY1 = 0.5, 1.10, 1.90           # fenda
     # base escura (sem a fenda)
-    B.box("u_back", 0, -0.45, 3.0, 2.9, -0.06, 0.0, X["core"], bevel=0.0, tags=tags)
-    B.box("u_rear", 0, SY0 - 0.075 + 0.0, 1.0, 0.15, -0.06, 0.0, X["core"], bevel=0.0, tags=tags)
+    B.box("u_back", 0, -0.45, 3.0, 2.9, -0.06, 0.0, X["gap"], bevel=0.0, tags=tags)
+    B.box("u_rear", 0, SY0 - 0.075 + 0.0, 1.0, 0.15, -0.06, 0.0, X["gap"], bevel=0.0, tags=tags)
     for sx in (-1, 1):
-        B.box(f"u_side{sx}", sx * 1.0, 1.55, 1.0, 1.1 + 2 * EXT, -0.06, 0.0, X["core"], bevel=0.0, tags=tags)
-    B.box("u_front", 0, (SY1 + 2.0 + EXT) / 2, 1.0, 2.0 + EXT - SY1, -0.06, 0.0, X["core"], bevel=0.0, tags=tags)
+        B.box(f"u_side{sx}", sx * 1.0, 1.55, 1.0, 1.1 + 2 * EXT, -0.06, 0.0, X["gap"], bevel=0.0, tags=tags)
+    B.box("u_front", 0, (SY1 + 2.0 + EXT) / 2, 1.0, 2.0 + EXT - SY1, -0.06, 0.0, X["gap"], bevel=0.0, tags=tags)
     # casco pintado: coluna de fora (3 placas por lado; a fileira da culatra e o anel blindado)
     for sx in (-1, 1):
-        _deck_plates(f"dk{sx}", CHEEK_OUT + 0.02 if sx > 0 else -1.5, 1.5 if sx > 0 else -CHEEK_OUT - 0.02,
+        _deck_plates(f"dk{sx}", CHEEK_OUT + 0.02 if sx > 0 else -1.485, 1.485 if sx > 0 else -CHEEK_OUT - 0.02,
                      [(0.5, 1.0), (-0.5, 1.0), (-1.5, 1.0)], X, tags)
     # ANEL DA CULATRA: colar de largura inteira na frente (fecha o canal na culatra; passa da camera e encosta no
     # 1o cano) + ombros macicos dos dois lados da fenda, com garras inclinadas para a frente e respiros
-    a = B.plate("collar", chamfer_rect(-1.46, SY1 + 0.02, 1.46, 2.0 + EXT, (0.12, 0.12, 0.0, 0.0)),
-                0.0, 0.17, X["graph"], slope=0.03, tags=tags)
-    ledslot("col_led", 0, SY1 + 0.06, 0.40, 0.04, 0.17, 5, X, tags, [a], violet(0.6), vertical=False, depth=0.05)
-    for sx in (-1, 1):
-        ledslot(f"col_amb{sx}", sx * 1.18, SY1 + 0.06, 0.22, 0.04, 0.17, 2, X, tags, [a], amber(0.8),
-                vertical=False, depth=0.05)
+    B.plate("collar", chamfer_rect(-1.46, SY1 + 0.03, 1.46, 2.0 + EXT, (0.10, 0.10, 0.0, 0.0)),
+            0.0, 0.17, X["graph"], slope=0.03, tags=tags)
     for sx in (-1, 1):
         poly = chamfer_rect(SX + 0.02, SY0 - 0.06, 1.46, SY1 - 0.01, (0.0, 0.20, 0.14, 0.0))
         if sx < 0:
             poly = mirror_x(poly)
-        a2, p2 = gplate(f"slotblk{sx}", poly, 0.0, 0.24, X, tags, slope=0.05, groove=0.026)
+        a2, p2 = gplate(f"slotblk{sx}", poly, 0.0, 0.24, X, tags, groove=0.026)
         if p2 is not None:
             vents = [B.box(f"sbv{sx}{i}", sx * 1.20, 1.26 + i * 0.10, 0.30, 0.05, 0.18, 0.6, X["black"], bevel=0.0)
                      for i in range(4)]
@@ -958,63 +1158,85 @@ def loader_roof(M, T="roof"):
             B.cut(a2, [B.box(f"sbva{sx}{i}", sx * 1.20, 1.26 + i * 0.10, 0.30, 0.05, 0.18, 0.6, X["black"],
                              bevel=0.0) for i in range(4)])
             for i in range(4):
-                B.box(f"sbvb{sx}{i}", sx * 1.20, 1.26 + i * 0.10, 0.30, 0.05, 0.16, 0.185, X["core"], bevel=0.0,
+                B.box(f"sbvb{sx}{i}", sx * 1.20, 1.26 + i * 0.10, 0.30, 0.05, 0.16, 0.185, X["gap"], bevel=0.0,
                       tags=tags)
         claw = [(SX + 0.08, SY0 + 0.22), (0.98, SY0 + 0.02), (0.98, SY1 - 0.24), (SX + 0.08, SY1 - 0.06)]
         if sx < 0:
             claw = mirror_x(claw)
-        ca, cp = gplate(f"claw{sx}", claw, 0.24, 0.33, X, tags, slope=0.03, groove=0.02, panel_h=0.022)
+        ca, cp = gplate(f"claw{sx}", claw, 0.24, 0.33, X, tags, slope=0.04, groove=0.016, panel_h=0.022)
         if cp is not None:
             ledslot(f"claw_led{sx}", sx * 0.76, 1.47, 0.05, 0.30, 0.355, 3, X, tags, [cp, ca], violet(0.6))
         bolts(f"sbb{sx}", [(sx * 1.36, 1.12), (sx * 1.36, 1.80)], 0.275, X, tags, r=0.017)
-        # labio claro na borda da fenda
-        B.box(f"slip{sx}", sx * (SX + 0.012), (SY0 + SY1) / 2, 0.024, SY1 - SY0, 0.0, 0.26, X["rail"], bevel=0.006,
+        # borda ESCURA da fenda (o recorte se le pelo chanfro aceso dos ombros)
+        B.box(f"slip{sx}", sx * (SX + 0.010), (SY0 + SY1) / 2, 0.020, SY1 - SY0, 0.0, 0.14, X["gap"], bevel=0.0,
               tags=tags)
-    B.box("slip_r", 0, SY0 - 0.012, 2 * SX + 0.05, 0.024, 0.0, 0.20, X["rail"], bevel=0.006, tags=tags)
-    B.box("slip_f", 0, SY1 + 0.012, 2 * SX + 0.05, 0.024, 0.0, 0.18, X["rail"], bevel=0.006, tags=tags)
-    # placa de tras da fenda + espinha com janela de sensor
+    B.box("slip_r", 0, SY0 - 0.010, 2 * SX + 0.04, 0.020, 0.0, 0.12, X["gap"], bevel=0.0, tags=tags)
+    B.box("slip_f", 0, SY1 + 0.012, 2 * SX + 0.04, 0.024, 0.0, 0.12, X["gap"], bevel=0.0, tags=tags)
+    # casa de tras: laje + 2 laminas inclinadas para a frente (LEDs) + espinha com janela de sensor
     a3, p3 = gplate("rearhouse", chamfer_rect(-CHEEK_OUT, -0.32, CHEEK_OUT, SY0 - 0.03, (0.20, 0.20, 0.0, 0.0)),
-                    0.0, 0.16, X, tags, slope=0.045, groove=0.024)
-    spine = [(-0.30, -0.24), (0.30, -0.24), (0.30, 0.70), (0.0, 0.98), (-0.30, 0.70)]
-    sa, sp = gplate("spine", spine, 0.16, 0.30, X, tags, slope=0.04, groove=0.022, panel_h=0.03)
+                    0.0, 0.14, X, tags, groove=0.024)
+    for sx in (-1, 1):
+        bl = [(0.40, -0.18), (0.80, -0.18), (0.80, 0.70), (0.56, 0.98), (0.40, 1.00)]
+        if sx < 0:
+            bl = mirror_x(bl)
+        ba, bp = gplate(f"rhb{sx}", bl, 0.14, 0.23, X, tags, slope=0.045, groove=0.016, panel_h=0.025)
+        if bp is not None:
+            ledslot(f"rh_led{sx}", sx * 0.62, 0.30, 0.05, 0.56, 0.255, 4, X, tags, [bp, ba], violet(0.55))
+        bolts(f"rhbo{sx}", [(sx * 0.70, -0.10), (sx * 0.50, -0.10)], 0.255, X, tags, r=0.015)
+    spine = [(-0.27, -0.26), (0.27, -0.26), (0.27, 0.72), (0.0, 1.00), (-0.27, 0.72)]
+    sa, sp = gplate("spine", spine, 0.14, 0.32, X, tags, slope=0.05, groove=0.018, panel_h=0.03)
     for t in (sa, sp):
         if t is not None:
-            B.cut(t, [B.box(f"win{t.name}", 0, 0.42, 0.26, 0.10, 0.24, 0.8, X["black"], bevel=0.0)])
-    B.box("win_bed", 0, 0.42, 0.26, 0.10, 0.22, 0.245, X["black"], bevel=0.0, tags=tags)
-    B.box("win_slit", 0, 0.42, 0.16, 0.022, 0.245, 0.252, violet(1.0), bevel=0.0, tags=tags)
+            B.cut(t, [B.box(f"win{t.name}", 0, 0.42, 0.24, 0.10, 0.26, 0.8, X["black"], bevel=0.0)])
+    B.box("win_bed", 0, 0.42, 0.24, 0.10, 0.24, 0.265, X["black"], bevel=0.0, tags=tags)
+    B.box("win_slit", 0, 0.42, 0.15, 0.022, 0.265, 0.272, violet(1.0), bevel=0.0, tags=tags)
     if sp is not None:
-        B.cut(sp, [B.box(f"spl{i}", 0, -0.05 + i * 0.12, 0.40, 0.016, 0.28, 0.6, X["black"], bevel=0.0)
+        B.cut(sp, [B.box(f"spl{i}", 0, -0.08 + i * 0.12, 0.40, 0.016, 0.30, 0.6, X["black"], bevel=0.0)
                    for i in range(2)])
     for sx in (-1, 1):
-        if p3 is not None:
-            ledslot(f"rh_led{sx}", sx * 0.58, 0.40, 0.05, 0.62, 0.19, 4, X, tags, [p3, a3], violet(0.55))
-        # escotilha sobre o posto da tripulacao (casco pintado)
+        # periscopio sobre o posto da tripulacao: alojamento rebaixado escuro (octogono) com a tampa de grafite
+        # baixa, uma fenda de visao escura e a lente violeta apagada (critica r2: as tampas claras puxavam o olho)
         hx, hy = sx * 1.18, 0.40
-        hatch = B.rpoly(hx, hy, 0.46, 0.46, 0, chamfer=0.10)
-        B.plate(f"hatch{sx}", hatch, 0.06, 0.10, X["armor_mid"], slope=0.02, tags=tags)
-        B.box(f"hatch_h{sx}", hx, hy - 0.12, 0.20, 0.045, 0.10, 0.13, X["steel"], bevel=0.01, tags=tags)
+        B.loft(f"hatch_r{sx}", B.rpoly(hx, hy, 0.44, 0.44, 0, chamfer=0.12), B.rpoly(hx, hy, 0.44, 0.44, 0,
+               chamfer=0.12), 0.0, 0.065, X["gap"], bevel=0.0, tags=tags)
+        cap = B.rpoly(hx, hy - 0.02, 0.30, 0.32, 0, chamfer=0.09)
+        ha, hp = gplate(f"hatch{sx}", cap, 0.03, 0.10, X, tags, slope=0.04, groove=0.016, panel_h=0.015)
+        for t in (ha, hp):
+            if t is not None:
+                B.cut(t, [B.box(f"hsl{sx}{t.name}", hx, hy + 0.06, 0.18, 0.045, 0.07, 0.6, X["black"], bevel=0.0)])
+        B.box(f"hsl_b{sx}", hx, hy + 0.06, 0.18, 0.045, 0.06, 0.075, X["black"], bevel=0.0, tags=tags)
+        B.box(f"hsl_l{sx}", hx, hy + 0.06, 0.12, 0.018, 0.075, 0.080, X["lens"], bevel=0.0, tags=tags)
         # respiro do banco de capacitores com 3 pips violeta
         vx, vy = sx * 1.18, -0.62
-        v = B.box(f"cvent{sx}", vx, vy, 0.42, 0.50, 0.05, 0.11, X["core_mid"], bevel=0.008, tags=tags)
-        B.cut(v, [B.box(f"cvc{sx}{i}", vx, vy - 0.16 + i * 0.08, 0.34, 0.03, 0.09, 0.3, X["core"], bevel=0.0)
+        v = B.box(f"cvent{sx}", vx, vy, 0.42, 0.50, 0.05, 0.11, X["graph_d"], bevel=0.008, tags=tags)
+        B.cut(v, [B.box(f"cvc{sx}{i}", vx, vy - 0.16 + i * 0.08, 0.34, 0.03, 0.09, 0.3, X["gap"], bevel=0.0)
                   for i in range(4)])
         B.box(f"cvl_bed{sx}", vx, vy + 0.19, 0.30, 0.05, 0.10, 0.112, X["black"], bevel=0.0, tags=tags)
         for i in range(3):
             B.box(f"cvl{sx}{i}", vx - 0.09 + i * 0.09, vy + 0.19, 0.05, 0.026, 0.112, 0.118, violet(0.7),
                   bevel=0.0, tags=tags)
-    # porta blindada do paiol (2 folhas em divisa para a frente) entre as colunas pintadas
-    B.box("magframe", 0, -1.18, 1.72, 1.56, 0.0, 0.08, X["graph_d"], bevel=0.01, tags=tags)
-    for j, sx in enumerate((-1, 1)):
-        leaf = [(0.02, -1.90), (0.80, -1.90), (0.80, -0.62), (0.62, -0.46), (0.02, -0.66)]
+    # COMPARTIMENTO DE VENTILACAO do paiol (atras): recesso escuro com venezianas, fileira de 6 LEDs violeta na
+    # frente, entre 2 laminas de grafite em divisa (o canto de dentro avanca) e uma placa de tras
+    B.box("vbay", 0, -1.18, 1.74, 1.58, 0.0, 0.05, X["gap"], bevel=0.0, tags=tags)
+    lv = B.box("louv", 0, -1.25, 0.72, 1.14, 0.04, 0.10, X["graph_d"], bevel=0.006, tags=tags)
+    B.cut(lv, [B.box(f"louvc{i}", 0, -1.75 + (i + 0.5) * 1.0 / 12, 0.62, 0.042, 0.06, 0.4, X["black"], bevel=0.0)
+               for i in range(12)])
+    B.box("louv_b", 0, -1.25, 0.66, 1.06, 0.02, 0.058, X["gap"], bevel=0.0, tags=tags)
+    ga, gp = gplate("vhood", chamfer_rect(-0.36, -0.68, 0.36, -0.42, (0.0, 0.0, 0.08, 0.08)), 0.0, 0.12, X, tags,
+                    slope=0.04, groove=0.014, panel_h=0.02)
+    ledslot("vled", 0, -0.56, 0.56, 0.06, 0.14, 6, X, tags, [gp, ga], violet(0.75), vertical=False, depth=0.06,
+            pip=0.5)
+    for sx in (-1, 1):
+        leaf = [(0.37, -1.84), (0.84, -1.84), (0.84, -0.72), (0.66, -0.46), (0.37, -0.40)]
         if sx < 0:
             leaf = mirror_x(leaf)
-        la, lp = gplate(f"leaf{j}", leaf, 0.08, 0.17, X, tags, slope=0.035, groove=0.022, panel_h=0.025)
+        la, lp = gplate(f"leaf{sx}", leaf, 0.0, 0.17, X, tags, groove=0.022, panel_h=0.025)
         if lp is not None:
-            B.cut(lp, [B.box(f"lg{j}{i}", sx * 0.42, -1.70 + i * 0.16, 0.50, 0.018, 0.15, 0.5, X["black"], bevel=0.0)
-                       for i in range(5)])
-        B.box(f"lhinge{j}", sx * 0.77, -1.30, 0.05, 0.40, 0.17, 0.20, X["steel"], bevel=0.008, tags=tags)
-    B.box("mlatch", 0, -1.25, 0.06, 0.70, 0.17, 0.215, X["steel"], bevel=0.01, tags=tags)
-    ledslot("mag_led", 0, -1.82, 0.36, 0.045, 0.20, 4, X, tags, [], violet(0.6), vertical=False, depth=0.03)
+            B.cut(lp, [B.rbox(f"lg{sx}{i}", sx * 0.62, -1.62 + i * 0.30, 0.34, 0.016, 0.15, 0.5, X["black"],
+                              rot=sx * 30, bevel=0.0) for i in range(3)])
+        bolts(f"lbo{sx}", [(sx * 0.76, -1.76), (sx * 0.45, -1.76)], 0.20, X, tags, r=0.016)
+    ra, rp = gplate("rearplate", chamfer_rect(-0.84, -1.97, 0.84, -1.87, (0.04, 0.04, 0.0, 0.0)), 0.0, 0.12, X,
+                    tags, slope=0.035, groove=0.012, panel_h=0.015)
     coaming("coam", SY1 + 0.02, 2.0 + EXT, X, tags, z=0.13)
 
 
@@ -1028,11 +1250,11 @@ CROWN_YB = 0.54                           # borda de tras da coroa
 CROWN_YF = 1.98                           # borda da frente
 MOUTH_Y0 = 0.90                           # fundo da boca (atras dela, o colar cruza o canal)
 MOUTH_A0, MOUTH_A1 = 0.38, 0.56           # meia largura da boca no fundo e na frente (abre para a frente)
-GROOVE = (0.04, 0.10)                     # sulco do anel EM: distancia da borda da boca (dentro do degrau 1)
+GROOVE = (0.04, 0.12)                     # sulco do anel EM: distancia da borda da boca (dentro do degrau 1)
 CROWN_OUT = [(-1.40, CROWN_YB), (1.40, CROWN_YB), (1.47, 0.61), (1.47, 1.50), (1.22, CROWN_YF), (-1.22, CROWN_YF),
              (-1.47, 1.50), (-1.47, 0.61)]
 # degraus do colar: (nome, topo z, recuo lateral da boca, recuo de tras, frente y)
-CROWN_TIERS = (("t1", 0.20, 0.00, 0.00, CROWN_YF), ("t2", 0.28, 0.13, 0.12, 1.95), ("t3", 0.36, 0.32, 0.22, 1.915),
+CROWN_TIERS = (("t1", 0.20, 0.00, 0.00, CROWN_YF), ("t2", 0.28, 0.15, 0.14, 1.95), ("t3", 0.36, 0.32, 0.22, 1.915),
                ("t4", 0.44, 0.56, 0.30, 1.88))
 PONTA_BRIDGE = -2.0 + 0.55
 
@@ -1064,7 +1286,7 @@ def ponta_floor(M, T="floor"):
     channel_floor("ch", -2.0 - EXT, MOUTH_Y0 - 0.05, X, tags, rib_y0=-1.875)
     # a boca: fundo fundo e preto (le escura a 1x); so os trilhos claros saem por ela
     B.box("mouth_d", 0, (MOUTH_Y0 - 0.10 + 2.0 + EXT) / 2, 2 * (MOUTH_A1 + 0.12), 2.0 + EXT - MOUTH_Y0 + 0.10,
-          -0.02, 0.016, X["black"], bevel=0.0, tags=tags)
+          -0.02, 0.016, X["void"], bevel=0.0, tags=tags)
     for sx in (-1, 1):
         B.box(f"bus{sx}", sx * 0.70, -0.75, 0.08, 2.5 + EXT, -0.02, 0.05, X["steel"], bevel=0.01, tags=tags)
         B.box(f"busk{sx}", sx * 0.70, -0.75, 0.02, 2.5 + EXT, 0.05, 0.056, X["black"], bevel=0.0, tags=tags)
@@ -1210,53 +1432,42 @@ def ponta_crown(M, T="weapon"):
 
 
 def ponta_roof(M, T="roof"):
+    """Teto da ponta: o canal aberto ate a coroa; bochecha da emenda (continua o cano), a ponte (garras + cinta), o
+    capuz da boca (bochechas + placa em divisa) e as LAMINAS DE FLANCO apontando para a boca (iguais as do cano: a
+    de tras com LEDs, a da frente entra sob o colar da coroa); tiras pintadas na borda. Frestas pretas e chanfros
+    acesos (critica r2)."""
     X = mats(M)
     tags = (T,)
     y0 = -2.0 - EXT
+    yt = CROWN_Y0 + 0.04
     for sx in (-1, 1):
-        B.box(f"under{sx}", sx * (CH + 1.5) / 2, (y0 + CROWN_Y0) / 2, 1.5 - CH, CROWN_Y0 - y0, -0.06, 0.0,
-              X["core"], bevel=0.0, tags=tags)
-        _deck_plates(f"dk{sx}", 1.12 if sx > 0 else -1.5, 1.5 if sx > 0 else -1.12,
-                     [(-1.5, 1.0), (-0.5, 1.0)], X, tags)
+        B.box(f"under{sx}", sx * (CH + 1.5) / 2, (y0 + yt) / 2, 1.5 - CH, yt - y0, -0.06, 0.0, X["gap"], bevel=0.0,
+              tags=tags)
         # ombro pintado nos cantos da frente, fora do chanfro da coroa (o resto da fileira e a coroa)
-        sh = [(1.27, 1.97), (1.47, 1.58), (1.47, 1.97)]
+        sh = [(1.27, 1.97), (1.485, 1.55), (1.485, 1.97)]
         if sx < 0:
             sh = mirror_x(sh)
         B.plate(f"shoulder{sx}", sh, 0.0, 0.06, X["green"], slope=0.015, tags=tags)
-        B.loft(f"shu{sx}", sh, sh, -0.06, 0.0, X["core"], bevel=0.0, tags=tags)
-        sq = chamfer_rect(1.12, 0.03, 1.47, CROWN_YB - 0.04, (0.09, 0.09, 0.0, 0.0))
-        if sx < 0:
-            sq = mirror_x(sq)
-        B.shard(f"sq{sx}", sq, 0.0, 0.06, X["green"], slope=0.025, groove=0.04, panel_h=0.02, tags=tags)
-    # bochecha da emenda (continua o cano de tras), ponte, e o capuz da boca (bochechas largas e altas)
+        B.loft(f"shu{sx}", sh, sh, -0.06, 0.0, X["gap"], bevel=0.0, tags=tags)
+    paint_strips("dk", [(-1.5, 1.0), (-0.5, 1.0), ((0.0 + CROWN_YB - 0.02) / 2 + 0.0, CROWN_YB - 0.02)], X, tags)
     yb1 = PONTA_BRIDGE + BRIDGE_HW
-    cheek("chk_b", y0, PONTA_BRIDGE - BRIDGE_HW + 0.02, X, tags, c0=0.0, c1=0.12)
+    g = BLADE_GAP / 2
+    # bochecha longa da emenda ate o colar da coroa (por cima da cinta da ponte) + placa em divisa do capuz
+    for (a, p) in cheek("chk", -2.0 + g, yt, X, tags, c0=0.10, c1=0.0, z1=0.16, x_in=CH + 0.035):
+        if p is not None:
+            B.cut(p, [B.box(f"{p.name}_pl", 0, -1.85 + 0.5, 4.0, 0.016, 0.12, 0.6, X["black"], bevel=0.0)])
     bridge("br", PONTA_BRIDGE, X, tags)
-    out = []
     for sx in (-1, 1):
-        poly = [(CH + 0.02, yb1 - 0.02), (0.86, yb1 - 0.02), (1.10, yb1 + 0.30), (1.10, CROWN_Y0 + 0.04),
-                (CH + 0.02, CROWN_Y0 + 0.04)]
-        if sx < 0:
-            poly = mirror_x(poly)
-        out.append(gplate(f"shroud{sx}", poly, 0.0, 0.16, X, tags))
-    chevron_plate("chv", yb1 + 0.12, CROWN_Y0 - 0.06, X, tags, x_in=0.50, x_out=0.98, lean=0.22, z0=0.16,
+        bolts(f"cbo{sx}", [(sx * 0.66, PONTA_BRIDGE - 0.06), (sx * 0.66, PONTA_BRIDGE + 0.06)], 0.21, X, tags,
+              r=0.017)
+    chevron_plate("chv", yb1 + 0.12, CROWN_Y0 - 0.08, X, tags, x_in=0.50, x_out=0.80, lean=0.20, z0=0.16,
                   z1=0.25, leds=4)
-    for sx in (-1, 1):
-        bolts(f"sb{sx}", [(sx * 1.02, yb1 + 0.50), (sx * 1.02, CROWN_Y0 - 0.10)], 0.19, X, tags, r=0.016)
-    coaming("coam", y0, CROWN_Y0 + 0.04, X, tags, z=0.16)
+    flank_blade("bl_b", -2.0 + g, -0.5 - g, X, tags, leds=3)
+    flank_blade("bl_f", -0.5 + g, yt, X, tags, vent=True, front=False)
+    coaming("coam", y0, yt, X, tags, z=0.16)
 
 
 def slug_sprite(M, T="slug"):
     """slug.png (0.8 x 3, ChainedTo Projectile, camada walls): o MESMO modelo do slug em voo
-    (parts/bs_shells2.py, item "slug"), de pe (ponta para +Y), na luz das pecas."""
-    import bpy
-    from parts import bs_shells2
-    sc = bpy.context.scene
-    before = set(o.name for o in sc.objects)
-    bs_shells2.model(M, "slug", T, 0.0)
-    emp = bpy.data.objects.new("slug_root", None)
-    sc.collection.objects.link(emp)
-    for o in [o for o in sc.objects if o.name not in before and o.parent is None and o is not emp]:
-        o.parent = emp
-    emp.rotation_euler.z = math.radians(90)
-    emp.location = (0.0, 0.0, 0.0)
+    (parts/bs_shells2.py, item "slug"), de pe (ponta para +Y), na luz das pecas, escala 1."""
+    dart("slug", M, T, 0.0, (SLUG_X0 + SLUG_X1) / 2, SLUG_X1 - SLUG_X0, 1.0, z=0.0)

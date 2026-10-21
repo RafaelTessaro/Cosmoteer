@@ -3,14 +3,15 @@
 Peca 1x2 de PROA FIXA: a arma nao e uma torre que gira 360 graus, e um cardan (gimbal) baixo que mira so 30 graus
 (FiringArc 30d). Por isso o teto mostra a montagem fixa: o poco do cardan no tile da frente, calcos de proa nos
 cantos e, no tile de tras, a TREMONHA de celulas PEM (caixa blindada sem pintura com janela mostrando 3 celulas
-PEM deitadas, contador azul e calha de alimentacao ate o cardan).
+PEM deitadas com fendas azuis finas, contador azul e calha de alimentacao ate o cardan).
 Cabeca (o cardan, gira +-15 graus): corpo em lamina de faca alongado (o peixe-faca visto de cima): duas bochechas
 claras de bisel duplo que afinam em ponta para a frente ao lado dos canos, munhoes de aco nas laterais (o cardan),
 recesso da culatra entre as raizes dos canos com o CAPACITOR azul aceso (cilindro deitado preso por cintas de aco),
 espinha curta com janela do sensor (lente azul) e baia de exaustao traseira com 3 pips azuis.
 Canos gemeos curtos (disparo sincronizado): culatra escura, BOBINA de fio de cobre (espiras redondas sobre nucleo
 escuro, a assinatura da familia PEM), colar de aco, luva clara curta com canal e boca emissora facetada com fendas
-escuras. Depois do tiro as espiras brilham em azul (heat_color azul, fraco).
+escuras. Depois do tiro as FRESTAS entre as espiras e as bordas da bobina acendem em azul (heat_color azul, rampa
+curta heat_ramp: brilho eletrico por igual na bobina); o cobre das espiras fica cobre.
 
 Este arquivo tambem guarda o KIT DA FAMILIA PEM (pem(), turn(), coil(), cell()), importado por bs_pem_medium.py e
 bs_pem_heavy.py: brilhos azuis em intensidade BAIXA (Mo.mats("blue") estoura, STYLE.md 9), cobre = Mo.copper_mat()
@@ -42,8 +43,9 @@ PART = {
         "pad": 0.08,               # espaco atras da raiz para o recuo
         "anim": "recoil",
         "recoil": [0.06, 0.035, 0.012],          # 3 quadros de recuo + repouso (spec de arte)
-        "heat": [0.62, 0.38, 0.16],              # espiras azuis depois do tiro (fraco)
+        "heat": [1.25, 0.78, 0.38],              # frestas da bobina azuis depois do tiro (apagam em 3 quadros)
         "heat_color": (0.05, 0.35, 1.0),         # azul PEM (spec de arte: Tuvira heat_color)
+        "heat_ramp": (0.10, 0.45),               # brilho eletrico por igual na bobina (render_part: heat_ramp)
         "interval": 0.06,
     },
     "lights": [                    # luzes dinamicas (coordenadas da cabeca): o capacitor azul
@@ -117,9 +119,20 @@ def coil(name, y0, y1, z, R, M, X, tags, wire=None, x=0.0, gap_mat=None, core_r=
     return len(ys)
 
 
-def cell(name, x, y, z, r, L, M, X, tags, axis="X", lit=True):
+COIL_SPACING = 3.0                 # passo das espiras dos canos leve/medio: frestas entre elas (acendem no tiro)
+
+
+def coil_edges(name, ys, z, R, M, tags, w=0.008):
+    """Aneis escuros finos nas bordas da bobina (entre a espira da ponta e o colar), etiqueta 'hot' no cano: no
+    tiro viram as linhas azuis das bordas da bobina."""
+    for i, y in enumerate(ys):
+        B.cyl(f"{name}{i}", 0, y, z, R, w, M["core"], axis="Y", verts=12, bevel=0.0, tags=tags)
+
+
+def cell(name, x, y, z, r, L, M, X, tags, axis="X", lit=True, win=0.11, win_mat=None):
     """Celula PEM deitada (eixo X ou Y): casca azul-marinho, 2 bobinas de cobre, tampas de aco e uma janela acesa
-    azul no meio (a celula que a tremonha e os tambores mostram)."""
+    azul no meio (a celula que a tremonha e os tambores mostram). win = largura da janela (fracao de L), win_mat =
+    material da janela (padrao X["cell"])."""
     S = M["steel"]
     ax = axis
     off = (lambda d: (x + d, y)) if ax == "X" else (lambda d: (x, y + d))
@@ -131,7 +144,8 @@ def cell(name, x, y, z, r, L, M, X, tags, axis="X", lit=True):
         cx, cy = off(d)
         B.cyl(f"{name}_cu{k}", cx, cy, z, r * 1.06, L * 0.08, X["copper"], axis=ax, verts=10, bevel=0.0, tags=tags)
     if lit:
-        B.cyl(f"{name}_win", x, y, z, r * 1.02, L * 0.11, X["cell"], axis=ax, verts=10, bevel=0.0, tags=tags)
+        B.cyl(f"{name}_win", x, y, z, r * 1.02, L * win, win_mat or X["cell"], axis=ax, verts=10, bevel=0.0,
+              tags=tags)
 
 
 def stroke(name, p, q, w, z0, z1, mat, tags):
@@ -195,7 +209,8 @@ def head(M, T="head", phase=0.0):
     # recesso da culatra com o capacitor azul: cilindro deitado fino, 4 cintas de aco por cima (3 trechos acesos
     # pequenos) e tampas de cobre nas pontas
     B.box("cap_bay", 0, 0.085, 0.40, 0.15, 0.20, 0.27, M["black"], bevel=0.0, tags=tags)
-    B.cyl("capacitor", 0, 0.085, 0.262, 0.027, 0.32, X["cap"], axis="X", verts=12, bevel=0.0, tags=tags)
+    B.cyl("capacitor", 0, 0.085, 0.262, 0.027, 0.32, B.mat_glow("pem_cap_low", (0.10, 0.46, 1.0), 0.6), axis="X",
+          verts=12, bevel=0.0, tags=tags)
     for k, x in enumerate((-0.135, -0.045, 0.045, 0.135)):
         B.box(f"cap_strap{k}", x, 0.085, 0.036, 0.11, 0.25, 0.31, S, bevel=0.004, tags=tags)
     for sx in (-1, 1):
@@ -263,12 +278,16 @@ def barrel(M, L=0.84, T="barrel", phase=0.0):
     B.cut(sl, [B.box("b_chc", 0, (y0 + y1) / 2, 0.018, y1 - y0 - 0.04, z + 0.024, z + 0.2, K, bevel=0.0)])
     B.box("b_chbed", 0, (y0 + y1) / 2, 0.018, y1 - y0 - 0.04, z + 0.018, z + 0.028, M["black"], bevel=0.0,
           tags=tags)
-    # bobina de fio de cobre (assinatura PEM), na frente: o calor azul do tiro sobe por ela ate a boca
+    # bobina de fio de cobre (assinatura PEM), na frente. Depois do tiro so as FRESTAS entre as espiras e as bordas
+    # da bobina acendem em azul (nucleo e aneis de borda 'hot'); o cobre das espiras fica cobre (o azul por cima do
+    # cobre saia cinza)
     c0, c1 = 0.325, L - 0.19
-    coil("b_coil", c0, c1, z, 0.088, M, X, hot, wire=0.0115)
+    coil("b_coil", c0, c1, z, 0.088, M, X, hot, wire=0.0115, spacing=COIL_SPACING, turn_tags=tags)
     for i, y in enumerate((c0 - 0.006, (c0 + c1) / 2, c1 + 0.006)):
         B.cyl(f"b_cband{i}", 0, y, z, 0.092, 0.018, KM if i == 1 else S, axis="Y", verts=8, bevel=0.003,
               tags=hot if i == 2 else tags)
+    coil_edges("b_cedge", (c0 + 0.006, (c0 + c1) / 2 - 0.012, (c0 + c1) / 2 + 0.012, c1 - 0.006), z, 0.086, M,
+               hot)
     # boca emissora facetada em ponta de flecha com fendas escuras e anel de contato de cobre no fundo
     yb = L - 0.085
     muz = [(-0.07, yb - 0.085), (0.07, yb - 0.085), (0.098, yb - 0.05), (0.098, yb + 0.03), (0.04, yb + 0.085),
@@ -317,8 +336,11 @@ def roof(M, T="roof"):
         if t is not None:
             B.cut(t, [B.loft(f"hwin{t.name}", win, win, 0.10, 0.5, K, bevel=0.0)])
     B.loft("hwin_bed", win, win, 0.095, 0.105, M["black"], bevel=0.0, tags=tags)
+    # celulas azul-marinho + cobre; so a do meio mostra uma fenda azul fina e fraca (a janela acesa larga nas 3
+    # deixava a tremonha mais brilhante que qualquer teto aprovado: teto aceso <= ~0,4-0,5%)
+    slit = B.mat_glow("pem_cell_slit", (0.10, 0.36, 1.0), 0.40)
     for i, y in enumerate((hy - 0.17, hy - 0.02, hy + 0.13)):
-        cell(f"hcell{i}", 0, y, 0.15, 0.052, 0.44, M, X, tags, axis="X")
+        cell(f"hcell{i}", 0, y, 0.15, 0.052, 0.44, M, X, tags, axis="X", lit=(i == 1), win=0.045, win_mat=slit)
     # grade de aco sobre a janela (2 barras ao longo de y): quebra o brilho e segura as celulas
     for sx in (-1, 1):
         B.box(f"hgrille{sx}", sx * 0.11, hy - 0.02, 0.022, 0.46, 0.20, 0.225, S, bevel=0.004, tags=tags)
@@ -326,9 +348,9 @@ def roof(M, T="roof"):
     if hp is not None:
         B.cut(hp, [B.box(f"hpl{sx}", sx * 0.295, -0.52, 0.014, 0.30, 0.16, 0.5, K, bevel=0.0) for sx in (-1, 1)])
     B.bolts("hbolt", [(sx * 0.29, y) for sx in (-1, 1) for y in (-0.82, -0.20)], 0.185, 0.016, S, tags=tags)
-    # contador da tremonha (4 LEDs azuis num rebaixo) e calha de alimentacao ate o poco do cardan
-    Mo.slot_with_pips("hcnt", -0.815, -0.16, 0.16, 0.04, 0.18, 4, M, tags, target=[ha, hp], depth=0.07,
-                      vertical=False)
+    # contador da tremonha (3 LEDs azuis fracos num rebaixo) e calha de alimentacao ate o poco do cardan
+    Mo.slot_with_pips("hcnt", -0.815, -0.16, 0.16, 0.04, 0.18, 3, M, tags, target=[ha, hp], depth=0.07,
+                      vertical=False, pip_mat=B.mat_glow("pem_cnt", PEM_BLUE, 0.35))
     B.box("chute", 0, -0.05, 0.14, 0.14, 0.06, 0.13, KM, bevel=0.01, tags=tags)
     B.box("chuter", 0, -0.05, 0.16, 0.025, 0.06, 0.14, S, bevel=0.004, tags=tags)
 

@@ -36,6 +36,11 @@ Esquema de PART (coordenadas da peca em quadros, origem no canto de cima-esquerd
                                     # vanilla); "alpha" = brilho com alfa (como turret_oc.png)
          "halo": True,              # halo de brilho dos emissivos no difuso (render_set glow_halo)
          "despill": True,           # tira o verde refletido das placas pintadas no metal vizinho (tetos)
+         "fade": {"bottom": 0.12},  # o alfa cai a 0 ate a borda pedida (quadros; top/bottom/left/right): o que
+                                    # passa da borda do rect "emerge" em vez de sair cortado reto
+         "same_as": {"layer": "culatra_carrega", "index": 6},   # depois de tudo: os pixels deste sprite saem do
+                                    # sprite <index> (1..N) da outra camada (mesmo rect), recortados pelo alfa deste
+                                    # render (o mesmo objeto, pixel a pixel, sem o ruido de 2 renders)
          "samples": 48,             # amostras do Cycles
          "islands": False},         # meta: o sprite pode ter varias ilhas (o check_art3d aceita)
         ...],
@@ -188,6 +193,33 @@ def despill_green(path, limit=70):
     Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGBA").save(path)
 
 
+def fade_edges(path, fade):
+    """Multiplica o alfa por uma rampa suave (0 na borda -> 1 a 'd' quadros dela) nas bordas pedidas em fade =
+    {"top" | "bottom" | "left" | "right": d}. Os normais (se houver) recebem o mesmo alfa depois."""
+    im = Image.open(path).convert("RGBA")
+    a = np.asarray(im).astype(np.float32).copy()
+    h, w = a.shape[:2]
+    k = np.ones((h, w), np.float32)
+    yy = (np.arange(h) + 0.5)[:, None] / PX
+    xx = (np.arange(w) + 0.5)[None, :] / PX
+    for side, d in (fade or {}).items():
+        dist = {"top": yy, "bottom": h / PX - yy, "left": xx, "right": w / PX - xx}[side]
+        r = np.clip(dist / max(1e-6, d), 0, 1)
+        k = k * (r * r * (3 - 2 * r))
+    a[..., 3] *= k
+    Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGBA").save(path)
+
+
+def clean_alpha0(path):
+    """RGB = 0 onde alfa = 0 (o LANCZOS da reducao deixa cor 'suja' em pixels transparentes perto das bordas)."""
+    im = Image.open(path).convert("RGBA")
+    a = np.asarray(im).copy()
+    z = a[..., 3] == 0
+    if z.any() and a[z][:, :3].any():
+        a[z] = 0
+        Image.fromarray(a, "RGBA").save(path)
+
+
 def walls_png(W, H, spec, color=(64, 67, 71)):
     """Moldura de parede vanilla de 7 px com sombra interna (igual a render_part.walls_png) e ABERTURAS.
 
@@ -269,6 +301,14 @@ def render_layer(mod, P, layer, out):
         res = B.render_set(stem, px, glow_halo=layer.get("halo", True), normals=want_n, off=False, glow=True)
         if layer.get("despill"):
             despill_green(stem + ".png")
+        if layer.get("fade"):
+            fade_edges(stem + ".png", layer["fade"])
+            if want_n:
+                n = np.asarray(_load(stem + "_normals.png")).copy()
+                n[..., 3] = np.asarray(_load(stem + ".png"))[..., 3]
+                Image.fromarray(n, "RGBA").save(stem + "_normals.png")
+        if not layer.get("opaque"):
+            clean_alpha0(stem + ".png")
         if layer.get("opaque"):
             base = Image.new("RGBA", px, FLOOR_BG + (255,))
             base.alpha_composite(res["on"])
@@ -423,6 +463,23 @@ def render_layered(mod, P, out, only):
                 layers[l["name"]] = ent
             continue
         layers[l["name"]] = render_layer(mod, P, l, out)
+    for l in P["layers"]:
+        sa = l.get("same_as")
+        if not sa or (only and l["name"] not in only and sa["layer"] not in only and "hull" not in only):
+            continue
+        src_ent = layers.get(sa["layer"])
+        if src_ent is None or l["name"] not in layers:
+            continue
+        if rect_of(P, l) != list(src_ent["rect"]):
+            raise SystemExit(f"{P['id']}/{l['name']}: same_as precisa do mesmo rect de {sa['layer']}")
+        for f in layers[l["name"]]["files"]:
+            me = np.asarray(_load(os.path.join(out, f))).astype(np.float32)
+            src = np.asarray(_load(os.path.join(out, src_ent["files"][sa["index"] - 1]))).astype(np.float32)
+            o = src.copy()
+            o[..., 3] = np.minimum(src[..., 3], me[..., 3])
+            o[o[..., 3] == 0] = 0
+            Image.fromarray(o.astype(np.uint8), "RGBA").save(os.path.join(out, f))
+        print(f"  camada {l['name']}: pixels de {sa['layer']}{sa['index']} (same_as)")
     files = []
     wimg = walls_png(W, H, P.get("walls", "closed"))
     if wimg is not None:

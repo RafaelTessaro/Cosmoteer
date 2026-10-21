@@ -220,22 +220,21 @@ def _stroke(name, p, q, w, z0, z1, mat, tags):
                   bevel=0.0, tags=tags)
 
 
-# serpente da Boiuna (emblema da espinha, no lugar do trevo da 1.x): corpo em S que sobe para a frente e cabeca em
-# losango apontando para o cano; coordenadas relativas ao centro do rebaixo
-SERPENT = [(-0.040, -0.168), (0.070, -0.128), (0.078, -0.072), (-0.070, -0.030), (-0.074, 0.020), (0.030, 0.056),
-           (0.0, 0.092)]
-# cabeca de viperideo larga e chata (mais larga que o pescoco, focinho rombudo para a frente): le como cabeca de
-# cobra e nao como ponta de seta
-SERPENT_HEAD = [(0.0, 0.076), (0.050, 0.098), (0.064, 0.136), (0.034, 0.180), (-0.034, 0.180), (-0.064, 0.136),
-                (-0.050, 0.098)]
+# serpente da Boiuna (emblema da espinha, no lugar do trevo da 1.x): corpo GROSSO em S liso (uma onda senoidal
+# completa, afinando so na cauda) e cabeca em LOSANGO pouco mais larga que o corpo, focinho para o cano; coordenadas
+# relativas ao centro do rebaixo. (Zigue-zague fino + cabeca redonda lia como girino/minhoca a 3x.)
+SERPENT = [(0.078 * math.sin(2 * math.pi * t), -0.172 + 0.238 * t) for t in (i / 18 for i in range(19))]
+SERPENT_HEAD = [(0.0, 0.052), (0.048, 0.104), (0.020, 0.160), (0.0, 0.188), (-0.020, 0.160), (-0.048, 0.104)]
 
 
-def _serpent(name, cx, cy, z, mat, tags, w=0.030):
-    """Emblema da serpente: tracos acesos fracos (ambar) num rebaixo preto; cabeca em losango cheio."""
+def _serpent(name, cx, cy, z, mat, tags, w=0.042):
+    """Emblema da serpente: tracos acesos fracos (ambar) num rebaixo preto; corpo em S que so afina na cauda e
+    cabeca em losango cheio."""
     pts = [(cx + x, cy + y) for x, y in SERPENT]
-    for i in range(len(pts) - 1):
-        # o corpo afina para a cauda (a ponta de tras e mais fina)
-        _stroke(f"{name}{i}", pts[i], pts[i + 1], w * (0.62 + 0.38 * i / (len(pts) - 2)), z, z + 0.008, mat, tags)
+    n = len(pts) - 1
+    for i in range(n):
+        t = i / (n - 1)
+        _stroke(f"{name}{i}", pts[i], pts[i + 1], w * min(1.0, 0.45 + 1.4 * t), z, z + 0.008, mat, tags)
     head = [(cx + x, cy + y) for x, y in SERPENT_HEAD]
     B.loft(f"{name}_head", head, head, z, z + 0.008, mat, bevel=0.0, tags=tags)
 

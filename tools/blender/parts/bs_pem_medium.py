@@ -11,7 +11,8 @@ Torre redonda e achatada (o disco da raia visto de cima), 2x2:
   * cauda: quilha estreita para tras, ladeada pelas baias de exaustao com pips azuis.
 Cano unico grosso de 76 mm: culatra escura no berco, luva clara com canal, TRES BOBINAS de fio de cobre separadas
 por colares de aco e luvas curtas, boca emissora facetada com fendas escuras e anel de contato de cobre. Depois do
-tiro as bobinas da frente brilham em azul (heat_color azul; o calor sobe para a boca).
+tiro as FRESTAS entre as espiras e as bordas das 3 bobinas acendem em azul (heat_color azul, heat_ramp: a da frente
+mais forte); o cobre das espiras fica cobre (azul por cima do cobre saia cinza).
 Kit da familia PEM: parts/bs_pem_light.py (pem, coil, cell, stroke).
 """
 
@@ -19,7 +20,7 @@ import math
 
 import bs3d as B
 import models as Mo
-from parts.bs_pem_light import coil, pem, rslot, side, stroke
+from parts.bs_pem_light import COIL_SPACING, coil, coil_edges, pem, rslot, side, stroke
 
 PART = {
     "id": "rafaeltessaro.bs_pem_medium",
@@ -39,8 +40,9 @@ PART = {
         "pad": 0.16,               # espaco atras da raiz para o recuo
         "anim": "recoil",
         "recoil": [0.14, 0.10, 0.055, 0.02],     # 4 quadros de recuo + repouso (spec de arte)
-        "heat": [0.72, 0.52, 0.32, 0.14],        # bobinas azuis depois do tiro
+        "heat": [1.25, 0.90, 0.58, 0.25],        # frestas das bobinas azuis depois do tiro
         "heat_color": (0.05, 0.35, 1.0),
+        "heat_ramp": (0.15, 0.50),               # as 3 bobinas acendem, a da frente mais (render_part: heat_ramp)
         "interval": 0.07,
     },
     "lights": [
@@ -214,8 +216,11 @@ def barrel(M, L=1.45, T="barrel", phase=0.0):
         B.cut(sl, [B.box(f"b_chc{i}", 0, (a + b) / 2, 0.032, b - a + 0.1, z + 0.05, z + 0.3, K, bevel=0.0)])
     B.box("b_chbed", 0, 0.62, 0.032, 0.74, z + 0.04, z + 0.052, M["black"], bevel=0.0, tags=tags)
     # tres bobinas de fio de cobre, cada uma entre dois colares
+    # no tiro so as frestas entre as espiras e as bordas acendem (nucleo e aneis de borda 'hot'); o cobre fica cobre
     for i, (a, b) in enumerate(packs):
-        coil(f"b_coil{i}", a + 0.012, b - 0.012, z, 0.172 - 0.006 * i, M, X, hot, wire=0.0155)
+        R = 0.172 - 0.006 * i
+        coil(f"b_coil{i}", a + 0.012, b - 0.012, z, R, M, X, hot, wire=0.014, spacing=COIL_SPACING, turn_tags=tags)
+        coil_edges(f"b_cedge{i}", (a + 0.017, b - 0.017), z, R - 0.004, M, hot, w=0.010)
         for j, y in enumerate((a + 0.006, b - 0.006)):
             B.cyl(f"b_col{i}{j}", 0, y, z, 0.178 - 0.006 * i, 0.014, S, axis="Y", verts=8, bevel=0.003,
                   tags=hot if i == 2 else tags)

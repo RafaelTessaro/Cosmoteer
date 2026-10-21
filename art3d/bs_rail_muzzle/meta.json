@@ -135,6 +135,11 @@
  "walls": "walls.png",
  "icon": "icon.png",
  "blueprints": "blueprints.png",
+ "notes": [
+  "DESCARGA (critica r2: o climax nao pode murchar): carga1..8 + trilhos (canos), carga1..6 (ponta) e luz_culatra NAO apagam todos no ProjectileStartTrigger. Cada cano SEGURA a carga cheia (trilhos9 + carga8) ate a PONTA do dardo entrar nele e entao descarrega (trilhos1, carga escondida): o canal escuro atras e o rastro que persegue o dardo, o cano a frente continua carregado ate o dardo chegar e o dardo claro corre sempre no canal escuro (licao 1: sob a carga cheia ele some). luz_culatra e o 1o cano descarregam no ProjectileStartTrigger (a ponta do dardo ja esta no 1o cano); a ponta (carga + anel EM da coroa) descarrega junto com o clarao (EmissionTriggered / ProjectileFinished). Ligacao (variante 'delay' de rail.charge_wave): em cada cano um DelayTrigger iniciado pelo ProjectileStartTrigger desliga um toggle 'CargaRetida' que segura o nivel cheio; Delay_i = t(3i - 4) para o cano i (1 = junto da culatra), com t(d) = (-6 + sqrt(36 + 88 d / T)) / (44 / T) (t(d <= 0) = 0), T = (3N + 4) / 28 s (cinematica do RailgunProjectile 6 -> 50 quadros/s em 3N + 4 quadros = barrel_anim_s do spec). Tabela (s, cano 1..N): N1 [0]; N2 [0, 0.14]; N3 [0, 0.15, 0.27]; N4 [0, 0.16, 0.29, 0.38]; N5 [0, 0.17, 0.31, 0.41, 0.50]; N6 [0, 0.18, 0.33, 0.44, 0.53, 0.61]. O cano sabe i pela corrente do carregador e N - i + 1 pela corrente reversa da ponta. Minimo aceitavel se o atraso por cano nao der: segurar trilhos e carga acesos ate o EmissionTriggered e apagar tudo junto com o clarao. Nunca reacender um plano de carga depois do disparo (nem a ponta).",
+  "walls.png da ponta: aberta embaixo (emenda com o cano) e em cima na boca (x 0.92-2.08), por onde o projetil sai; a moldura nao atravessa a boca.",
+  "slug.png (walls) e slug_glow.png (lights_add): ChainedTo Projectile; o halo e oco para o projetil claro continuar legivel."
+ ],
  "files": [
   "blueprints.png",
   "carga1.png",

@@ -32,7 +32,13 @@
     "charge_glow4.png"
    ],
    "interval": 0.125,
-   "color": "pem"
+   "color": [
+    90,
+    150,
+    255
+   ],
+   "blend": "alpha",
+   "layer": "above_barrels"
   }
  },
  "barrel": {

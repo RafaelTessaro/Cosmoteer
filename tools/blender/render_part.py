@@ -255,9 +255,10 @@ def _render_hull(mod, out, P, only):
 
 # ============================================================================ armas (torres de convés)
 def _render_charge_glow(mod, out, P, only):
-    """Opcional (so com PART["charge_glow"] = {"frames": n, "interval": s, "color": nome} e charge_glow() no modelo):
-    charge_glow1..n.png no quadro da torre, so a emissao dos objetos de charge_glow(M, T, phase) (phase = k/n, a
-    carga sobe) com a cabeca como Holdout, mais halo (_oc_glow_sprite). --only turret ou charge."""
+    """Opcional (so com PART["charge_glow"] = {"frames": n, "interval": s, "color": rgb, "blend", "layer"} e
+    charge_glow() no modelo): charge_glow1..n.png no quadro da torre, so a emissao dos objetos de
+    charge_glow(M, T, phase) (phase = k/n, a carga sobe) com a cabeca como Holdout, mais halo (_oc_glow_sprite).
+    --only turret ou charge."""
     cg = P["charge_glow"]
     ts = P["turret_box"]
     tsz = (int(round(ts * PX)), int(round(ts * PX)))
@@ -272,7 +273,9 @@ def _render_charge_glow(mod, out, P, only):
             B.show_only(["charge", "head"])
             em = emission_pass(os.path.join(out, "charge_raw.png"), tsz, keep_tag="charge", holdout=True)
             _oc_glow_sprite(em).save(os.path.join(out, nm))
-    return {"frames": names, "interval": cg.get("interval", 0.125), "color": cg.get("color")}, names
+    # blend/layer (opcionais): como o gerador deve desenhar os quadros (ex.: "alpha", "above_barrels")
+    extra = {k: cg[k] for k in ("blend", "layer") if k in cg}
+    return {"frames": names, "interval": cg.get("interval", 0.125), "color": cg.get("color"), **extra}, names
 
 
 def render_gun(mod, out, only):
@@ -347,8 +350,8 @@ def render_gun(mod, out, only):
             else:
                 os.replace(stem + "_normals.png", os.path.join(out, nn))
             if ht > 0 and B.objects_with("hot"):
-                heat_composite(res["on"], _heat_layer(stem, bsz, L, bar.get("heat_color", HEAT_COLOR)), ht).save(
-                    stem + ".png")
+                heat_composite(res["on"], _heat_layer(stem, bsz, L, bar.get("heat_color", HEAT_COLOR),
+                                                      bar.get("heat_ramp")), ht).save(stem + ".png")
             for o in B.objects_with("barrel"):
                 o.location.y = base_y[o.name]
     meta["barrel"] = {
@@ -377,8 +380,11 @@ def render_gun(mod, out, only):
 HEAT_COLOR = (1.0, 0.13, 0.015)  # laranja de metal quente (padrao); plasma usa heat_color ciano
 
 
-def _heat_layer(stem, size, L, color=HEAT_COLOR):
-    """Brilho de calor das partes marcadas 'hot', mais forte perto da boca."""
+def _heat_layer(stem, size, L, color=HEAT_COLOR, heat_ramp=None):
+    """Brilho de calor das partes marcadas 'hot', mais forte perto da boca. heat_ramp (opcional,
+    PART["barrels"]["heat_ramp"] = (inicio, largura) em fracao da altura a partir da base; padrao (0.35, 0.55)):
+    as bobinas PEM usam uma rampa curta, brilho eletrico por igual na bobina e nao calor so perto da boca."""
+    r0, rw = heat_ramp or (0.35, 0.55)
     heat_m = B.mat_glow("__heat", tuple(color), 1.25)
     sc = bpy.context.scene
     hot = [o for o in sc.objects if o.get("hot") and not o.hide_render]
@@ -394,7 +400,7 @@ def _heat_layer(stem, size, L, color=HEAT_COLOR):
     arr = np.asarray(em, dtype=np.float32).copy()
     hpx = size[1]
     ys = np.linspace(1.0, 0.0, hpx)[:, None]           # 1 = topo da imagem (boca)
-    ramp = np.clip((ys - 0.35) / 0.55, 0, 1) ** 1.4  # (h, 1)
+    ramp = np.clip((ys - r0) / rw, 0, 1) ** 1.4  # (h, 1)
     lum = arr[..., :3].max(axis=2, keepdims=True) / 255.0
     arr[..., 3] = np.clip(lum[..., 0] * 1.4, 0, 1) * ramp * 255
     img = Image.fromarray(arr.astype(np.uint8), "RGBA")
