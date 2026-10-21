@@ -29,7 +29,11 @@ Animacao: 10 quadros x 0,1 s: 0 repouso (= sprite desligado) | 1 a bandeja entra
 S para o distribuidor | 6-9 a mesa gira 18 graus por quadro (o quadro 0 fecha os 90 graus).
 Teto: placas verdes com escotilhas em seta (entradas para cima, saidas para baixo com a pastilha da municao),
 coroa blindada sem pintura sobre a prensa (espinha em cunha com o encaixe da placa de modo, garras, laminas) e
-o colar octogonal sobre a mesa; respiros e caixas de juncao nos cantos.
+o colar octogonal sobre a mesa (8 segmentos retos); respiros e caixas de juncao nos cantos.
+
+Render em DOIS passos (o segundo e obrigatorio: META_EXTRA, ganho do lights.png e a passada de LED do teto):
+    <venv>/bin/python tools/blender/render_part.py bs_factory_special
+    <venv>/bin/python tools/blender/parts/_bs2_fabricas_helpers.py bs_factory_special
 """
 
 import math
@@ -478,10 +482,10 @@ def roof(M, T="roof"):
         H.ledslot(f"rf_mids{k}", sx_ * 0.76, -0.24, 0.20, 0.034, 0.03, 3, M, tags, [ma, mp], vertical=False,
                   pw=0.016, pip_mat=M["glow_dim"])
     B.plate("cr_colbase", H.octo(0, 0, 0.42), 0.0, 0.05, K, slope=0.01, tags=tags)
+    # colar OCTOGONAL: 8 segmentos retos alinhados nos lados do furo (fresta escura nos cantos); antes os segmentos
+    # ficavam nos cantos e o conjunto lia como um anel redondo (STYLE 1.2)
     for k in range(8):
-        a0 = 22.5 + 45 * k
-        seg = [(math.cos(math.radians(a0 + d)) * r, math.sin(math.radians(a0 + d)) * r)
-               for r, d in ((0.29, -19), (0.40, -19), (0.40, 19), (0.29, 19))]
+        seg = H.facet_seg(0.0, 0.0, 45 * k, 0.27, 0.375, 18.5)
         B.shard(f"cr_col{k}", seg, 0.0, 0.13, AM, slope=0.02, groove=0.012, panel_h=0.012, tags=tags)
     B.cyl("cr_hub", 0, 0, 0.10, 0.12, 0.08, KM, axis="Z", verts=8, bevel=0.01, tags=tags)
     B.cyl("cr_hubc", 0, 0, 0.15, 0.06, 0.03, S, axis="Z", verts=8, bevel=0.006, tags=tags)

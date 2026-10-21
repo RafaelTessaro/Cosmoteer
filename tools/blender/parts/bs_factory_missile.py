@@ -2,10 +2,17 @@
 
 ID novo rafaeltessaro.bs_factory_missile. Grade (vanilla factory_he 3x3): maquina = fileira de cima + [1,1];
 ENTRADAS ferro [0,1] (esquerda) e enxofre [2,1] (direita); SAIDAS uma por receita (seletor bs_missile_type
-0/1/2): HE [0,2], submunicao [1,2], PEM [2,2], cada base com a pastilha da cor do missil (Jararaca ambar, Piranha
-amarelo-limao, Poraque azul: as cores dos misseis 2.0 aprovados). Placa de modo no teto em rect_centre [1.5, 0.5]
-(placa_msl_he / placa_msl_cluster / placa_msl_emp de bs_placas).
+0/1/2): HE [0,2], submunicao [1,2], PEM [2,2]. CODIGO DE COR DAS SAIDAS = o das placas de modo do mesmo teto
+(placa_msl_he / placa_msl_cluster / placa_msl_emp de bs_placas, rect_centre [1.5, 0.5]): HE AMBAR (~38 graus, o
+matiz da placa), submunicao LARANJA (palette.cluster.chip, o laranja do cluster nos paiois/fita), PEM AZUL. Cada
+saida leva essa cor em 3 lugares: a pastilha num soquete escuro (teto e piso), a coluna de 3 LEDs da escotilha do
+teto e a seta do recesso do piso (os LEDs genericos amarelos ficam so nas entradas e no maquinario).
 Coordenadas centradas na peca, +Y = frente (topo da imagem), 1 unidade = 1 quadro.
+
+Render em DOIS passos (o segundo e obrigatorio: grid/mode_plate/notes do META_EXTRA, ganho do lights.png e a
+passada de LED do teto so entram com ele):
+    <venv>/bin/python tools/blender/render_part.py bs_factory_missile
+    <venv>/bin/python tools/blender/parts/_bs2_fabricas_helpers.py bs_factory_missile
 
 Maquinario (familia das armas; LEDs ambar so em recessos):
   * LAMINADOR DE CORPOS (canto de cima a esquerda, sobre a base de ferro): casca clara com a janela do torno: o
@@ -15,7 +22,7 @@ Maquinario (familia das armas; LEDs ambar so em recessos):
   * PORTICO (meio de cima): trilho de aco no alto, carro claro que corre no trilho e lanca telescopica com a garra:
     pega a ogiva na enchedora e a ENCAIXA no corpo deitado no berco em V (lampejo no encaixe);
   * BERCO DE ACABAMENTO (celula central): o missil pronto desce do berco de cima para o berco de baixo, onde as
-    travas fecham as aletas, e sai pela borda de baixo: 3 setas de LED (ambar, amarelo, azul) para as 3 saidas.
+    travas fecham as aletas, e sai pela borda de baixo: 3 setas de LED (ambar, laranja, azul) para as 3 saidas.
 Animacao: 12 quadros x 0,1 s: 0 carro na enchedora com a ogiva | 1-2 o carro leva a ogiva ate o corpo | 3 encaixe
 (lampejo) | 4-5 o carro volta e pega a proxima ogiva | 6-7 o missil pronto desce ao berco de acabamento | 8-9 o
 proximo corpo sai do laminador para o berco | 10-11 o missil acabado sai para a fileira de baixo.
@@ -45,7 +52,8 @@ RAIL_Y = 1.24              # trilho do portico
 MS = 1.55                  # escala da carga de missil (0.57 x 0.14 quadro)
 BODY_X = -0.08             # centro do corpo no berco de encaixe (nariz para +X)
 LOW_Y = 0.02               # berco de acabamento (celula central)
-OUTS = {(0, 2): "msl_he_pad", (1, 2): "msl_cluster", (2, 2): "msl_emp"}   # pastilhas/setas (HE em laranja)
+OUTS = {(0, 2): "msl_he_pad", (1, 2): "msl_cluster_pad", (2, 2): "msl_emp"}   # codigo das placas (H.CHIP)
+LED_S = 1.0                # forca dos LEDs na cor do tipo (baixa: acima de ~1,5 o ambar e o laranja estouram em amarelo)
 PLATE_C = (0.0, 1.0)       # rect_centre [1.5, 0.5]
 
 META_EXTRA = {
@@ -58,9 +66,14 @@ META_EXTRA = {
                    "toggle": "bs_missile_type", "values": [0, 1, 2], "files": "placa_<modo>.png (art3d/bs_placas)",
                    "game_layer": "roof_doodads"},
     "notes": ["o maquinario e o mesmo nos 3 modos; pastilhas pintadas nas saidas e placa de modo no teto",
-              "pastilhas/setas das saidas: HE laranja (palette.msl_he.hull 255,96,12), submunicao amarelo-limao (a "
-              "Piranha aprovada e o recurso bs_msl_cluster), PEM azul. A placa_msl_cluster (bs_placas) e o "
-              "palette.cluster.chip (255,120,40) sao laranja: alinhar a placa ou o spec na ligacao"],
+              "codigo de cor das saidas = o das placas de modo (bs_placas): HE ambar (255,180,50, o matiz da "
+              "placa_msl_he ~38 graus; palette.he.chip e 255,190,60), submunicao laranja (palette.cluster.chip 255,120,40 = placa_msl_cluster e o cluster "
+              "dos paiois/fita), PEM azul (40,150,255). Cada saida: pastilha num soquete escuro (teto e piso), "
+              "coluna de 3 LEDs da escotilha e seta do recesso do piso na cor do tipo",
+              "PARA A LIGACAO: o recurso Piranha (bs_msl_cluster, grupo itens) e amarelo-limao, entao a pilha de "
+              "submunicao na base laranja fica limao. Se preferirem o codigo dos misseis aprovados (HE laranja, "
+              "submunicao limao, PEM azul), recolorir placa_msl_cluster (e placa_msl_he) no grupo logistica e "
+              "trocar CHIP['msl_he_pad'] / CHIP['msl_cluster_pad'] em _bs2_fabricas_helpers.py e re-renderizar a F4"],
 }
 
 
@@ -91,7 +104,8 @@ def _state(phase):
 def floor(M, T="floor"):
     machine = {(0, 0), (1, 0), (2, 0), (1, 1)}
     pads = {(0, 1): 90, (2, 1): 90, (0, 2): (270, 90), (1, 2): (270, 90), (2, 2): (270, 90)}
-    H.floor_grid(M, W, HH, machine, pads, T=T, chips=OUTS, rail_rows=(2,))
+    chev = {c: H.led(k, LED_S * 0.9) for c, k in OUTS.items()}
+    H.floor_grid(M, W, HH, machine, pads, T=T, chips=OUTS, rail_rows=(2,), chev=chev)
 
 
 # ============================================================================ maquina
@@ -273,8 +287,8 @@ def _finish(M, Xm, tags, st):
               pips=[M["glow_dim"] if (st["low_y"] is not None and st["low_y"] < 0) else None, None, None, None])
     # boca de saida e as 3 setas (cor de cada missil) para as 3 bases de baixo
     B.box("lo_out", 0, -0.44, 0.62, 0.09, 0.0, 0.05, M["black"], bevel=0.0, tags=tags)
-    for k, (x, ang, kind) in enumerate(((-0.24, 225, "msl_he_pad"), (0.0, 270, "msl_cluster"),
-                                        (0.24, 315, "msl_emp"))):
+    for k, (x, ang, kind) in enumerate(((-0.24, 225, OUTS[(0, 2)]), (0.0, 270, OUTS[(1, 2)]),
+                                        (0.24, 315, OUTS[(2, 2)]))):
         H.chevron(f"lo_ar{k}", x, -0.445, ang, H.led(kind, 0.9), tags, z=0.05, s=0.55)
     if st["low_y"] is not None:
         H.mini_missile("lo_msl", 0.0, st["low_y"], 0.08, M, Xm, tags, kind="msl_he", s=MS, rz=-90)
@@ -301,7 +315,7 @@ def roof(M, T="roof"):
     H.roof_hatch("rf_in1", M, 1.0, 0.0, 90, deck[(2, 1)], T=T)
     for (i, j), kind in OUTS.items():
         px, py = H.cell_xy(W, HH, i, j)
-        H.roof_hatch(f"rf_out{i}", M, px, py, 270, deck[(i, j)], T=T, chip=kind)
+        H.roof_hatch(f"rf_out{i}", M, px, py, 270, deck[(i, j)], T=T, chip=kind, led_mat=H.led(kind, LED_S))
     # coroa do portico (meio de cima): encaixe da placa de modo entre dois montantes do trilho
     H.plate_slot("rf_plate", M, PLATE_C[0], PLATE_C[1], 0.8, [], T=T, z1=0.18)
     for sx in (-1, 1):
@@ -320,17 +334,17 @@ def roof(M, T="roof"):
         H.ledslot(f"rf_cs{sx}", sx * 1.03, 0.90, 0.30, 0.034, 0.20, 3, M, tags, [ca, cp], vertical=False, pw=0.016,
                   pip_mat=M["glow_dim"])
         B.box(f"rf_rail{sx}", sx * 0.95, 1.40, 0.90, 0.05, 0.24, 0.30, S, bevel=0.01, tags=tags)
-    # celula central (maquina): tampa OCTOGONAL do berco (sem direcao, para nao parecer uma seta de saida) com o
-    # perfil do missil gravado deitado e 3 LEDs ao longo dele
+    # celula central (maquina): tampa OCTOGONAL do berco (sem direcao, para nao parecer uma seta de saida) com uma
+    # fenda SIMETRICA de pontas retas e 3 LEDs (a fenda em perfil de missil, de ponta fina, lia como seta a 1x)
     pa, pp = deck[(1, 1)]
     cap = H.octo(0.0, 0.0, 0.33)
     aa, ap = H.inlay("rf_carr", cap, (pa, pp), 0.14, tags)
-    msl = [(-0.24, -0.035), (0.08, -0.035), (0.17, 0.0), (0.08, 0.035), (-0.24, 0.035)]
+    msl = B.rpoly(0.0, 0.0, 0.40, 0.07, 0, chamfer=0.012)
     for q, t in enumerate((aa, ap)):
         if t is not None:
             B.cut(t, [B.loft(f"rf_mc{q}", msl, msl, 0.06, 0.5, K, bevel=0.0)])
     B.loft("rf_mbed", msl, msl, 0.055, 0.065, M["black"], bevel=0.0, tags=tags)
     for k in range(3):
-        B.box(f"rf_mled{k}", -0.16 + k * 0.09, 0.0, 0.03, 0.024, 0.065, 0.072, M["glow_dim"], bevel=0.0, tags=tags)
+        B.box(f"rf_mled{k}", -0.11 + k * 0.11, 0.0, 0.03, 0.024, 0.065, 0.072, M["glow_dim"], bevel=0.0, tags=tags)
     B.bolts("rf_cb", [(0.0, 0.22), (0.0, -0.22)], 0.14, 0.016, S, tags=tags)
     H.roof_unpaint(T)

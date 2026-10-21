@@ -28,7 +28,12 @@ Camadas extras (EXTRA_LAYERS, render pelo _bs2_fabricas_helpers.py; spec factori
 Teto: placas verdes; encaixe da placa de modo no canto de cima a esquerda; emblema do toro no meio de cima;
 tampa fechada do banco PEM (2 folhas claras com respiro e a janela dos bornes de cobre, coberta pelo banco no
 modo PEM) no canto de cima a direita; escotilha em capsula sobre o berco;
-escotilhas em seta nas 3 entradas e nas 2 saidas (com a pastilha da celula).
+escotilhas em seta nas 3 entradas e nas 2 saidas (com a pastilha da celula num soquete escuro).
+
+Render em DOIS passos (o segundo e obrigatorio: as camadas banco_pem/banco_pem_luz, META_EXTRA, o ganho do
+lights.png e a passada de LED do teto so entram com ele):
+    <venv>/bin/python tools/blender/render_part.py bs_factory_plasma
+    <venv>/bin/python tools/blender/parts/_bs2_fabricas_helpers.py bs_factory_plasma
 """
 
 import math
@@ -65,7 +70,9 @@ EXTRA_LAYERS = [
     {"name": "banco_pem_luz", "fn": "banco_pem_luz", "game_layer": "lights_add", "rect": BANK_RECT,
      "file": "banco_pem_luz{i}.png", "frames": 4, "interval": 0.1, "emission_only": True, "blend": "add",
      "halo_px": 2.5, "gain": 1.0,
-     "gate": "ModeToggle PEM (bs_cell_type = 1) E AnimationToggle da fabrica (produzindo)"},
+     "gate": "ModeToggle PEM (bs_cell_type = 1) E AnimationToggle da fabrica (produzindo)",
+     "notes": "CONDICIONAL na ligacao: lights_add fica sob roofs/roof_doodads na ordem de camadas do spec e o banco "
+              "esta no teto; se o jogo nao mostrar a luz sobre o banco, ligar estes 4 quadros em roof_lights_fancy"},
 ]
 
 META_EXTRA = {
@@ -77,6 +84,10 @@ META_EXTRA = {
     "mode_plate": {"rect_centre": [0.5, 0.5], "size": 0.8, "modes": ["plasma", "pem"], "toggle": "bs_cell_type",
                    "values": [0, 1], "files": "placa_<modo>.png (art3d/bs_placas)", "game_layer": "roof_doodads"},
     "notes": ["grade de cobre no poco da base [1,2] (J2R3-9)",
+              "pastilha da saida PEM [2,2] em COBRE (CHIP['pem_cu'] 200,110,50 = palette.pem.copper), de proposito: "
+              "palette.pem.chip (60,200,255) e quase igual a palette.plasma.chip (60,220,255) e as duas saidas lado "
+              "a lado ficariam iguais a 1x; o cobre e a assinatura PEM da familia (STYLE 1/9) e a placa_pem "
+              "(bs_placas) tambem e cobre + azul. NAO 'corrigir' para o azul do spec na ligacao",
               "banco_pem/banco_pem_luz: overlays do modo PEM (spec factories F3.pem_bank)",
               "LIGACAO: banco_pem_luz esta em lights_add como pede o spec, mas na ordem de camadas do spec lights_add "
               "fica sob roofs/roof_doodads e o banco fica no teto; se a luz sumir sob o teto no jogo, usar "

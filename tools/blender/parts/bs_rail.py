@@ -698,14 +698,15 @@ def coaming(name, y0, y1, X, tags, z=0.13, x=CH):
               tags=tags)
 
 
-def clamp(name, y, X, tags, z0=0.06, z1=0.215, hw=CLAMP_HW, hy=CLAMP_HY):
+def clamp(name, y, X, tags, z0=0.06, z1=0.215, hw=CLAMP_HW, hy=CLAMP_HY, card_hw=None):
     """Cinta EM do teto = TAMBOR compacto da referencia (critica ref-r1: as cintas largas, claras e chapadas liam
     como escada / dormentes de trilho): so um pouco mais largo que o canal, corpo de gunmetal ESCURO com luz so nos
     chanfros, 3 BANDAS roliças (cilindros deitados: flanco de cima aceso, de baixo escuro) segmentadas por nervuras
     verticais, e as 2 COSTURAS entre as bandas TRANSPARENTES no teto: por elas vazam a luz azul da bobina (trilhos)
     e a da carga, e o nucleo cheio aparece como 2 pontos claros no tambor. Cada tambor tem nas 2 pontas um inserto
     LARANJA (3 x 5 px a 1x) e 2 parafusos. Esconde o dardo por um instante ('dentro do cano')."""
-    sh = B.box(f"{name}_sh", 0, y, 2 * hw + 0.05, 2 * hy + 0.05, -0.02, z0 + 0.005, X["gap"], bevel=0.0, tags=tags)
+    cw = 2 * hw + 0.05 if card_hw is None else 2 * card_hw     # cartao escuro de tras (card_hw: so sobre o canal)
+    sh = B.box(f"{name}_sh", 0, y, cw, 2 * hy + 0.05, -0.02, z0 + 0.005, X["gap"], bevel=0.0, tags=tags)
     poly = chamfer_rect(-hw, y - hy, hw, y + hy, (0.085, 0.085, 0.085, 0.085))
     a, p = B.shard(name, poly, z0, z1, X["graph"], slope=0.035, groove=0.010, panel_h=0.02, panel_mat=X["gm"],
                    tags=tags)
@@ -855,13 +856,15 @@ def cano_roof(M, T="roof"):
 
 def cano_drums(M, T="tambores_tranco", phase=0.0, frame=1):
     """tambores_tranco1..8 (roof_turrets, por cima do teto, rect [0,0,3,3]): os 3 TAMBORES EM e a GARRA lateral do
-    tambor do meio recuam STROKE_DRUM no tiro e voltam com a mola (KICK). 1 = repouso (= o desenho do teto antigo).
-    As costuras dos tambores continuam transparentes (a luz da carga e as bobinas aparecem por elas)."""
+    tambor do meio recuam no tiro (curva "drum": 13 px, segura 2 quadros) e voltam com a mola. 1 = repouso (= o
+    desenho do teto antigo). As costuras dos tambores continuam transparentes (a luz da carga e as bobinas aparecem
+    por elas). Critica tranco-r1: o cartao escuro de tras do tambor so cobre o CANAL (|x| < CHEEK_IN): antes passava
+    3-4 px por cima do chanfro aceso das bochechas e, no tranco, deslizava sobre elas como uma caixa escura."""
     X = mats(M)
     tags = (T,)
-    _kick_camera(kick_off(STROKE_DRUM, frame))
+    _kick_camera(kick_off("drum", frame))
     for i, yc in enumerate(CLAMP_YS):
-        clamp(f"cl{i}", yc, X, tags)
+        clamp(f"cl{i}", yc, X, tags, card_hw=CHEEK_IN)
     bracket("brk", 0.0, X, tags)
 
 
@@ -978,6 +981,38 @@ PONTA_CLAMP = -1.5                       # cinta EM da ponta (mesmo passo das ci
 NECK_Y = -1.60                           # o canal largo (CH) da emenda afina para THROAT depois da cinta
 CROWN_SIL = [(-1.24, CROWN_Y0 - 0.06), (1.24, CROWN_Y0 - 0.06), (1.24, 0.84), (0.90, 1.20), (0.90, 1.66), (0.58, 1.985),
              (-0.58, 1.985), (-0.90, 1.66), (-0.90, 1.20), (-1.24, 0.84)]
+# bochechas brancas em cunha da ponta (lado +x): contorno de baixo e face de cima (critica ref-r1: cunha, nao laje)
+WD_O = [(0.46, CROWN_Y0 - 0.03), (1.21, CROWN_Y0 - 0.03), (1.25, CROWN_Y0 - 0.07), (1.25, -0.50), (0.70, -1.28),
+        (0.46, -1.28)]
+WD_T = [(0.48, CROWN_Y0 - 0.03), (0.90, CROWN_Y0 - 0.03), (0.93, CROWN_Y0 - 0.06), (0.93, -0.42), (0.62, -1.10),
+        (0.48, -1.10)]
+# buraco do teto no lugar da bochecha (aberto ate a borda da frente do teto, y = CROWN_Y0)
+WD_HOLE = [(0.46, CROWN_Y0 + 0.05), (1.25, CROWN_Y0 + 0.05), (1.25, -0.50), (0.70, -1.28), (0.46, -1.28)]
+
+
+def inflate(poly, d):
+    """Desloca para fora (d > 0) as arestas de um poligono CONVEXO (qualquer sentido) e devolve os novos vertices."""
+    n = len(poly)
+    area = sum(poly[i][0] * poly[(i + 1) % n][1] - poly[(i + 1) % n][0] * poly[i][1] for i in range(n))
+    s = 1.0 if area > 0 else -1.0                 # anti-horario: a normal de fora da aresta (dx, dy) e (dy, -dx)
+    lines = []
+    for i in range(n):
+        (x0, y0), (x1, y1) = poly[i], poly[(i + 1) % n]
+        dx, dy = x1 - x0, y1 - y0
+        L = math.hypot(dx, dy)
+        nx, ny = s * dy / L, -s * dx / L
+        lines.append(((x0 + nx * d, y0 + ny * d), (dx, dy)))
+    out = []
+    for i in range(n):
+        (p, r), (q, t) = lines[i - 1], lines[i]
+        den = r[0] * t[1] - r[1] * t[0]
+        if abs(den) < 1e-12:
+            out.append(q)
+            continue
+        a = ((q[0] - p[0]) * t[1] - (q[1] - p[1]) * t[0]) / den
+        out.append((p[0] + a * r[0], p[1] + a * r[1]))
+    return out
+
 
 
 def mouth_hw(y):
@@ -996,11 +1031,13 @@ def _mouth_hw_np(Y):
 
 
 def _ponta_mask(X, Y):
-    """mask() da ponta: livre atras da frente (o teto cobre o que nao e canal); na frente (weapon), so DENTRO da
-    boca (a blindagem nao acende)."""
+    """mask() da ponta: atras da frente o teto cobre o que nao e canal, MENOS no buraco das bochechas brancas (elas
+    agora estao em weapons, ABAIXO de lights_add: tranco-r1): ali o plano para em |x| 0.44 (a borda de dentro da
+    bochecha); na frente (weapon), so DENTRO da boca (a blindagem nao acende)."""
     np = _np()
     inside = np.clip((_mouth_hw_np(Y) - 0.02 - np.abs(X)) / 0.03 + 0.5, 0, 1)
-    return np.where(Y >= CROWN_Y0, inside, 1.0)
+    cheek = np.where(Y > -1.34, np.clip((0.44 - np.abs(X)) / 0.02 + 0.5, 0, 1), 1.0)
+    return np.where(Y >= CROWN_Y0, inside, cheek)
 
 
 def glow_ponta(P, layer, px, level=1):
@@ -1119,7 +1156,9 @@ CAP_YS = (-0.55, -1.15, -1.75)          # celulas do banco (de frente para tras)
 CAP_W, CAP_H = 0.62, 0.48
 # paiol: coluna de 12 capsulas (1 dardo cada; SlugMagazine 12) vista pela janela do teto
 MAG_N, MAG_Y0, MAG_P = 12, -0.31, 0.165  # 12 capsulas, centro da 1a (frente), passo
-CAP_L, CAP_R = 0.60, 0.060              # comprimento da luva acesa e raio da capsula
+# critica tranco-r1: a 1x as 12 capsulas finas liam como grade azul; capsulas mais gordas (9 px) com separadores
+# escuros (sombra preta + cintas mais largas) leem como as capsulas da referencia
+CAP_L, CAP_R = 0.60, 0.070              # comprimento da luva acesa e raio da capsula
 WIN_Y0, WIN_Y1, WIN_HX = -2.28, -0.20, 0.50   # janela do paiol no teto (= poco do piso): y de tras, da frente
 MAG_TOP = WIN_Y1
 FEED_Y0, FEED_Y1, FEED_HX = 0.0 + LDY, 0.98 + LDY, 0.16   # fenda de alimentacao (rect de culatra_carrega: y 0.5..)
@@ -1127,13 +1166,17 @@ SLOT_Y0, SLOT_Y1, SLOT_HX = 1.10 + LDY, 1.90 + LDY, 0.50  # fenda da culatra (sp
 # bloco da culatra (culatra_tranco) e o mecanismo de recuo
 BB_Y0 = 1.46                            # borda de tras do bloco em repouso (a frente encosta no 1o cano, y 2.5)
 BB_HX = 1.42                            # meia largura do bloco (os canos tem 3 de largura)
-SPR_X = 1.645                           # eixo das hastes/molas de recuo (canal x 1.46-1.83, FORA do cano)
-CHN_X0, CHN_X1 = 1.46, 1.83             # canal lateral das hastes e molas
-WP_X0 = 1.87                            # placas brancas de fora (x 1.87-2.48)
+# critica tranco-r1: as molas eram finas (~0,23 quadro) e so enchiam as 2 fileiras de baixo; agora GORDAS (0,35
+# quadro, como na referencia) e ALTAS (do batente de tras ate a altura da frente do paiol, ao lado da janela)
+SPR_X = 1.655                           # eixo das hastes/molas de recuo (canal x 1.44-1.87, FORA do cano)
+CHN_X0, CHN_X1 = 1.44, 1.87             # canal lateral das hastes e molas
+SPR_R, SPR_WIRE, SPR_TURNS = 0.130, 0.046, 9.5   # mola: raio das espiras, raio do arame, espiras
+CAP_DR = 0.165                          # raio da tampa (cruzeta / batente) da mola
+WP_X0 = 1.90                            # placas brancas de fora (x 1.90-2.48)
 YOKE_Y0, YOKE_Y1 = 1.66, 2.16           # garfo que liga o bloco a haste (anda com o bloco)
-CROSS_Y = -0.62                         # cruzeta (topo da mola) em repouso; tampa de 0.20
-MOUNT_Y = -1.98                         # batente de tras da mola (fixo)
-GUIDE_YS = (1.02, 0.22)                 # guias fixas da haste
+CROSS_Y = 0.05                          # cruzeta (topo da mola) em repouso; tampa de 0.20
+MOUNT_Y = -2.05                         # batente de tras da mola (fixo)
+GUIDE_YS = (1.10, 0.62)                 # guias fixas da haste
 
 
 def loader_floor(M, T="floor"):
@@ -1413,11 +1456,11 @@ def _moved(dy, build):
 
 def _drum_cap(name, cx, yc, inner_dy, X, tags, z=0.16, cap_l=0.20):
     """Tampa cilindrica escura (cruzeta / batente) com flange de grafite do lado da mola e anel laranja."""
-    B.cyl(f"{name}_c", cx, yc, z, 0.135, cap_l - 0.01, X["drum"], axis="Y", verts=20, bevel=0.008, tags=tags)
-    B.cyl(f"{name}_f", cx, yc + inner_dy * (cap_l / 2 - 0.018), z, 0.148, 0.030, X["graph"], axis="Y", verts=20,
-          bevel=0.004, tags=tags)
-    B.cyl(f"{name}_o", cx, yc - inner_dy * 0.045, z, 0.140, 0.026, X["orange"], axis="Y", verts=20, bevel=0.003,
-          tags=tags)
+    B.cyl(f"{name}_c", cx, yc, z, CAP_DR, cap_l - 0.01, X["drum"], axis="Y", verts=24, bevel=0.008, tags=tags)
+    B.cyl(f"{name}_f", cx, yc + inner_dy * (cap_l / 2 - 0.018), z, CAP_DR + 0.015, 0.030, X["graph"], axis="Y",
+          verts=24, bevel=0.004, tags=tags)
+    B.cyl(f"{name}_o", cx, yc - inner_dy * 0.045, z, CAP_DR + 0.006, 0.026, X["orange"], axis="Y", verts=24,
+          bevel=0.003, tags=tags)
 
 
 def _breech_block(X, tags):
@@ -1480,14 +1523,15 @@ def _breech_block(X, tags):
 
 
 def _recoil_spring(X, tags, sx, dy):
-    """A mola de recuo laranja-ouro (gorda, ~7 espiras, a da referencia) entre a cruzeta (desce dy no tranco) e o
-    batente de tras (fixo), a guia interna e as 2 guias fixas da haste comprida."""
+    """A mola de recuo laranja-ouro (GORDA: 0,35 quadro, 9,5 espiras, a da referencia; tranco-r1) entre a cruzeta
+    (desce dy no tranco: a mola comprime o mesmo curso do bloco) e o batente de tras (fixo), a guia interna e as 2
+    guias fixas da haste comprida."""
     cx = sx * SPR_X
     y1 = CROSS_Y - 0.10 + dy                # face de baixo da cruzeta
     y0 = MOUNT_Y + 0.10                     # face de cima do batente
     B.cyl(f"sgr{sx}", cx, (y0 + CROSS_Y - 0.10) / 2, 0.16, 0.024, CROSS_Y - 0.10 - y0 - 0.04, X["rail"], axis="Y",
           verts=10, bevel=0.0, tags=tags)
-    helix(f"spr{sx}", cx, y0 + 0.008, y1 - 0.008, 0.16, 0.105, 0.036, 7.0, X["spring"], tags, steps=24)
+    helix(f"spr{sx}", cx, y0 + 0.008, y1 - 0.008, 0.16, SPR_R, SPR_WIRE, SPR_TURNS, X["spring"], tags, steps=28)
     _drum_cap(f"mount{sx}", cx, MOUNT_Y, 1, X, tags)
     mp = chamfer_rect(CHN_X0 + 0.01, MOUNT_Y - 0.17, CHN_X1 - 0.01, MOUNT_Y - 0.05, (0.03, 0.03, 0.0, 0.0))
     gplate(f"mbase{sx}", mp if sx > 0 else mirror_x(mp), 0.0, 0.14, X, tags, slope=0.03, groove=0.01, panel_h=0.02)
@@ -1505,15 +1549,53 @@ def _recoil_spring(X, tags, sx, dy):
 # Pedido do usuario: "poderia ter um efeito de 'tranco' quando ela disparasse". Quadros 1..8 de cada peca que anda:
 # 1 = REPOUSO (como barrel1.png dos canhoes de convés: as regras listam [2..8, 1] com AnimationStartTime = MinValue
 # e ClampAnimation = true, entao em repouso fica o 1 e cada tiro toca 2..8 e para no 1), 2 = o curso inteiro (o
-# tranco e instantaneo), depois a mola devolve, com um passo pequeno a frente (sobre-curso) antes de assentar.
-KICK = (0.0, 1.00, 0.85, 0.62, 0.36, 0.12, -0.05, -0.03)   # fracao do curso (+ = para tras), arquivo 1..8
+# tranco e instantaneo), depois a mola devolve.
+# Critica tranco-r1 (o usuario: "e que pra mim esta parado"): os cursos foram para o TOPO da faixa pedida (0,2 quadro =
+# 13 px a 64 px/quadro em TODAS as pecas que andam; eram 0,12-0,18), o curso inteiro SEGURA 2 quadros (0,1 s: le na
+# escala do jogo), o bloco da culatra bate 1 quadro DEPOIS da boca (o tranco corre da boca para a culatra) e os
+# deslocamentos sao px INTEIROS (cada quadro e o mesmo render deslocado, sem o meio pixel borrado).
+STROKE_PX = 13                                              # curso inteiro (px a 64 px/quadro) = 0,203 quadro
+STROKE = STROKE_PX / B.PX
+KICK_PX = {                                                 # deslocamento (px, + = para tras) por ARQUIVO 1..8
+    "crown": (0, 13, 13, 10, 6, 3, 1, 0),                   # frente da ponta + bochechas: sem sobre-curso (a frente
+                                                            # fica rente a borda da peca: bate no batente)
+    "drum": (0, 13, 13, 10, 6, 2, -1, 0),                   # tambores (canos e ponta): 1 px de sobre-curso (a mola)
+    "breech": (0, 6, 13, 13, 9, 5, 2, 0),                   # bloco da culatra: 1 quadro atrasado, sem sobre-curso
+}                                                           # (encosta no 1o cano)
+KICK_LAYER = {"weapon_tranco": "crown", "tambor_tranco": "drum", "tambores_tranco": "drum",
+              "culatra_tranco": "breech"}
 KICK_FRAMES, KICK_INTERVAL = 8, 0.05                         # 8 x 0,05 s = 0,4 s
-STROKE_CROWN, STROKE_DRUM, STROKE_BREECH = 0.18, 0.12, 0.15  # curso (quadros) da ponta, tambores e culatra
 
 
-def kick_off(stroke, frame):
-    """Deslocamento em y do modelo (quadros; negativo = para tras, para a culatra) do quadro 1..8."""
-    return -stroke * KICK[frame - 1]
+def kick_off(kind, frame):
+    """Deslocamento em y do modelo (quadros; negativo = para tras, para a culatra) do quadro 1..8 da curva kind."""
+    return -KICK_PX[kind][frame - 1] / B.PX
+
+
+def kick_table(layer):
+    """Tabela do tranco para o meta.json (maquina le): px por arquivo e na ordem de tocar."""
+    k = KICK_PX[KICK_LAYER[layer]]
+    return {"curve": KICK_LAYER[layer], "stroke_px_at_64": STROKE_PX, "stroke_tiles": round(STROKE, 4),
+            "offset_px_by_file": list(k), "offset_px_play_order": list(k[1:]) + [k[0]],
+            "AnimationFiles_order": [f"{layer}{i}.png" for i in list(range(2, 9)) + [1]],
+            "positive": "para tras (para a culatra)"}
+
+
+def _snap_alpha(path, lo=4, hi=247):
+    """Alfa quase cheio vira cheio e quase zero vira zero (sem o veu de alfa 252 nos corpos dos tambores e do bloco)."""
+    import numpy as np
+    from PIL import Image
+    a = np.asarray(Image.open(path).convert("RGBA")).copy()
+    al = a[..., 3]
+    al[al > hi] = 255
+    z = al < lo
+    a[z] = 0
+    Image.fromarray(a, "RGBA").save(path)
+
+
+def kick_post(P, layer, path, **kw):
+    """post das camadas do tranco: limpa o alfa (as normais recebem o alfa de novo depois)."""
+    _snap_alpha(path)
 
 
 def _kick_camera(dy):
@@ -1525,12 +1607,12 @@ def _kick_camera(dy):
 
 
 def loader_kick(M, T="culatra_tranco", phase=0.0, frame=1):
-    """culatra_tranco1..8 (roof_turrets, por cima do teto): o BLOCO DA CULATRA bate para tras (STROKE_BREECH) e
-    volta; as hastes empurram as cruzetas e as MOLAS laranja-ouro comprimem. O batente, as guias e a guia interna
-    da mola ficam parados. 1 = repouso."""
+    """culatra_tranco1..8 (roof_turrets, por cima do teto): o BLOCO DA CULATRA bate para tras (curva "breech": 13 px,
+    1 quadro depois da boca) e volta; as hastes empurram as cruzetas e as MOLAS laranja-ouro comprimem o mesmo curso.
+    O batente, as guias e a guia interna da mola ficam parados. 1 = repouso."""
     X = mats(M)
     tags = (T,)
-    dy = kick_off(STROKE_BREECH, frame)
+    dy = kick_off("breech", frame)
     _moved(dy, lambda: _breech_block(X, tags))
     for sx in (-1, 1):
         _recoil_spring(X, tags, sx, dy)
@@ -1548,7 +1630,7 @@ def loader_roof(M, T="roof"):
     tags = (T,)
     # ---- base escura com as 3 janelas
     base = B.box("u_base", 0, EXT / 2, 5.0, 5.0 + EXT, -0.06, 0.0, X["gap"], bevel=0.0, tags=tags)
-    slot = chamfer_rect(-SLOT_HX, SLOT_Y0 - STROKE_BREECH - 0.01, SLOT_HX, 2.5 + EXT + 0.2, (0.03, 0.03, 0.0, 0.0))
+    slot = chamfer_rect(-SLOT_HX, SLOT_Y0 - STROKE - 0.01, SLOT_HX, 2.5 + EXT + 0.2, (0.03, 0.03, 0.0, 0.0))
     feed = chamfer_rect(-FEED_HX, FEED_Y0, FEED_HX, FEED_Y1, (0.03, 0.03, 0.03, 0.03))
     win = chamfer_rect(-WIN_HX, WIN_Y0, WIN_HX, WIN_Y1, (0.07, 0.07, 0.07, 0.07))
     B.cut(base, [B.loft(f"uc{i}", h, h, -0.5, 1.5, X["black"], bevel=0.0) for i, h in enumerate((slot, feed, win))])
@@ -1559,15 +1641,19 @@ def loader_roof(M, T="roof"):
                   X["steel"], bevel=0.008, tags=tags)
             B.box(f"bgk{sx}{k}", sx * gx, (BB_Y0 - 0.1 + 2.5 + EXT) / 2, 0.016, 2.5 + EXT - BB_Y0 + 0.1, 0.05, 0.055,
                   X["black"], bevel=0.0, tags=tags)
-        B.box(f"blip{sx}", sx * (SLOT_HX + 0.008), (SLOT_Y0 - STROKE_BREECH + 2.5) / 2, 0.016,
-              2.5 - SLOT_Y0 + STROKE_BREECH, 0.0, 0.06, X["gap"], bevel=0.0, tags=tags)
+        B.box(f"blip{sx}", sx * (SLOT_HX + 0.008), (SLOT_Y0 - STROKE + 2.5) / 2, 0.016,
+              2.5 - SLOT_Y0 + STROKE, 0.0, 0.06, X["gap"], bevel=0.0, tags=tags)
     # ---- convés pintado: cantos de cima (acima dos canais e das placas), faixa entre as placas, borda de fora
     for sx in (-1, 1):
         for k, poly in enumerate(([(CHN_X0 + 0.01, 2.37), (2.485, 2.37), (2.485, 2.485), (CHN_X0 + 0.01, 2.485)],
                                   [(WP_X0, -0.40), (2.485, -0.40), (2.485, -0.32), (WP_X0, -0.32)],
-                                  [(2.44, -2.30), (2.485, -2.30), (2.485, -0.44), (2.44, -0.44)],
-                                  [(2.28, -2.485), (2.485, -2.485), (2.485, -2.33), (2.42, -2.33), (2.28, -2.47)])):
+                                  [(2.44, -2.10), (2.485, -2.10), (2.485, -0.44), (2.44, -0.44)])):
             deck_plate(f"dk{sx}{k}", poly if sx > 0 else mirror_x(poly), X, tags)
+        # critica tranco-r1 (o carregador lia como um armario quadrado): os 4 cantos de fora CHANFRADOS, as placas
+        # brancas com o chanfro grande e o canto em triangulo pintado (cor da nave): a silhueta fica octogonal
+        for k, tri in enumerate(([(2.15, 2.345), (2.485, 2.01), (2.485, 2.345)],
+                                 [(2.17, -2.485), (2.485, -2.485), (2.485, -2.17)])):
+            B.plate(f"dkc{sx}{k}", tri if sx > 0 else mirror_x(tri), 0.0, 0.06, X["green"], slope=0.015, tags=tags)
     # ---- FENDA DE ALIMENTACAO: estreita, numa placa de gunmetal (respiros e marca laranja embaixo)
     fy0 = 0.02
     fa, fp = gplate("feed", chamfer_rect(-0.30, fy0, 0.30, FEED_Y1 + 0.075, (0.05, 0.05, 0.04, 0.04)), 0.0, 0.24,
@@ -1652,10 +1738,10 @@ def loader_roof(M, T="roof"):
             B.box(f"chr{sx}{k}", sx * (CHN_X0 + CHN_X1) / 2, yy, CHN_X1 - CHN_X0 - 0.10, 0.03, -0.005, 0.01,
                   X["rib"], bevel=0.0, tags=tags)
     # ---- placas BRANCAS em cunha por fora: a alta (projeta, fenda de visao) e a de baixo, recuada
-    up_o = [(WP_X0, -0.30), (2.28, -0.30), (2.48, -0.10), (2.48, 2.12), (2.26, 2.33), (WP_X0, 2.33)]
-    up_t = [(WP_X0, -0.22), (2.24, -0.22), (2.36, -0.10), (2.36, 2.06), (2.21, 2.21), (WP_X0, 2.21)]
-    lo_o = [(WP_X0, -2.46), (2.26, -2.46), (2.42, -2.30), (2.42, -0.58), (2.30, -0.44), (WP_X0, -0.44)]
-    lo_t = [(WP_X0, -2.36), (2.22, -2.36), (2.32, -2.26), (2.32, -0.62), (2.26, -0.54), (WP_X0, -0.54)]
+    up_o = [(WP_X0, -0.30), (2.28, -0.30), (2.48, -0.10), (2.48, 1.92), (2.07, 2.33), (WP_X0, 2.33)]
+    up_t = [(WP_X0, -0.22), (2.24, -0.22), (2.36, -0.10), (2.36, 1.88), (2.03, 2.21), (WP_X0, 2.21)]
+    lo_o = [(WP_X0, -2.46), (2.10, -2.46), (2.42, -2.14), (2.42, -0.58), (2.30, -0.44), (WP_X0, -0.44)]
+    lo_t = [(WP_X0, -2.36), (2.08, -2.36), (2.32, -2.12), (2.32, -0.62), (2.26, -0.54), (WP_X0, -0.54)]
     for sx in (-1, 1):
         f = (lambda q: q) if sx > 0 else mirror_x
         sd, a, p = wwedge(f"wo{sx}", f(up_o), f(up_t), 0.0, 0.23, X, tags)
@@ -1665,7 +1751,7 @@ def loader_roof(M, T="roof"):
         zv = recess(f"wovo{sx}", sx * 2.12, 0.52, 0.05, 0.16, 0.27, X, tags, [a, p, sd], depth=0.10)
         B.box(f"wovoi{sx}", sx * 2.12, 0.52, 0.03, 0.12, zv, zv + 0.045, X["orange"], bevel=0.004, tags=tags)
         bolts(f"wob{sx}", [(sx * 2.02, -0.10), (sx * 2.02, 2.06)], 0.27, X, tags, r=0.017, mat=X["orange"])
-        bolts(f"wob2{sx}", [(sx * 2.24, 0.10), (sx * 2.24, 1.96)], 0.27, X, tags, r=0.016)
+        bolts(f"wob2{sx}", [(sx * 2.24, 0.10), (sx * 2.22, 1.80)], 0.27, X, tags, r=0.016)
         sd, a, p = wwedge(f"wi{sx}", f(lo_o), f(lo_t), 0.0, 0.23, X, tags)
         zb = recess(f"wiv{sx}", sx * 2.09, -1.45, 0.05, 0.34, 0.27, X, tags, [a, p, sd], depth=0.10)
         B.box(f"wivo{sx}", sx * 2.09, -1.45, 0.03, 0.12, zb, zb + 0.04, X["orange"], bevel=0.004, tags=tags)
@@ -1758,14 +1844,15 @@ def ponta_roof(M, T="roof"):
     tags = (T,)
     y0 = -2.0 - EXT
     yt = CROWN_Y0
+    ucore = {}
     for sx in (-1, 1):
         B.box(f"u_neck{sx}", sx * (CH + 1.5) / 2, (y0 + NECK_Y) / 2, 1.5 - CH, NECK_Y - y0, -0.06, 0.0, X["gap"],
               bevel=0.0, tags=tags)
         q = [(CH, NECK_Y), (1.5, NECK_Y), (1.5, NECK_Y + 0.2), (THROAT, NECK_Y + 0.2)]
         B.loft(f"u_tap{sx}", q if sx > 0 else mirror_x(q), q if sx > 0 else mirror_x(q), -0.06, 0.0, X["gap"],
                bevel=0.0, tags=tags)
-        B.box(f"u_core{sx}", sx * (THROAT + 1.5) / 2, (NECK_Y + 0.2 + yt) / 2, 1.5 - THROAT, yt - NECK_Y - 0.2, -0.06,
-              0.0, X["gap"], bevel=0.0, tags=tags)
+        ucore[sx] = B.box(f"u_core{sx}", sx * (THROAT + 1.5) / 2, (NECK_Y + 0.2 + yt) / 2, 1.5 - THROAT,
+                          yt - NECK_Y - 0.2, -0.06, 0.0, X["gap"], bevel=0.0, tags=tags)
     # convés pintado: faixas das bordas, cantos de tras e cantos da frente (fora do escudo da frente)
     deck = [[(1.29, -0.985), (1.485, -0.985), (1.485, -0.015), (1.29, -0.015)],
             [(1.29, 0.015), (1.485, 0.015), (1.485, 0.98), (1.29, 0.98)],
@@ -1786,22 +1873,13 @@ def ponta_roof(M, T="roof"):
                         depth=0.06, pip=0.6)
     coaming("coam_n", NECK_Y + 0.15, yt, X, tags, z=0.16, x=THROAT)
     coaming("coam_w", y0, NECK_Y, X, tags, z=0.16, x=CH)
-    # cunhas BRANCAS (a peca dominante da referencia)
-    # critica ref-r1: as cunhas eram lajes brancas chapadas (liam como portas). Agora sao CUNHAS: a face de cima
-    # branca (a metade de dentro) e a faceta lateral larga sombreada (white_s) por fora e na diagonal de tras, com a
-    # fresta de respiro escura na faceta (a referencia)
-    wd_o = [(0.46, yt - 0.03), (1.21, yt - 0.03), (1.25, yt - 0.07), (1.25, -0.50), (0.70, -1.28), (0.46, -1.28)]
-    wd_t = [(0.48, yt - 0.03), (0.90, yt - 0.03), (0.93, yt - 0.06), (0.93, -0.42), (0.62, -1.10), (0.48, -1.10)]
+    # cunhas BRANCAS (a peca dominante da referencia): critica tranco-r1, NAO estao mais aqui; andam no tranco com a
+    # frente em escudo (weapon_tranco, ponta_cheeks). O teto tem um BURACO no lugar delas (um pouco maior que a
+    # cunha, aberto ate a borda da frente do teto): por ele aparecem a cunha e o fundo escuro dela (weapons, abaixo
+    # do teto); no tranco a cunha entra sob os blocos de tras e o buraco mostra a base da coroa que recuou junto
     for sx in (-1, 1):
-        f = (lambda q: q) if sx > 0 else mirror_x
-        sd, a, p = wwedge(f"wd{sx}", f(wd_o), f(wd_t), 0.0, 0.26, X, tags, panel_h=0.032)
-        zb = recess(f"wdv{sx}", sx * 1.09, -0.02, 0.07, 0.40, 0.17, X, tags, [sd], depth=0.12)
-        for i in range(4):
-            B.box(f"wdvl{sx}{i}", sx * 1.09, -0.17 + i * 0.10, 0.06, 0.025, zb, zb + 0.04, X["graph"], bevel=0.004,
-                  tags=tags)
-        panel_lines(p, f"wdl{sx}", [(sx * 0.705, -0.20, 0.24, 0)], 0.27, X)
-        bolts(f"wdb{sx}", [(sx * 0.56, 0.36), (sx * 0.56, -0.98)], 0.295, X, tags, r=0.018, mat=X["orange"])
-        bolts(f"wdb2{sx}", [(sx * 0.84, 0.36)], 0.295, X, tags, r=0.017)
+        hole = inflate(WD_HOLE if sx > 0 else mirror_x(WD_HOLE), 0.015)
+        B.cut(ucore[sx], [B.loft(f"u_wdh{sx}", hole, hole, -0.5, 1.5, X["black"], bevel=0.0)])
     # blocos de grafite de tras (abaixo da diagonal das cunhas) + o pescoco que encosta no cano
     for sx, poly in sides([(0.70, -1.74), (1.10, -1.74), (1.25, -1.58), (1.25, -0.585), (0.70, -1.32)]):
         a, p = gplate(f"bb{sx}", poly, 0.0, 0.20, X, tags, slope=0.045, groove=0.014, panel_h=0.028)
@@ -1816,19 +1894,41 @@ def ponta_roof(M, T="roof"):
     # o tambor EM da emenda NAO esta aqui: anda no tranco (camada tambor_tranco, ponta_drum_kick)
 
 
+def ponta_cheeks(X, tags):
+    """As grandes BOCHECHAS BRANCAS em cunha da ponta (a peca dominante da referencia) com o fundo escuro em volta
+    (o mesmo 'gap' do teto). Critica tranco-r1: estavam no teto (paradas) e so as pontas da frente recuavam; agora
+    andam com a frente em escudo (weapon_tranco) e o teto tem um buraco no lugar delas (ponta_roof)."""
+    B.loft("wd_under", inflate(WD_O, 0.035), inflate(WD_O, 0.035), -0.06, 0.0, X["gap"], bevel=0.0, tags=tags)
+    B.loft("wd_under2", inflate(mirror_x(WD_O), 0.035), inflate(mirror_x(WD_O), 0.035), -0.06, 0.0, X["gap"],
+           bevel=0.0, tags=tags)
+    for sx in (-1, 1):
+        f = (lambda q: q) if sx > 0 else mirror_x
+        sd, a, p = wwedge(f"wd{sx}", f(WD_O), f(WD_T), 0.0, 0.26, X, tags, panel_h=0.032)
+        zb = recess(f"wdv{sx}", sx * 1.09, -0.02, 0.07, 0.40, 0.17, X, tags, [sd], depth=0.12)
+        for i in range(4):
+            B.box(f"wdvl{sx}{i}", sx * 1.09, -0.17 + i * 0.10, 0.06, 0.025, zb, zb + 0.04, X["graph"], bevel=0.004,
+                  tags=tags)
+        panel_lines(p, f"wdl{sx}", [(sx * 0.705, -0.20, 0.24, 0)], 0.27, X)
+        bolts(f"wdb{sx}", [(sx * 0.56, 0.36), (sx * 0.56, -0.98)], 0.295, X, tags, r=0.018, mat=X["orange"])
+        bolts(f"wdb2{sx}", [(sx * 0.84, 0.36)], 0.295, X, tags, r=0.017)
+
+
 def ponta_crown_kick(M, T="weapon_tranco", phase=0.0, frame=1):
-    """weapon_tranco1..8 (weapons, rect [0,0,3,1.75]): a FRENTE EM ESCUDO inteira recua STROKE_CROWN no tiro (entra
-    sob o teto da ponta, abre uma fresta de piso na boca) e volta com a mola. 1 = repouso: o post crown_rest_copy
-    grava weapon.png = as 96 linhas de cima de weapon_tranco1 (pixel a pixel)."""
-    _kick_camera(kick_off(STROKE_CROWN, frame))
+    """weapon_tranco1..8 (weapons, rect [0,0,3,3.5625]): a FRENTE EM ESCUDO inteira + as BOCHECHAS BRANCAS recuam
+    (curva "crown": 13 px, segura 2 quadros, sem sobre-curso) e voltam com a mola: as bochechas entram sob os blocos
+    de tras do teto e a coroa sob o teto; na boca abre uma fresta de piso. 1 = repouso: o post crown_rest_copy grava
+    weapon.png = as 96 linhas de cima de weapon_tranco1 (pixel a pixel; so a coroa, as bochechas comecam abaixo)."""
+    _kick_camera(kick_off("crown", frame))
     ponta_crown(M, T)
+    ponta_cheeks(mats(M), (T,))
 
 
 def crown_rest_copy(P, layer, path, frame=1, **kw):
-    """post de weapon_tranco: no quadro 1 (repouso) weapon.png / weapon_normals.png [0,0,3,1.5] viram o recorte
-    exato dele (as duas imagens do repouso sao a mesma, sem o ruido de 2 renders)."""
+    """post de weapon_tranco: limpa o alfa e, no quadro 1 (repouso), weapon.png / weapon_normals.png [0,0,3,1.5]
+    viram o recorte exato dele (as duas imagens do repouso sao a mesma, sem o ruido de 2 renders)."""
     import os
     from PIL import Image
+    _snap_alpha(path)
     if frame != 1:
         return
     d = os.path.dirname(path)
@@ -1844,11 +1944,11 @@ def crown_rest_copy(P, layer, path, frame=1, **kw):
 
 
 def ponta_drum_kick(M, T="tambor_tranco", phase=0.0, frame=1):
-    """tambor_tranco1..8 (roof_turrets, rect [0.875,3.125,1.25,0.75]): o tambor EM da emenda da ponta recua junto
-    com os tambores dos canos (STROKE_DRUM)."""
+    """tambor_tranco1..8 (roof_turrets, rect [0.875,3.0,1.25,1.0]): o tambor EM da emenda da ponta recua junto com
+    os tambores dos canos (curva "drum"). O cartao escuro de tras so cobre o canal (nao as bordas do teto)."""
     X = mats(M)
-    _kick_camera(kick_off(STROKE_DRUM, frame))
-    clamp("cl", PONTA_CLAMP, X, (T,))
+    _kick_camera(kick_off("drum", frame))
+    clamp("cl", PONTA_CLAMP, X, (T,), card_hw=CHEEK_IN)
 
 
 def slug_sprite(M, T="slug"):

@@ -26,9 +26,13 @@ Animacao: 12 quadros x 0,25 s = 3,0 s = um projetil por volta (R07: F6 3,0 s): 0
 os outros 2 | 8 abre | 9-10 desce ao berco de acabamento e esfria | 11 a haste nova entra no forno.
 Teto: placas verdes; espinha central no estilo da Tupa (grafite com placas brancas grossas nas laterais, canal azul
 fino aceso, aneis segmentados com pinos laranja); colunas com uma tampa por celula (capo com respiro em cima,
-tampa octogonal do acionamento embaixo, travessa escura com fresta azul entre elas); celula [1,2] (maquina) com o
+tampa sextavada do acionamento embaixo, travessa escura com fresta azul entre elas); celula [1,2] (maquina) com o
 capuz do berco de acabamento (bochechas brancas + canal grafite com fresta azul, SEM seta); escotilhas em seta so
-nas entradas e na saida.
+nas entradas e na saida (piso: seta de saida nas 3 celulas da fileira de baixo).
+
+Render em DOIS passos (o segundo e obrigatorio: META_EXTRA, ganho do lights.png e a passada de LED do teto):
+    <venv>/bin/python tools/blender/render_part.py bs_factory_slug
+    <venv>/bin/python tools/blender/parts/_bs2_fabricas_helpers.py bs_factory_slug
 """
 
 import math
@@ -110,7 +114,8 @@ def _M(M):
 def floor(M, T="floor"):
     M = _M(M)
     machine = {(i, j) for i in range(3) for j in range(2)} | {(1, 2)}
-    pads = {(0, 2): 90, (2, 2): 90, (1, 3): (270, 90), (0, 3): None, (2, 3): None}
+    # a saida e a fileira de baixo INTEIRA ([0,3,3,1]): seta de saida em todas as 3 celulas
+    pads = {(0, 2): 90, (2, 2): 90, (1, 3): (270, 90), (0, 3): (270, 90), (2, 3): (270, 90)}
     H.floor_grid(M, W, HH, machine, pads, T=T, rail_rows=(3,))
 
 
@@ -393,11 +398,11 @@ def roof(M, T="roof"):
                   pips=[X["blue_lo"], None, X["blue_lo"], X["led_o"]])
         B.bolts(f"rf_cb{sx}", [(cx - 0.25, 1.235), (cx + 0.25, 1.235)], 0.26, 0.016, S, tags=tags)
         oc = (cx, 0.50)
-        B.plate(f"rf_dk{sx}", H.octo(oc[0], oc[1], 0.31), 0.04, 0.13, K, slope=0.015, tags=tags)
+        # coroa HEXAGONAL: base escura sextavada e 6 segmentos retos (fresta nos cantos); antes os segmentos tinham
+        # a borda de fora em 2 facetas e a coroa lia como uma engrenagem redonda (STYLE 1.2)
+        B.plate(f"rf_dk{sx}", H.ngon(oc[0], oc[1], 0.345, 6, 30.0), 0.04, 0.13, K, slope=0.015, tags=tags)
         for k in range(6):
-            a = 60 * k
-            seg = [(oc[0] + math.cos(math.radians(a + d)) * r, oc[1] + math.sin(math.radians(a + d)) * r)
-                   for r, d in ((0.17, -22), (0.285, -22), (0.285, 0), (0.285, 22), (0.17, 22), (0.17, 0))]
+            seg = H.facet_seg(oc[0], oc[1], 60 * k, 0.165, 0.275, 25.0)
             B.shard(f"rf_dseg{sx}{k}", seg, 0.12, 0.22, A, slope=0.02, groove=0.01, panel_h=0.012, tags=tags)
         B.plate(f"rf_dhub{sx}", H.octo(oc[0], oc[1], 0.12), 0.12, 0.20, X["graph"], slope=0.015, tags=tags)
         B.cyl(f"rf_dled{sx}", oc[0], oc[1], 0.20, 0.032, 0.008, X["blue_lo"], axis="Z", verts=8, bevel=0.0,

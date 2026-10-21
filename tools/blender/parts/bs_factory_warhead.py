@@ -28,7 +28,12 @@ Teto: placas verdes; tampa da celula quente em degraus (aba externa pintada com 
 claro com visor, fendas de LED verde e o trevo grande embutido num recesso escuro); tampas das colunas
 (centrifugas = 3 calotas octogonais; torno = capo com respiro + placa da janela, uma por celula); cinta de cofre
 sobre o berco de saida; escotilhas em seta nas entradas e na saida. LEDs do teto todos em (0.32, 1, 0) a 0,75
-(STYLE 9: |r - b| >= 64, o shader de pintura nao os repinta).
+(STYLE 9: |r - b| >= 64, o shader de pintura nao os repinta). Piso: seta de saida nas 4 celulas da fileira de baixo
+(a saida e a fileira inteira).
+
+Render em DOIS passos (o segundo e obrigatorio: META_EXTRA, ganho do lights.png e a passada de LED do teto):
+    <venv>/bin/python tools/blender/render_part.py bs_factory_warhead
+    <venv>/bin/python tools/blender/parts/_bs2_fabricas_helpers.py bs_factory_warhead
 """
 
 import math
@@ -138,7 +143,8 @@ def _ik(S, T, side):
 # ============================================================================ piso
 def floor(M, T="floor"):
     machine = {(i, j) for i in range(4) for j in range(2)} | {(1, 2), (2, 2)}
-    pads = {(0, 2): 90, (3, 2): 90, (1, 3): (270, 90), (2, 3): (270, 90), (0, 3): None, (3, 3): None}
+    # a saida e a fileira de baixo INTEIRA ([0,3,4,1]): seta de saida em todas as 4 celulas
+    pads = {(0, 2): 90, (3, 2): 90, (1, 3): (270, 90), (2, 3): (270, 90), (0, 3): (270, 90), (3, 3): (270, 90)}
     H.floor_grid(M, W, HH, machine, pads, T=T, rail_rows=(3,))
 
 

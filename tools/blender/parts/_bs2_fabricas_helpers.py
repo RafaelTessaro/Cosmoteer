@@ -26,7 +26,13 @@ render_part.py rode, com o Python do Blender:
 
     <venv>/bin/python tools/blender/parts/_bs2_fabricas_helpers.py <id_curto> [--out DIR] [--quick]
 
-que renderiza as camadas extras com render_layered.render_layer (camera recortada no rect, normais, so emissao
+ATENCAO: os DOIS passos sao obrigatorios. Rodar so o render_part.py deixa a fabrica incompleta: sem o ganho do
+lights.png (lights_gain), sem a passada de LED do teto (_roof_led_safe: os LEDs verdes/ciano somem no casco claro),
+sem as chaves de META_EXTRA (grid, mode_plate, notes...) e sem as camadas extras (banco_pem da F3). Com --only
+hull/machine/fN no render_part, rode o helper com --only <camada> (ou um nome que nao existe, para so regravar o
+meta): as camadas extras ja renderizadas ficam no meta.json.
+
+O helper renderiza as camadas extras com render_layered.render_layer (camera recortada no rect, normais, so emissao
 com halo) e junta tudo no meta.json da fabrica ("overlays": {nome: {game_layer, rect, files, normals, frames,
 interval, blend, gate}}). Sem EXTRA_LAYERS ele so grava META_EXTRA. O check_art3d le "hull" e "machine" como
 antes; as chaves novas sao para o gerador 2.0 (bsgen/factory.py).
@@ -61,9 +67,14 @@ CHIP = {
     "frag": (120, 210, 200), "plasma": (60, 220, 255), "pem": (60, 200, 255), "msl_he": (255, 150, 30),
     "msl_cluster": (255, 232, 80), "msl_emp": (40, 150, 255), "nuke": (90, 255, 40), "slug": (150, 105, 255),
     "rail_gold": (255, 200, 90), "pem_cu": (200, 110, 50),
-    # pastilha/seta da saida HE da Fabrica de Misseis: laranja do casco do msl_he (palette.msl_he.hull), longe do
-    # amarelo-limao da Piranha (o ambar da faixa HE se confundia com ele a 1x, 6x2 px)
-    "msl_he_pad": (255, 96, 12),
+    # pastilhas/LEDs das SAIDAS da Fabrica de Misseis: o MESMO codigo das placas de modo (art3d/bs_placas, grupo
+    # logistica) desenhadas no teto da mesma fabrica: placa_msl_he ambar (~40 graus) = palette.he.chip;
+    # placa_msl_cluster laranja (~22 graus) = palette.cluster.chip (e o laranja do cluster nos paiois/fita,
+    # _bs2_logistica_helpers); PEM azul. O recurso Piranha (bs_msl_cluster) continua amarelo-limao: se a ligacao
+    # preferir o codigo dos misseis aprovados (submunicao limao), recolorir placa_msl_cluster E estas duas chaves
+    # (o ambar vai a ~38 graus, o matiz medido da placa_msl_he: no meio entre o laranja da submunicao, ~21, e o
+    # amarelo dos LEDs genericos das entradas, ~55; com o palette.he.chip puro, 40-43 graus, ficava perto demais)
+    "msl_he_pad": (255, 180, 50), "msl_cluster_pad": (255, 120, 40),
 }
 VIOLET = (0.30, 0.135, 1.0)          # violeta do Tupa 1a versao (parts/bs_rail.py VIOLET)
 RAIL_BLUE = (0.026, 0.171, 1.0)      # azul eletrico da Tupa nova (parts/bs_rail.py BLUE; USER_NOTES: referencia)
@@ -94,6 +105,9 @@ def X(M):
         "brass": B.mat_metal("f2_brass", (0.62, 0.42, 0.12), rough=0.3, metal=1.0),
         "copper": Mo.copper_mat(),
         "graphite": B.mat_paint("f2_graphite", (0.085, 0.088, 0.096), rough=0.42, metal=0.45, wear=0.25, grime=0.05),
+        # grafite ESCURO do corpo do Poraque (o recurso bs_msl_emp tem corpo quase preto)
+        "graphite_dk": B.mat_paint("f2_graphite_dk", (0.032, 0.034, 0.040), rough=0.55, metal=0.35, wear=0.15,
+                                   grime=0.05),
         "nose": Mo.nose_paint("f2_nose", Mo.NOSE_LIGHT),
         "lens": B.mat_metal("f2_lens", (0.012, 0.016, 0.022), rough=0.08, metal=0.3),
         "glass_g": B.mat_metal("f2_glass_g", (0.010, 0.040, 0.012), rough=0.05, metal=0.25),
@@ -140,6 +154,21 @@ def rot(pts, ang, cx=0.0, cy=0.0):
 def octo(cx, cy, r, a0=22.5, sy=1.0):
     return [(cx + r * math.cos(math.radians(a0 + 45 * i)), cy + sy * r * math.sin(math.radians(a0 + 45 * i)))
             for i in range(8)]
+
+
+def ngon(cx, cy, r, n=6, a0=0.0):
+    """Poligono regular de n lados (raio do vertice r, primeiro vertice em a0 graus)."""
+    return [(cx + r * math.cos(math.radians(a0 + 360.0 * i / n)), cy + r * math.sin(math.radians(a0 + 360.0 * i / n)))
+            for i in range(n)]
+
+
+def facet_seg(cx, cy, a, r_in, r_out, half_deg):
+    """Segmento RETO de um colar facetado (octogono/hexagono): trapezio entre os apotemas r_in e r_out, centrado na
+    normal a (graus), meia abertura half_deg. As bordas de fora de todos os segmentos ficam alinhadas num poligono
+    (sem curva: STYLE 1.2), com a fresta nos cantos."""
+    t = math.tan(math.radians(half_deg))
+    pts = [(r_in, -r_in * t), (r_out, -r_out * t), (r_out, r_out * t), (r_in, r_in * t)]
+    return rot(pts, a, cx, cy)
 
 
 def flip(sx):
@@ -425,24 +454,40 @@ def _missile(M, Xm, tags, kind, part="all", lit=True):
     part: "body" (sem nariz), "nose" (so o nariz/ogiva) ou "all"."""
     K, KM, A, S = M["core"], M["core_mid"], M["armor"], M["steel"]
     R = 0.045
+    emp = kind == "msl_emp"
     if part in ("all", "body"):
-        B.cyl("ms_body", 0, -0.04, R, R, 0.26, A, axis="Y", verts=8, bevel=0.004, tags=tags)
-        for k, yy in enumerate((-0.12, -0.02)):
-            B.cyl(f"ms_seam{k}", 0, yy, R, R * 1.03, 0.008, K, axis="Y", verts=8, bevel=0.0, tags=tags)
+        # PEM (Poraque, como o recurso bs_msl_emp): corpo GRAFITE com 3 bobinas de cobre e 2 LEDs azuis entre elas,
+        # aletas CLARAS; HE/submunicao: corpo claro com costuras de luva e aletas escuras
+        B.cyl("ms_body", 0, -0.04, R, R, 0.26, Xm["graphite_dk"] if emp else A, axis="Y", verts=8, bevel=0.004,
+              tags=tags)
+        if not emp:
+            for k, yy in enumerate((-0.12, -0.02)):
+                B.cyl(f"ms_seam{k}", 0, yy, R, R * 1.03, 0.008, K, axis="Y", verts=8, bevel=0.0, tags=tags)
         B.cyl("ms_tail", 0, -0.185, R, R * 0.8, 0.03, KM, axis="Y", verts=8, bevel=0.0, tags=tags, r2=R * 0.6)
         for sx in (-1, 1):
             fin = [(R * 0.6, -0.17), (R * 1.9, -0.19), (R * 1.9, -0.155), (R * 0.6, -0.10)]
             fin = fin if sx > 0 else Mo.mirror(fin)
-            B.loft(f"ms_fin{sx}", fin, fin, R * 0.9, R * 1.15, KM, bevel=0.0, tags=tags)
-        if kind == "msl_emp":
-            for k, yy in enumerate((-0.07, 0.01)):
-                B.cyl(f"ms_cu{k}", 0, yy, R, R * 1.07, 0.035, Xm["copper"], axis="Y", verts=12, bevel=0.0, tags=tags)
+            B.loft(f"ms_fin{sx}", fin, fin, R * 0.9, R * 1.15, A if emp else KM, bevel=0.0, tags=tags)
+        if emp:
+            for k, yy in enumerate((-0.125, -0.055, 0.015)):
+                B.cyl(f"ms_cu{k}", 0, yy, R, R * 1.07, 0.034, Xm["copper"], axis="Y", verts=12, bevel=0.0, tags=tags)
         B.cyl("ms_band", 0, 0.06, R, R * 1.04, 0.022, chip_mat(kind), axis="Y", verts=8, bevel=0.0, tags=tags)
-        if lit:
+        if lit and emp:
+            for k, yy in enumerate((-0.09, -0.02)):
+                B.box(f"ms_ledk{k}", 0, yy, 0.026, 0.03, 2 * R - 0.006, 2 * R + 0.002, M["black"], bevel=0.0,
+                      tags=tags)
+                B.box(f"ms_led{k}", 0, yy, 0.016, 0.02, 2 * R - 0.002, 2 * R + 0.004, led(kind, 1.0), bevel=0.0,
+                      tags=tags)
+        elif lit:
             B.box("ms_led", 0, -0.06, 0.016, 0.03, 2 * R - 0.002, 2 * R + 0.004, led(kind, 1.0), bevel=0.0, tags=tags)
     if part in ("all", "nose"):
         y0 = 0.09
-        if kind == "msl_cluster":
+        if emp:
+            B.cyl("ms_nose", 0, y0 + 0.045, R, R, 0.09, Xm["graphite_dk"], axis="Y", verts=8, bevel=0.0, tags=tags,
+                  r2=R * 0.30)
+            B.cyl("ms_eye", 0, y0 + 0.094, R, R * 0.30, 0.012, led(kind, 0.9) if lit else Xm["lens"], axis="Y",
+                  verts=8, bevel=0.0, tags=tags, r2=R * 0.12)
+        elif kind == "msl_cluster":
             B.cyl("ms_nose", 0, y0 + 0.035, R, R, 0.07, Xm["nose"], axis="Y", verts=8, bevel=0.0, tags=tags,
                   r2=R * 0.55)
             for k in range(4):
@@ -556,14 +601,16 @@ def mini_slug(name, x, y, z, M, Xm, tags, s=1.0, rz=0.0, collars=4, heat=0.0, li
 
 
 # ============================================================================ piso
-def floor_grid(M, W, H, machine, pads, T="floor", chips=None, copper=(), rail_rows=()):
+def floor_grid(M, W, H, machine, pads, T="floor", chips=None, copper=(), rail_rows=(), chev=None):
     """Piso opaco de uma fabrica 2.0.
 
     machine: celulas (i, j) do maquinario (poco escuro com grade de fendas). pads: {(i, j): ang | (ang, lado)} das
     bases de entrada/saida: ang = sentido da seta (graus) ou None (sem seta); lado = angulo do lado da moldura com o
     recesso da seta (o lado da maquina; padrao = ang, o caso das entradas; saida: (270, 90) = seta para baixo
     num recesso no lado de cima).
-    chips: {(i, j): kind} pastilha pintada da municao na moldura da base (saidas com seletor). copper: celulas com
+    chips: {(i, j): kind} faixa pintada da municao num soquete escuro no pe da base, logo acima do labio (saidas
+    com seletor; fica fora da sombra de 7+7 px do walls.png da borda). chev: {(i, j): material} da seta do recesso
+    (padrao glow_dim; a F4 acende a seta na cor do tipo). copper: celulas com
     a grade de cobre no poco (insumo cobre). rail_rows: fileiras j de saida com moldura escura continua sob as
     bases (a fileira de saida "inteira" das regras)."""
     tags = (T,)
@@ -611,13 +658,15 @@ def floor_grid(M, W, H, machine, pads, T="floor", chips=None, copper=(), rail_ro
             side = (round(dx), round(dy))
             cuts.append(B.box(f"pad_n{nm}", ex, ey, sx_, sy_, 0.042, 0.3, K, bevel=0.0))
             B.box(f"pad_nb{nm}", ex, ey, sx_ - 0.02, sy_ - 0.02, 0.036, 0.043, M["black"], bevel=0.0, tags=tags)
-            chevron("chv_" + nm, ex, ey, a, M["glow_dim"], tags, z=0.043, s=0.62)
+            chevron("chv_" + nm, ex, ey, a, (chev or {}).get((i, j), M["glow_dim"]), tags, z=0.043, s=0.62)
+        kcut = None
         if chips and (i, j) in chips:
-            # pastilha pintada da municao na borda de baixo da moldura (num recesso, com lista escura)
-            kx, ky = cx, cy - 0.39
-            cuts.append(B.box(f"pad_k{nm}", kx, ky, 0.40, 0.10, 0.045, 0.3, K, bevel=0.0))
-            B.box(f"pad_kb{nm}", kx, ky, 0.40, 0.10, 0.038, 0.045, M["black"], bevel=0.0, tags=tags)
-            B.box(f"pad_kc{nm}", kx, ky, 0.34, 0.05, 0.045, 0.056, chip_mat(chips[(i, j)], 0.25), bevel=0.004,
+            # faixa pintada da municao num soquete escuro no pe da base, logo ACIMA do labio de baixo (na borda da
+            # moldura ela ficava sob a parede e a sombra de alfa 90-115 do walls.png e lia marrom/oliva/cinza)
+            kx, ky = cx, cy - 0.285
+            kcut = (kx, ky)
+            B.box(f"pad_kb{nm}", kx, ky, 0.32, 0.085, 0.040, 0.046, M["black"], bevel=0.0, tags=tags)
+            B.box(f"pad_kc{nm}", kx, ky, 0.28, 0.05, 0.046, 0.057, chip_mat(chips[(i, j)], 0.25), bevel=0.004,
                   tags=tags)
         B.cut(fr, cuts)
         lip = B.plate(f"padlip_{nm}", B.rpoly(cx, cy, 0.73, 0.73, 0, chamfer=0.075), 0.035, 0.056, AM, slope=0.005,
@@ -633,8 +682,10 @@ def floor_grid(M, W, H, machine, pads, T="floor", chips=None, copper=(), rail_ro
             for k in range(2):
                 B.box(f"cuh_{nm}{k}", cx, cy - 0.15 + k * 0.30, 0.62, 0.016, 0.04, 0.05, cu, bevel=0.0, tags=tags)
         else:
-            B.box(f"padgv_{nm}", cx, cy, 0.012, 0.58, 0.04, 0.046, KM, bevel=0.0, tags=tags)
+            gv = B.box(f"padgv_{nm}", cx, cy, 0.012, 0.58, 0.04, 0.046, KM, bevel=0.0, tags=tags)
             B.box(f"padgh_{nm}", cx, cy, 0.58, 0.012, 0.04, 0.046, KM, bevel=0.0, tags=tags)
+            if kcut is not None:
+                B.cut(gv, [B.box(f"pad_kg{nm}", cx, cy - 0.285, 0.32, 0.085, 0.0, 0.3, K, bevel=0.0)])
         for qx in (-1, 1):
             for qy in (-1, 1):
                 ox, oy = cx + qx * 0.325, cy + qy * 0.325
@@ -643,7 +694,7 @@ def floor_grid(M, W, H, machine, pads, T="floor", chips=None, copper=(), rail_ro
                 B.plate(f"padbr_{nm}{qx}{qy}", poly if qx * qy > 0 else list(reversed(poly)), 0.04, 0.058,
                         AM, slope=0.008, bevel=0.004, tags=tags)
         pts = [(cx + 0.39 * dx, cy + 0.39 * dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))
-               if (dx, dy) != side and not (chips and (i, j) in chips and (dx, dy) == (0, -1))]
+               if (dx, dy) != side]
         B.bolts(f"pbolt_{nm}", pts, 0.066, 0.014, S, tags=tags)
 
 
@@ -693,14 +744,18 @@ def roof_hatch(name, M, cx, cy, ang, targets, T="roof", led_mat=None, chip=None,
     ledslot(name + "_p", c[0], c[1], 0.065 * s, 0.17 * s, 0.02, 3, M, tags, [aa, ap], pw=0.030,
             pip_mat=led_mat or M["glow_dim"], ang=ang - 90)
     if chip:
-        k = rot([(0.0, 0.205 * s)], ang - 90, cx, cy)[0]
-        cut = rot([(-0.07, -0.03), (0.07, -0.03), (0.07, 0.03), (-0.07, 0.03)], ang - 90, k[0], k[1])
+        # pastilha num SOQUETE escuro rebaixado (como as fendas de LED): ~1,3 px de leito preto em volta da tinta,
+        # para a cor ler nos dois cascos (a pastilha AP branca sumia no casco branco; STYLE 1.6 / 11.5)
+        k = rot([(0.0, 0.175 * s)], ang - 90, cx, cy)[0]
+        sw, sh = 0.076 * s, 0.037 * s
+        cut = rot([(-sw, -sh), (sw, -sh), (sw, sh), (-sw, sh)], ang - 90, k[0], k[1])
         for q, t in enumerate((aa, ap)):
             if t is not None:
-                B.cut(t, [B.loft(f"{name}_kc{q}", cut, cut, 0.08, 0.5, M["core"], bevel=0.0)])
-        B.loft(f"{name}_kb", cut, cut, 0.075, 0.085, M["black"], bevel=0.0, tags=tags)
-        kp = rot([(-0.055, -0.018), (0.055, -0.018), (0.055, 0.018), (-0.055, 0.018)], ang - 90, k[0], k[1])
-        B.loft(f"{name}_kp", kp, kp, 0.085, 0.10, chip_mat(chip, 0.25), bevel=0.003, tags=tags)
+                B.cut(t, [B.loft(f"{name}_kc{q}", cut, cut, 0.07, 0.5, M["core"], bevel=0.0)])
+        B.loft(f"{name}_kb", cut, cut, 0.062, 0.072, M["black"], bevel=0.0, tags=tags)
+        kw, kh = 0.055 * s, 0.017 * s
+        kp = rot([(-kw, -kh), (kw, -kh), (kw, kh), (-kw, kh)], ang - 90, k[0], k[1])
+        B.loft(f"{name}_kp", kp, kp, 0.072, 0.092, chip_mat(chip, 0.25), bevel=0.003, tags=tags)
     return aa, ap
 
 

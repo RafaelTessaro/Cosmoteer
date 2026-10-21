@@ -24,8 +24,13 @@ Animacao: 10 quadros x 0,125 s = 1,25 s = um carregador por volta (econ interval
   o carregador aparece fundido, pontas em brasa) | 6 segura | 7 recua, o portao abre | 8-9 o carregador desce
   para a boca de saida.
 Teto: placas verdes (pintura) nas bases com escotilhas em seta (entra / sai) e, sobre a fileira de cima, a coroa
-blindada: tampa octogonal da tremonha (bocal de carga e respiros radiais), torre da prensa em seta apontando
-para a saida (espinha com visor de contagem e trilhos-guia), lamina diagonal e ombreiras com respiros.
+blindada: tampa octogonal da tremonha (bocal de carga, respiros radiais e a fenda reta de nivel), torre da prensa em
+seta apontando para a saida (espinha com visor de contagem e trilhos-guia), placa de ligacao chanfrada com fenda de
+LEDs e ombreira com respiro.
+
+Render em DOIS passos (o segundo e obrigatorio: META_EXTRA, ganho do lights.png e a passada de LED do teto):
+    <venv>/bin/python tools/blender/render_part.py bs_factory_mag_std
+    <venv>/bin/python tools/blender/parts/_bs2_fabricas_helpers.py bs_factory_mag_std
 """
 
 import math
@@ -356,9 +361,10 @@ def roof(M, T="roof"):
     B.plate("cr_cap", cap, 0.33, 0.39, AM, slope=0.02, tags=tags)
     B.cyl("cr_capk", hx, hy, 0.40, 0.04, 0.03, S, axis="Z", verts=8, bevel=0.006, tags=tags)
     B.box("cr_caph", hx, hy, 0.16, 0.026, 0.39, 0.41, S, bevel=0.004, tags=tags)
-    # fenda de nivel do enxofre (4 pips) no bisel de baixo-direita da tampa
-    H.ledslot("cr_lvl", hx + 0.19, hy - 0.19, 0.16, 0.032, 0.28, 4, M, tags, [la, lp], vertical=False, pw=0.016,
-              pip_mat=M["glow_dim"], ang=-45)
+    # fenda de nivel do enxofre (4 pips) RETA, no lugar do respiro de baixo da tampa: leito preto largo (o pip nunca
+    # encosta na blindagem branca, STYLE 1.6) e nada na diagonal (a 1x o traco inclinado lia como carta solta)
+    H.ledslot("cr_lvl", hx, hy - 0.215, 0.21, 0.052, 0.28, 4, M, tags, [la, lp], vertical=False, pw=0.022,
+              pip_mat=M["glow_dim"])
 
     # torre da prensa (direita): espinha em seta apontando para a saida
     sx0 = 0.45
@@ -389,13 +395,13 @@ def roof(M, T="roof"):
     pa, pp = B.shard("cr_paul", paul, 0.12, 0.30, A, slope=0.05, groove=0.022, panel_h=0.022, tags=tags)
     H.vent("cr_pv", 0.81, 0.72, 0.075, 0.20, 0.25, 0.30, M, tags, n=4, targets=[pa, pp])
     H.ledslot("cr_psl", 0.81, 0.45, 0.034, 0.18, 0.25, 3, M, tags, [pa, pp], pw=0.018, pip_mat=M["glow_dim"])
-    blade = [(-0.17, 0.30), (0.06, 0.30), (0.20, 0.17), (0.20, 0.12), (-0.04, 0.12), (-0.17, 0.24)]
+    # placa de ligacao entre a tampa e a torre: retangulo chanfrado ORTOGONAL (B.shard, bisel duplo) com a fenda de
+    # 3 LEDs num recesso de leito preto (antes um losango inclinado com um traco amarelo: a unica peca fora do
+    # esquadro da familia)
+    blade = B.rpoly(0.005, 0.21, 0.35, 0.17, 0, chamfer=0.045)
     ba, bp = B.shard("cr_blade", blade, 0.12, 0.26, A, slope=0.04, groove=0.018, panel_h=0.018, tags=tags)
-    for q, t in enumerate((ba, bp)):
-        if t is not None:
-            B.cut(t, [B.rbox(f"cr_bc{q}", 0.02, 0.21, 0.16, 0.03, 0.21, 0.6, K, rot=-25, bevel=0.0)])
-    B.rbox("cr_bbed", 0.02, 0.21, 0.16, 0.03, 0.205, 0.215, M["black"], rot=-25, bevel=0.0, tags=tags)
-    B.rbox("cr_bglow", 0.02, 0.21, 0.11, 0.011, 0.215, 0.221, M["glow_dim"], rot=-25, bevel=0.0, tags=tags)
+    H.ledslot("cr_bsl", 0.005, 0.21, 0.19, 0.05, 0.205, 3, M, tags, [ba, bp], vertical=False, pw=0.022,
+              pip_mat=M["glow_dim"])
     # duto da tremonha para a torre (a rosca por baixo)
     B.cyl("cr_duct", -0.08, 0.40, 0.17, 0.05, 0.22, KM, axis="X", verts=8, bevel=0.006, tags=tags)
     for k, x in enumerate((-0.15, -0.01)):
