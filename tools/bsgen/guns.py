@@ -412,12 +412,18 @@ def build_gun(g, shot_paths):
         "BlueprintArcSprite": {"Texture": "&/INDICATORS/WeaponArc", "Size": [0, 1.5], "Color": [255, 0, 0, 63]},
         "BlueprintArcRadius": 10,
         "BlueprintArcSpriteSegments": 64,
+        # setor de alcance ao atacar: no 0.30.3/0.30.4 cada TurretWeapon precisa do proprio (cannon_deck.rules 0.30.3
+        # l.637; o SW:ACD declara em 120 de 125 torres); o 0.30.5 ignora. Sem ele o alcance nao aparecia no jogo (X1)
+        "CoverageSectorArc": dict(C.COVERAGE_SECTOR_ARC),
     }
     if g.get("searches"):
         turret["TargetSearchesPerSecond"] = g["searches"]
     if hybrid:
         # Atacar / Defender / Ambos, como a Flak vanilla (flak_cannon_large.rules l.444-477)
         turret["TargetSearchesPerSecond"] = g.get("searches", 6)
+        # setor de alcance sempre visivel na defesa, como point_defense.rules 0.30.3 l.375 e
+        # flak_cannon_large.rules 0.30.3 l.460 (X1)
+        turret["AlwaysShowCoverage"] = True
         turret["AllowShipWideExplicitTargetsToggle"] = "FirePrefAttack"
         turret["EstimateFirepowerToggle"] = "AttackToggle"
         turret["AllowDirectControlToggle"] = "FirePrefAttack"
@@ -544,6 +550,20 @@ def build_gun(g, shot_paths):
                                                 "MediaEffects": fire_media(fx.get("sound_oc", fx["sound"]),
                                                                            fx.get("shake_oc", fx.get("shake", 0)),
                                                                            fx.get("particles_oc", fx["particles"]))}
+    # fumaca de recuo na culatra (fx["breech"] / fx["breech_oc"], copias escaladas do bsgen/caliber_fx.py; o atraso
+    # vai no Delay da propria copia): outro TriggeredEffects nos MESMOS proxies do clarao, na raiz do cano
+    # (Location relativa ao proxy da boca = raiz - boca). Sem "breech" (plasma, metralhadoras) nada muda.
+    # Mapinguari: os 3 canos disparam no mesmo quadro; o escalonamento 0 / 0,12 / 0,24 s do design de calibre NAO
+    # entra aqui (muda o tempo de tiro = jogabilidade, CONTRATOS R4): decisao do balanceamento.
+    if fx.get("breech"):
+        bx = round(geo["front"] - geo["muzzle"], 4)
+        for i, p in enumerate(proxies_n):
+            comp[f"RecoilSmoke{i + 1}"] = {"Type": "TriggeredEffects", "ChainedTo": p, "Trigger": p,
+                                           "Location": [bx, 0], "MediaEffects": [f"&<{x}>" for x in fx["breech"]]}
+        for i, p in enumerate(proxies_oc):
+            comp[f"Overclock_RecoilSmoke{i + 1}"] = {
+                "Type": "TriggeredEffects", "ChainedTo": p, "Trigger": p, "Location": [bx, 0],
+                "MediaEffects": [f"&<{x}>" for x in fx.get("breech_oc", fx["breech"])]}
 
     # atordoamento da tripulacao pelo sopro (so armas grandes)
     if g.get("stun"):

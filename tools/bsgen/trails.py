@@ -409,10 +409,16 @@ SHAPES = {
     "med": {"scale": (2, 4), "loc_x": 0.5, "base_size": 1},     # bullet_trail_med.rules
     "large": {"scale": (4, 8), "loc_x": 1, "base_size": 1},     # bullet_trail_large.rules
     "deck": {"scale": (4, 8), "loc_x": 1, "base_size": 1.5},    # bullet_trail_deck.rules (Def com BaseSize 1.5)
+    # 406 mm (caliber_design item 12): o deck vanilla com escala base 6..12 e emissao 1,5 a frente (rastro maior que
+    # o do 155 mm, mesma Def de BaseSize 1,5)
+    "deckL": {"scale": (6, 12), "loc_x": 1.5, "base_size": 1.5},
 }
 
 # _color1 / _color2 (X, Y, Z, W) do material. Vanilla (ambar): (1, 0.0745, 0, 1) e (1, 0.727, 0.259, 1)
 COLORS = {
+    # ambar vanilla escrito por extenso: so para formas sem rastro vanilla pronto (deckL); med/large ambar continuam
+    # pela Def vanilla por referencia e o deck ambar e o proprio bullet_trail_deck.rules
+    "amber": ((1, 0.0745, 0, 1), (1, 0.727, 0.259, 1)),
     "ap": ((0.35, 0.5, 1, 1), (0.85, 0.92, 1, 1)),        # branco-azulado do Perfurante
     "emp": ((0.05, 0.3, 1, 1), (0.5, 0.8, 1, 1)),          # azul do P.E.M.
     "nuclear": ((0.3, 1, 0, 1), (0.8, 1, 0.45, 1)),        # verde da Boiuna
@@ -428,6 +434,10 @@ TRAILS = {
     "bs_trail_deck_ap": ("deck", "ap", 300),
     "bs_trail_deck_emp": ("deck", "emp", 300),
     "bs_trail_deck_nuclear": ("deck", "nuclear", 300),
+    # 406 mm (bsgen/caliber_fx.py): forma deckL nas cores Padrao/Perfurante-Explosiva (ambar), Perfurante e P.E.M.
+    "bs_trail_deckL_amber": ("deckL", "amber", 300),
+    "bs_trail_deckL_ap": ("deckL", "ap", 300),
+    "bs_trail_deckL_emp": ("deckL", "emp", 300),
 }
 
 # rastro vanilla ja no bucket de cima (sem copia): canhoes de conves de 155/406 mm com Padrao / Perfurante-Explosiva
@@ -444,7 +454,7 @@ def _color_lines(c):
 
 
 def trail_name(shape, color):
-    """Nome do arquivo do rastro de uma forma (med/large/deck) e cor (ap/emp/nuclear; outra = ambar).
+    """Nome do arquivo do rastro de uma forma (med/large/deck/deckL) e cor (ap/emp/nuclear; outra = ambar).
     None = rastro vanilla bullet_trail_deck.rules (deck ambar)."""
     key = color if color in COLORS else "amber"
     name = f"bs_trail_{shape}_{key}"

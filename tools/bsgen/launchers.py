@@ -319,12 +319,17 @@ def _fire_block(lch, m, geo, shot_path, v):
     if sync == "free_cycle":
         inner["ShootCycle"] = _cycle(m["cells"])
     inner["TargetEmitter"] = base
-    flash = [f"&<{p}>" for p in fx["flash"]]
+    # clarao / sopro / tremor por tipo de missil (bsgen/missile_fx.py annotate: flash_by_type, backblast_by_type,
+    # shake_by_type); sem essas chaves o texto sai igual ao de antes
+    flash = [f"&<{p}>" for p in fx.get("flash_by_type", {}).get(k, fx["flash"])]
     heavy = m["geo"].get("form") == "torpedo" and fx.get("sound_heavy")
     snd = _media_sounds(fx["sound_heavy"] if heavy else fx["sound"], fx.get("volume", 0.6), interior=False,
                         max_conc=fx.get("max_concurrent", 12))
-    if fx.get("shake"):
-        snd = [snd, Inh("/BASE_SHAKE", {"ShakeAmount": fx["shake"] * (3 if heavy else 1), "Duration": 0.4})]
+    shake = fx.get("shake_by_type", {}).get(k)
+    if shake is None and fx.get("shake"):
+        shake = fx["shake"] * (3 if heavy else 1)
+    if shake:
+        snd = [snd, Inh("/BASE_SHAKE", {"ShakeAmount": shake, "Duration": 0.4})]
     else:
         snd = [snd]
     dec = m.get("decoy")
@@ -377,7 +382,8 @@ def _fire_block(lch, m, geo, shot_path, v):
             inner[f"PodFired_{p_i}"] = {"Type": "MultiTrigger", "Triggers": trig}
             inner[f"Backblast_{p_i}"] = {"Type": "TriggeredEffects", "ChainedTo": "Turret", "Trigger": f"PodFired_{p_i}",
                                          "Location": list(bb), "Rotation": "180d",
-                                         "MediaEffects": [f"&<{q}>" for q in fx["backblast"]]}
+                                         "MediaEffects": [f"&<{q}>" for q in
+                                                          fx.get("backblast_by_type", {}).get(k, fx["backblast"])]}
     sh = gm.get("shutters")
     if sh:
         # persianas fechadas nos casulos sem celula neste modo (Iara: casulos externos), spec layout_note
@@ -612,6 +618,9 @@ def build_launcher(lch, shot_paths):
         "AutoTargets": [{"TargetType": "ShipParts", "Toggle": "AutoTargetToggle", "EnableInDirectControlMode": True}],
         "BlueprintArcSprite": {"Texture": "&/INDICATORS/WeaponArc", "Size": [0, 1.5], "Color": [255, 0, 0, 63]},
         "BlueprintArcRadius": 10, "BlueprintArcSpriteSegments": 64,
+        # setor de alcance ao selecionar / mandar atacar na 0.30.3 / 0.30.4 (missile_launcher_he.rules 0.30.3
+        # l.135-140; bsgen/common.py COVERAGE_SECTOR_ARC); a 0.30.5 ignora
+        "CoverageSectorArc": dict(C.COVERAGE_SECTOR_ARC),
     }
     if any(m["mpu"] > 1 for m in modes) and v.get("cassette") == "twin_emitter":
         turret["HoldTargetAfterCancel"] = "&~/BURST_DELAY"

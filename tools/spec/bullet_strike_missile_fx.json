@@ -1,0 +1,1952 @@
+{
+ "version": 1,
+ "note": "Efeitos dos misseis do Bullet Strike (bsgen/missile_fx.py). items = copia de vfx_design/missiles/missile_art_table.json (chaves = itens de art3d/bs_missiles/meta.json), mais exhaust.fx_size (fator do tamanho da fumaca/fogo vanilla); as mudancas de numero estao em changes. Cores em bytes [R, G, B, A]; tamanhos em tiles.",
+ "px_per_tile": 64,
+ "items": {
+  "he_s": {
+   "canvas_tiles": [
+    1.0,
+    0.375
+   ],
+   "canvas_px": [
+    64,
+    24
+   ],
+   "type": "he",
+   "label": "Muriçoca (HE micro)",
+   "used_by": [
+    "rafaeltessaro.bs_msl_box_he"
+   ],
+   "files": {
+    "diffuse": "msl_he_s.png",
+    "normals": "msl_he_s_normals.png"
+   },
+   "lights": {
+    "file": "msl_he_s_lights.png",
+    "frames": 2,
+    "frame_px": [
+     64,
+     24
+    ],
+    "per_row": 2,
+    "fps": 4
+   },
+   "nozzle_x": -0.47,
+   "shade_radius_tiles": 0.062,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_he_s.rules",
+    "beam_size": [
+     1.0,
+     0.3
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      255,
+      209,
+      93,
+      255
+     ],
+     [
+      255,
+      80,
+      0,
+      255
+     ],
+     [
+      255,
+      233,
+      170,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_he.rules",
+    "smoke": null,
+    "fire_eps": null,
+    "fx_size": 0.6
+   }
+  },
+  "napalm_s": {
+   "canvas_tiles": [
+    1.0,
+    0.4375
+   ],
+   "canvas_px": [
+    64,
+    28
+   ],
+   "type": "napalm",
+   "label": "Taturana-mirim",
+   "used_by": [
+    "rafaeltessaro.bs_msl_box_napalm"
+   ],
+   "files": {
+    "diffuse": "msl_napalm_s.png",
+    "normals": "msl_napalm_s_normals.png"
+   },
+   "lights": {
+    "file": "msl_napalm_s_lights.png",
+    "frames": 2,
+    "frame_px": [
+     64,
+     28
+    ],
+    "per_row": 2,
+    "fps": 3
+   },
+   "nozzle_x": -0.47,
+   "shade_radius_tiles": 0.075,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_napalm_s.rules",
+    "beam_size": [
+     1.0,
+     0.34
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      255,
+      150,
+      40,
+      255
+     ],
+     [
+      210,
+      40,
+      0,
+      255
+     ],
+     [
+      255,
+      200,
+      120,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_napalm.rules",
+    "smoke": [
+     "oily",
+     15
+    ],
+    "fire_eps": 60,
+    "fx_size": 0.6
+   }
+  },
+  "he_m": {
+   "canvas_tiles": [
+    1.75,
+    0.625
+   ],
+   "canvas_px": [
+    112,
+    40
+   ],
+   "type": "he",
+   "label": "Jararaca (HE)",
+   "used_by": [
+    "rafaeltessaro.bs_msl_twin_he"
+   ],
+   "files": {
+    "diffuse": "msl_he_m.png",
+    "normals": "msl_he_m_normals.png"
+   },
+   "lights": {
+    "file": "msl_he_m_lights.png",
+    "frames": 2,
+    "frame_px": [
+     112,
+     40
+    ],
+    "per_row": 2,
+    "fps": 4
+   },
+   "nozzle_x": -0.86,
+   "shade_radius_tiles": 0.105,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_he_m.rules",
+    "beam_size": [
+     1.7,
+     0.55
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      255,
+      209,
+      93,
+      255
+     ],
+     [
+      255,
+      80,
+      0,
+      255
+     ],
+     [
+      255,
+      233,
+      170,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_he.rules",
+    "smoke": [
+     "grey",
+     25
+    ],
+    "fire_eps": null,
+    "fx_size": 0.8
+   }
+  },
+  "cluster_m": {
+   "canvas_tiles": [
+    1.75,
+    0.75
+   ],
+   "canvas_px": [
+    112,
+    48
+   ],
+   "type": "cluster",
+   "label": "Piranha (cluster)",
+   "used_by": [
+    "rafaeltessaro.bs_msl_twin_cluster"
+   ],
+   "files": {
+    "diffuse": "msl_cluster_m.png",
+    "normals": "msl_cluster_m_normals.png"
+   },
+   "lights": {
+    "file": "msl_cluster_m_lights.png",
+    "frames": 3,
+    "frame_px": [
+     112,
+     48
+    ],
+    "per_row": 3,
+    "fps": 8
+   },
+   "nozzle_x": -0.86,
+   "shade_radius_tiles": 0.145,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_cluster_m.rules",
+    "beam_size": [
+     1.6,
+     0.6
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      255,
+      236,
+      130,
+      255
+     ],
+     [
+      255,
+      170,
+      20,
+      255
+     ],
+     [
+      255,
+      250,
+      220,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_cluster.rules",
+    "smoke": [
+     "grey",
+     25
+    ],
+    "fire_eps": null,
+    "fx_size": 0.8
+   }
+  },
+  "limpet_m": {
+   "canvas_tiles": [
+    1.75,
+    0.75
+   ],
+   "canvas_px": [
+    112,
+    48
+   ],
+   "type": "limpet",
+   "label": "Carrapato (limpet)",
+   "used_by": [
+    "rafaeltessaro.bs_msl_twin_limpet"
+   ],
+   "files": {
+    "diffuse": "msl_limpet_m.png",
+    "normals": "msl_limpet_m_normals.png"
+   },
+   "lights": {
+    "file": "msl_limpet_m_lights.png",
+    "frames": 2,
+    "frame_px": [
+     112,
+     48
+    ],
+    "per_row": 2,
+    "fps": 3
+   },
+   "nozzle_x": -0.86,
+   "shade_radius_tiles": 0.12,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_limpet_m.rules",
+    "beam_size": [
+     1.6,
+     0.55
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      255,
+      120,
+      90,
+      255
+     ],
+     [
+      230,
+      20,
+      10,
+      255
+     ],
+     [
+      255,
+      215,
+      205,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_limpet.rules",
+    "smoke": [
+     "grey",
+     25
+    ],
+    "fire_eps": null,
+    "fx_size": 0.8
+   }
+  },
+  "napalm_m": {
+   "canvas_tiles": [
+    1.75,
+    0.75
+   ],
+   "canvas_px": [
+    112,
+    48
+   ],
+   "type": "napalm",
+   "label": "Taturana (napalm)",
+   "used_by": [
+    "rafaeltessaro.bs_msl_twin_napalm"
+   ],
+   "files": {
+    "diffuse": "msl_napalm_m.png",
+    "normals": "msl_napalm_m_normals.png"
+   },
+   "lights": {
+    "file": "msl_napalm_m_lights.png",
+    "frames": 2,
+    "frame_px": [
+     112,
+     48
+    ],
+    "per_row": 2,
+    "fps": 3
+   },
+   "nozzle_x": -0.86,
+   "shade_radius_tiles": 0.13,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_napalm_m.rules",
+    "beam_size": [
+     1.8,
+     0.65
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      255,
+      150,
+      40,
+      255
+     ],
+     [
+      210,
+      40,
+      0,
+      255
+     ],
+     [
+      255,
+      200,
+      120,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_napalm.rules",
+    "smoke": [
+     "oily",
+     28
+    ],
+    "fire_eps": 100,
+    "fx_size": 0.8
+   }
+  },
+  "emp_m": {
+   "canvas_tiles": [
+    1.75,
+    0.75
+   ],
+   "canvas_px": [
+    112,
+    48
+   ],
+   "type": "emp",
+   "label": "Poraquê (EMP)",
+   "used_by": [
+    "rafaeltessaro.bs_msl_twin_emp"
+   ],
+   "files": {
+    "diffuse": "msl_emp_m.png",
+    "normals": "msl_emp_m_normals.png"
+   },
+   "lights": {
+    "file": "msl_emp_m_lights.png",
+    "frames": 4,
+    "frame_px": [
+     112,
+     48
+    ],
+    "per_row": 4,
+    "fps": 12
+   },
+   "nozzle_x": -0.86,
+   "shade_radius_tiles": 0.12,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_emp_m.rules",
+    "beam_size": [
+     1.6,
+     0.5
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      150,
+      210,
+      255,
+      255
+     ],
+     [
+      30,
+      90,
+      255,
+      255
+     ],
+     [
+      235,
+      248,
+      255,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_emp.rules",
+    "smoke": [
+     "faint",
+     12
+    ],
+    "fire_eps": null,
+    "fx_size": 0.8
+   }
+  },
+  "torpedo_m": {
+   "canvas_tiles": [
+    2.75,
+    1.0
+   ],
+   "canvas_px": [
+    176,
+    64
+   ],
+   "type": "torpedo",
+   "label": "Boto stage 1",
+   "used_by": [
+    "rafaeltessaro.bs_msl_twin_torpedo"
+   ],
+   "files": {
+    "diffuse": "msl_torpedo_m.png",
+    "normals": "msl_torpedo_m_normals.png"
+   },
+   "lights": {
+    "file": "msl_torpedo_m_lights.png",
+    "frames": 2,
+    "frame_px": [
+     176,
+     64
+    ],
+    "per_row": 2,
+    "fps": 2
+   },
+   "nozzle_x": -1.38,
+   "shade_radius_tiles": 0.22,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_torpedo_m.rules",
+    "beam_size": [
+     2.2,
+     0.9
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      220,
+      236,
+      255,
+      255
+     ],
+     [
+      120,
+      160,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_torpedo.rules",
+    "smoke": [
+     "wake",
+     55
+    ],
+    "fire_eps": null,
+    "fx_size": 1.0
+   }
+  },
+  "he_l": {
+   "canvas_tiles": [
+    2.5,
+    0.875
+   ],
+   "canvas_px": [
+    160,
+    56
+   ],
+   "type": "he",
+   "label": "Jararaca (HE)",
+   "used_by": [
+    "rafaeltessaro.bs_msl_quad_he"
+   ],
+   "files": {
+    "diffuse": "msl_he_l.png",
+    "normals": "msl_he_l_normals.png"
+   },
+   "lights": {
+    "file": "msl_he_l_lights.png",
+    "frames": 3,
+    "frame_px": [
+     160,
+     56
+    ],
+    "per_row": 3,
+    "fps": 6
+   },
+   "nozzle_x": -1.18,
+   "shade_radius_tiles": 0.14,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_he_l.rules",
+    "beam_size": [
+     2.3,
+     0.75
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      255,
+      209,
+      93,
+      255
+     ],
+     [
+      255,
+      80,
+      0,
+      255
+     ],
+     [
+      255,
+      233,
+      170,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_he.rules",
+    "smoke": [
+     "grey",
+     27
+    ],
+    "fire_eps": null,
+    "fx_size": 1.0
+   }
+  },
+  "cluster_l": {
+   "canvas_tiles": [
+    2.5,
+    1.0
+   ],
+   "canvas_px": [
+    160,
+    64
+   ],
+   "type": "cluster",
+   "label": "Piranha (cluster)",
+   "used_by": [
+    "rafaeltessaro.bs_msl_quad_cluster"
+   ],
+   "files": {
+    "diffuse": "msl_cluster_l.png",
+    "normals": "msl_cluster_l_normals.png"
+   },
+   "lights": {
+    "file": "msl_cluster_l_lights.png",
+    "frames": 4,
+    "frame_px": [
+     160,
+     64
+    ],
+    "per_row": 4,
+    "fps": 8
+   },
+   "nozzle_x": -1.18,
+   "shade_radius_tiles": 0.195,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_cluster_l.rules",
+    "beam_size": [
+     2.2,
+     0.8
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      255,
+      236,
+      130,
+      255
+     ],
+     [
+      255,
+      170,
+      20,
+      255
+     ],
+     [
+      255,
+      250,
+      220,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_cluster.rules",
+    "smoke": [
+     "grey",
+     35
+    ],
+    "fire_eps": null,
+    "fx_size": 1.0
+   }
+  },
+  "limpet_l": {
+   "canvas_tiles": [
+    2.5,
+    1.0
+   ],
+   "canvas_px": [
+    160,
+    64
+   ],
+   "type": "limpet",
+   "label": "Carrapato (limpet)",
+   "used_by": [
+    "rafaeltessaro.bs_msl_quad_limpet"
+   ],
+   "files": {
+    "diffuse": "msl_limpet_l.png",
+    "normals": "msl_limpet_l_normals.png"
+   },
+   "lights": {
+    "file": "msl_limpet_l_lights.png",
+    "frames": 2,
+    "frame_px": [
+     160,
+     64
+    ],
+    "per_row": 2,
+    "fps": 3
+   },
+   "nozzle_x": -1.18,
+   "shade_radius_tiles": 0.16,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_limpet_l.rules",
+    "beam_size": [
+     2.2,
+     0.75
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      255,
+      120,
+      90,
+      255
+     ],
+     [
+      230,
+      20,
+      10,
+      255
+     ],
+     [
+      255,
+      215,
+      205,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_limpet.rules",
+    "smoke": [
+     "grey",
+     35
+    ],
+    "fire_eps": null,
+    "fx_size": 1.0
+   }
+  },
+  "napalm_l": {
+   "canvas_tiles": [
+    2.5,
+    1.0
+   ],
+   "canvas_px": [
+    160,
+    64
+   ],
+   "type": "napalm",
+   "label": "Taturana (napalm)",
+   "used_by": [
+    "rafaeltessaro.bs_msl_quad_napalm"
+   ],
+   "files": {
+    "diffuse": "msl_napalm_l.png",
+    "normals": "msl_napalm_l_normals.png"
+   },
+   "lights": {
+    "file": "msl_napalm_l_lights.png",
+    "frames": 2,
+    "frame_px": [
+     160,
+     64
+    ],
+    "per_row": 2,
+    "fps": 3
+   },
+   "nozzle_x": -1.18,
+   "shade_radius_tiles": 0.16,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_napalm_l.rules",
+    "beam_size": [
+     2.4,
+     0.9
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      255,
+      150,
+      40,
+      255
+     ],
+     [
+      210,
+      40,
+      0,
+      255
+     ],
+     [
+      255,
+      200,
+      120,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_napalm.rules",
+    "smoke": [
+     "oily",
+     30
+    ],
+    "fire_eps": 100,
+    "fx_size": 1.0
+   }
+  },
+  "emp_l": {
+   "canvas_tiles": [
+    2.5,
+    1.0
+   ],
+   "canvas_px": [
+    160,
+    64
+   ],
+   "type": "emp",
+   "label": "Poraquê (EMP)",
+   "used_by": [
+    "rafaeltessaro.bs_msl_quad_emp"
+   ],
+   "files": {
+    "diffuse": "msl_emp_l.png",
+    "normals": "msl_emp_l_normals.png"
+   },
+   "lights": {
+    "file": "msl_emp_l_lights.png",
+    "frames": 4,
+    "frame_px": [
+     160,
+     64
+    ],
+    "per_row": 4,
+    "fps": 12
+   },
+   "nozzle_x": -1.18,
+   "shade_radius_tiles": 0.16,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_emp_l.rules",
+    "beam_size": [
+     2.2,
+     0.7
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      150,
+      210,
+      255,
+      255
+     ],
+     [
+      30,
+      90,
+      255,
+      255
+     ],
+     [
+      235,
+      248,
+      255,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_emp.rules",
+    "smoke": [
+     "faint",
+     16
+    ],
+    "fire_eps": null,
+    "fx_size": 1.0
+   }
+  },
+  "torpedo_l": {
+   "canvas_tiles": [
+    3.25,
+    1.25
+   ],
+   "canvas_px": [
+    208,
+    80
+   ],
+   "type": "torpedo",
+   "label": "Boto stage 1",
+   "used_by": [
+    "rafaeltessaro.bs_msl_quad_torpedo"
+   ],
+   "files": {
+    "diffuse": "msl_torpedo_l.png",
+    "normals": "msl_torpedo_l_normals.png"
+   },
+   "lights": {
+    "file": "msl_torpedo_l_lights.png",
+    "frames": 2,
+    "frame_px": [
+     208,
+     80
+    ],
+    "per_row": 2,
+    "fps": 2
+   },
+   "nozzle_x": -1.63,
+   "shade_radius_tiles": 0.27,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_torpedo_l.rules",
+    "beam_size": [
+     2.6,
+     1.05
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      220,
+      236,
+      255,
+      255
+     ],
+     [
+      120,
+      160,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_torpedo.rules",
+    "smoke": [
+     "wake",
+     70
+    ],
+    "fire_eps": null,
+    "fx_size": 1.0
+   }
+  },
+  "nuclear_l": {
+   "canvas_tiles": [
+    3.75,
+    1.5
+   ],
+   "canvas_px": [
+    240,
+    96
+   ],
+   "type": "nuclear",
+   "label": "IARA stage 1",
+   "used_by": [
+    "rafaeltessaro.bs_msl_quad_nuclear"
+   ],
+   "files": {
+    "diffuse": "msl_nuclear_l.png",
+    "normals": "msl_nuclear_l_normals.png"
+   },
+   "lights": {
+    "file": "msl_nuclear_l_lights.png",
+    "frames": 4,
+    "frame_px": [
+     240,
+     96
+    ],
+    "per_row": 4,
+    "fps": 6
+   },
+   "nozzle_x": -1.86,
+   "shade_radius_tiles": 0.3,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_nuclear_l.rules",
+    "beam_size": [
+     3.2,
+     1.4
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      150,
+      255,
+      120,
+      255
+     ],
+     [
+      40,
+      220,
+      30,
+      255
+     ],
+     [
+      235,
+      255,
+      225,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_nuclear.rules",
+    "smoke": [
+     "nuke",
+     160
+    ],
+    "fire_eps": 200,
+    "fx_size": 1.0
+   }
+  },
+  "cluster_child": {
+   "canvas_tiles": [
+    0.75,
+    0.375
+   ],
+   "canvas_px": [
+    48,
+    24
+   ],
+   "type": "cluster",
+   "label": "Piranha fry",
+   "used_by": [
+    "rafaeltessaro.bs_msl_twin_cluster_child (Size x1.0)",
+    "rafaeltessaro.bs_msl_quad_cluster_child (Size x1.15)"
+   ],
+   "files": {
+    "diffuse": "msl_cluster_child.png",
+    "normals": "msl_cluster_child_normals.png"
+   },
+   "lights": null,
+   "nozzle_x": -0.3,
+   "shade_radius_tiles": 0.06,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_cluster_child.rules",
+    "beam_size": [
+     0.6,
+     0.18
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      255,
+      236,
+      130,
+      255
+     ],
+     [
+      255,
+      170,
+      20,
+      255
+     ],
+     [
+      255,
+      250,
+      220,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_cluster.rules",
+    "smoke": null,
+    "fire_eps": null,
+    "fx_size": 0.5
+   }
+  },
+  "limpet_charge": {
+   "canvas_tiles": [
+    1.0,
+    1.0
+   ],
+   "canvas_px": [
+    64,
+    64
+   ],
+   "type": "limpet",
+   "label": "Carrapato stuck charge",
+   "used_by": [
+    "rafaeltessaro.bs_msl_twin_limpet_charge (Size 0.9)",
+    "rafaeltessaro.bs_msl_quad_limpet_charge (Size 1.25)"
+   ],
+   "files": {
+    "diffuse": "msl_limpet_charge.png",
+    "normals": "msl_limpet_charge_normals.png"
+   },
+   "lights": {
+    "file": "msl_limpet_charge_lights.png",
+    "frames": 10,
+    "frame_px": [
+     64,
+     64
+    ],
+    "per_row": 10,
+    "fps": 4,
+    "WrapMode": "Clamp"
+   },
+   "nozzle_x": null,
+   "shade_radius_tiles": 0.25
+  },
+  "torpedo_wh_m": {
+   "canvas_tiles": [
+    2.25,
+    1.0
+   ],
+   "canvas_px": [
+    144,
+    64
+   ],
+   "type": "torpedo",
+   "label": "Boto warhead",
+   "used_by": [
+    "rafaeltessaro.bs_msl_twin_torpedo_warhead"
+   ],
+   "files": {
+    "diffuse": "msl_torpedo_wh_m.png",
+    "normals": "msl_torpedo_wh_m_normals.png"
+   },
+   "lights": {
+    "file": "msl_torpedo_wh_m_lights.png",
+    "frames": 2,
+    "frame_px": [
+     144,
+     64
+    ],
+    "per_row": 2,
+    "fps": 2
+   },
+   "nozzle_x": -1.13,
+   "shade_radius_tiles": 0.22,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_torpedo_wh_m.rules",
+    "beam_size": [
+     2.2,
+     0.9
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      220,
+      236,
+      255,
+      255
+     ],
+     [
+      120,
+      160,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_torpedo.rules",
+    "smoke": [
+     "wake",
+     55
+    ],
+    "fire_eps": null,
+    "fx_size": 1.0
+   }
+  },
+  "torpedo_wh_l": {
+   "canvas_tiles": [
+    2.75,
+    1.25
+   ],
+   "canvas_px": [
+    176,
+    80
+   ],
+   "type": "torpedo",
+   "label": "Boto warhead",
+   "used_by": [
+    "rafaeltessaro.bs_msl_quad_torpedo_warhead"
+   ],
+   "files": {
+    "diffuse": "msl_torpedo_wh_l.png",
+    "normals": "msl_torpedo_wh_l_normals.png"
+   },
+   "lights": {
+    "file": "msl_torpedo_wh_l_lights.png",
+    "frames": 2,
+    "frame_px": [
+     176,
+     80
+    ],
+    "per_row": 2,
+    "fps": 2
+   },
+   "nozzle_x": -1.35,
+   "shade_radius_tiles": 0.27,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_torpedo_wh_l.rules",
+    "beam_size": [
+     2.6,
+     1.05
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      220,
+      236,
+      255,
+      255
+     ],
+     [
+      120,
+      160,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_torpedo.rules",
+    "smoke": [
+     "wake",
+     70
+    ],
+    "fire_eps": null,
+    "fx_size": 1.0
+   }
+  },
+  "torpedo_decoy": {
+   "canvas_tiles": [
+    1.75,
+    0.625
+   ],
+   "canvas_px": [
+    112,
+    40
+   ],
+   "type": "torpedo",
+   "label": "Boto decoy",
+   "used_by": [
+    "rafaeltessaro.bs_msl_twin_torpedo_decoy (Size x1.0)",
+    "rafaeltessaro.bs_msl_quad_torpedo_decoy (Size x1.1)"
+   ],
+   "files": {
+    "diffuse": "msl_torpedo_decoy.png",
+    "normals": "msl_torpedo_decoy_normals.png"
+   },
+   "lights": {
+    "file": "msl_torpedo_decoy_lights.png",
+    "frames": 2,
+    "frame_px": [
+     112,
+     40
+    ],
+    "per_row": 2,
+    "fps": 6
+   },
+   "nozzle_x": -0.88,
+   "shade_radius_tiles": 0.13,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_torpedo_decoy.rules",
+    "beam_size": [
+     1.2,
+     0.4
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      220,
+      236,
+      255,
+      255
+     ],
+     [
+      120,
+      160,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_torpedo.rules",
+    "smoke": [
+     "faint",
+     15
+    ],
+    "fire_eps": null,
+    "fx_size": 0.8
+   }
+  },
+  "nuclear_wh_l": {
+   "canvas_tiles": [
+    3.1,
+    1.5
+   ],
+   "canvas_px": [
+    198,
+    96
+   ],
+   "type": "nuclear",
+   "label": "IARA warhead",
+   "used_by": [
+    "rafaeltessaro.bs_msl_quad_nuclear_warhead"
+   ],
+   "files": {
+    "diffuse": "msl_nuclear_wh_l.png",
+    "normals": "msl_nuclear_wh_l_normals.png"
+   },
+   "lights": {
+    "file": "msl_nuclear_wh_l_lights.png",
+    "frames": 4,
+    "frame_px": [
+     198,
+     96
+    ],
+    "per_row": 4,
+    "fps": 6
+   },
+   "nozzle_x": -1.53,
+   "shade_radius_tiles": 0.3,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_nuclear_wh_l.rules",
+    "beam_size": [
+     3.2,
+     1.4
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      150,
+      255,
+      120,
+      255
+     ],
+     [
+      40,
+      220,
+      30,
+      255
+     ],
+     [
+      235,
+      255,
+      225,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_nuclear.rules",
+    "smoke": [
+     "nuke",
+     160
+    ],
+    "fire_eps": 200,
+    "fx_size": 1.0
+   }
+  },
+  "nuclear_decoy": {
+   "canvas_tiles": [
+    2.0,
+    0.75
+   ],
+   "canvas_px": [
+    128,
+    48
+   ],
+   "type": "nuclear",
+   "label": "Iara decoy",
+   "used_by": [
+    "rafaeltessaro.bs_msl_quad_nuclear_decoy"
+   ],
+   "files": {
+    "diffuse": "msl_nuclear_decoy.png",
+    "normals": "msl_nuclear_decoy_normals.png"
+   },
+   "lights": {
+    "file": "msl_nuclear_decoy_lights.png",
+    "frames": 2,
+    "frame_px": [
+     128,
+     48
+    ],
+    "per_row": 2,
+    "fps": 6
+   },
+   "nozzle_x": -0.98,
+   "shade_radius_tiles": 0.16,
+   "exhaust": {
+    "beam_file": "bs_missile_fx/plume_nuclear_decoy.rules",
+    "beam_size": [
+     1.3,
+     0.45
+    ],
+    "beam_colors_hot_cold_center": [
+     [
+      150,
+      255,
+      120,
+      255
+     ],
+     [
+      40,
+      220,
+      30,
+      255
+     ],
+     [
+      235,
+      255,
+      225,
+      255
+     ]
+    ],
+    "plume_light": "bs_missile_fx/plume_light_nuclear.rules",
+    "smoke": [
+     "faint",
+     15
+    ],
+    "fire_eps": null,
+    "fx_size": 0.8
+   }
+  }
+ },
+ "hit_media_scale": {
+  "he": {
+   "s": 0.45,
+   "m": 0.85,
+   "l": 1.0
+  },
+  "napalm": {
+   "s": 0.5,
+   "m": 0.8,
+   "l": 1.1
+  },
+  "cluster_burst": {
+   "m": 0.7,
+   "l": 0.9
+  },
+  "cluster_child": {
+   "m": 0.5,
+   "l": 0.55
+  },
+  "limpet_charge": {
+   "m": 0.75,
+   "l": 1.0
+  },
+  "limpet_clank": {
+   "m": 0.5,
+   "l": 0.65
+  },
+  "emp": {
+   "m": 0.8,
+   "l": 1.0
+  },
+  "torpedo": {
+   "m": 1.3,
+   "l": 1.6
+  },
+  "nuclear": {
+   "l": 1.1
+  },
+  "decoy_pop": {
+   "m": 0.4,
+   "l": 0.45
+  }
+ },
+ "tier_letter": {
+  "early": "s",
+  "mid": "m",
+  "late": "l"
+ },
+ "art_key": {
+  "main": "{type}_{t}",
+  "child": "cluster_child",
+  "charge": "limpet_charge",
+  "warhead": "{type}_wh_{t}",
+  "decoy": "{type}_decoy"
+ },
+ "size_mul": {
+  "cluster_child": {
+   "m": 1.0,
+   "l": 1.15
+  },
+  "torpedo_decoy": {
+   "m": 1.0,
+   "l": 1.1
+  },
+  "limpet_charge": {
+   "m": 0.9,
+   "l": 1.25
+  }
+ },
+ "hit_scale_key": {
+  "main": {
+   "he": "he",
+   "napalm": "napalm",
+   "cluster": "cluster_burst",
+   "limpet": "limpet_clank",
+   "emp": "emp",
+   "torpedo": "torpedo",
+   "nuclear": "nuclear"
+  },
+  "child": "cluster_child",
+  "charge": "limpet_charge",
+  "decoy": "decoy_pop",
+  "warhead": {
+   "torpedo": "torpedo",
+   "nuclear": "nuclear"
+  }
+ },
+ "shield_pop_scale": {
+  "limpet": 0.6
+ },
+ "smoke_styles": {
+  "grey": {
+   "src": "he",
+   "lifetime": [
+    0.9,
+    1.1
+   ],
+   "value": [
+    1.5,
+    1.5
+   ],
+   "alpha": [
+    0.05,
+    0.08
+   ],
+   "warm": 1.0
+  },
+  "wake": {
+   "src": "he",
+   "lifetime": [
+    1.4,
+    1.8
+   ],
+   "value": [
+    1.9,
+    2.1
+   ],
+   "alpha": [
+    0.06,
+    0.09
+   ],
+   "warm": 0.35
+  },
+  "faint": {
+   "src": "he",
+   "lifetime": [
+    0.8,
+    1.0
+   ],
+   "value": [
+    1.5,
+    1.5
+   ],
+   "alpha": [
+    0.025,
+    0.04
+   ],
+   "warm": 0.5
+  },
+  "oily": {
+   "src": "he",
+   "lifetime": [
+    1.2,
+    1.4
+   ],
+   "value": [
+    0.08,
+    0.22
+   ],
+   "alpha": [
+    0.1,
+    0.15
+   ],
+   "warm": 1.0
+  },
+  "nuke": {
+   "src": "nuke",
+   "lifetime": [
+    0.2,
+    0.3
+   ],
+   "value": null,
+   "alpha": null,
+   "warm": 1.0
+  }
+ },
+ "fire_styles": {
+  "napalm": {
+   "src": "he",
+   "hsv": null
+  },
+  "nuclear": {
+   "src": "nuke",
+   "hsv": [
+    120,
+    1,
+    3.5
+   ]
+  }
+ },
+ "types": {
+  "he": {
+   "plume_light": [
+    [
+     255,
+     145,
+     28,
+     255
+    ],
+    [
+     247,
+     29,
+     0,
+     255
+    ]
+   ],
+   "flash": {
+    "color": [
+     1,
+     0.6,
+     0.2
+    ],
+    "size": 2.2,
+    "life": 0.25
+   }
+  },
+  "napalm": {
+   "plume_light": [
+    [
+     255,
+     120,
+     20,
+     255
+    ],
+    [
+     230,
+     30,
+     0,
+     255
+    ]
+   ],
+   "flash": {
+    "color": [
+     1,
+     0.45,
+     0.1
+    ],
+    "size": 2.4,
+    "life": 0.28
+   },
+   "impact": [
+    "./Data/shots/missile_thermal/particles/missile_thermal_shrapnel.rules",
+    "droplets_napalm"
+   ]
+  },
+  "cluster": {
+   "plume_light": [
+    [
+     255,
+     190,
+     0,
+     255
+    ],
+    [
+     255,
+     120,
+     0,
+     255
+    ]
+   ],
+   "flash": {
+    "color": [
+     1,
+     0.85,
+     0.25
+    ],
+    "size": 2.2,
+    "life": 0.25
+   },
+   "burst": [
+    "burst_cluster",
+    "./Data/shots/missile_thermal/particles/missile_thermal_shrapnel.rules"
+   ]
+  },
+  "limpet": {
+   "plume_light": [
+    [
+     255,
+     0,
+     0,
+     255
+    ],
+    [
+     200,
+     0,
+     0,
+     255
+    ]
+   ],
+   "flash": {
+    "color": [
+     1,
+     0.2,
+     0.15
+    ],
+    "size": 2.2,
+    "life": 0.25
+   },
+   "impact": [
+    "clank_limpet"
+   ],
+   "blast": [
+    "clank_limpet"
+   ]
+  },
+  "emp": {
+   "plume_light": [
+    [
+     0,
+     70,
+     255,
+     255
+    ],
+    [
+     0,
+     30,
+     255,
+     255
+    ]
+   ],
+   "flash": {
+    "color": [
+     0.35,
+     0.6,
+     1
+    ],
+    "size": 2.2,
+    "life": 0.25
+   },
+   "crackle": "./Data/shots/missile_emp/particles/missile_emp_thruster_lightning.rules"
+  },
+  "torpedo": {
+   "plume_light": [
+    [
+     140,
+     190,
+     255,
+     255
+    ],
+    [
+     70,
+     120,
+     255,
+     255
+    ]
+   ],
+   "flash": {
+    "color": [
+     0.85,
+     0.92,
+     1
+    ],
+    "size": 3.4,
+    "life": 0.35
+   },
+   "impact": [
+    "ring_torpedo",
+    "flash_torpedo"
+   ],
+   "deploy": [
+    "separation_torpedo",
+    "./Data/common_effects/particles/explosions/small_part_explode_debris.rules"
+   ],
+   "backblast": [
+    "backblast_heavy"
+   ]
+  },
+  "nuclear": {
+   "plume_light": [
+    [
+     0,
+     255,
+     0,
+     255
+    ],
+    [
+     0,
+     190,
+     0,
+     255
+    ]
+   ],
+   "flash": {
+    "color": [
+     0.35,
+     1,
+     0.25
+    ],
+    "size": 3.8,
+    "life": 0.4
+   },
+   "impact": [
+    "nuke:bs_nuke_ring",
+    "nuke:bs_nuke_afterglow"
+   ],
+   "shot_down": [
+    "leak_iara",
+    "nuke:bs_nuke_ring_small"
+   ],
+   "deploy": [
+    "separation_nuclear",
+    "./Data/common_effects/particles/explosions/small_part_explode_debris.rules"
+   ],
+   "backblast": [
+    "backblast_heavy"
+   ],
+   "launch_shake": 0.06,
+   "radiation": {
+    "big_size": 7,
+    "big_spin": 120,
+    "small_size": 0.7,
+    "small_spin": 360
+   }
+  }
+ },
+ "SOUNDS": {
+  "he": {
+   "launch": [
+    "./Data/ships/terran/missile_launcher/sounds/launcher_launch_01.wav",
+    "./Data/ships/terran/missile_launcher/sounds/launcher_launch_02.wav",
+    "./Data/ships/terran/missile_launcher/sounds/launcher_launch_03.wav"
+   ],
+   "impact": [
+    "./Data/shots/missile_he/sounds/launcher_rocket_impact_01.wav",
+    "./Data/shots/missile_he/sounds/launcher_rocket_impact_02.wav",
+    "./Data/shots/missile_he/sounds/launcher_rocket_impact_03.wav"
+   ],
+   "deploy": [],
+   "charge_beep": []
+  },
+  "napalm": {
+   "launch": [
+    "./Data/ships/terran/missile_launcher/sounds/launcher_launch_01.wav",
+    "./Data/ships/terran/missile_launcher/sounds/launcher_launch_02.wav",
+    "./Data/ships/terran/missile_launcher/sounds/launcher_launch_03.wav"
+   ],
+   "impact": [
+    "./Data/shots/missile_thermal/missile_thermal_hit.wav"
+   ],
+   "deploy": [],
+   "charge_beep": []
+  },
+  "cluster": {
+   "launch": [
+    "./Data/ships/terran/missile_launcher/sounds/launcher_launch_01.wav",
+    "./Data/ships/terran/missile_launcher/sounds/launcher_launch_02.wav",
+    "./Data/ships/terran/missile_launcher/sounds/launcher_launch_03.wav"
+   ],
+   "impact": [
+    "./Data/shots/missile_he/sounds/launcher_rocket_impact_01.wav",
+    "./Data/shots/missile_he/sounds/launcher_rocket_impact_02.wav",
+    "./Data/shots/missile_he/sounds/launcher_rocket_impact_03.wav"
+   ],
+   "deploy": [
+    "./Data/shots/missile_he/sounds/launcher_rocket_impact_01.wav",
+    "./Data/shots/missile_he/sounds/launcher_rocket_impact_02.wav",
+    "./Data/shots/missile_he/sounds/launcher_rocket_impact_03.wav"
+   ],
+   "charge_beep": []
+  },
+  "limpet": {
+   "launch": [
+    "./Data/ships/terran/missile_launcher/sounds/launcher_launch_01.wav",
+    "./Data/ships/terran/missile_launcher/sounds/launcher_launch_02.wav",
+    "./Data/ships/terran/missile_launcher/sounds/launcher_launch_03.wav"
+   ],
+   "impact": [
+    "./Data/shots/bullet_med/sounds/cannon_impact_01.wav",
+    "./Data/shots/bullet_med/sounds/cannon_impact_02.wav",
+    "./Data/shots/bullet_med/sounds/cannon_impact_03.wav",
+    "./Data/shots/bullet_med/sounds/cannon_impact_04.wav"
+   ],
+   "deploy": [
+    "./Data/shots/missile_he/sounds/launcher_rocket_impact_01.wav",
+    "./Data/shots/missile_he/sounds/launcher_rocket_impact_02.wav",
+    "./Data/shots/missile_he/sounds/launcher_rocket_impact_03.wav"
+   ],
+   "charge_beep": []
+  },
+  "emp": {
+   "launch": [
+    "./Data/ships/terran/missile_launcher/sounds/launcher_launch_01.wav",
+    "./Data/ships/terran/missile_launcher/sounds/launcher_launch_02.wav",
+    "./Data/ships/terran/missile_launcher/sounds/launcher_launch_03.wav"
+   ],
+   "impact": [
+    "./Data/shots/missile_emp/sounds/launcher_emp_impact_01.wav",
+    "./Data/shots/missile_emp/sounds/launcher_emp_impact_02.wav"
+   ],
+   "deploy": [],
+   "charge_beep": []
+  },
+  "torpedo": {
+   "launch": [
+    "./Data/ships/terran/missile_launcher/nuke/sounds/launcher_launch_nuke.wav"
+   ],
+   "impact": [
+    "./Data/shots/missile_he/sounds/launcher_rocket_impact_01.wav",
+    "./Data/shots/missile_he/sounds/launcher_rocket_impact_02.wav",
+    "./Data/shots/missile_he/sounds/launcher_rocket_impact_03.wav"
+   ],
+   "deploy": [],
+   "charge_beep": []
+  },
+  "nuclear": {
+   "launch": [
+    "./Data/ships/terran/missile_launcher/nuke/sounds/launcher_launch_nuke.wav"
+   ],
+   "impact": [
+    "./Data/shots/missile_nuke/missile_nuke_hit.wav"
+   ],
+   "deploy": [],
+   "charge_beep": []
+  }
+ },
+ "changes": [
+  {
+   "item": "napalm_m",
+   "field": "exhaust.smoke",
+   "design": [
+    "oily",
+    40
+   ],
+   "now": [
+    "oily",
+    28
+   ],
+   "why": "orcamento de particulas (missiles_design secao 5)"
+  },
+  {
+   "item": "napalm_m",
+   "field": "exhaust.fire_eps",
+   "design": 120,
+   "now": 100,
+   "why": "orcamento de particulas (missiles_design secao 5)"
+  },
+  {
+   "item": "he_l",
+   "field": "exhaust.smoke",
+   "design": [
+    "grey",
+    35
+   ],
+   "now": [
+    "grey",
+    27
+   ],
+   "why": "orcamento de particulas (missiles_design secao 5)"
+  },
+  {
+   "item": "napalm_l",
+   "field": "exhaust.smoke",
+   "design": [
+    "oily",
+    55
+   ],
+   "now": [
+    "oily",
+    30
+   ],
+   "why": "orcamento de particulas (missiles_design secao 5)"
+  },
+  {
+   "item": "napalm_l",
+   "field": "exhaust.fire_eps",
+   "design": 150,
+   "now": 100,
+   "why": "orcamento de particulas (missiles_design secao 5)"
+  }
+ ]
+}

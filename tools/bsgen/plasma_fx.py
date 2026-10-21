@@ -89,7 +89,7 @@ CFG = {
             "bolt": {"core": (2.2, 0.36), "core_tex": "bs_plasma_lance.png", "corona": (2.9, 0.64),
                      "corona_tex": "bs_plasma_corona.png", "corona_color": [0, 185, 255],
                      "tail": (4.6, 0.8), "tail_tex": "bs_plasma_tail.png", "tail_start": 0.018, "glow": (4.5, 1.4),
-                     "glow_x": -1.4, "glow_color": [0, 235, 255], "shade": (3.6, 0.55)},
+                     "glow_x": -1.4, "glow_color": [0, 235, 255], "glow_refl": 6, "shade": (4.2, 1.0)},
             "crackle": None,
             # respingo um pouco maior (2,8) e faiscas mais longas e claras: "plasma derretido espirrando" na escala
             # de batalha, ainda <= 9 particulas por impacto
@@ -112,7 +112,7 @@ CFG = {
             "bolt": {"core": (2.6, 0.42), "core_tex": "bs_plasma_lance.png", "corona": (3.3, 0.74),
                      "corona_tex": "bs_plasma_corona.png", "corona_color": [60, 215, 255],
                      "tail": (5.4, 0.92), "tail_tex": "bs_plasma_tail_oc.png", "tail_start": 0.018, "glow": (5.4, 1.8),
-                     "glow_x": -1.4, "glow_color": [40, 220, 255], "shade": (4.2, 0.62)},
+                     "glow_x": -1.4, "glow_color": [0, 220, 255], "glow_refl": 6, "shade": (4.8, 1.1)},
             # crepitar curto (0,04-0,07 s, mais vezes por segundo para manter a densidade): ele anda junto com o
             # raio (InheritVelocity) e continua voando depois do impacto ate morrer (a barreira so para no escudo),
             # entao vida curta = sobra pouco: no pior caso ~22 tiles a 312 m/s, em media ~8
@@ -142,7 +142,7 @@ CFG = {
             "bolt": {"core": (2.8, 0.6), "core_tex": "bs_plasma_lance.png", "corona": (4.4, 1.15),
                      "corona_tex": "bs_plasma_corona_heavy.png", "corona_color": [0, 175, 250],
                      "tail": (6.2, 1.2), "tail_tex": "bs_plasma_wake.png", "tail_start": 0.032, "glow": (10, 4.5),
-                     "glow_x": -1.6, "glow_color": [0, 210, 250], "shade": (5.4, 1.3),
+                     "glow_x": -1.6, "glow_color": [0, 210, 250], "glow_refl": 5, "shade": (6.0, 1.7),
                      "shade_tex": "bs_plasma_shade_heavy.png"},
             # crepitar curto (0,04-0,07 s): a 200 m/s sobra no maximo ~14 tiles depois do impacto, em media ~5
             "crackle": {"eps": 80, "scale": (0.45, 0.6), "life": (0.04, 0.07)},
@@ -172,7 +172,7 @@ CFG = {
             "bolt": {"core": (3.2, 0.7), "core_tex": "bs_plasma_lance.png", "corona": (5.0, 1.3),
                      "corona_tex": "bs_plasma_corona_heavy.png", "corona_color": [40, 200, 255],
                      "tail": (7.4, 1.45), "tail_tex": "bs_plasma_wake_oc.png", "tail_start": 0.032, "glow": (12, 6),
-                     "glow_x": -1.8, "glow_color": [40, 220, 255], "shade": (6.0, 1.45),
+                     "glow_x": -1.8, "glow_color": [0, 215, 255], "glow_refl": 5, "shade": (6.8, 1.9),
                      "shade_tex": "bs_plasma_shade_heavy.png"},
             "crackle": {"eps": 115, "scale": (0.55, 0.7), "life": (0.04, 0.07)},
             "trail": {"eps": 180, "life": 0.05, "len": 5.0, "wid": 0.5, "delay": 0.04,
@@ -782,7 +782,8 @@ def bolt_components(w, oc):
                            "Sprite": {"Texture": {"File": Q(BLOB), "MipLevels": "max", "SampleMode": "Linear"},
                                       "Size": list(gl), "VertexColor": b["glow_color"], "TargetBlendMode": "Add",
                                       "Shader": Q(f"{D}/common_effects/fancy_light.shader"),
-                                      "_z": 1, "_nrmlStrengthLimit": 1, "_litReflectiveStrength": 24,
+                                      "_z": 1, "_nrmlStrengthLimit": 1,
+                                      "_litReflectiveStrength": b.get("glow_refl", 24),
                                       "_litAdditiveStrength": 0.05, "_unlitAdditiveStrength": 0.2}}
     if CFG[w][mode].get("crackle"):
         comps["Crackle"] = {"Type": "MediaEffects", "Offset": [round(-0.1 * tl, 3), 0],

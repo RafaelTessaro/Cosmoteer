@@ -131,17 +131,18 @@ def lance(w=256, h=64, nose=0.9, hot=1.0):
     return _encode(L * edge[..., None])
 
 
-def _taper(w, h, nose, peak, wmax, rear_w, rear_fade):
+def _taper(w, h, nose, peak, wmax, rear_w, rear_fade, power=2.0):
     """Forma afunilada (0..1) em ponta de lanca: largura maxima wmax (fracao da meia altura) em u = peak, nariz
     arredondado-pontudo ate u = nose (raiz quadrada) e corpo que afina ate rear_w * wmax em u = 0, apagando nos
-    ultimos rear_fade do comprimento."""
+    ultimos rear_fade do comprimento. power = 2: perfil gaussiano (corona); power > 2: perfil de "platô" com borda
+    mais definida (sombra: escurece por igual debaixo do corpo e acaba num contorno, sem cauda longa)."""
     x, y = _grid(w, h)
     u = x / w
     v = (y - h / 2) / (h / 2)
     front = np.sqrt(np.clip((nose - u) / (nose - peak), 0, 1))
     back = rear_w + (1 - rear_w) * np.clip(u / peak, 0, 1) ** 1.3
     wv = wmax * np.where(u >= peak, front, back)
-    a = np.exp(-0.5 * (v / np.maximum(wv * 0.5, 1e-3)) ** 2) * (wv > 1e-3)
+    a = np.exp(-0.5 * (np.abs(v) / np.maximum(wv * 0.5, 1e-3)) ** power) * (wv > 1e-3)
     a = a * _smooth(0.0, rear_fade, u) * (0.5 + 0.5 * np.clip(u / peak, 0, 1))
     a = _box(a, 2)
     edge = np.clip(np.minimum(np.minimum(u, 1 - u) / 0.03, np.minimum(1 - abs(v), 1) / 0.1), 0, 1)
@@ -158,7 +159,7 @@ def corona(w=256, h=64, nose=0.95, peak=0.74, wmax=0.66, rear_w=0.34, rear_fade=
 
 
 def shade(w=256, h=64, nose=0.97, peak=0.86, wmax=0.62, rear_w=0.35, rear_fade=0.55, alpha=0.5,
-          col=(0.0, 0.2, 0.28)):
+          col=(0.0, 0.2, 0.28), power=2.0):
     """Sombra por baixo do raio (Sprite SEM TargetBlendMode = mistura alfa comum, como a Sprite do missil
     missile_he.rules e a fumaca chaingun_shoot_smoke.rules, que fica num balde de cima). Sobre casco branco o ciano
     aditivo quase some (branco + ciano = branco); esta sombra azul-petroleo escurece o casco DEBAIXO do raio e o
@@ -169,7 +170,7 @@ def shade(w=256, h=64, nose=0.97, peak=0.86, wmax=0.62, rear_w=0.35, rear_fade=0
     RGB = cor x forma (a / alpha), entao RGB = 0 onde o alfa e 0: nunca soma cor fora da sombra, seja a mistura alfa
     simples ou pre-multiplicada (na simples, o padrao das Sprites sem TargetBlendMode, a cor sai um pouco mais
     escura: col x forma x alfa)."""
-    a = _taper(w, h, nose, peak, wmax, rear_w, rear_fade) * alpha
+    a = _taper(w, h, nose, peak, wmax, rear_w, rear_fade, power) * alpha
     rgb = np.asarray(col)[None, None, :] * (a / alpha)[..., None]
     out = np.dstack([rgb, a])
     return Image.fromarray(np.round(np.clip(out, 0, 1) * 255).astype(np.uint8), "RGBA")
@@ -447,9 +448,10 @@ def all_textures():
         "bs_plasma_lance.png": lance(nose=PFX.LANCE_NOSE),
         "bs_plasma_corona.png": corona(nose=PFX.CORONA_NOSE),
         "bs_plasma_corona_heavy.png": corona(nose=PFX.CORONA_NOSE, peak=0.68, wmax=0.8, rear_w=0.55, rear_fade=0.35),
-        "bs_plasma_shade.png": shade(nose=PFX.SHADE_NOSE),
-        "bs_plasma_shade_heavy.png": shade(nose=PFX.SHADE_NOSE, peak=0.72, wmax=0.66, rear_w=0.5, rear_fade=0.45,
-                                           alpha=0.6),
+        "bs_plasma_shade.png": shade(nose=PFX.SHADE_NOSE, peak=0.8, wmax=1.2, rear_w=0.45, rear_fade=0.5,
+                                     alpha=0.6, col=(0.0, 0.12, 0.2), power=4),
+        "bs_plasma_shade_heavy.png": shade(nose=PFX.SHADE_NOSE, peak=0.75, wmax=1.2, rear_w=0.5, rear_fade=0.45,
+                                           alpha=0.62, col=(0.0, 0.12, 0.2), power=4),
         "bs_plasma_tail.png": tail(),
         "bs_plasma_tail_oc.png": tail(body0=11.5, gain=1.15, whiten=0.3, spine=1.1),
         "bs_plasma_wake.png": wake(),
