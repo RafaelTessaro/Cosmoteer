@@ -388,7 +388,7 @@ def mats(M):
         "edge": lit_mat("rl_edge_l", **EDGE_V, rough=0.34, metal=0.12, spec=0.4, grime=0.03, scale=4),
         # desgaste leve (lascas) nas placas brancas: mais forte no bisel (a borda), fraco no painel
         "white": lit_mat("rl_white_l2", **WHITE_V, rough=0.36, metal=0.08, spec=0.30, grime=0.07, scale=3.5,
-                         chips=0.0, chip_scale=17.0),
+                         chips=0.22, chip_scale=17.0),
         "white_e": lit_mat("rl_white_e2", **WHITE_E, rough=0.34, metal=0.08, spec=0.30, grime=0.05, scale=3.5,
                            chips=0.45, chip_scale=13.0),
         "white_s": lit_mat("rl_white_s", **WHITE_S, rough=0.38, metal=0.08, spec=0.25, grime=0.06, scale=3.5,
@@ -842,7 +842,7 @@ def _plane(px, rect_tiles, part_h, y_lo, y_hi, k_core, edge=0.30, rings=(), ring
         # nucleo branco-azulado fino no eixo + bainha azul clara (a linha acesa da referencia)
         core = np.exp(-(X / 0.045) ** 2) * cov * k_core * core_gain
         halo = np.exp(-(X / 0.13) ** 2) * cov * k_core * core_gain
-        rgb = rgb * (1 - 0.50 * np.clip(halo, 0, 1)[..., None]) + core[..., None] * _c(P_CORE_AX) * 0.80 + \
+        rgb = rgb * (1 - 0.50 * np.clip(halo, 0, 1)[..., None]) + core[..., None] * _c(P_CORE_AX) * 0.88 + \
             halo[..., None] * _c(P_HALO_AX) * 0.32
     if mask is not None:
         rgb = rgb * mask(X, Y)[..., None]
@@ -932,7 +932,7 @@ def glow_ponta(P, layer, px, level=1):
     k_core = {5: 0.6, 6: 1.0}.get(level, 0.0)
     rect = layer.get("rect", [0, 0, 3, 4])
     rgb = _plane(px, rect, H, y_lo, y_hi, k_core, rings=(PONTA_CLAMP,), ring_gain=0.9, mask=_ponta_mask,
-                 as_array=True)
+                 as_array=True, core_gain=0.86)
     fill_k = {5: 0.6, 6: 1.0}.get(level, 0.0)
     if fill_k:
         X, Y = _grid(px, rect, H)
@@ -952,7 +952,7 @@ def glow_ponta(P, layer, px, level=1):
         rgb = rgb + rays[..., None] * _c(P_CORE_AX) * 0.45
         img = _to_img(rgb)
         halo = np.asarray(img.filter(ImageFilter.GaussianBlur(2.2)), np.float32)[..., :3] / 255.0
-        rgb = rgb + halo * 0.18 * _ponta_mask(X, Y)[..., None]
+        rgb = rgb + halo * 0.18 * _ponta_mask(X, Y)[..., None] * np.array([0.75, 0.70, 1.0], np.float32)
     # critica ref-r1: o feixe parava num corte reto na borda da frente; alguns px de queda suave na boca
     X, Y = _grid(px, rect, H)
     rgb = rgb * (np.clip((2.0 - Y) / 0.11, 0, 1) ** 0.8)[..., None]
@@ -1407,7 +1407,7 @@ def loader_roof(M, T="roof"):
         sd, a, p = wwedge(f"wo{sx}", f(sh_o), f(sh_t), 0.0, 0.23, X, tags)
         zb = recess(f"wov{sx}", sx * 1.20, 0.40, 0.05, 0.26, 0.27, X, tags, [a, p, sd], depth=0.10)
         B.box(f"wovl{sx}", sx * 1.20, 0.40, 0.024, 0.20, zb, zb + 0.008, X["lens"], bevel=0.0, tags=tags)
-        panel_lines(p, f"wol{sx}", [(sx * 1.20, yy, 0.16, 0) for yy in (-0.10, 0.90)], 0.24, X)
+        panel_lines(p, f"wol{sx}", [(sx * 1.21, yy, 0.34, 0) for yy in (-0.10, 0.90)], 0.24, X)
         bolts(f"wob{sx}", [(sx * 1.16, -0.44), (sx * 1.16, 1.06)], 0.27, X, tags, r=0.017, mat=X["orange"])
         sd, a, p = wwedge(f"wi{sx}", f(lo_o), f(lo_t), 0.0, 0.23, X, tags)
         zb = recess(f"wiv{sx}", sx * 1.14, -1.32, 0.05, 0.28, 0.27, X, tags, [a, p, sd], depth=0.10)
@@ -1541,7 +1541,7 @@ def ponta_roof(M, T="roof"):
         for i in range(4):
             B.box(f"wdvl{sx}{i}", sx * 1.09, -0.17 + i * 0.10, 0.06, 0.025, zb, zb + 0.04, X["graph"], bevel=0.004,
                   tags=tags)
-        panel_lines(p, f"wdl{sx}", [(sx * 0.70, -0.20, 0.36, 0)], 0.27, X)
+        panel_lines(p, f"wdl{sx}", [(sx * 0.705, -0.20, 0.24, 0)], 0.27, X)
         bolts(f"wdb{sx}", [(sx * 0.56, 0.36), (sx * 0.56, -0.98)], 0.295, X, tags, r=0.018, mat=X["orange"])
         bolts(f"wdb2{sx}", [(sx * 0.84, 0.36)], 0.295, X, tags, r=0.017)
     # blocos de grafite de tras (abaixo da diagonal das cunhas) + o pescoco que encosta no cano
