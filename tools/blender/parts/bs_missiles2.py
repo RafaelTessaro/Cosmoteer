@@ -61,6 +61,7 @@ import sys
 
 if __name__ == "__main__":                 # --atlases: roda direto (python com bpy), precisa do kit no caminho
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    import bpy  # noqa: F401  (o bpy carrega o bmesh que o bs3d importa)
 
 import bs3d as B  # noqa: E402
 import models as Mo  # noqa: E402
@@ -447,14 +448,18 @@ def _he(M, X, T, LT, k, tier):
         on = 1.2 if i == k else 0.0
         B.box(f"spip{i}", -0.445, (i - 1) * 0.04, 0.036, 0.028, zf + 0.0005, zf + 0.008, _led("he", on), bevel=0.0,
               tags=_lt(LT, on))
-    # sustentador
+    # sustentador: as "escamas" da Jararaca (luvas em divisa encaixadas, como no he_m) agora blindadas, cada uma
+    # com paineis de chanfro duplo em cima e nos ombros
     ring("spine", -0.42, 0.74, R * 0.86, X["core"], tags)
-    xs = [-0.395, -0.135, 0.125, 0.385]
-    for i, a in enumerate(xs):
-        b = a + 0.235
-        ring(f"seg{i}", a, b, R, X["comp"], tags, ch=0.012)
-        top_panel(f"pn{i}", a + 0.03, b - 0.03, R, X["comp"], tags)
-        side_panels(f"ps{i}", a + 0.03, b - 0.03, R, X["comp"], tags)
+    a0, xs1, dv, g, n = -0.395, 0.60, 0.06, 0.035, 3
+    rl = (xs1 - dv - a0 - g * (n - 1)) / n
+    for i in range(n):
+        a = a0 + i * (rl + g)
+        b = a + rl
+        Mo.chevron_sleeve(f"seg{i}", a, b, R, X["comp"], tags, dv=dv, rear=i > 0, verts=8)
+        p0 = a + (dv if i > 0 else 0.0) + 0.03
+        top_panel(f"pn{i}", p0, b - 0.025, R, X["comp"], tags)
+        side_panels(f"ps{i}", p0, b - 0.025, R, X["comp"], tags)
     fin("strake", [(0.40, R * 0.6), (0.16, 0.118), (-0.22, 0.118), (-0.31, R * 0.6)], -0.01, 0.014, X["comp_d"],
         tags)
     ring("band0", 0.63, 0.665, R * 1.03, band, tags, ch=0.004)
@@ -535,9 +540,9 @@ def petal_mesh(name, prof, a_c, half, X, tags, thick=0.82):
 CL = {
     # R, bocal, fim da cauda, baias (de, ate), n baias, nariz, envergadura das aletas, minis por janela
     "m": {"R": 0.150, "x0": -0.855, "xt": -0.62, "bays": (-0.595, 0.215), "nb": 3, "xn": 0.855, "span": 0.352,
-          "nmini": 3, "gap": 17.0},
+          "nmini": 3, "gap": 20.0},
     "l": {"R": 0.200, "x0": -1.23, "xt": -0.92, "bays": (-0.895, 0.385), "nb": 4, "xn": 1.23, "span": 0.48,
-          "nmini": 3, "gap": 14.0},
+          "nmini": 3, "gap": 16.0},
 }
 
 
@@ -621,6 +626,14 @@ def _cluster(M, X, T, LT, k, tier):
     for j, ac in enumerate((90.0, 0.0, 180.0, 270.0)):
         petal_mesh(f"petal{j}", og, ac, 45.0 - gap / 2, X, tags)
     octo("og_in", [(r * 0.84, x) for r, x in og], X["black"], tags)
+    # LEDs de armar DENTRO das 2 frestas vistas de cima (45 e 135 graus), no fundo preto entre as petalas: acendem
+    # junto com o LED da base do nariz (o "vai abrir")
+    xa, xb = xo + 0.025 * sc, xo + 0.135 * sc
+    rr = _r_at(og, xb) * 0.84 * math.cos(math.pi / 8)
+    for j, ang in enumerate((-45.0, 45.0)):
+        pip = B.box(f"seam{j}", (xa + xb) / 2, 0.0, xb - xa, 0.020 * sc, rr - 0.004, rr + 0.010 * sc, _led("cluster", on),
+                    bevel=0.0, tags=_lt(LT, on))
+        pip.rotation_euler = (math.radians(ang), 0.0, 0.0)
     rt = og[-1][0]
     lens_tip("eye", xe - 0.004, xn, rt * 1.02, X, tags)
     for s in (1, -1):

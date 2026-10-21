@@ -1,0 +1,411 @@
+{
+ "version": 1,
+ "kind": "missiles",
+ "id": "rafaeltessaro.bs_missiles2",
+ "px_per_tile": 64,
+ "items": {
+  "he_s": {
+   "size": [
+    1.0,
+    0.375
+   ],
+   "px": [
+    64,
+    24
+   ],
+   "file": "msl_he_s.png",
+   "normals": "msl_he_s_normals.png",
+   "lights": {
+    "file": "msl_he_s_lights.png",
+    "frames": 2,
+    "frame_px": [
+     64,
+     24
+    ],
+    "per_row": 2,
+    "fps": 4,
+    "wrap": null
+   },
+   "mask": null,
+   "nozzle": [
+    -0.47,
+    0
+   ],
+   "anchors": {
+    "seeker": [
+     0.46,
+     0.0
+    ]
+   }
+  },
+  "he_m": {
+   "size": [
+    1.75,
+    0.625
+   ],
+   "px": [
+    112,
+    40
+   ],
+   "file": "msl_he_m.png",
+   "normals": "msl_he_m_normals.png",
+   "lights": {
+    "file": "msl_he_m_lights.png",
+    "frames": 2,
+    "frame_px": [
+     112,
+     40
+    ],
+    "per_row": 2,
+    "fps": 4,
+    "wrap": null
+   },
+   "mask": null,
+   "nozzle": [
+    -0.86,
+    0
+   ],
+   "anchors": {
+    "seeker": [
+     0.83,
+     0.0
+    ]
+   }
+  },
+  "he_l": {
+   "size": [
+    2.5,
+    0.875
+   ],
+   "px": [
+    160,
+    56
+   ],
+   "file": "msl_he_l.png",
+   "normals": "msl_he_l_normals.png",
+   "lights": {
+    "file": "msl_he_l_lights.png",
+    "frames": 3,
+    "frame_px": [
+     160,
+     56
+    ],
+    "per_row": 3,
+    "fps": 6,
+    "wrap": null
+   },
+   "mask": null,
+   "nozzle": [
+    -1.18,
+    0
+   ],
+   "anchors": {
+    "seeker": [
+     1.2,
+     0.0
+    ]
+   }
+  },
+  "cluster_m": {
+   "size": [
+    1.75,
+    0.75
+   ],
+   "px": [
+    112,
+    48
+   ],
+   "file": "msl_cluster_m.png",
+   "normals": "msl_cluster_m_normals.png",
+   "lights": {
+    "file": "msl_cluster_m_lights.png",
+    "frames": 3,
+    "frame_px": [
+     112,
+     48
+    ],
+    "per_row": 3,
+    "fps": 8,
+    "wrap": null
+   },
+   "mask": null,
+   "nozzle": [
+    -0.86,
+    0
+   ],
+   "anchors": {
+    "seeker": [
+     0.83,
+     0.0
+    ]
+   }
+  },
+  "cluster_l": {
+   "size": [
+    2.5,
+    1.0
+   ],
+   "px": [
+    160,
+    64
+   ],
+   "file": "msl_cluster_l.png",
+   "normals": "msl_cluster_l_normals.png",
+   "lights": {
+    "file": "msl_cluster_l_lights.png",
+    "frames": 4,
+    "frame_px": [
+     160,
+     64
+    ],
+    "per_row": 4,
+    "fps": 8,
+    "wrap": null
+   },
+   "mask": null,
+   "nozzle": [
+    -1.18,
+    0
+   ],
+   "anchors": {
+    "seeker": [
+     1.2,
+     0.0
+    ]
+   }
+  },
+  "cluster_mini": {
+   "size": [
+    0.5,
+    0.19
+   ],
+   "px": [
+    32,
+    12
+   ],
+   "file": "msl_cluster_mini.png",
+   "normals": "msl_cluster_mini_normals.png",
+   "lights": null,
+   "mask": null,
+   "nozzle": [
+    -0.23,
+    0
+   ],
+   "anchors": {
+    "seeker": [
+     0.22,
+     0.0
+    ]
+   }
+  },
+  "emp_m": {
+   "size": [
+    1.75,
+    0.75
+   ],
+   "px": [
+    112,
+    48
+   ],
+   "file": "msl_emp_m.png",
+   "normals": "msl_emp_m_normals.png",
+   "lights": {
+    "file": "msl_emp_m_lights.png",
+    "frames": 4,
+    "frame_px": [
+     112,
+     48
+    ],
+    "per_row": 4,
+    "fps": 12,
+    "wrap": null
+   },
+   "mask": null,
+   "nozzle": [
+    -0.86,
+    0
+   ],
+   "anchors": {
+    "seeker": [
+     0.8,
+     0.0
+    ]
+   }
+  },
+  "emp_l": {
+   "size": [
+    2.5,
+    1.0
+   ],
+   "px": [
+    160,
+    64
+   ],
+   "file": "msl_emp_l.png",
+   "normals": "msl_emp_l_normals.png",
+   "lights": {
+    "file": "msl_emp_l_lights.png",
+    "frames": 4,
+    "frame_px": [
+     160,
+     64
+    ],
+    "per_row": 4,
+    "fps": 12,
+    "wrap": null
+   },
+   "mask": null,
+   "nozzle": [
+    -1.18,
+    0
+   ],
+   "anchors": {
+    "seeker": [
+     1.1,
+     0.0
+    ]
+   }
+  },
+  "nuclear_l": {
+   "size": [
+    3.75,
+    1.5
+   ],
+   "px": [
+    240,
+    96
+   ],
+   "file": "msl_nuclear_l.png",
+   "normals": "msl_nuclear_l_normals.png",
+   "lights": {
+    "file": "msl_nuclear_l_lights.png",
+    "frames": 4,
+    "frame_px": [
+     240,
+     96
+    ],
+    "per_row": 4,
+    "fps": 6,
+    "wrap": null
+   },
+   "mask": null,
+   "nozzle": [
+    -1.86,
+    0
+   ],
+   "anchors": {
+    "seeker": [
+     1.83,
+     0.0
+    ],
+    "warhead": [
+     0.995,
+     0.0
+    ],
+    "radiation": [
+     0.995,
+     0.0
+    ]
+   }
+  },
+  "nuclear_wh_l": {
+   "size": [
+    3.1,
+    1.5
+   ],
+   "px": [
+    198,
+    96
+   ],
+   "file": "msl_nuclear_wh_l.png",
+   "normals": "msl_nuclear_wh_l_normals.png",
+   "lights": {
+    "file": "msl_nuclear_wh_l_lights.png",
+    "frames": 4,
+    "frame_px": [
+     198,
+     96
+    ],
+    "per_row": 4,
+    "fps": 6,
+    "wrap": null
+   },
+   "mask": null,
+   "nozzle": [
+    -1.53,
+    0
+   ],
+   "anchors": {
+    "seeker": [
+     1.5,
+     0.0
+    ],
+    "warhead": [
+     0.67,
+     0.0
+    ],
+    "radiation": [
+     0.67,
+     0.0
+    ]
+   }
+  }
+ },
+ "files": [
+  "bs_petals_l.png",
+  "bs_petals_l_normals.png",
+  "bs_petals_m.png",
+  "bs_petals_m_normals.png",
+  "msl_cluster_l.png",
+  "msl_cluster_l_lights.png",
+  "msl_cluster_l_normals.png",
+  "msl_cluster_m.png",
+  "msl_cluster_m_lights.png",
+  "msl_cluster_m_normals.png",
+  "msl_cluster_mini.png",
+  "msl_cluster_mini_normals.png",
+  "msl_emp_l.png",
+  "msl_emp_l_lights.png",
+  "msl_emp_l_normals.png",
+  "msl_emp_m.png",
+  "msl_emp_m_lights.png",
+  "msl_emp_m_normals.png",
+  "msl_he_l.png",
+  "msl_he_l_lights.png",
+  "msl_he_l_normals.png",
+  "msl_he_m.png",
+  "msl_he_m_lights.png",
+  "msl_he_m_normals.png",
+  "msl_he_s.png",
+  "msl_he_s_lights.png",
+  "msl_he_s_normals.png",
+  "msl_nuclear_l.png",
+  "msl_nuclear_l_lights.png",
+  "msl_nuclear_l_normals.png",
+  "msl_nuclear_wh_l.png",
+  "msl_nuclear_wh_l_lights.png",
+  "msl_nuclear_wh_l_normals.png"
+ ],
+ "atlases": {
+  "petals_m": {
+   "file": "bs_petals_m.png",
+   "normals": "bs_petals_m_normals.png",
+   "texture_px": 256,
+   "sprite_px": 64,
+   "per_row": 4,
+   "count": 16,
+   "rows": "petala (giro proprio 0/70/180/250 graus)",
+   "cols": "inclinacao 0/30/55/75 graus"
+  },
+  "petals_l": {
+   "file": "bs_petals_l.png",
+   "normals": "bs_petals_l_normals.png",
+   "texture_px": 256,
+   "sprite_px": 64,
+   "per_row": 4,
+   "count": 16,
+   "rows": "petala (giro proprio 0/70/180/250 graus)",
+   "cols": "inclinacao 0/30/55/75 graus"
+  }
+ }
+}
