@@ -770,6 +770,43 @@ def _lights_gain(out, target=LIGHTS_TARGET, cap=3.0):
     return g
 
 
+def _roof_led_safe(out, lo=28, hi=64):
+    """LEDs verdes/ciano do teto a salvo do shader de pintura (STYLE 9). O jogo pinta um pixel do teto quando o verde
+    passa do vermelho e do azul E |r - b| < 64; o LED em si ((0.32, 1, 0) a 0,75) passa no teste, mas a borda
+    antisserrilhada dele (LED misturado com o leito escuro ou a blindagem) cai em |r - b| 28..63 e o shader a
+    repinta, o que apaga os tracos de LED num casco claro. Aqui esses pixels (verde dominante e lo <= |r - b| < hi;
+    a tinta verde do teto fica em |r - b| < 12) ganham |r - b| = 64: o canal menor desce (ou o maior sobe, se
+    faltar). A pintura e as normais nao mudam. Marca o PNG (texto bs_led_safe) para nao aplicar duas vezes."""
+    import numpy as np
+    from PIL import Image, PngImagePlugin
+    p = os.path.join(out, "roof.png")
+    if not os.path.exists(p):
+        return None
+    im = Image.open(p)
+    if "bs_led_safe" in im.info:
+        return int(im.info["bs_led_safe"])
+    a = np.asarray(im.convert("RGBA")).astype(np.int32)
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    d = np.abs(r - b)
+    sel = ((g - np.maximum(r, b)) > 8) & (d >= lo) & (d < hi) & (a[..., 3] > 0)
+    rb = sel & (r > b)                    # verde-amarelado (LED verde): o azul desce
+    br = sel & (b > r)                    # verde-ciano (LED ciano): o vermelho desce
+    nb = np.where(rb, np.maximum(0, r - hi), b)
+    nr = np.where(rb, np.maximum(r, nb + hi), r)
+    nr2 = np.where(br, np.maximum(0, b - hi), nr)
+    nb2 = np.where(br, np.maximum(nb, nr2 + hi), nb)
+    a[..., 0], a[..., 2] = np.clip(nr2, 0, 255), np.clip(nb2, 0, 255)
+    n = int(sel.sum())
+    info = PngImagePlugin.PngInfo()
+    for k, v in im.info.items():
+        if isinstance(v, str):
+            info.add_text(k, v)
+    info.add_text("bs_led_safe", str(n))
+    Image.fromarray(a.astype(np.uint8), "RGBA").save(p, pnginfo=info)
+    print(f"roof.png: {n} px de borda de LED fora do teste de pintura (|r - b| >= {hi})")
+    return n
+
+
 def _main():
     """Renderiza EXTRA_LAYERS de uma fabrica e junta META_EXTRA/overlays no meta.json dela."""
     import importlib
@@ -807,6 +844,9 @@ def _main():
     g = _lights_gain(out, getattr(mod, "LIGHTS_TARGET", LIGHTS_TARGET))
     if g is not None:
         meta["lights_gain"] = round(g, 3)
+    n = _roof_led_safe(out)
+    if n is not None:
+        meta["roof_led_safe_px"] = n
     meta["files"] = sorted(files)
     json.dump(meta, open(mp, "w"), indent=1, ensure_ascii=False)
     print("OK extras", short, out, sorted(overlays))

@@ -139,10 +139,11 @@ def _column(prefix, sx, M, X, tags, hole):
 MILL_HOLE = [(-1.20, 0.44), (-0.82, 0.44), (-0.82, 1.76), (-1.20, 1.76)]
 
 
-def _well(prefix, x, M, X, tags, rails, slits, y0=0.47, y1=1.73):
+def _well(prefix, x, M, X, tags, rails, slits, y0=0.47, y1=1.73, dashes=None):
     """Fundo do gabinete (janela da coluna): piso grafite (core_mid) logo acima do leito preto do bezel, trilhos-guia
     de aco ao longo de y, travessas nas pontas e frestas azuis fracas num rebaixo (o poco deixa de ser um buraco
-    preto com rolos flutuando)."""
+    preto com rolos flutuando). dashes = [(y, comprimento)]: a luz azul so em trechos curtos da fresta escura (a
+    fresta inteira acesa passava do orcamento de area acesa, STYLE 1.6)."""
     K, KM, S = M["core"], M["core_mid"], M["steel"]
     yc, L = (y0 + y1) / 2, y1 - y0
     B.box(prefix + "_floor", x, yc, 0.36, L + 0.02, 0.16, 0.172, KM, bevel=0.0, tags=tags)
@@ -152,7 +153,8 @@ def _well(prefix, x, M, X, tags, rails, slits, y0=0.47, y1=1.73):
         B.box(f"{prefix}_tie{k}", x, yy, 0.34, 0.035, 0.172, 0.205, KM, bevel=0.005, tags=tags)
     for k, dx in enumerate(slits):
         B.box(f"{prefix}_sk{k}", x + dx, yc, 0.026, L - 0.12, 0.170, 0.176, K, bevel=0.0, tags=tags)
-        B.box(f"{prefix}_sg{k}", x + dx, yc, 0.010, L - 0.16, 0.176, 0.179, X["blue_lo"], bevel=0.0, tags=tags)
+        for j, (yy, ll) in enumerate(dashes or [(yc, L - 0.16)]):
+            B.box(f"{prefix}_sg{k}{j}", x + dx, yy, 0.010, ll, 0.176, 0.179, X["blue_lo"], bevel=0.0, tags=tags)
 
 
 def _mill(M, Xm, X, tags, st):
@@ -160,7 +162,9 @@ def _mill(M, Xm, X, tags, st):
     K, KM, A, AM, S = M["core"], M["core_mid"], M["armor"], M["armor_mid"], M["steel"]
     _column("ml", -1, M, X, tags, MILL_HOLE)
     x = -1.01
-    _well("ml_w", x, M, X, tags, rails=(-0.165, 0.165), slits=(-0.048, 0.048))
+    # luz so nos vaos entre os pares de rolos (y 0,64 / 1,10 / 1,56)
+    _well("ml_w", x, M, X, tags, rails=(-0.165, 0.165), slits=(-0.048, 0.048),
+          dashes=[(0.87, 0.20), (1.33, 0.20)])
     B.cyl("ml_rod", x, 1.10, 0.24, 0.024, 1.28, Xm["tungsten"], axis="Y", verts=8, bevel=0.0, tags=tags)
     for k, y in enumerate((0.64, 1.10, 1.56)):
         for sx in (-1, 1):
@@ -189,7 +193,9 @@ def _winder(M, Xm, X, tags, st):
     K, KM, A, AM, S = M["core"], M["core_mid"], M["armor"], M["armor_mid"], M["steel"]
     _column("wd", 1, M, X, tags, ARM_HOLE)
     x = 1.01
-    _well("wd_w", x, M, X, tags, rails=(-0.115, 0.115), slits=(-0.158, 0.158))
+    # luz em 3 trechos: ao lado do pente de colares, da mola e do carretel
+    _well("wd_w", x, M, X, tags, rails=(-0.115, 0.115), slits=(-0.158, 0.158),
+          dashes=[(0.70, 0.16), (1.18, 0.14), (1.56, 0.14)])
     # carretel (disco escuro com fio azul-grafite) girando
     B.cyl("wd_spool", x, 1.52, 0.20, 0.15, 0.06, X["graph"], axis="Z", verts=16, bevel=0.004, tags=tags)
     B.torus("wd_wire", x, 1.52, 0.26, 0.11, 0.022, B.mat_metal("f6_wire", (0.16, 0.22, 0.32), rough=0.3, metal=0.9),
@@ -298,7 +304,7 @@ def _finish(M, Xm, X, tags, st):
     B.box("fn_well", 0, -0.48, 0.20, 0.82, 0.07, 0.074, KM, bevel=0.0, tags=tags)
     for sx in (-1, 1):
         B.box(f"fn_wk{sx}", sx * 0.075, -0.48, 0.024, 0.74, 0.072, 0.076, K, bevel=0.0, tags=tags)
-        B.box(f"fn_wg{sx}", sx * 0.075, -0.48, 0.010, 0.70, 0.076, 0.079, X["blue_lo"], bevel=0.0, tags=tags)
+        B.box(f"fn_wg{sx}", sx * 0.075, -0.30, 0.010, 0.30, 0.076, 0.079, X["blue_lo"], bevel=0.0, tags=tags)
     for sx in (-1, 1):
         B.box(f"fn_rail{sx}", sx * 0.13, -0.48, 0.02, 0.84, 0.04, 0.10, S, bevel=0.003, tags=tags)
         ha, hp = B.shard(f"fn_h{sx}", H.flip(sx)(FHOOD), 0.0, 0.30, A, slope=0.045, groove=0.02, panel_h=0.022,

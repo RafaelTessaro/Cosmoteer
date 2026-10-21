@@ -55,6 +55,10 @@ PART = {
         "nuclear verde com o trevo ao lado, slug branco-azulado + aneis EM azuis + cauda laranja (paleta nova do Tupa).",
         "Moldura escura (grafite) de bisel duplo, campo preto e 2 parafusos (spec: 'dark recessed frame, 2 bolts'). "
         "Nenhum pixel na chave de pintura (helpers.paint_safe).",
+        "Se tools/bsgen/ui_icons.py mudar, re-renderize NESTA ordem: bs_placas, bs_paiol (os icones do editor colam a "
+        "placa padrao) e as previas da logistica (e as placas de modo das fabricas F2/F3/F4, que tambem usam estas "
+        "placas). A conferencia da logistica compara cada placa com o simbolo refeito do ui_icons atual e falha se "
+        "a placa ficou velha.",
     ],
 }
 

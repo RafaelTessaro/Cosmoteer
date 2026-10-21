@@ -90,6 +90,40 @@
    "opaque": false,
    "emission_only": false,
    "islands": true
+  },
+  "tambores_tranco": {
+   "game_layer": "roof_turrets",
+   "rect": [
+    0.0,
+    0.0,
+    3.0,
+    3.0
+   ],
+   "files": [
+    "tambores_tranco1.png",
+    "tambores_tranco2.png",
+    "tambores_tranco3.png",
+    "tambores_tranco4.png",
+    "tambores_tranco5.png",
+    "tambores_tranco6.png",
+    "tambores_tranco7.png",
+    "tambores_tranco8.png"
+   ],
+   "normals": [
+    "tambores_tranco1_normals.png",
+    "tambores_tranco2_normals.png",
+    "tambores_tranco3_normals.png",
+    "tambores_tranco4_normals.png",
+    "tambores_tranco5_normals.png",
+    "tambores_tranco6_normals.png",
+    "tambores_tranco7_normals.png",
+    "tambores_tranco8_normals.png"
+   ],
+   "frames": 8,
+   "interval": 0.05,
+   "opaque": false,
+   "emission_only": false,
+   "islands": true
   }
  },
  "walls": "walls.png",
@@ -98,7 +132,9 @@
  "notes": [
   "Paleta nova (referencia do usuario, substitui palette.rail violeta/ouro): azul [45,115,255], azul claro [100,175,255], nucleo branco-azulado [205,228,255], laranja-OURO [215,145,40] (matiz ~36 graus; r2: o laranja [230,135,40] da 1a versao azul caia no cobre da PEM) so em detalhes pintados, molas [235,185,50] e LEDs fracos de estado; NUNCA cobre. light_blob do projetil (roof_lights_fancy): VertexColor sugerido [0.10, 0.32, 1.0] (pouco vermelho e verde: nao lava o casco branco). Repassar a quem cuida: SPEC_2.0 palette.rail e light_blob_vertexcolor_float ainda violeta/ouro; parts/bs_factory_slug.py e _bs2_fabricas_helpers.py copiam ORANGE_P antigo.",
   "DESCARGA (critica r2: o climax nao pode murchar): carga1..8 + trilhos (canos), carga1..6 (ponta) e luz_culatra NAO apagam todos no ProjectileStartTrigger. Cada cano SEGURA a carga cheia (trilhos9 + carga8) ate a PONTA do dardo entrar nele e entao descarrega (trilhos1, carga escondida): o canal escuro atras e o rastro que persegue o dardo, o cano a frente continua carregado ate o dardo chegar e o dardo claro corre sempre no canal escuro (licao 1: sob a carga cheia ele some). luz_culatra e o 1o cano descarregam no ProjectileStartTrigger (a ponta do dardo ja esta no 1o cano); a ponta (carga + clarao da garganta) descarrega junto com o clarao (EmissionTriggered / ProjectileFinished). Ligacao (variante 'delay' de rail.charge_wave): em cada cano um DelayTrigger iniciado pelo ProjectileStartTrigger desliga um toggle 'CargaRetida' que segura o nivel cheio; Delay_i = t(3i - 4) para o cano i (1 = junto da culatra), com t(d) = (-6 + sqrt(36 + 88 d / T)) / (44 / T) (t(d <= 0) = 0), T = (3N + 4) / 28 s (cinematica do RailgunProjectile 6 -> 50 quadros/s em 3N + 4 quadros = barrel_anim_s do spec). Tabela (s, cano 1..N): N1 [0]; N2 [0, 0.14]; N3 [0, 0.15, 0.27]; N4 [0, 0.16, 0.29, 0.38]; N5 [0, 0.17, 0.31, 0.41, 0.50]; N6 [0, 0.18, 0.33, 0.44, 0.53, 0.61]. O cano sabe i pela corrente do carregador e N - i + 1 pela corrente reversa da ponta. Minimo aceitavel se o atraso por cano nao der: segurar trilhos e carga acesos ate o EmissionTriggered e apagar tudo junto com o clarao. Nunca reacender um plano de carga depois do disparo (nem a ponta).",
-  "roof.png: canal aberto x 1.10-1.90 em todo o comprimento, cruzado por 3 TAMBORES EM (y 0.5, 1.5 e 2.5 da peca; referencia do usuario: tambores segmentados a cada 1 quadro; x 1.0-2.0) que escondem o dardo por um instante ('dentro do cano'). Cada tambor tem 2 COSTURAS TRANSPARENTES entre as bandas (y = tambor +- 0.055, x 1.1-1.9): a carga e as bobinas dos trilhos1..9 acendem por elas. Meias-garras com inserto laranja nas pontas dos trilhos brancos (emendadas formam uma garra inteira cortada pela fresta da emenda).",
+  "TRANCO (pedido do usuario: 'efeito de tranco quando ela disparasse'). Camadas novas, 8 quadros de 0,05 s (0,4 s), ARQUIVO 1 = REPOUSO, como barrel1.png dos canhoes de convés: Graphics com ResetAnimationTrigger = o tiro, AnimationFiles [X2, X3, ..., X8, X1] (e NormalsAnimationFiles na mesma ordem), AnimationInterval 0.05, AnimationStartTime = MinValue, ClampAnimation = true; NonOperationalDoodad = X1. Curso por quadro (fracao, + = para tras): X2 1.00, X3 0.85, X4 0.62, X5 0.36, X6 0.12, X7 -0.05, X8 -0.03, X1 0 (o tranco e instantaneo, a mola devolve com um sobre-curso pequeno). Cursos: coroa da ponta 0,18 quadro, tambores (canos e ponta) 0,12, bloco da culatra 0,15 (as molas de recuo comprimem 0,15). Os desenhos que andam SAIRAM dos tetos/weapon fixos: sem a Graphics do tranco a peca fica sem eles. Nunca reacender plano de carga no tranco (a luz do tiro e o clarao e o anel de choque).",
+  "tambores_tranco1..8 (roof_turrets [0,0,3,3], normais): os 3 TAMBORES EM e a garra lateral do tambor do meio recuam 0,12 e voltam; 1 = repouso. roof.png NAO tem mais os tambores (sem esta Graphics o cano fica sem eles). Gatilho = EmissionTriggered (TriggerProxy do cano). As costuras dos tambores seguem transparentes. As emendas entre canos nao mudam (os tambores ficam a 0,3 da borda).",
+  "roof.png: canal aberto x 1.10-1.90 em todo o comprimento; os 3 TAMBORES EM (y 0.5, 1.5 e 2.5 da peca; x 1.0-2.0, escondem o dardo por um instante: 'dentro do cano') estao em tambores_tranco. Cada tambor tem 2 COSTURAS TRANSPARENTES entre as bandas (y = tambor +- 0.055, x 1.1-1.9): a carga e as bobinas dos trilhos1..9 acendem por elas. Meias-garras com inserto laranja nas pontas dos trilhos brancos (emendadas formam uma garra inteira cortada pela fresta da emenda; fixas).",
   "carga1..8: plano aditivo de largura identica em todos os canos (as emendas casam); mais forte nas 3 bobinas (y 0.5, 1.5, 2.5 da peca)."
  ],
  "files": [
@@ -115,6 +151,22 @@
   "icon.png",
   "roof.png",
   "roof_normals.png",
+  "tambores_tranco1.png",
+  "tambores_tranco1_normals.png",
+  "tambores_tranco2.png",
+  "tambores_tranco2_normals.png",
+  "tambores_tranco3.png",
+  "tambores_tranco3_normals.png",
+  "tambores_tranco4.png",
+  "tambores_tranco4_normals.png",
+  "tambores_tranco5.png",
+  "tambores_tranco5_normals.png",
+  "tambores_tranco6.png",
+  "tambores_tranco6_normals.png",
+  "tambores_tranco7.png",
+  "tambores_tranco7_normals.png",
+  "tambores_tranco8.png",
+  "tambores_tranco8_normals.png",
   "trilhos1.png",
   "trilhos2.png",
   "trilhos3.png",

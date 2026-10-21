@@ -71,7 +71,10 @@ META_EXTRA = {
                    "toggle": "bs_ammo_type", "values": [1, 2, 3, 4], "files": "placa_<modo>.png (art3d/bs_placas)",
                    "game_layer": "roof_doodads"},
     "notes": ["id da peca = rafaeltessaro.bs_factory_mag_ap (ID mantido); arte 2.0 nesta pasta",
-              "o maquinario e o mesmo nos 4 modos; pastilhas pintadas nas bases de saida e placa de modo no teto"],
+              "o maquinario e o mesmo nos 4 modos; pastilhas pintadas nas bases de saida e placa de modo no teto",
+              "LIGACAO: a pasta antiga art3d/bs_factory_mag_ap (3x3, 1.x) tem o mesmo id; o bsgen deve ler esta pasta "
+              "(meta.art3d_dir) e o art3d_owner_map do spec deve trocar F2 'bs_factory_mag_ap' por "
+              "'bs_factory_special' (ou aposentar a pasta antiga), senao duas pastas reivindicam o mesmo id"],
 }
 
 

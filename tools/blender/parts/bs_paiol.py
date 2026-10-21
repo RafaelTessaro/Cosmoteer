@@ -558,7 +558,7 @@ def _lerp_hsv(a, b, t):
     return (r * 255, g * 255, bb * 255)
 
 
-GAUGE_VMAX = 0.89                     # teto do VALOR (HSV) do corpo dos segmentos: ~227 (le como vidro aceso, nao como
+GAUGE_VMAX = 0.90                     # teto do VALOR (HSV) do corpo dos segmentos: ~230 (le como vidro aceso, nao como
 #                                       bloco de interface chapado; o reflexo de 1 px em cima pode passar disso)
 
 
@@ -585,13 +585,13 @@ def zero_rgb_under_alpha0(img):
 
 def _seg_shade(rw, rh, S4):
     """Fator de luz (rh x rw, 0..~1,05) de UM segmento aceso a S4x: vidro aceso por tras, nao bloco chapado. Queda
-    vertical (mais claro em cima, ~0,78 embaixo), bisel interno de 1 px nas laterais (esquerda 0,86, direita 0,80) e
-    1 px mais escuro embaixo (0,70). O reflexo de cima e desenhado a parte."""
+    vertical SUAVE (1,02 em cima -> 0,92 embaixo: mais forte o amarelo vira oliva), bisel interno de 1 px nas laterais
+    (esquerda 0,92, direita 0,86) e 1 px mais escuro embaixo (0,78). O reflexo de cima e desenhado a parte."""
     t = (np.arange(rh, dtype=np.float32) + 0.5) / max(1, rh)
-    f = (1.04 - 0.26 * t)[:, None] * np.ones((1, rw), np.float32)
-    f[:, :S4] *= 0.86
-    f[:, rw - S4:] *= 0.80
-    f[rh - S4:, :] = np.minimum(f[rh - S4:, :], 0.70)
+    f = (1.02 - 0.10 * t)[:, None] * np.ones((1, rw), np.float32)
+    f[:, :S4] *= 0.92
+    f[:, rw - S4:] *= 0.86
+    f[rh - S4:, :] = np.minimum(f[rh - S4:, :], 0.78)
     return f
 
 

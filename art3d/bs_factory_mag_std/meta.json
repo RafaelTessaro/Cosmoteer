@@ -89,5 +89,6 @@
   "10 quadros x 0,125 s = 1,25 s = um Carregador HE por volta (interval_s_base 1,25)",
   "lights.png vem do quadro 1 (repouso): so LEDs pequenos"
  ],
- "lights_gain": 3.0
+ "lights_gain": 3.0,
+ "roof_led_safe_px": 14
 }

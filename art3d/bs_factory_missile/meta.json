@@ -139,5 +139,6 @@
   "o maquinario e o mesmo nos 3 modos; pastilhas pintadas nas saidas e placa de modo no teto",
   "pastilhas/setas das saidas: HE laranja (palette.msl_he.hull 255,96,12), submunicao amarelo-limao (a Piranha aprovada e o recurso bs_msl_cluster), PEM azul. A placa_msl_cluster (bs_placas) e o palette.cluster.chip (255,120,40) sao laranja: alinhar a placa ou o spec na ligacao"
  ],
- "lights_gain": 2.56
+ "lights_gain": 2.56,
+ "roof_led_safe_px": 41
 }

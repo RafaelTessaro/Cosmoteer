@@ -193,9 +193,10 @@ def _arc_l(R, a0, a1, n):
              R * math.cos(math.radians(a0 + (a1 - a0) * i / (n - 1)))) for i in range(n)]
 
 
-# bochecha esquerda: lamina de faca em crescente seguindo o disco, ponta fechando ao lado do cano (fora do sprite)
-CHEEK = [(-0.300, 0.462), (-0.312, 0.418)] + _arc_l(0.468, 46, 124, 6) + [(-0.300, -0.236)] + \
-    _arc_l(0.335, 116, 64, 4) + [(-0.282, 0.236), (-0.282, 0.40)]
+# bochecha esquerda: lamina de faca em crescente FACETADO seguindo o disco (4 facetas por fora, 2 por dentro: cunhas
+# chanfradas como a Corisco, STYLE 1.2, em vez de uma ferradura redonda), ponta fechando ao lado do cano
+CHEEK = [(-0.300, 0.462), (-0.318, 0.410)] + _arc_l(0.470, 50, 124, 4) + [(-0.300, -0.236)] + \
+    _arc_l(0.335, 116, 64, 3) + [(-0.282, 0.236), (-0.282, 0.40)]
 CHEEK_Z = (0.24, 0.50)
 # contrapeso traseiro (bustle): cunha clara apontando para tras, entre as pontas das bochechas
 BUSTLE = [(-0.215, -0.238), (0.215, -0.238), (0.268, -0.300), (0.230, -0.378), (0.120, -0.452), (-0.120, -0.452),
@@ -269,9 +270,9 @@ def head(M, T="head", phase=0.0):
         B.cut(bp, [B.rbox(f"bpl{sx}", sx * 0.19, -0.29, 0.012, 0.09, BUSTLE_Z[1] - 0.02, 0.9, K, rot=sx * 50,
                           bevel=0.0) for sx in (-1, 1)])
 
-    # espinha curta em ponta de flecha com fenda do sensor (lente azul) e linhas de painel
-    spine = [(-0.10, -0.225), (0.10, -0.225), (0.14, -0.18), (0.14, -0.09), (0.035, 0.03), (-0.035, 0.03),
-             (-0.14, -0.09), (-0.14, -0.18)]
+    # espinha curta em ponta de flecha AGUDA (chevron, sem o 'nariz' rombudo) com fenda do sensor e linhas de painel
+    spine = [(-0.10, -0.225), (0.10, -0.225), (0.15, -0.175), (0.15, -0.115), (0.012, 0.022), (-0.012, 0.022),
+             (-0.15, -0.115), (-0.15, -0.175)]
     sa, sp = B.shard("spine", spine, 0.24, 0.47, A, slope=0.04, groove=0.016, panel_h=0.022, tags=tags)
     win = B.rpoly(0, -0.105, 0.13, 0.034, 0)
     for t in (sa, sp):

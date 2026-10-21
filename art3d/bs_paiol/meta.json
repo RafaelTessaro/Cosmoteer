@@ -307,6 +307,25 @@
       "digito9.png"
      ],
      "normals": null,
+     "variants": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9"
+     ],
+     "px": [
+      24,
+      40
+     ],
+     "opaque": false,
+     "emission_only": false,
+     "islands": true,
      "rects": [
       [
        0.19,
@@ -332,26 +351,7 @@
        0.22,
        0.36
       ]
-     ],
-     "variants": [
-      "0",
-      "1",
-      "2",
-      "3",
-      "4",
-      "5",
-      "6",
-      "7",
-      "8",
-      "9"
-     ],
-     "px": [
-      24,
-      40
-     ],
-     "opaque": false,
-     "emission_only": false,
-     "islands": true
+     ]
     }
    },
    "walls": "walls_2x2.png",
@@ -695,7 +695,7 @@
     "gauge_3x3_1..10.png: ResourceSprites em roof_doodads no rect [2.46, 0.2, 0.34, 2.6] (Round Up, HasZeroResourceSprite = false: o medidor vazio e o teto, que ja traz os segmentos apagados).",
     "placa: placa_<tipo>.png (art3d/bs_placas) no rect 'plate' (roof_doodads), ToggledComponents por modo do seletor (MostradorTipo_<k>); projeteis = placa fixa (placa_slug.png).",
     "digitos (opcional, switch paiol_counter): 4 ValueSprites com digito0..9.png (24 x 40) nos rects de 'digits'; os segmentos apagados ja estao pintados na janela do teto.",
-    "FX da Fita (bs_fita_fx cartucho_sai/entra, roof_doodads 1x1 no centro da maquina): no paiol 1x1 o FX cruza a placa e o medidor e no 2x2 a placa e os digitos, todos em roof_doodads (ordem indefinida na mesma camada). Aceitavel (0,6 s por envio), ou ponha o Location do FX do paiol no centro do quadro livre (1x1: [0.32, 0.5] com Size 0.8; 2x2/3x3: o centro da peca ja cai entre placa, digitos e escotilhas).",
+    "FX da Fita (bs_fita_fx cartucho_sai/entra, roof_doodads; brilho_* em lights_add) no paiol 3x3: PADRAO Location [2.03, 2.36] com Size 0.8 (meta 'fita_fx': o painel pintado livre; no centro da peca o FX passava por cima do encaixe da placa e da grelha). No 1x1 nao ha painel livre: o FX fica no centro da placa (cruza so a placa, nao o medidor). Tudo em roof_doodads, ordem indefinida na mesma camada; 0,6 s por envio.",
     "gauge rect [2.46, 0.2, 0.34, 2.6] = 21.76 x 166.40 px no jogo; a textura e o arredondamento disso (o jogo reamostra um pouco: os vaos de 1 px podem sair macios)."
    ],
    "ids": {
@@ -762,6 +762,25 @@
      128,
      255
     ]
+   },
+   "family_chip_tip": {
+    "projeteis": [
+     255,
+     140,
+     40
+    ]
+   },
+   "fita_fx": {
+    "location": [
+     2.03,
+     2.36
+    ],
+    "size": [
+     0.8,
+     0.8
+    ],
+    "files": "../bs_fita_fx/cartucho_sai|entra<1..8>.png (roof_doodads), brilho_* (lights_add)",
+    "default": true
    },
    "digits": {
     "rects": [

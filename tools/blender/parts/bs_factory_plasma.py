@@ -77,7 +77,10 @@ META_EXTRA = {
     "mode_plate": {"rect_centre": [0.5, 0.5], "size": 0.8, "modes": ["plasma", "pem"], "toggle": "bs_cell_type",
                    "values": [0, 1], "files": "placa_<modo>.png (art3d/bs_placas)", "game_layer": "roof_doodads"},
     "notes": ["grade de cobre no poco da base [1,2] (J2R3-9)",
-              "banco_pem/banco_pem_luz: overlays do modo PEM (spec factories F3.pem_bank)"],
+              "banco_pem/banco_pem_luz: overlays do modo PEM (spec factories F3.pem_bank)",
+              "LIGACAO: banco_pem_luz esta em lights_add como pede o spec, mas na ordem de camadas do spec lights_add "
+              "fica sob roofs/roof_doodads e o banco fica no teto; se a luz sumir sob o teto no jogo, usar "
+              "roof_lights_fancy (a camada que bsgen/factory.py usa para luzes do teto)"],
 }
 
 
