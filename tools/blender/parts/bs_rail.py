@@ -388,7 +388,7 @@ def mats(M):
         "edge": lit_mat("rl_edge_l", **EDGE_V, rough=0.34, metal=0.12, spec=0.4, grime=0.03, scale=4),
         # desgaste leve (lascas) nas placas brancas: mais forte no bisel (a borda), fraco no painel
         "white": lit_mat("rl_white_l2", **WHITE_V, rough=0.36, metal=0.08, spec=0.30, grime=0.07, scale=3.5,
-                         chips=0.22, chip_scale=17.0),
+                         chips=0.0, chip_scale=17.0),
         "white_e": lit_mat("rl_white_e2", **WHITE_E, rough=0.34, metal=0.08, spec=0.30, grime=0.05, scale=3.5,
                            chips=0.45, chip_scale=13.0),
         "white_s": lit_mat("rl_white_s", **WHITE_S, rough=0.38, metal=0.08, spec=0.25, grime=0.06, scale=3.5,
