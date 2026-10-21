@@ -106,6 +106,9 @@ STEEL = (0.50, 0.52, 0.55)          # aco claro (espoleta, labios, penetrador)
 TUNG = (0.36, 0.37, 0.39)           # tungstenio claro do slug
 GOLD = (0.80, 0.47, 0.07)           # ouro da AC (palette.ac.band2_gold 255,200,80)
 PEM_BODY = (0.050, 0.053, 0.060)    # capsula escura da PEM
+APCAP = (0.085, 0.095, 0.125)       # capuz da AP (grafite azulado medio)
+APEDGE = (0.50, 0.58, 0.70)         # filete de aco gelo no contorno do capuz
+ICE = (0.42, 0.60, 0.92)            # anel gelo da AP (palette.ap.band 215,230,255 mais saturado)
 
 # ---- LEDs por municao (emissao; na vista Standard forca 1.0 sai ~ a cor do palette)
 LED = {"he": (1.0, 0.45, 0.05), "ap": (0.45, 0.70, 1.0), "sap": (1.0, 0.22, 0.03), "ac": (1.0, 0.025, 0.09),
@@ -129,6 +132,12 @@ def _mats(M):
         "steel": _spec(B.mat_metal("s2_steel", STEEL, rough=0.36, metal=0.55), 0.3),
         "tung": _spec(B.mat_metal("s2_tung", TUNG, rough=0.38, metal=0.5), 0.25),
         "lens": lens,
+        # capuz balistico da AP: grafite azulado MEDIO (sRGB ~90 no topo, metade das luvas ~170: ainda le escuro no
+        # casco branco) com o filete de aco gelo no contorno (octo_edge: le no espaco escuro sob o halo da 2.0)
+        "apcap": _spec(B.mat_metal("s2_apcap", APCAP, rough=0.40, metal=0.25), 0.3),
+        "apedge": _spec(B.mat_metal("s2_apedge", APEDGE, rough=0.30, metal=0.45), 0.4),
+        # anel gelo pintado na divisa capuz/corpo da AP (a cor da municao no nariz, nao emissivo)
+        "ice": _spec(B.mat_paint("s2_ice", ICE, rough=0.38, metal=0.2, wear=0.0, grime=0.0, scale=5), 0.3),
         "band": Mo.nose_paint("s2_band", Mo.NOSE_LIGHT),
         "gold": _spec(B.mat_metal("s2_gold", GOLD, rough=0.32, metal=0.45), 0.3),
         # cobre das bobinas PEM = o do Poraque (Mo.copper_mat: metal 1.0, rough 0.22) nas espiras redondas
@@ -168,6 +177,69 @@ def _led(color, s, name=None):
 def octo(name, prof, mat, tags, zc=0.0):
     """Solido de revolucao octogonal de topo plano no eixo X (perfil [(raio, x)], faces planas)."""
     return Mo.lathe(name, prof, mat, tags, verts=8, axis="X", zc=zc, a0=A0, smooth=False)
+
+
+def octo_edge(name, prof, mat, edge_mat, tags, t=0.5):
+    """octo() com um FILETE de outro material no contorno visto de cima (chanfro duplo claro/escuro: STYLE 1).
+
+    Cada faceta de 45 graus de cima (a que vai do vertice de 67.5 ao de 22.5 graus, e o espelho) e dividida numa
+    linha reta, sem quebrar a face plana: a fracao t de fora (junto do contorno, |y| de 0.924 r ate
+    0.924 r - t * 0.54 r) e as facetas verticais saem em edge_mat; o topo e o resto em mat. Ex.: o capuz escuro da
+    AP com o filete claro no contorno (le no espaco escuro sob o halo) e a haste clara do slug com o filete escuro
+    (le no casco cinza claro)."""
+    import bmesh
+    import bpy
+    ang = [A0 + i * math.pi / 4 for i in range(8)]
+    V = [(math.cos(a), math.sin(a)) for a in ang]          # (y, z) do octogono de raio 1
+    pts, emat = [], []                                      # pontos do anel e material do segmento que COMECA nele
+    for i in range(8):
+        a, b = V[i], V[(i + 1) % 8]
+        pts.append(a)
+        if i == 0:              # 22.5 -> 67.5 (faceta de cima, +y): filete de fora = comeco do segmento
+            emat += [1]
+            pts.append((a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])))
+            emat += [0]
+        elif i == 2:            # 112.5 -> 157.5 (faceta de cima, -y): filete de fora = fim do segmento
+            emat += [0]
+            pts.append((b[0] + t * (a[0] - b[0]), b[1] + t * (a[1] - b[1])))
+            emat += [1]
+        else:                   # topo e fundo: mat; verticais (157.5 -> 202.5 e 337.5 -> 22.5): filete
+            emat += [1 if i in (3, 7) else 0]
+    n = len(pts)
+    me = bpy.data.meshes.new(name)
+    bm = bmesh.new()
+    rings = []
+    for r, x in prof:
+        if r < 1e-5:
+            rings.append([bm.verts.new((x, 0.0, 0.0))])
+        else:
+            rings.append([bm.verts.new((x, r * y, r * z)) for y, z in pts])
+    for ra, rb in zip(rings, rings[1:]):
+        for i in range(n):
+            j = (i + 1) % n
+            if len(rb) == 1:
+                f = bm.faces.new((ra[i], ra[j], rb[0]))
+            elif len(ra) == 1:
+                f = bm.faces.new((ra[0], rb[j], rb[i]))
+            else:
+                f = bm.faces.new((ra[i], ra[j], rb[j], rb[i]))
+            f.material_index = emat[i]
+    if len(rings[0]) > 1:
+        bm.faces.new(list(reversed(rings[0])))
+    if len(rings[-1]) > 1:
+        bm.faces.new(list(rings[-1]))
+    bm.normal_update()
+    bm.to_mesh(me)
+    bm.free()
+    for p in me.polygons:
+        p.use_smooth = False
+    ob = bpy.data.objects.new(name, me)
+    bpy.context.scene.collection.objects.link(ob)
+    ob.data.materials.append(mat)
+    ob.data.materials.append(edge_mat)
+    for tg in tags:
+        ob[tg] = True
+    return ob
 
 
 def smooth(name, prof, mat, tags, verts=24):
@@ -347,14 +419,19 @@ def _vslits(name, targets, xa, xb, y0, y1, zt, depth, X, tags, LT, col, on, w=0.
                _led(col, on), rot=rot, bevel=0.0, tags=_lt(LT, on))
 
 
-def _ogive2(name, og, X, tags, tier, LT, col, k, frac=0.52, front_mat=None, slits=True):
-    """Ogiva em dois tons: tras em composito medio, frente escura (grafite, ou lente no capuz), com um anel claro de
-    aco na divisa. Nivel m: linha de painel + 2 fendas de trilho em V no ombro (borda de dentro acesa: fraca no
+def _ogive2(name, og, X, tags, tier, LT, col, k, frac=0.52, front_mat=None, slits=True, edge_mat=None,
+            seam_mat=None, seam_w=0.022):
+    """Ogiva em dois tons: tras em composito medio, frente escura (grafite, ou o capuz da AP), com um anel claro de
+    aco na divisa (seam_mat/seam_w: o anel gelo mais largo da AP). edge_mat: filete claro no contorno da frente
+    (octo_edge). Nivel m: linha de painel + 2 fendas de trilho em V no ombro (borda de dentro acesa: fraca no
     quadro 0, forte no 1); nivel l/h: visor do sensor com o scanner de LEDs. Devolve x da divisa."""
     xa, xe = og[0][1], og[-1][1]
     xs = xa + (xe - xa) * frac
     rear, front = _split(og, xs)
-    octo(name + "_f", front, front_mat or X["graph"], tags)
+    if edge_mat is not None:
+        octo_edge(name + "_f", front, front_mat or X["graph"], edge_mat, tags, t=0.5)
+    else:
+        octo(name + "_f", front, front_mat or X["graph"], tags)
     if tier in ("l", "h"):
         xv = xa + (xs - xa) * 0.45
         r1, r2 = _visor(name + "_vis", rear, xv, X, tags, LT, col, k)
@@ -368,7 +445,9 @@ def _ogive2(name, og, X, tags, tier, LT, col, k, frac=0.52, front_mat=None, slit
             if slits:
                 _rail_slits(name + "_rs", ro, og, xa + 0.03, xp - 0.025, X, tags, LT, col,
                             1.1 if k == 1 else 0.30)
-    ring(name + "_seam", xs - 0.010, xs + 0.012, _r_at(og, xs) * 1.035, X["steel"], tags, ch=0.004)
+    h = seam_w / 2
+    ring(name + "_seam", xs - h + 0.001, xs + h + 0.001, _r_at(og, xs) * 1.035, seam_mat or X["steel"], tags,
+         ch=0.004)
     return xs
 
 
@@ -397,8 +476,12 @@ def _nose(X, M, T, LT, ammo, tier, R, xo, k, phase):
     if ammo == "ap":
         # ogiva longa: base clara (composito) + capuz balistico escuro + ponta do penetrador de triaco exposta
         og = _ogive_to(R, X1 - 0.07 - xo, 0.20 * R, xo, n=14)
-        # capuz ESCURO (lente, ~50-55 de luminancia) em todos os niveis: a AP le pelo tom e pela ponta a 1x
-        xc = _ogive2("ap_og", og, X, tags, tier, LT, ammo, k, frac=0.50, front_mat=X["lens"])
+        # capuz ESCURO em todos os niveis (grafite azulado, sRGB ~90: metade das luvas) com o FILETE de aco gelo no
+        # contorno de cima e de baixo (chanfro duplo claro: a ogiva longa e pontuda le no espaco escuro sob o halo
+        # da 2.0, que clareia o espaco em volta ate ~50; com o capuz de lente, ~52, a AP lia como um cilindro
+        # cortado com um ponto solto na frente) e o anel gelo na divisa capuz/corpo
+        xc = _ogive2("ap_og", og, X, tags, tier, LT, ammo, k, frac=0.50, front_mat=X["apcap"],
+                     edge_mat=X["apedge"], seam_mat=X["ice"], seam_w=0.034)
         rt = og[-1][0]
         # penetrador: espinho de aco claro saindo do capuz (maior que 2 px a 76 mm)
         octo("ap_pen", [(rt * 0.95, X1 - 0.075), (rt * 0.80, X1 - 0.05), (rt * 0.35, X1 - 0.005), (0.0, X1)],
