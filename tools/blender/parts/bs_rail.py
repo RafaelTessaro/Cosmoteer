@@ -30,10 +30,13 @@ nas placas brancas.
 TRANCO + CARREGADOR MAIOR (o usuario gostou e pediu: "so acho que o carregador poderia ser maior e poderia ter um
 efeito de 'tranco' quando ela disparasse"): o carregador foi de 3x4 para 5x5 (mais largo que o cano, placas brancas
 e molas laranja-ouro saindo dos dois lados; o canal no centro, os canos encaixam nos quadros x 1..3; 12 capsulas;
-capacitores maiores; ainda 2 tripulantes) e cada tiro tem um TRANCO: a frente da ponta (0,18 quadro) e os tambores
-dos canos e da ponta (0,12) recuam e voltam com a mola em 0,4 s; o BLOCO DA CULATRA bate para tras (0,15) e as molas
-de recuo comprimem. Camadas novas de 8 quadros (arquivo 1 = repouso, como barrel1.png): culatra_tranco,
-tambores_tranco, weapon_tranco e tambor_tranco (ver _NOTE_TRANCO). O que anda saiu dos tetos fixos.
+capacitores maiores; ainda 2 tripulantes) e cada tiro tem um TRANCO: a frente da ponta COM as bochechas brancas e os
+tambores dos canos e da ponta recuam 0,2 quadro (13 px) e voltam com a mola em 0,4 s; o BLOCO DA CULATRA bate para
+tras 0,2 (um quadro depois) e as molas de recuo comprimem. Camadas novas de 8 quadros (arquivo 1 = repouso, como
+barrel1.png): culatra_tranco, tambores_tranco, weapon_tranco e tambor_tranco (ver _NOTE_TRANCO). O que anda saiu dos
+tetos fixos. Refino tranco-r1 (o usuario: "e que pra mim esta parado"): cursos no topo da faixa, curso inteiro
+segurado 2 quadros, as bochechas brancas da ponta andam junto, molas gordas e altas, cantos do carregador
+chanfrados, capsulas mais gordas.
 O brilho "sempre aceso" da referencia virou as luzes do jogo: apagado em repouso (lentes escuras), a onda de carga
 (trilhos1..9 + carga1..8 no cano, carga1..6 na ponta, luz_culatra1..2) acende o canal em azul e a carga cheia
 traz o nucleo branco-azulado e o clarao da boca. Teto: o verde (pintura da nave) fica nos cantos e faixas FORA
@@ -107,6 +110,35 @@ SEAM_HY, SEAM_HX = 0.017, 0.40
 WIN_X = 0.35                         # emissor da bobina (bloco do trilho) visto na ponta das costuras
 SEAM = 0.025                         # meia fresta das placas na emenda dos canos
 
+# ============================================================================ tranco: cursos (antes de PARTS: o
+# meta.json leva a tabela; as funcoes de modelo estao na secao 'tranco' mais abaixo)
+STROKE_PX = 13                                              # curso inteiro (px a 64 px/quadro) = 0,203 quadro
+STROKE = STROKE_PX / B.PX
+KICK_PX = {                                                 # deslocamento (px, + = para tras) por ARQUIVO 1..8
+    "crown": (0, 13, 13, 10, 6, 3, 1, 0),                   # frente da ponta + bochechas: sem sobre-curso (a frente
+                                                            # fica rente a borda da peca: bate no batente)
+    "drum": (0, 13, 13, 10, 6, 2, -1, 0),                   # tambores (canos e ponta): 1 px de sobre-curso (a mola)
+    "breech": (0, 6, 13, 13, 9, 5, 2, 0),                   # bloco da culatra: 1 quadro atrasado, sem sobre-curso
+}                                                           # (encosta no 1o cano)
+KICK_LAYER = {"weapon_tranco": "crown", "tambor_tranco": "drum", "tambores_tranco": "drum",
+              "culatra_tranco": "breech"}
+KICK_FRAMES, KICK_INTERVAL = 8, 0.05                         # 8 x 0,05 s = 0,4 s
+
+
+def kick_off(kind, frame):
+    """Deslocamento em y do modelo (quadros; negativo = para tras, para a culatra) do quadro 1..8 da curva kind."""
+    return -KICK_PX[kind][frame - 1] / B.PX
+
+
+def kick_table(layer):
+    """Tabela do tranco para o meta.json (maquina le): px por arquivo e na ordem de tocar."""
+    k = KICK_PX[KICK_LAYER[layer]]
+    return {"curve": KICK_LAYER[layer], "stroke_px_at_64": STROKE_PX, "stroke_tiles": round(STROKE, 4),
+            "offset_px_by_file": list(k), "offset_px_play_order": list(k[1:]) + [k[0]],
+            "AnimationFiles_order": [f"{layer}{i}.png" for i in list(range(2, 9)) + [1]],
+            "positive": "para tras (para a culatra)"}
+
+
 # ============================================================================ pecas (PARTS)
 # icone: a culatra ABERTA com o dardo assentado aparece pela fenda do teto e a coluna de capsulas pela janela
 _LOADER_ICON = {"size": [115, 115], "layers": ["floor", "projeteis", "capacitores", "weapon", "culatra_carrega", "roof",
@@ -130,16 +162,18 @@ _NOTE_MAG = ("projeteis1..6 (doodads_low [1.75,2.625,1.5,2.25], ResourceSprites 
              "capsula de contencao (luva azul acesa, tampas laranja, o filete branco-azulado = o dardo dentro) leva 1 "
              "dardo: nivel k = 2k capsulas, empurradas para a frente (o lado do elevador) pela placa seguidora; "
              "aparecem pela janela do teto. Nivel 0 = nenhum sprite (o poco vazio do piso).")
-_NOTE_TRANCO = ("TRANCO (pedido do usuario: 'efeito de tranco quando ela disparasse'). Camadas novas, 8 quadros de "
-                "0,05 s (0,4 s), ARQUIVO 1 = REPOUSO, como barrel1.png dos canhoes de convés: Graphics com "
-                "ResetAnimationTrigger = o tiro, AnimationFiles [X2, X3, ..., X8, X1] (e NormalsAnimationFiles na "
-                "mesma ordem), AnimationInterval 0.05, AnimationStartTime = MinValue, ClampAnimation = true; "
-                "NonOperationalDoodad = X1. Curso por quadro (fracao, + = para tras): X2 1.00, X3 0.85, X4 0.62, "
-                "X5 0.36, X6 0.12, X7 -0.05, X8 -0.03, X1 0 (o tranco e instantaneo, a mola devolve com um "
-                "sobre-curso pequeno). Cursos: coroa da ponta 0,18 quadro, tambores (canos e ponta) 0,12, bloco da "
-                "culatra 0,15 (as molas de recuo comprimem 0,15). Os desenhos que andam SAIRAM dos tetos/weapon "
-                "fixos: sem a Graphics do tranco a peca fica sem eles. Nunca reacender plano de carga no tranco (a "
-                "luz do tiro e o clarao e o anel de choque).")
+_NOTE_TRANCO = ("TRANCO (pedido do usuario: 'efeito de tranco quando ela disparasse'; refino: 'e que pra mim esta "
+                "parado'). Camadas novas, 8 quadros de 0,05 s (0,4 s), ARQUIVO 1 = REPOUSO, como barrel1.png dos "
+                "canhoes de convés: Graphics com ResetAnimationTrigger = o tiro, AnimationFiles [X2, X3, ..., X8, X1] "
+                "(e NormalsAnimationFiles na mesma ordem), AnimationInterval 0.05, AnimationStartTime = MinValue, "
+                "ClampAnimation = true; NonOperationalDoodad = X1. Curso inteiro = 13 px = 0,203 quadro em TODAS as "
+                "pecas que andam; deslocamento por ARQUIVO X1..X8 (px a 64 px/quadro, + = para tras; tabela 'tranco' "
+                "do meta.json): coroa+bochechas da ponta [0,13,13,10,6,3,1,0] (segura 2 quadros, sem sobre-curso), "
+                "tambores dos canos e da ponta [0,13,13,10,6,2,-1,0] (1 px de sobre-curso), bloco da culatra "
+                "[0,6,13,13,9,5,2,0] (1 quadro depois da boca: o tranco corre da boca para a culatra; as molas "
+                "comprimem o mesmo curso). Os desenhos que andam SAIRAM dos tetos/weapon fixos: sem a Graphics do "
+                "tranco a peca fica sem eles. Nunca reacender plano de carga no tranco (a luz do tiro e o clarao e o "
+                "anel de choque).")
 _NOTE_PALETTE = ("Paleta nova (referencia do usuario, substitui palette.rail violeta/ouro): azul [45,115,255], azul "
                  "claro [100,175,255], nucleo branco-azulado [205,228,255], laranja-OURO [215,145,40] (matiz ~36 "
                  "graus; r2: o laranja [230,135,40] da 1a versao azul caia no cobre da PEM) so em detalhes pintados, "
@@ -194,10 +228,12 @@ PARTS = {
             # TRANCO: o bloco da culatra + garfos + hastes + cruzetas + molas de recuo (por cima do teto)
             {"name": "culatra_tranco", "fn": "loader_kick", "game_layer": "roof_turrets",
              "rect": [0.375, 0.0, 4.25, 4.75], "file": "culatra_tranco{i}.png", "frames": 8, "interval": 0.05,
-             "normals": True, "islands": True},
+             "normals": True, "islands": True, "post": "kick_post"},
         ],
         "icon": _LOADER_ICON,
         "blueprint_layers": ["weapon", "roof", "culatra_tranco"],
+        "meta_extra": {"layer_flags": {"culatra_tranco": {"required_with": "roof"}},
+                       "tranco": {"culatra_tranco": kick_table("culatra_tranco")}},
         "notes": [_NOTE_PALETTE, _NOTE_TOGGLE, _NOTE_SLUG, _NOTE_MAG, _NOTE_WAKE, _NOTE_TRANCO,
                   "CARREGADOR 5x5 (pedido: 'o carregador poderia ser maior'): os canos (3 de largura) encaixam no "
                   "MEIO da borda de cima, quadros x 1..3 (x 1.0-4.0 da peca); o canal, a culatra e a fenda do teto "
@@ -213,10 +249,12 @@ PARTS = {
                   "so nos cantos e faixas, fora da blindagem.",
                   "culatra_tranco1..8 (roof_turrets [0.375,0,4.25,4.75], normais): o BLOCO DA CULATRA (colar que "
                   "encosta no 1o cano, fenda, ombros, barra de tras), os GARFOS laterais, as HASTES e as CRUZETAS "
-                  "batem 0,15 para tras e voltam; as MOLAS laranja-ouro (x 0.855 e 4.145 da peca, fora do cano) "
-                  "comprimem entre a cruzeta e o batente fixo. 1 = repouso. Por cima do teto: e o que aparece do "
-                  "tranco com o teto visivel. Gatilho = EmitTrigger (TriggerProxy do carregador para o "
-                  "EmissionTriggered).",
+                  "batem 13 px (0,203 quadro) para tras um quadro depois da boca e voltam; as MOLAS laranja-ouro "
+                  "gordas (0,35 quadro; x 0.845 e 4.155 da peca, fora do cano, da altura da janela do paiol) "
+                  "comprimem o mesmo curso entre a cruzeta e o batente fixo. 1 = repouso. Por cima do teto: e o que "
+                  "aparece do tranco com o teto visivel. Gatilho = EmitTrigger (TriggerProxy do carregador para o "
+                  "EmissionTriggered). Se roof_turrets nao sumir na vista do interior, a mesma Graphics em "
+                  "roof_doodads (variante do spec_patch).",
                   "weapon.png [1,0,3,1]: bloco INTERNO da culatra (sob o teto e sob culatra_tranco; aparece pela fenda "
                   "e no interior). Fixo.",
                   "capacitores1..3 (doodads_high [0,2.625,5,2]): nivel k = k celulas GRANDES por lado nas colunas de "
@@ -237,17 +275,20 @@ PARTS = {
              "despill": True},
             # TRANCO: os 3 tambores EM + a garra do meio (por cima do teto)
             {"name": "tambores_tranco", "fn": "cano_drums", "game_layer": "roof_turrets", "rect": [0.0, 0.0, 3.0, 3.0],
-             "file": "tambores_tranco{i}.png", "frames": 8, "interval": 0.05, "normals": True, "islands": True},
+             "file": "tambores_tranco{i}.png", "frames": 8, "interval": 0.05, "normals": True, "islands": True,
+             "post": "kick_post"},
         ],
         "icon": {"size": [69, 69], "layers": ["floor", "trilhos", "roof", "tambores_tranco"], "pick": {"trilhos": 6},
                  "lights": {"carga": [5, 0.8]}},
         "blueprint_layers": ["trilhos", "roof", "tambores_tranco"],
+        "meta_extra": {"layer_flags": {"tambores_tranco": {"required_with": "roof"}},
+                       "tranco": {"tambores_tranco": kick_table("tambores_tranco")}},
         "notes": [_NOTE_PALETTE, _NOTE_WAKE, _NOTE_TRANCO,
                   "tambores_tranco1..8 (roof_turrets [0,0,3,3], normais): os 3 TAMBORES EM e a garra lateral do "
-                  "tambor do meio recuam 0,12 e voltam; 1 = repouso. roof.png NAO tem mais os tambores (sem esta "
-                  "Graphics o cano fica sem eles). Gatilho = EmissionTriggered (TriggerProxy do cano). As costuras "
-                  "dos tambores seguem transparentes. As emendas entre canos nao mudam (os tambores ficam a 0,3 da "
-                  "borda).",
+                  "tambor do meio recuam 13 px (0,203 quadro) e voltam; 1 = repouso. roof.png NAO tem mais os "
+                  "tambores (sem esta Graphics o cano fica sem eles). Gatilho = EmissionTriggered (TriggerProxy do "
+                  "cano). As costuras dos tambores seguem transparentes; o cartao escuro de tras so cobre o canal. As "
+                  "emendas entre canos nao mudam (no curso inteiro o tambor de tras fica a 0,075 da borda).",
                   "roof.png: canal aberto x 1.10-1.90 em todo o comprimento; os 3 TAMBORES EM (y 0.5, 1.5 e 2.5 da "
                   "peca; x 1.0-2.0, escondem o dardo por um instante: 'dentro do cano') estao em tambores_tranco. Cada "
                   "tambor tem 2 COSTURAS TRANSPARENTES entre as bandas (y = tambor +- 0.055, x 1.1-1.9): a carga e as "
@@ -264,10 +305,11 @@ PARTS = {
             {"name": "trilhos", "fn": "ponta_rails", "game_layer": "doodads_low", "islands": True},
             {"name": "weapon", "fn": "ponta_crown", "game_layer": "weapons", "rect": [0.0, 0.0, 3.0, 1.5],
              "normals": True, "islands": True},
-            # TRANCO: a frente em escudo recua 0,18 (rect + o curso); o quadro 1 regrava weapon.png (crown_rest_copy)
-            {"name": "weapon_tranco", "fn": "ponta_crown_kick", "game_layer": "weapons", "rect": [0.0, 0.0, 3.0, 1.75],
-             "file": "weapon_tranco{i}.png", "frames": 8, "interval": 0.05, "normals": True, "islands": True,
-             "post": "crown_rest_copy"},
+            # TRANCO: a frente em escudo + as bochechas brancas recuam 13 px (rect ate o fim das bochechas + o curso);
+            # o quadro 1 regrava weapon.png (crown_rest_copy)
+            {"name": "weapon_tranco", "fn": "ponta_crown_kick", "game_layer": "weapons",
+             "rect": [0.0, 0.0, 3.0, 3.5625], "file": "weapon_tranco{i}.png", "frames": 8, "interval": 0.05,
+             "normals": True, "islands": True, "post": "crown_rest_copy"},
             {"name": "carga", "fn": "pil:glow_ponta", "game_layer": "lights_add", "file": "carga{i}.png", "levels": 6,
              "blend": "add"},
             {"name": "roof", "fn": "ponta_roof", "game_layer": "roofs", "normals": True, "islands": True,
@@ -279,25 +321,38 @@ PARTS = {
              "blend": "add"},
             # TRANCO: o tambor EM da emenda (por cima do teto)
             {"name": "tambor_tranco", "fn": "ponta_drum_kick", "game_layer": "roof_turrets",
-             "rect": [0.875, 3.125, 1.25, 0.75], "file": "tambor_tranco{i}.png", "frames": 8, "interval": 0.05,
-             "normals": True, "islands": True},
+             "rect": [0.875, 3.0, 1.25, 1.0], "file": "tambor_tranco{i}.png", "frames": 8, "interval": 0.05,
+             "normals": True, "islands": True, "post": "kick_post"},
         ],
-        "icon": {"size": [69, 92], "layers": ["floor", "trilhos", "weapon", "roof", "tambor_tranco"],
+        "icon": {"size": [69, 92], "layers": ["floor", "trilhos", "weapon_tranco", "roof", "tambor_tranco"],
                  "lights": {"carga": [4, 0.8]}},
-        "blueprint_layers": ["weapon", "roof", "tambor_tranco"],
+        "blueprint_layers": ["weapon_tranco", "roof", "tambor_tranco"],
+        "meta_extra": {
+            "layer_flags": {
+                "weapon": {"rest_only": True, "exclusive_with": "weapon_tranco",
+                           "use": "so NonOperationalDoodad / Graphics antiga; NUNCA junto com weapon_tranco"},
+                "weapon_tranco": {"exclusive_with": "weapon", "required_with": "roof",
+                                  "use": "Graphics animada da frente + bochechas (o roof.png novo tem o buraco delas)"},
+                "tambor_tranco": {"required_with": "roof"}},
+            "tranco": {"weapon_tranco": kick_table("weapon_tranco"), "tambor_tranco": kick_table("tambor_tranco")}},
         "notes": [_NOTE_PALETTE, _NOTE_WAKE, _NOTE_TRANCO,
-                  "weapon_tranco1..8 (weapons [0,0,3,1.75], normais): a frente em escudo inteira recua 0,18 (entra sob "
-                  "o teto da ponta; na boca abre uma fresta de piso) e volta; 1 = repouso. weapon.png (rect "
-                  "[0,0,3,1.5], o contrato antigo) = as 96 linhas de cima de weapon_tranco1, pixel a pixel: use-o como "
-                  "NonOperationalDoodad (ou a Graphics antiga) e weapon_tranco* na Graphics animada; NUNCA as duas "
-                  "juntas. Gatilho = BulletEmitter.",
-                  "tambor_tranco1..8 (roof_turrets [0.875,3.125,1.25,0.75], normais): o tambor EM da emenda recua "
-                  "0,12 junto com os tambores dos canos; roof.png nao tem mais esse tambor.",
+                  "weapon_tranco1..8 (weapons [0,0,3,3.5625], normais): a frente em escudo inteira E as grandes "
+                  "BOCHECHAS BRANCAS em cunha recuam 13 px (0,203 quadro; seguram 2 quadros) e voltam: a coroa entra "
+                  "sob o teto, as bochechas entram sob os blocos de tras do teto; na boca abre uma fresta de piso. "
+                  "1 = repouso. As bochechas SAIRAM de roof.png (o teto tem um buraco no lugar delas): sem esta "
+                  "Graphics (ou com weapon.png no lugar dela) a ponta fica com 2 buracos no teto. weapon.png (rect "
+                  "[0,0,3,1.5], o contrato antigo) = as 96 linhas de cima de weapon_tranco1, pixel a pixel (so a "
+                  "coroa): serve so de icone/NonOperational antigo; NUNCA desenhar weapon.png e weapon_tranco juntas "
+                  "(meta.layer_flags). NonOperationalDoodad da Graphics animada = weapon_tranco1. Gatilho = "
+                  "BulletEmitter. Na vista do interior (sem teto) as bochechas aparecem (camada weapons).",
+                  "tambor_tranco1..8 (roof_turrets [0.875,3.0,1.25,1.0], normais): o tambor EM da emenda recua 13 px "
+                  "junto com os tambores dos canos; roof.png nao tem mais esse tambor.",
                   "weapon.png [0,0,3,1.5] = a frente em escudo: a BOCA aberta (x 1.13-1.87 na frente, garganta "
                   "estreita atras) e TRANSPARENTE (o dardo sai por ela; o fundo, os trilhos e o emissor da garganta "
                   "estao no piso/trilhos); paredes de grafite, tiras brancas, bochechas e ombros brancos.",
                   "roof.png: canal largo so na emenda (x 1.1-1.9), a cinta EM em y 3.5 da peca e depois a FENDA "
-                  "estreita do nucleo (x 1.34-1.66) ate a boca, entre os segmentos de grafite e as cunhas brancas.",
+                  "estreita do nucleo (x 1.34-1.66) ate a boca, entre os segmentos de grafite; 2 BURACOS (x "
+                  "0.235-1.055 e 1.945-2.765, y 1.5-3.3 da peca) onde ficam as bochechas brancas de weapon_tranco.",
                   "walls.png da ponta: aberta embaixo (emenda com o cano) e em cima na boca (x 0.92-2.08), por onde o "
                   "projetil sai; a moldura nao atravessa a boca.",
                   "carga1..6: a onda sobe da emenda ate a boca; na boca o plano fica DENTRO da abertura; 5 e 6 enchem "
@@ -1554,33 +1609,6 @@ def _recoil_spring(X, tags, sx, dy):
 # 13 px a 64 px/quadro em TODAS as pecas que andam; eram 0,12-0,18), o curso inteiro SEGURA 2 quadros (0,1 s: le na
 # escala do jogo), o bloco da culatra bate 1 quadro DEPOIS da boca (o tranco corre da boca para a culatra) e os
 # deslocamentos sao px INTEIROS (cada quadro e o mesmo render deslocado, sem o meio pixel borrado).
-STROKE_PX = 13                                              # curso inteiro (px a 64 px/quadro) = 0,203 quadro
-STROKE = STROKE_PX / B.PX
-KICK_PX = {                                                 # deslocamento (px, + = para tras) por ARQUIVO 1..8
-    "crown": (0, 13, 13, 10, 6, 3, 1, 0),                   # frente da ponta + bochechas: sem sobre-curso (a frente
-                                                            # fica rente a borda da peca: bate no batente)
-    "drum": (0, 13, 13, 10, 6, 2, -1, 0),                   # tambores (canos e ponta): 1 px de sobre-curso (a mola)
-    "breech": (0, 6, 13, 13, 9, 5, 2, 0),                   # bloco da culatra: 1 quadro atrasado, sem sobre-curso
-}                                                           # (encosta no 1o cano)
-KICK_LAYER = {"weapon_tranco": "crown", "tambor_tranco": "drum", "tambores_tranco": "drum",
-              "culatra_tranco": "breech"}
-KICK_FRAMES, KICK_INTERVAL = 8, 0.05                         # 8 x 0,05 s = 0,4 s
-
-
-def kick_off(kind, frame):
-    """Deslocamento em y do modelo (quadros; negativo = para tras, para a culatra) do quadro 1..8 da curva kind."""
-    return -KICK_PX[kind][frame - 1] / B.PX
-
-
-def kick_table(layer):
-    """Tabela do tranco para o meta.json (maquina le): px por arquivo e na ordem de tocar."""
-    k = KICK_PX[KICK_LAYER[layer]]
-    return {"curve": KICK_LAYER[layer], "stroke_px_at_64": STROKE_PX, "stroke_tiles": round(STROKE, 4),
-            "offset_px_by_file": list(k), "offset_px_play_order": list(k[1:]) + [k[0]],
-            "AnimationFiles_order": [f"{layer}{i}.png" for i in list(range(2, 9)) + [1]],
-            "positive": "para tras (para a culatra)"}
-
-
 def _snap_alpha(path, lo=4, hi=247):
     """Alfa quase cheio vira cheio e quase zero vira zero (sem o veu de alfa 252 nos corpos dos tambores e do bloco)."""
     import numpy as np
