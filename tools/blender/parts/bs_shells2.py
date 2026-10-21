@@ -4,9 +4,11 @@ REQ 11 do usuario: "calibre maior = mais futurista". As granadas navais viram mu
 calibre com a sua propria textura (a 1.x reaproveitava 3 texturas em todos os calibres). Chaves e telas = a
 shell_ladder do spec de arte 2.0 (design/art/spec_art.json):
 
-  nivel s  Tambor 76 mm      he_s ap_s sap_s ac_s   luva de composito lisa + 1 faixa de LED + anel do sensor
+  nivel s  Tambor 76 mm      he_s ap_s sap_s ac_s   luva de composito lisa + 1 faixa de LED (a HE tem ainda o
+                                                    anel escuro do sensor na espoleta)
   nivel m  Trovao 155 mm     he_m ap_m sap_m ac_m   luvas em divisa (Mo.chevron_sleeve) + anel de LED + fendas
-                                                    de trilho acesas na luva da frente
+                                                    de trilho em V (varridas para o nariz, borda de dentro acesa) no
+                                                    ombro da ogiva (a AC fica sem: ali estao os canards)
   nivel l  Mapinguari 406 mm he_l ap_l sap_l ac_l   blindagem segmentada com paineis de chanfro duplo + nariz
                                                     sensor (domo de lente escura) + anel aceso na base
   nivel h  Boiuna (obuseiro) he_h ac_h              o nivel l GORDO, com unidade de base-bleed ambar (sem trevo,
@@ -30,9 +32,11 @@ Municao pela COR e pela SILHUETA (a mesma em todos os niveis):
     penetrador de triaco exposta;
   * SAP (Semiperfurante, laranja): capuz rombudo largo (mais chato que o da HE e o da AP) e colar da espoleta de
     base atras;
-  * AC (Alta Capacidade, carmim + ouro): GUIADA, corpo mais fino, 4 aletas na cauda + 4 canards no nariz (em +:
-    2 de lado e a dorsal de quina vista de cima), buscador que pisca na ponta, faixa carmim (mascara) entre dois
-    aneis de ouro pintados no difuso.
+  * AC (Alta Capacidade, carmim + ouro): GUIADA, corpo mais fino, 4 aletas na cauda + 4 canards de OURO maiores
+    no nariz (em +: 2 de lado e a dorsal de quina vista de cima), buscador que pisca na ponta dentro de um anel de
+    ouro largo, faixa carmim (mascara) entre dois aneis de ouro pintados no difuso.
+Cauda e obturador do s/m em grafite escuro (a traseira das luvas claras nao some sob o clarao da base); uma
+"espinha" escura por dentro de tudo fecha as frestas entre pecas que so encostam (o alfa do corpo fica 100% opaco).
 A faixa da municao e a mascara (T, "mask"), tingida no jogo com palette[municao].band; no difuso ela e cinza claro
 neutro (Mo.NOSE_LIGHT). Os LEDs do atlas ja saem na cor da municao (cada municao tem o seu sprite).
 
@@ -345,8 +349,8 @@ def _vslits(name, targets, xa, xb, y0, y1, zt, depth, X, tags, LT, col, on, w=0.
 
 def _ogive2(name, og, X, tags, tier, LT, col, k, frac=0.52, front_mat=None, slits=True):
     """Ogiva em dois tons: tras em composito medio, frente escura (grafite, ou lente no capuz), com um anel claro de
-    aco na divisa. Nivel m: linha de painel + 2 fendas de trilho acesas no ombro (quadro 1); nivel l/h: visor do
-    sensor com o scanner de LEDs. Devolve x da divisa."""
+    aco na divisa. Nivel m: linha de painel + 2 fendas de trilho em V no ombro (borda de dentro acesa: fraca no
+    quadro 0, forte no 1); nivel l/h: visor do sensor com o scanner de LEDs. Devolve x da divisa."""
     xa, xe = og[0][1], og[-1][1]
     xs = xa + (xe - xa) * frac
     rear, front = _split(og, xs)
@@ -430,7 +434,7 @@ def _body_tier(X, M, T, LT, ammo, tier, R, xs0, xs1, k, phase, n_frames, core0=N
     rc = R * 0.90
     rg = R * 0.945                       # fundo das faixas de LED: entre o nucleo (0.90 R) e as luvas (R)
     # nucleo escuro de ponta a ponta (aparece nas frestas)
-    core = ring("core", xs0 - 0.02 if core0 is None else core0, xs1 + 0.01, rc, X["core"], tags)
+    ring("core", xs0 - 0.02 if core0 is None else core0, xs1 + 0.01, rc, X["core"], tags)
     sleeves = []
     if tier == "s":
         # luva de composito lisa em 2 trechos com a faixa de LED (2 quadros: aceso / fraco) no meio
@@ -440,8 +444,8 @@ def _body_tier(X, M, T, LT, ammo, tier, R, xs0, xs1, k, phase, n_frames, core0=N
         led_groove("led", xl, 0.08, rg, col, 1.15 if k == 0 else 0.30, X, tags, LT)
         return sleeves
     if tier == "m":
-        # anel de LED fino logo atras do obturador; luvas em divisa (escamas apontando para o nariz) e a luva da
-        # frente mais longa com as 2 fendas de trilho (acesas no quadro 1; no quadro 0 so o anel)
+        # anel de LED fino logo atras do obturador (aceso no quadro 0, fraco no 1) e luvas em divisa (escamas
+        # apontando para o nariz), a da frente mais longa
         xl = xs0 + 0.035
         led_groove("led", xl, 0.032, rg, col, 1.05 if k == 0 else 0.22, X, tags, LT, full=True)
         a0 = xl + 0.03
@@ -449,19 +453,16 @@ def _body_tier(X, M, T, LT, ammo, tier, R, xs0, xs1, k, phase, n_frames, core0=N
         g = 0.03
         span = xs1 - a0
         n = 3 if span > 0.50 else 2
-        fl = span * (0.44 if n == 3 else 0.58)          # luva da frente (com as fendas)
+        fl = span * (0.44 if n == 3 else 0.58)          # luva da frente (a mais longa)
         rl = (span - fl - g * (n - 1)) / (n - 1)
         xs_ = [a0 + i * (rl + g) for i in range(n - 1)] + [a0 + (n - 1) * (rl + g)]
         for i in range(n):
             a = xs_[i]
             b = (a + rl) if i < n - 1 else (xs1 - dv)
             sleeves.append(Mo.chevron_sleeve(f"sl{i}", a, b, R, X["comp"], tags, dv=dv, rear=i > 0, verts=8))
-        fa, fb = xs_[-1] + dv + 0.035, xs1 - dv - 0.02
-        # (HE/AP/SAP levam as fendas no ombro da ogiva, _ogive2; a AC tem os canards la e leva na luva da frente)
-        if ammo == "ac" and fb - fa > 0.07:
-            # as mesmas fendas em V da ogiva do nivel m (rebaixo escuro + borda de dentro acesa)
-            _vslits("rail", [sleeves[-1], core], fa - 0.01, fb + 0.01, 0.085, 0.045, R * COS8, 0.05, X, tags, LT,
-                    col, 1.1 if k == 1 else 0.30, w=0.032)
+        # (HE/AP/SAP levam as fendas de trilho em V no ombro da ogiva, _ogive2. A AC NAO tem fendas: o ombro da
+        # ogiva e dos canards e a luva da frente e curta demais, as fendas saiam como cacos soltos; a AC do nivel m
+        # le pelas luvas em divisa + anel de LED + o kit guiado)
         return sleeves
     # l / h: blindagem segmentada (aneis com chanfro) com paineis de chanfro duplo no topo e nos ombros
     gap = 0.028
@@ -513,10 +514,10 @@ def _base(X, M, T, LT, ammo, tier, R, k, phase):
     for j, y in enumerate((-0.085, 0.085)):
         zf = slot([bb], f"bvent{j}", X0 + 0.10, y, 0.13, 0.062, zt, 0.04, X, tags)
         s = 0.95 * (0.75 + 0.25 * br)
-        B.box(f"bvent{j}_l", X0 + 0.10, y, 0.10, 0.030, zf + 0.001, zf + 0.009, _led("amber", s), bevel=0.0,
+        B.box(f"bvent{j}_l", X0 + 0.10, y, 0.10, 0.024, zf + 0.001, zf + 0.009, _led("amber", s), bevel=0.0,
               tags=_lt(LT, s))
     # anel ambar mais fino que o do nivel l (a brasa dos respiros divide o orcamento de 3%)
-    led_groove("bring", xt + 0.02, 0.036, R * 0.90, "amber", 1.05 * br, X, tags, LT, full=True)
+    led_groove("bring", xt + 0.02, 0.033, R * 0.90, "amber", 1.05 * br, X, tags, LT, full=True)
     ring("ob_l0", xt + 0.041, xt + 0.07, R * 1.02, X["steel"], tags, ch=0.006)
     ring("ob_k", xt + 0.065, xt + 0.105, R * 0.99, X["graph"], tags)
     ring("ob_l1", xt + 0.10, xt + 0.125, R * 1.02, X["steel"], tags, ch=0.006)
@@ -661,7 +662,7 @@ def _coil(X, T, name, xc, w, R, turns=3):
     for i in range(turns):
         a = xc - w / 2 + i * pw + pw * 0.08
         b = a + pw * 0.84
-        h = R * 0.065
+        h = R * 0.05
         prof = [(R * 1.0, a)] + [(R * 1.0 + h * math.sin(math.pi * t / 6), a + (b - a) * t / 6) for t in range(1, 6)]
         prof += [(R * 1.0, b)]
         smooth(f"{name}_{i}", prof, X["copper"], tags, verts=16)
@@ -682,7 +683,7 @@ def _pem(M, X, T, key, phase, n_frames):
     LT = (T, "lights")
     k = int(round(phase * n_frames)) % n_frames
     half = PART["items"][key]["canvas_tiles"][1] / 2
-    R = (half - 0.02) / COS8 / 1.06          # as espiras (1.06 R) cabem na tela
+    R = (half - 0.016) / 1.05               # as espiras REDONDAS (pico 1.05 R) cabem na tela com 2 px de folga
     if key == "pem_s":
         _capsule(X, T, X0, X1, R, nose=0.30, tail=0.16)
         # ponta de aco claro (le no espaco escuro) e anel de base claro
@@ -762,11 +763,11 @@ def _slug(M, X, T, phase, n_frames):
     hot = (1.0, 0.86, 0.95, 0.80)[k % 4]
     # ponta inteira em metal claro dourado no difuso (le ouro a 1x mesmo sem o atlas); so a frente brilha:
     # ouro e, na pontinha, o branco-quente (o orcamento de 3% vai quase todo para os colares EM)
-    xg = xt - 0.075
+    xg = xt - 0.095
     rg = rh * (xt - xg) / (xt - xh)
     octo("tipb", [(rh, xh), (rg * 1.01, xg + 0.003)], X["tipgold"], tags)
-    octo("tip", [(rg, xg), (0.0, xt)], _hot("tipg", SLUG_GOLD, 1.05 * hot, (0.42, 0.34, 0.20)), LT)
-    xw = xt - 0.035
+    octo("tip", [(rg, xg), (0.0, xt)], _hot("tipg", SLUG_GOLD, 1.15 * hot, (0.42, 0.34, 0.20)), LT)
+    xw = xt - 0.04
     octo("tipw", [(rg * (xt - xw) / (xt - xg) * 1.12, xw), (0.0, xt + 0.002)],
          _hot("tipw", SLUG_WHITE, 1.3 * hot, (0.50, 0.46, 0.38)), LT)
     # 4 colares EM: 2 labios de metal VIOLETA anodizado que saltam da haste (o violeta le a 1x no difuso, sem
