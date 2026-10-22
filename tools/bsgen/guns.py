@@ -290,14 +290,26 @@ def ammo_selector(comp, g, modes):
         comp[f"ModeToggle_{_k(m)}"] = {"Type": "ModeToggle", "Mode": "AmmoTypeToggle", "OnMode": _k(m)}
 
 
-def mag_storage(comp, g, m, pos, w, h):
-    """MagStorage_i (+ Splitter_i) de um modo."""
+def ui_tile_rect(pos, w, h, n):
+    """UITileRect da barra do modo na posicao pos da lista (n modos): uma barra por bloco (da esquerda para a direita,
+    de baixo para cima); se a peca tem menos blocos que modos (Marimbondo 1x1 com HE/AP), o bloco de baixo a esquerda
+    e dividido em n barras lado a lado (fresta de 2/64), para as barras e os botoes de consumo nao se sobreporem."""
+    if n > w * h:
+        gap = 2
+        bw = (50 - gap * (n - 1)) / n
+        return [f"{pos * (bw + gap) + 7:g}/64", f"{max(0, h - 1)} + 7/64", f"{bw:g}/64", "1 - 14/64"]
+    return [f"{pos % w} + 7/64", f"{max(0, h - 1 - pos // w)} + 7/64", "1 - 14/64", "1 - 14/64"]
+
+
+def mag_storage(comp, g, m, pos, w, h, n=None):
+    """MagStorage_i (+ Splitter_i) de um modo (pos = posicao na lista de n modos; n padrao = modos de g)."""
     k = _k(m)
+    n = n or len(g.get("modes") or []) or 1
     st = {
         "Type": "ResourceStorage",
         "ResourceType": m["res"],
         "MaxResources": int(m["storage"]),
-        "UITileRect": [f"{pos % w} + 7/64", f"{max(0, h - 1 - pos // w)} + 7/64", "1 - 14/64", "1 - 14/64"],
+        "UITileRect": ui_tile_rect(pos, w, h, n),
         "ReceiveResourceMediaEffects": "&/COMMON_EFFECTS/AmmoDeliver",
         "DropResourcesWhenDestroyed": True,
     }
@@ -456,7 +468,7 @@ def build_gun(g, shot_paths, ctx=None):
     if sel:
         ammo_selector(comp, g, modes)
     for i, m in enumerate(modes):
-        mag_storage(comp, g, m, i, w, h)
+        mag_storage(comp, g, m, i, w, h, len(modes))
         mag_consumers(comp, m, sel)
     if sel:
         for m in modes:
@@ -835,8 +847,9 @@ def write_art(out, pdir, g, info, ctx):
     """Arte da peca: make_art (arte 3D da pasta g['art3d_dir'] ou procedural) ou, com --no-art, a copia dos PNGs."""
     art = ctx.get("art")
     if art:
-        art_g = dict(g, short=g["art3d_dir"]) if g.get("art3d") and g.get("art3d_dir") else g
-        art.gun_art(out, pdir, art_g, info)
+        # make_art.art_dir(g) ja le art3d/<art3d_dir> (Boiuna = bs_boiuna_ac); g vai inteiro, para a previa
+        # docs/preview/<short>.png manter o nome do ID da peca (bs_nuke_howitzer.png)
+        art.gun_art(out, pdir, g, info)
     elif g.get("art3d"):
         import art3d as A3
         A3.copy_files(out.root, pdir, g.get("art3d_dir") or g["short"], g["art3d"])
@@ -921,11 +934,39 @@ def _eq(a, b, tol=1e-6):
     return a is not None and b is not None and abs(float(a) - float(b)) <= tol * max(1.0, abs(float(b)))
 
 
+def _rect_num(txt):
+    """Valor de um termo de UITileRect ('1 + 7/64', '33/64'): so numeros e + - * / ( ); None se outra coisa."""
+    t = (txt or "").strip().strip('"')
+    if not t or any(ch not in "0123456789.+-*/() " for ch in t):
+        return None
+    try:
+        return float(eval(t, {"__builtins__": {}}, {}))  # noqa: S307 - so aritmetica, conferida acima
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def check_ui_rects(short, comp, idxs):
+    """Checklist 3.1: as barras MagStorage_i da peca nao se sobrepoem (cada tipo enche a sua barra)."""
+    errs, rects = [], []
+    for i in idxs:
+        r = list_at(comp, f"MagStorage_{i}/UITileRect")
+        v = [_rect_num(x) for x in (r or [])]
+        if len(v) != 4 or None in v or v[2] <= 0 or v[3] <= 0:
+            errs.append(f"{short}: MagStorage_{i} UITileRect ilegivel {r}")
+            continue
+        for j, o in rects:
+            if min(v[0] + v[2], o[0] + o[2]) - max(v[0], o[0]) > 1e-6 and \
+                    min(v[1] + v[3], o[1] + o[3]) - max(v[1], o[1]) > 1e-6:
+                errs.append(f"{short}: barras MagStorage_{j} e MagStorage_{i} sobrepostas ({o} x {v})")
+        rects.append((i, v))
+    return errs
+
+
 def selfcheck(mod_dir, SPEC):
     """Confere os canhoes escritos contra o spec (numeros brutos de SPEC.weapons) e o bs_data (os transformados pelos
-    switches: dano das pecas seguintes, alvejavel): MagStorage_i, Splitter_i, ResourcesUsed, AvailableChoices,
-    Crew/CommandPoints, FIRE_INTERVAL e, por tiro (sem overclock), dano direto, PenetratingOperational, explosao/raio,
-    HitShield, Penetration, blindagem, Targetable e nenhum campo 0.30.5."""
+    switches: dano das pecas seguintes, alvejavel): MagStorage_i (e barras UITileRect sem sobreposicao), Splitter_i,
+    ResourcesUsed, AvailableChoices, Crew/CommandPoints, FIRE_INTERVAL e, por tiro (sem overclock), dano direto,
+    PenetratingOperational, explosao/raio, HitShield, Penetration, blindagem, Targetable e nenhum campo 0.30.5."""
     import bs_data as D
     errs = []
     weapons = {w["id"]: w for w in SPEC["weapons"]}
@@ -973,6 +1014,7 @@ def selfcheck(mod_dir, SPEC):
                                    or node_at(em, "ResourceStorage").value != f"Splitter_{i}"):
                 errs.append(f"{short}/{m['key']}: o emissor nao puxa do Splitter_{i}")
             errs += _check_gun_shot(mod_dir, w, m, (trans.get(g["id"]) or w)["ammo_modes"], shots, D)
+        errs += check_ui_rects(short, comp, [m["index"] for m in w["ammo_modes"]])
     return errs
 
 

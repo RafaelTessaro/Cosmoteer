@@ -359,22 +359,27 @@ def block(f, src, its):
     rows.append(cur)
     f_w = font(13)
     meas = ImageDraw.Draw(Image.new("RGB", (1, 1)))
+    title, sub = f"{f['code']} · {f['name']} · {W}×{H}", f"{f['io']} · {f['anim']}"
+    rh = [max(im.height for im, _ in r) + 30 for r in rows]
+    # largura do bloco: a das figuras (e da legenda de cada uma) e a dos textos do cabecalho
+    Wb = max(sum(max(im.width, int(meas.textlength(cap, font=f_c))) + 24 for im, cap in r) for r in rows) + 24
+    Wb = max(Wb, int(meas.textlength(title, font=f_t)) + 48, int(meas.textlength(sub, font=f_s)) + 48)
+    # descricao quebrada na largura REAL do bloco (com 1500 fixo a legenda da F1, bloco de ~1260 px, saia cortada)
+    wrap = min(1500, Wb - 48)
     lines, cur_ = [], ""
     for w_ in f["what"].split():
         t_ = (cur_ + " " + w_).strip()
-        if meas.textlength(t_, font=f_w) > 1500:
+        if cur_ and meas.textlength(t_, font=f_w) > wrap:
             lines.append(cur_)
             cur_ = w_
         else:
             cur_ = t_
     lines.append(cur_)
     head_h = 66 + 17 * len(lines)
-    rh = [max(im.height for im, _ in r) + 30 for r in rows]
-    Wb = max(sum(im.width + 24 for im, _ in r) for r in rows) + 24
     img = Image.new("RGBA", (Wb, head_h + sum(rh) + 10), BG + (255,))
     dr = ImageDraw.Draw(img)
-    dr.text((24, 6), f"{f['code']} · {f['name']} · {W}×{H}", font=f_t, fill=GOLD)
-    dr.text((24, 38), f"{f['io']} · {f['anim']}", font=f_s, fill=TEXT)
+    dr.text((24, 6), title, font=f_t, fill=GOLD)
+    dr.text((24, 38), sub, font=f_s, fill=TEXT)
     y = head_h
     for r, h_ in zip(rows, rh):
         x = 24
@@ -395,7 +400,10 @@ def overview(src, facs, paint, k=1):
     for f in FACT:
         if f["code"] in facs:
             d = fdir(f, src)
-            ims.append((f, up(roof(d, meta(d), f, paint, pem=bool(f.get("bank"))), k)))
+            # F3 com o banco PEM no teto: a placa tem de ser a PEM (sem mode caia em modes[0] = plasma: banco PEM com
+            # placa de plasma, defeito da folha apontado na revisao das fabricas r2)
+            bank = bool(f.get("bank"))
+            ims.append((f, up(roof(d, meta(d), f, paint, mode="pem" if bank else None, pem=bank), k)))
     gap = PX * k
     W = sum(im.width for _, im in ims) + gap * (len(ims) + 1)
     H = max(im.height for _, im in ims) + 2 * gap
@@ -420,7 +428,7 @@ def sheet(src, out, facs, its):
     ovb.alpha_composite(ov_w, (24, ov_d.height + 34))
     d_ = ImageDraw.Draw(ovb)
     d_.text((24, ov_d.height + 6), "as 6 fábricas a 1x (escala real) no casco escuro — teto pintado, placa no modo "
-            "padrão, F3 no modo PEM (banco de bobinas no teto)", font=font(15), fill=DIM)
+            "padrão, F3 no modo PEM (placa PEM + banco de bobinas no teto)", font=font(15), fill=DIM)
     d_.text((24, ov_d.height + 34 + ov_w.height + 6), "as mesmas no casco branco", font=font(15), fill=DIM)
     blocks.insert(0, ovb)
     W = max(b.width for b in blocks)

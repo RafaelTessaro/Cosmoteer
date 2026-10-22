@@ -83,8 +83,10 @@ granadas mudarem COMP/GRAPH/etc., copie os valores para ca.
     $PY tools/blender/parts/bs_missiles2.py --meta-only [--out DIR]           # so regrava o bloco "atlases"
     python3 tools/check_art3d.py art3d/bs_missiles2
 
-ATENCAO (ligacao 2.0): o render_part.py SEM --only reescreve o meta.json do zero e apaga o bloco "atlases"; depois de
-um render completo rode `bs_missiles2.py --meta-only` (ou `--atlases`). Ambos sao idempotentes.
+Atlas das petalas (ligacao 2.0, WP10): o render_part.py completo (sem --only) GUARDA o bloco "atlases" do meta antigo
+(e os PNGs dele) e no fim chama register_atlases(out) deste modelo, que regrava o bloco (idempotente); com --only o
+meta antigo e mesclado e o bloco fica. `--atlases` (re-renderiza as petalas) e `--meta-only` (so regrava o bloco)
+servem so para refazer as petalas a mao.
 
 Notas para a ligacao 2.0 (regras):
   - o spec_missiles.json (visuals / cluster_sunflower) chama as texturas das petalas de "cluster_petal_m/l"; o spec
@@ -1167,8 +1169,8 @@ def petal_atlas(M, tier, T="body"):
 
 def register_atlases(out):
     """Grava (ou regrava) o bloco "atlases" e os arquivos das petalas no out/meta.json. Idempotente: pode rodar
-    quantas vezes quiser. ATENCAO: o render_part.py SEM --only reescreve o meta.json do zero e apaga este bloco;
-    depois de um render completo rode `bs_missiles2.py --meta-only` (so o meta, segundos) ou `--atlases`."""
+    quantas vezes quiser. O render_part.py completo guarda o bloco antigo e chama esta funcao no fim (o bloco fica
+    ou e atualizado); `bs_missiles2.py --meta-only` / `--atlases` so sao precisos para refazer as petalas a mao."""
     import json
     mp = os.path.join(out, "meta.json")
     meta = json.load(open(mp)) if os.path.exists(mp) else {"version": 1, "kind": "missiles", "id": PART["id"],

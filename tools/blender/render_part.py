@@ -794,7 +794,8 @@ def render_projectiles(mod, out, only):
     Por item de PART["items"] (filtro --only k1,k2):
       difuso com os emissivos APAGADOS (LEDs = lentes escuras), 48 amostras (--quick: 12), luz axissimetrica;
       normais com o alfa do difuso;
-      atlas de luzes (so quando frames > 1): um quadro por fase k/n (a cena e refeita com phase = k/n), so a
+      atlas de luzes (so quando frames > 1, ou com "static_lights": 1 quadro parado, fps 0): um quadro por fase k/n
+      (a cena e refeita com phase = k/n), so a
       emissao dos objetos (T, "lights") com o resto em Holdout + halo suave (_oc_glow_sprite), quadros lado a lado
       (n*w x h, per_row = n);
       granadas com "mask": mascara da faixa (objetos (T, "mask")) em branco sobre transparente."""
@@ -842,7 +843,8 @@ def render_projectiles(mod, out, only):
             files.append(f_mask)
         # ---- atlas de luzes: um quadro por fase
         lights = None
-        if n > 1:
+        # static_lights (WP11, AC s/m/l de bs_shells2): atlas de UM quadro parado (fps 0) mesmo com frames == 1
+        if n > 1 or it.get("static_lights"):
             atlas = Image.new("RGBA", (n * px[0], px[1]), (0, 0, 0, 0))
             f_lt = names["lights"].format(k=key)
             for k in range(n):

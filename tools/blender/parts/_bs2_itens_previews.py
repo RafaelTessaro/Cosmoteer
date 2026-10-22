@@ -6,7 +6,8 @@
             sobreposicao, unidade solta), a sala de carga, a familia ao lado dos projeteis 2.0, os pares que se
             confundiam (forma e cor a 1x) e a conferencia de leitura (piso escuro/claro, casco branco, espaco);
   icones -> docs/preview/3d/v2/icones_2_0.png: os icones 2.0 da interface (art3d/bs_ui_icons2, gerados por
-            tools/bsgen/ui_icons.py) a 1x e 2x sobre o fundo dos botoes do jogo (imitacao) e o antes/depois 1.x.
+            tools/bsgen/ui_icons.py) a 1x e 2x sobre o fundo dos botoes do jogo (imitacao), o icone do buff da Fita
+            (gui/buff_fita.png) sobre uma maquina grudada na Fita e o antes/depois 1.x.
 Modulo do grupo "itens" (regra dos arquivos compartilhados: nao edita compose_*.py, so importa compose_preview).
 """
 import json
@@ -475,7 +476,15 @@ GROUPS = [
         ("slug_rail.png", "Railgun", "Projétil da Tupã"), ("group_bullet_strike.png", "Bullet Strike",
                                                             "grupo do editor")]),
 ]
-BEFORE = [("ammo_he.png", "ammo_std (Padrão)", lambda: U.icon_ammo("std")),
+def _old_std():
+    """Icone 1.x ammo_std (cartucho liso): apagado do ui_icons na 2.0 (SPEC ui_icons.drop); redesenhado aqui com as
+    mesmas formas so para o antes/depois."""
+    p = U.Pen()
+    U.shell(p, 48, 12, 84, 24)
+    return p.render()
+
+
+BEFORE = [("ammo_he.png", "ammo_std (Padrão)", _old_std),
           ("ammo_ap.png", "ammo_ap", lambda: U.icon_ammo("ap")),
           ("missile_he.png", "missile_he", lambda: U.icon_missile("he")),
           ("missile_cluster.png", "missile_cluster", lambda: U.icon_missile("cluster")),
@@ -513,6 +522,52 @@ def group_block(title, items, W):
     return im
 
 
+def buff_block(W):
+    """Icone do buff da Fita (gui/buff_fita.png, BulletStrike_FitaLink): 1x/2x no botao e no jogo, sobre um paiol 2x2
+    grudado numa Fita, com o retangulo verde do buff e o icone no tamanho do jogo (Size 0,5 quadro = 32 px)."""
+    ic = Image.open(os.path.join(ICONS, "buff_fita.png")).convert("RGBA")
+    im = Image.new("RGBA", (W, 84 + 5 * PX + 16), BG + (255,))
+    d = ImageDraw.Draw(im)
+    d.text((14, 6), "Buff da Fita (gui/buff_fita.png)", font=font(19, True), fill=GOLD)
+    d.text((14, 38), "a peça Fita vista de cima: cubo octogonal, 4 braços de elos e o cassete; cassete e luzes de "
+           "ligação no verde do buff (110, 230, 120)", font=font(11), fill=DIM)
+    b1 = icon_on_button(ic, 104, fill=96 / 104)
+    im.paste(b1, (14, 84))
+    d.text((14, 84 + 108), "1× (96 px)", font=font(10), fill=DIM)
+    b2 = icon_on_button(ic.resize((192, 192), Image.LANCZOS), 206, fill=192 / 206)
+    im.paste(b2, (128, 84))
+    d.text((128, 84 + 210), "2×", font=font(10), fill=DIM)
+
+    # no jogo: paiol 2x2 (teto de cartuchos) com a Fita grudada a esquerda; o paiol recebe o buff
+    def scene():
+        sc = CP.hull_tiles(4 * PX, 3 * PX, PAINT, tile=PX)
+        paiol = Image.new("RGBA", (2 * PX, 2 * PX), (0, 0, 0, 0))
+        paiol.alpha_composite(load("bs_paiol", "floor_2x2.png"))
+        paiol.alpha_composite(CP.paint_roof(load("bs_paiol", "roof_cartuchos_2x2.png"), PAINT))
+        sc.alpha_composite(paiol, (2 * PX - PX // 2, PX // 2))
+        fita = CP.paint_roof(load("bs_fita", "roof.png"), PAINT)
+        sc.alpha_composite(fita, (PX - PX // 2, PX // 2))
+        sc.alpha_composite(load("bs_fita", "luz_grudada_teto.png"), (PX - PX // 2, PX // 2))
+        ov = Image.new("RGBA", (2 * PX, 2 * PX), (110, 230, 120, 64))
+        od = ImageDraw.Draw(ov)
+        od.rectangle([0, 0, 2 * PX - 1, 2 * PX - 1], outline=(110, 230, 120, 160), width=2)
+        sc.alpha_composite(ov, (2 * PX - PX // 2, PX // 2))
+        sc.alpha_composite(ic.resize((PX // 2, PX // 2), Image.LANCZOS), (2 * PX - PX // 2 + PX - PX // 4,
+                                                                         PX // 2 + PX - PX // 4))
+        return sc
+    sc = scene()
+    x = 380
+    d.text((x, 62), "no jogo (1×): paiol 2×2 grudado na Fita, retângulo verde do buff e o ícone a 32 px",
+           font=font(11), fill=DIM)
+    im.paste(sc, (x, 84))
+    x2 = x + max(sc.width, int(d.textlength("no jogo (1×): paiol 2×2 grudado na Fita, retângulo verde do buff e "
+                                            "o ícone a 32 px", font=font(11)))) + 30
+    big = up(sc.crop((PX // 4, PX // 4, 4 * PX - PX // 4, 3 * PX - PX // 4)), 2)
+    d.text((x2, 62), "recorte 2×", font=font(11), fill=DIM)
+    im.paste(big, (x2, 84))
+    return im
+
+
 def build_icones(out=OUT_ICONES):
     W = 2080
     blocks = []
@@ -531,12 +586,13 @@ def build_icones(out=OUT_ICONES):
     blocks.append(head)
     for title, items in GROUPS:
         blocks.append(group_block(title, items, W))
+    blocks.append(buff_block(W))
     # antes / depois
     t = Image.new("RGBA", (W, 300), BG + (255,))
     d = ImageDraw.Draw(t)
     d.text((14, 6), "Antes (1.x) e depois (2.0)", font=font(19, True), fill=GOLD)
-    d.text((14, 34), "os ícones 1.x continuam iguais no gerador (a 1.x os usa até a troca); saem na 2.0: ammo_std, "
-           "ammo_aphe, ammo_emp, missile_limpet, missile_napalm, missile_torpedo", font=font(12), fill=DIM)
+    d.text((14, 34), "saem na 2.0 (apagados do gerador e do build): ammo_std, ammo_aphe, ammo_emp, missile_limpet, "
+           "missile_napalm, missile_torpedo; os 1.x abaixo são só a comparação", font=font(12), fill=DIM)
     x = 14
     for f, lab, fn in BEFORE:
         old = icon_on_button(fn(), 104, fill=96 / 104)

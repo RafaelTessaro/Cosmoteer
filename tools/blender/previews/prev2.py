@@ -188,8 +188,9 @@ def ring_img(wpx, hpx, rgb, lw=2.0):
 
 def slug_fx(sc, cx, y, P, info, fx=1.0, zoom=False):
     """Voo do slug como o spec 2.0 (effects.railgun.in_flight): risco bs_rail_streak 4.2 x 1.6 no offset -0.6
-    (nucleo ouro-branco FINO com franja violeta), particulas de ouro no mundo (~12 vivas) e aneis violeta finos
-    achatados que crescem para tras (~4 vivos). Sem 'pluma': nada largo e branco colado na cauda."""
+    (nucleo branco-azulado FINO com franja azul: palette.rail core/glow), particulas branco-azuladas no mundo (~12
+    vivas; info['gold'] = palette.rail core) e aneis azuis finos achatados que crescem para tras (~4 vivos). Sem
+    'pluma': nada largo e branco colado na cauda."""
     xt = cx - 1.5 * P                                   # cauda do slug (corpo 3.0)
     g = 0.5 if zoom else 1.0
     sc.fx.add(FX.blob(4.2 * P, 0.42 * P, info["tracer"]), cx - 0.6 * P, y, 0.30 * g * fx)

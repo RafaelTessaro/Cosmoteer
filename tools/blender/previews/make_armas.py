@@ -1,15 +1,19 @@
 """Previas da arte das armas 2.0 (PEM + Boiuna AC) para a aprovacao do usuario.
 
-    python3 make_armas.py [pem|disparo|boiuna|galeria|todas]
+    python3 make_armas.py [pem|disparo|boiuna|galeria|casco|lancadores|todas]
 
 Grava em docs/preview/3d/v2/:
   armas_pem.png          as 3 armas PEM como no jogo (teto pintado, torre em alguns angulos, 1x e 2x) + as granadas
-  armas_pem_disparo.gif  recuo + brilho das bobinas (e o brilho de carga da PEM pesada) de cada uma
+  armas_pem_disparo.gif  recuo + brilho das bobinas (e o brilho de carga do Corisco) de cada uma
   armas_boiuna_ac.png    Boiuna antes (1.x) x depois (2.0), 1x e 2x, detalhes 3x e as granadas HE/AC
-  armas_galeria_2_0.png  galeria como galeria_armas_3d.png com as armas novas nas fileiras da fase
+  armas_galeria_2_0.png  galeria como galeria_armas_3d.png com as armas novas nas fileiras da fase (PEM pelo DATA 2.0,
+                         Tuvira = torre de 270 graus, Corisco; Tupa montado com 1 cano; lancadores pelo spec se o
+                         modulo dos misseis ainda nao estiver integrado)
   armas_casco_branco.png conferencia de leitura das 4 armas no casco branco, cinza, vermelho, azul-marinho e escuro
+  misseis_lancadores_2_0.png os 3 lancadores com as celulas cheias de cada tipo de missil da 2.0 (Piranha cluster8 na
+                         Caipora, heavy8 na Mula) e a carga pela metade em LIFO
 So le art3d/ e importa funcoes de tools/blender/compose_preview.py, tools/make_gallery.py e das previas das
-granadas (make_sheets.py desta pasta); nao altera nada no repositorio fora das 4 imagens.
+granadas (make_sheets.py desta pasta); nao altera nada no repositorio fora das 6 imagens acima.
 """
 import json
 import math
@@ -333,11 +337,12 @@ def muzzle_arcs(scale, t, seed):
 
 def make_gif():
     """3 paineis lado a lado, mesma linha do tempo (40 ms por quadro): mira, disparos no padrao de cada arma (Tuvira
-    sincronizada a cada ~0,84 s; Treme-Treme a cada 1,92 s; PEM pesada alternada, ~1,03 s entre tiros, com o brilho
-    de carga de 0,5 s antes de cada tiro), recuo + bobinas azuis (quadros do cano) e clarao PEM; volta."""
+    torre 2.0: os 2 canos juntos a cada 1,39 s, gatilho de 1,3889 s do ADDENDUM G3; Treme-Treme a cada 1,92 s;
+    Corisco alternado, ~1,03 s entre tiros, com o brilho de carga de 0,5 s antes de cada tiro), recuo + bobinas
+    azuis (quadros do cano) e clarao PEM; volta."""
     dt = 0.04
     scale = 2
-    shots = {"bs_pem_light": [(0.50, [0, 1]), (1.34, [0, 1]), (2.18, [0, 1]), (3.02, [0, 1])],
+    shots = {"bs_pem_light": [(0.50, [0, 1]), (1.89, [0, 1]), (3.28, [0, 1])],
              "bs_pem_medium": [(0.60, [0]), (2.52, [0])],
              "bs_pem_heavy": [(0.95, [0]), (1.98, [1]), (3.01, [0])]}
     aim = {"bs_pem_light": -70.0, "bs_pem_medium": -25.0, "bs_pem_heavy": -18.0}
@@ -419,7 +424,7 @@ def make_gif():
             y = H - 52 - p.height
             img.paste(p.convert("RGB"), (x, y))
             dr.text((x + 4, y + p.height + 2), w["name"], font=lf, fill=GOLD)
-            sub = {"bs_pem_light": "torre de 270°, 2 canos juntos", "bs_pem_medium": "1 tiro a cada 1,92 s",
+            sub = {"bs_pem_light": "torre de 270°, 2 canos juntos a cada 1,39 s", "bs_pem_medium": "1 tiro a cada 1,92 s",
                    "bs_pem_heavy": "alternado + brilho de carga"}[w["short"]]
             dr.text((x + 4, y + p.height + 24), sub, font=sf, fill=DIM)
             x += p.width + pad
@@ -440,7 +445,7 @@ def make_gif():
 # ============================================================================ armas_casco_branco.png
 HULLS = [("casco branco", (232, 234, 238)), ("cinza-claro", (176, 180, 186)), ("vermelho", (150, 40, 36)),
          ("azul-marinho", (46, 58, 74)), ("escuro", (30, 32, 36))]
-CASCO = [("bs_pem_light", "Tuvira"), ("bs_pem_medium", "Treme-Treme"), ("bs_pem_heavy", "PEM pesada"),
+CASCO = [("bs_pem_light", "Tuvira (torre de 270°)"), ("bs_pem_medium", "Treme-Treme"), ("bs_pem_heavy", "Corisco"),
          ("bs_boiuna_ac", "Boiúna AC")]
 
 
@@ -515,36 +520,125 @@ def make_boiuna():
 
 
 # ============================================================================ armas_galeria_2_0.png
+def tupa_tile(n_canos=1):
+    """Tupa montado como no jogo (ponta + n canos + carregador 5x5, com teto, niveis cheios) no fundo da galeria, 2x
+    (make_gallery.tupa_assembled, o mesmo da galeria_layered_3d.png)."""
+    im = MG.tupa_assembled(n_canos, roof=True)
+    if im is None:
+        return None
+    c = Image.new("RGBA", im.size, BG + (255,))
+    c.alpha_composite(im)
+    c = CP.crop_content(c, BG, pad=6)
+    return c.resize((c.width * MG.K, c.height * MG.K), Image.LANCZOS)
+
+
 def make_gallery():
     import bs_data as D
-    new_by_tier = {"early": [("bs_pem_light", "Tuvira")], "mid": [("bs_pem_medium", "Treme-Treme")],
-                   "late": [("bs_pem_heavy", "PEM pesada")]}
+    # PEM pelo DATA 2.0 (Tuvira torre, Treme-Treme, Corisco); lancadores pelo DATA ou, enquanto o modulo dos misseis
+    # nao estiver integrado (D.LAUNCHERS vazio), pelo spec dos misseis (como o make_gallery.py)
+    pem = list(getattr(D, "PEM", []))
+    launchers = D.LAUNCHERS or [dict(x, short=x["id"].split(".", 1)[1]) for x in D.MSPEC.get("launchers", [])]
+    tupa_tier = (D.PART_INFO.get("rafaeltessaro.bs_rail_loader") or {}).get("tier", "late")
     rows = []
     for tier, title in MG.TIERS:
         items = []
         for g in D.GUNS + D.DEFENSES:
             if g["tier"] != tier:
                 continue
-            if g["short"] == "bs_nuke_howitzer":
-                items.append(("bs_boiuna_ac", "Boiúna (AC)", 30, True))
+            if MG.art_dir(g) == "bs_boiuna_ac":
+                items.append(("bs_boiuna_ac", "Boiúna (AC)", g["size"][0] * g["size"][1], True))
             else:
-                items.append((g["short"], g["codename"], g["size"][0] * g["size"][1], False))
-        for s, name in new_by_tier[tier]:
-            mm = meta(s)
-            items.append((s, name, mm["size"][0] * mm["size"][1], True))
+                items.append((MG.art_dir(g), g["codename"], g["size"][0] * g["size"][1], False))
+        for p in pem:
+            if p.get("tier") == tier:
+                name = p["codename"] + (" (torre de 270°)" if p["short"] == "bs_pem_light" else "")
+                items.append((MG.art_dir(p), name, p["size"][0] * p["size"][1], True))
+        if tier == tupa_tier:
+            # carregador 5x5 + 1 cano 3x3 + ponta 3x4
+            items.append(("tupa", "Tupã (carregador + 1 cano + ponta)", 25 + 9 + 12, True))
         items.sort(key=lambda t: t[2])
-        items += [(x["short"], x["codename"], 0, False) for x in D.LAUNCHERS if x.get("tier") == tier]
+        items += [(MG.art_dir(x), x.get("codename") or x["short"], 0, False)
+                  for x in launchers if x.get("tier") == tier]
         tiles = []
         for s, name, _, new in items:
-            if not os.path.exists(os.path.join(ART, s, "meta.json")):
-                continue
-            tiles.append((MG.weapon_tile(s), name + (" · 2.0" if new else ""), NEWC if new else None))
+            if s == "tupa":
+                im = tupa_tile(1)
+            elif os.path.exists(os.path.join(ART, s, "meta.json")):
+                im = MG.weapon_tile(s)
+            else:
+                im = None
+            if im is not None:
+                tiles.append((im, name + (" · 2.0" if new else ""), NEWC if new else None))
         rows.append((title, None, tiles))
     header = [("Galeria de armas 2.0 (como no jogo, 2x)", font(34, True), TEXT),
-              ("Em azul, as armas novas ou refeitas desta etapa: Tuvira, Treme-Treme e PEM pesada (linha PEM) e a Boiúna "
-               "AC (sem visual nuclear). As outras armas continuam como na 1.x.", font(17), DIM)]
+              ("Em azul, as armas novas ou refeitas desta etapa: linha PEM (Tuvira, agora uma torre de 270°, "
+               "Treme-Treme e Corisco), Boiúna AC (sem visual nuclear) e a railgun Tupã. As outras armas continuam "
+               "como na 1.x.", font(17), DIM)]
     img = sheet(header, rows, pad=20, cap_font=font(20, True), title_font=font(34, True))
     p = os.path.join(OUT, "armas_galeria_2_0.png")
+    img.save(p, optimize=True)
+    return p, img.size
+
+
+# ============================================================================ misseis_lancadores_2_0.png
+LAUNCHERS = [("bs_msl_box", "Tocandira", "2x2 · 1 casulo-caixa de 12 tubos (6 cassetes)"),
+             ("bs_msl_twin", "Caipora", "3x3 · 2 casulos 3-2-3 (16 tubos)"),
+             ("bs_msl_quad", "Mula-sem-Cabeça", "5x6 · 4 casulos 3x4 (48 tubos)")]
+# tipo do missil por modo; o nome vem do spec (variant_codename por lancador: a Tocandira atira a Muricoca, nao a
+# Jararaca), o mesmo codinome que o bs_data_missiles poe no jogo
+TIPO = {"he": "HE", "cluster": "Submunição", "emp": "PEM", "nuclear": "Nuclear"}
+
+
+def look_names(short):
+    """{tipo do missil: 'Codinome (Tipo)'} do lancador pelo spec dos misseis (modes[].variant_codename)."""
+    import bs_data as D
+    L = next(x for x in D.MSPEC["launchers"] if x["id"].endswith("." + short))
+    return {m["missile_type"]: f"{m['variant_codename']} ({TIPO[m['missile_type']]})" for m in L["modes"]}
+
+
+def launcher_view(short, look, level=None, scale=1, paint=PAINT):
+    """Lancador como no jogo (teto pintado, casulo + nivel do rack + persianas do modo), level None = rack cheio."""
+    d = os.path.join(ART, short)
+    m = meta(short)
+    n = len(m["modes"][look]["units"])
+    img = CP._launcher_frame(d, m, roof(short, paint), look, n if level is None else level, bg=BG)
+    img = CP.crop_content(img, BG, pad=6)
+    if scale != 1:
+        img = img.resize((img.width * scale, img.height * scale), Image.LANCZOS)
+    return img
+
+
+def make_launchers():
+    rows = []
+    for short, name, facts in LAUNCHERS:
+        m = meta(short)
+        looks = list(m["modes"])
+        names = look_names(short)
+        items = []
+        for lk in looks:
+            u = len(m["modes"][lk]["units"])
+            items.append((launcher_view(short, lk), f"{names[lk]}\n1x · {u} unidade(s) no rack",
+                          NEWC if lk == "cluster" else None))
+        if "cluster" in looks:
+            u = len(m["modes"]["cluster"]["units"])
+            items.append((launcher_view(short, "cluster", scale=2), "Piranha · 2x · rack cheio", NEWC))
+            items.append((launcher_view(short, "cluster", level=u // 2, scale=2),
+                          f"Piranha · 2x · {u // 2} de {u}\n(esvazia em LIFO)", NEWC))
+        else:
+            items.append((launcher_view(short, looks[0], scale=2), f"{names[looks[0]]} · 2x", None))
+        rows.append((f"{name}", facts, items))
+    header = [("Lança-mísseis 2.0: as células de cada tipo de míssil", font(30, True), TEXT),
+              ("Como no jogo (64 px por quadro, teto pintado), rack cheio em cada modo do seletor; 2x = ampliado 2 "
+               "vezes. Os tipos da 1.x (Carrapato, Taturana e Boto) saíram; as células deles foram apagadas.",
+               font(15), DIM),
+              ("Novo (em azul): a Piranha é um portador GORDO. Na Caipora ela usa só os 4 tubos de canto de cada casulo "
+               "(8 no rack) e os 4 tubos do meio ficam tampados; na Mula cada portador cobre um bloco de 3x2 tubos "
+               "(2 por casulo, 8 no rack).", font(15), NEWC),
+              ("Faixas por tipo: Jararaca/Muriçoca âmbar, Piranha amarela (pétalas com o filete amarelo nas "
+               "costuras), Poraquê bobina azul, Iara faixa verde (casulos de fora com a persiana fechada).",
+               font(15), DIM)]
+    img = sheet(header, rows)
+    p = os.path.join(OUT, "misseis_lancadores_2_0.png")
     img.save(p, optimize=True)
     return p, img.size
 
@@ -553,6 +647,6 @@ if __name__ == "__main__":
     what = sys.argv[1] if len(sys.argv) > 1 else "todas"
     os.makedirs(OUT, exist_ok=True)
     for k, fn in (("pem", make_pem), ("boiuna", make_boiuna), ("galeria", make_gallery), ("casco", make_casco),
-                  ("disparo", make_gif)):
+                  ("lancadores", make_launchers), ("disparo", make_gif)):
         if what in (k, "todas"):
             print(k, fn())

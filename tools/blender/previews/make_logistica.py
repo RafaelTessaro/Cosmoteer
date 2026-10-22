@@ -173,7 +173,7 @@ def make_paiois():
 
 
 # ============================================================================ logistica_fita.png
-FACTORY = "bs_factory_mag_std"        # Prensa de Carregadores (F1), arte aprovada da 1.x so como exemplo de maquina
+FACTORY = "bs_factory_mag_std"        # Prensa HE (F1) 2.0 final (fabricas r2), a mesma de fabricas_2_0.png
 GUN = "bs_autocannon_20"              # Carcara 2x2 (usa cartuchos)
 
 
@@ -187,7 +187,7 @@ def _scenes():
     S = C.Scene(5, 4, root=ROOT)                     # fita A DIREITA de uma fabrica
     S.add_factory(FACTORY, 1, 1, working=False)
     S.add_fita(3, 2)
-    out.append(("à direita de uma fábrica", S))
+    out.append(("à direita de uma fábrica (Prensa HE)", S))
     S = C.Scene(4, 5, root=ROOT)                     # fita EMBAIXO de uma arma
     S.add_gun(GUN, 1, 1, angle=0)
     S.add_fita(2, 3)
@@ -453,7 +453,8 @@ def make_gif():
     _fx_at()
     frames = []
     crops = {"fab": (0.5, 3.0, 3.5, 3.0), "paiol": (6.5, 1.5, 3.0, 3.5), "gun": (11.5, 4.5, 4.6, 3.6)}
-    labels = {"fab": "fábrica + Fita (2x)", "paiol": "paiol de cartuchos + Fita (2x)", "gun": "Tambor (fileira de trás) + Fita (2x)"}
+    labels = {"fab": "fábrica (Prensa HE) + Fita (2x)", "paiol": "paiol de cartuchos + Fita (2x)",
+              "gun": "Tambor (fileira de trás) + Fita (2x)"}
     tf, sf, lf, cf = C.font(22, True), C.font(15), C.font(16, True), C.font(17, True)
     pad = 18
     for f in range(NF):

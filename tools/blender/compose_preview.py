@@ -12,9 +12,11 @@ Pecas "layered" (meta kind "layered", make_layered; render_layered.py: Tupa, pai
     python3 tools/blender/compose_preview.py <pasta> [--sub 1x1] [--sheet PNG] [--gif GIF]
 
     folha com a peca montada como no jogo (interior e teto pintado, 1x e 3x; placa de tipo do meta no teto; digitos
-    do paiol so com o switch paiol_counter, desligado nos builds) e uma tira por camada com mais de um sprite; GIF
-    com as camadas de quadros/niveis rodando juntas (variantes = escolha fixa: so tira; pasta shared: --sub escolhe
-    a peca; sem quadros nem niveis, ex. placas, nao ha GIF).
+    do paiol so com o switch paiol_counter, desligado nos builds) e uma tira por camada com mais de um sprite (so os
+    quadros levam tempo no rotulo; niveis seguem o estoque/valor); GIF com as camadas de quadros/niveis rodando
+    juntas (variantes = escolha fixa: so tira; pasta shared: --sub escolhe a peca; sem quadros nem niveis, ex.
+    placas, nao ha GIF). Grupos alternativos (*_sai / *_entra do FX da Fita, toggles separados no jogo) saem um por
+    linha, nunca juntos; peca so de FX: o interior leva um fundo escuro para a luz aditiva aparecer.
 Projeteis (meta kind "missiles" / "shells", make_projectiles):
 
     python3 tools/blender/compose_preview.py <pasta_sprites> [--sheet PNG] [--gif GIF]
@@ -927,17 +929,54 @@ def _plate_sprite(d, m, pick):
     return spr, (int(round(x * PX)), int(round(y * PX)))
 
 
-def layered_composite(d, m, pick=None, roof=True, paint=(46, 58, 74), lights=True, walls=True, hide=()):
+# Grupos alternativos: camadas <base>_<sufixo> que no jogo sao toggles SEPARADOS (o FX da Fita: cartucho_sai +
+# brilho_sai no Timer SaindoRecente, cartucho_entra + brilho_entra no EntrandoRecente; meta bs_fita_fx notes). A
+# previa nunca desenha dois grupos na mesma imagem: um ladrilho (e uma linha do GIF) por grupo.
+ALT_GROUPS = {"sai": "saindo (SaindoRecente)", "entra": "entrando (EntrandoRecente)"}
+LIGHT_BASE = (24, 28, 36)          # fundo escuro do interior de uma peca so de FX (o piso da peca hospedeira)
+
+
+def _alt_groups(m):
+    """{sufixo: [camadas]} dos grupos alternativos da peca, na ordem de ALT_GROUPS; vazio quando ha menos de dois
+    grupos (nada a separar)."""
+    lay = m.get("layers") or {}
+    g = {s: [n for n in lay if n.endswith("_" + s)] for s in ALT_GROUPS}
+    g = {s: v for s, v in g.items() if v}
+    return g if len(g) > 1 else {}
+
+
+def _alt_hidden(m, group=None):
+    """Camadas dos OUTROS grupos alternativos (group None = o 1o grupo: uma imagem mostra um grupo so)."""
+    g = _alt_groups(m)
+    if not g:
+        return set()
+    group = group if group in g else next(iter(g))
+    return {n for s, v in g.items() if s != group for n in v}
+
+
+def _light_base(m):
+    """True para uma peca sem piso proprio e com camada lights_add (o FX da Fita): no jogo a luz soma no piso da peca
+    hospedeira; na previa o interior leva o fundo LIGHT_BASE para o brilho aparecer (_add_light so soma onde ja ha
+    alfa)."""
+    lay = list((m.get("layers") or {}).values())
+    return (not any(e["game_layer"] == "floors" for e in lay)) and any(e["game_layer"] == "lights_add" for e in lay)
+
+
+def layered_composite(d, m, pick=None, roof=True, paint=(46, 58, 74), lights=True, walls=True, hide=(), group=None,
+                      base=None):
     """Peca layered montada a 1x (64 px/quadro) na ordem das camadas do jogo, como o render_layered.composite mas
     so com PIL: pick = {camada: indice do sprite | None (esconde)} (padrao 0); roof=False = interior; as camadas
     lights_add sao SOMADAS na posicao do jogo (abaixo dos tetos, como no jogo) quando lights=True; os tetos levam
     a pintura `paint`. hide: camadas que nao entram (ex.: layer_flags exclusive_with).
     Como no jogo: as camadas de switch desligado (digitos do paiol, _optional_layers) so entram com pick explicito
     ({'digitos': i}); a placa de tipo do meta (plate.rect, art3d/bs_placas) entra no roof_doodads com o teto
-    (pick['placa'] = indice do tipo da familia, None esconde)."""
+    (pick['placa'] = indice do tipo da familia, None esconde); dos grupos alternativos (_alt_groups: *_sai /
+    *_entra do FX da Fita) so entra `group` (None = o 1o). base = cor (r, g, b) de fundo opaco da peca antes das
+    camadas (o piso da peca hospedeira de um FX: _light_base), para a luz aditiva aparecer."""
     W, H = m["size"]
     stack, adds = [], []
     opt = _optional_layers(m)
+    hide = set(hide) | _alt_hidden(m, group)
     if walls and m.get("walls") and os.path.exists(os.path.join(d, m["walls"])):
         stack.append((GAME_LAYERS.index("walls"), -1, load(d, m["walls"]), (0, 0)))
     nl = len(m.get("layers") or {})
@@ -964,7 +1003,7 @@ def layered_composite(d, m, pick=None, roof=True, paint=(46, 58, 74), lights=Tru
                     adds.append((spr, xy))
             else:
                 stack.append((GAME_LAYERS.index(gl), k, spr, xy))
-    img = Image.new("RGBA", (W * PX, H * PX), (0, 0, 0, 0))
+    img = Image.new("RGBA", (W * PX, H * PX), tuple(base[:3]) + (255,) if base else (0, 0, 0, 0))
     gl_add = GAME_LAYERS.index("lights_add")
     done = False
     for gl, _k, spr, xy in sorted(stack, key=lambda t: (t[0], t[1])):
@@ -986,8 +1025,9 @@ def _exclusive_hidden(m):
 
 
 def _strip_layers(m):
-    """[(camada, n, intervalo s)] das camadas com mais de um sprite (quadros, niveis ou variantes): uma tira cada
-    na folha."""
+    """[(camada, n, passo s)] das camadas com mais de um sprite (quadros, niveis ou variantes): uma tira cada na
+    folha. O passo e o intervalo do meta (quadros) ou so o passo do GIF da previa (0,18 s nos niveis, 0,12 s em
+    quadros sem intervalo): niveis nao tem tempo no jogo (seguem o estoque/valor)."""
     out = []
     for name, ent in (m.get("layers") or {}).items():
         n = len(ent["files"])
@@ -998,12 +1038,36 @@ def _strip_layers(m):
 
 
 def _animated(m):
-    """[(camada, n, intervalo s)] das camadas que MUDAM no jogo (quadros e niveis; o GIF passa por todos). As
+    """[(camada, n, passo s)] das camadas que MUDAM no jogo (quadros e niveis; o GIF passa por todos). As
     variantes (teto por familia, placas, digitos) sao escolhas fixas de cada peca/estado: so tiras, sem GIF; as
     camadas de switch desligado (digitos) tambem ficam fora."""
     opt = _optional_layers(m)
     return [(n, k, iv) for n, k, iv in _strip_layers(m)
             if n not in opt and "variants" not in m["layers"][n]]
+
+
+def _segundos(v):
+    """Intervalo em pt-BR (virgula decimal): 0.075 -> '0,075 s'."""
+    return f"{float(v):g}".replace(".", ",") + " s"
+
+
+def _strip_info(m, name, ent, opt, groups):
+    """Texto entre parenteses do rotulo de uma tira: camada do jogo e o tempo SO dos quadros (AnimationInterval do
+    meta); niveis seguem o estoque/valor (sem tempo no jogo); variantes sao escolha fixa."""
+    gl = ent["game_layer"]
+    if "frames" in ent:
+        info = f"{gl}, {_segundos(ent['interval'])} por quadro" if ent.get("interval") else \
+            f"{gl}, intervalo fora do meta"
+    elif "levels" in ent:
+        info = f"{gl}; o nível segue o estoque/valor, sem tempo no jogo"
+    else:
+        info = f"{gl}, escolha fixa, fora do GIF"
+    for s, v in groups.items():
+        if name in v:
+            info += f"; grupo {ALT_GROUPS[s]}"
+    if name in opt:
+        info += f"; só com o switch {(m.get('digits') or {}).get('switch')}, desligado nos builds"
+    return info
 
 
 def _on_hull(img, paint=(46, 58, 74), pad=1):
@@ -1016,9 +1080,12 @@ def _on_hull(img, paint=(46, 58, 74), pad=1):
 def make_layered(d, sub=None, sheet_path=None, gif_path=None, paint=(46, 58, 74), scale=3, title=None):
     """Previas de uma peca layered (spec render_kinds.layered.preview): folha com a peca montada a 1x e a `scale`
     (interior e com teto pintado), uma tira por camada com mais de um sprite (todos os quadros/niveis/variantes,
-    ampliados) e um GIF com as camadas de quadros/niveis (_animated) rodando juntas (intervalo de cada camada; niveis
-    sobem e descem), interior e teto lado a lado sobre placas de casco. Padrao: preview_layered[_sub].png / .gif na
-    pasta. Devolve (folha, gif); gif None quando nada anima (ex.: placas)."""
+    ampliados; so os quadros levam tempo no rotulo) e um GIF com as camadas de quadros/niveis (_animated) rodando
+    juntas (intervalo do meta nos quadros; os niveis sobem e descem no passo da previa), interior e teto lado a lado
+    sobre placas de casco. Grupos alternativos (_alt_groups: *_sai / *_entra do FX da Fita, toggles separados no
+    jogo) saem em linhas separadas, um grupo por linha, na folha e no GIF. Peca so de FX (_light_base): o interior
+    leva um fundo escuro (o piso da peca hospedeira) para a luz aditiva aparecer. Padrao: preview_layered[_sub].png /
+    .gif na pasta. Devolve (folha, gif); gif None quando nada anima (ex.: placas)."""
     meta = json.load(open(os.path.join(d, "meta.json"), encoding="utf-8"))
     m = layered_part(meta, sub)
     tag = f"_{sub}" if sub else ""
@@ -1026,19 +1093,27 @@ def make_layered(d, sub=None, sheet_path=None, gif_path=None, paint=(46, 58, 74)
     gif_path = gif_path or os.path.join(d, f"preview_layered{tag}.gif")
     font = _font_ui()
     hide = _exclusive_hidden(m)
-    inner = layered_composite(d, m, roof=False, paint=paint, hide=hide)
-    full = layered_composite(d, m, roof=True, paint=paint, hide=hide)
-    tiles = []
-    for im, lab in ((inner, "interior (sem teto)"), (full, "com teto pintado")):
-        big = _on_hull(im, paint).resize(((im.width + 2 * PX) * scale, (im.height + 2 * PX) * scale), Image.NEAREST)
-        tiles.append((big, f"{lab} - {scale}x"))
-        tiles.append((_on_hull(im, paint), f"{lab} - 1x"))
-    cells = []
-    for im, lab in tiles:
-        cv = Image.new("RGBA", (im.width, im.height + 18), (7, 9, 14, 255))
-        cv.alpha_composite(im, (0, 18))
-        ImageDraw.Draw(cv).text((4, 3), lab, font=font, fill=(220, 226, 236, 255))
-        cells.append(cv)
+    groups = _alt_groups(m)
+    gnames = list(groups) or [None]
+    base = LIGHT_BASE if _light_base(m) else None
+    in_lab = "interior (sem teto)" + (", luz sobre fundo escuro" if base else "")
+    rows = []                                        # [(titulo da linha | None, [celulas])]
+    for g in gnames:
+        inner = layered_composite(d, m, roof=False, paint=paint, hide=hide, group=g, base=base)
+        full = layered_composite(d, m, roof=True, paint=paint, hide=hide, group=g)
+        tiles = []
+        for im, lab in ((inner, in_lab), (full, "com teto pintado")):
+            big = _on_hull(im, paint).resize(((im.width + 2 * PX) * scale, (im.height + 2 * PX) * scale),
+                                             Image.NEAREST)
+            tiles.append((big, f"{lab} - {scale}x"))
+            tiles.append((_on_hull(im, paint), f"{lab.split(',')[0]} - 1x"))
+        cells = []
+        for im, lab in tiles:
+            cv = Image.new("RGBA", (max(im.width, int(font.getlength(lab)) + 8), im.height + 18), (7, 9, 14, 255))
+            cv.alpha_composite(im, (0, 18))
+            ImageDraw.Draw(cv).text((4, 3), lab, font=font, fill=(220, 226, 236, 255))
+            cells.append(cv)
+        rows.append((f"{ALT_GROUPS[g]}: {' + '.join(groups[g])} (toggle separado no jogo)" if g else None, cells))
     strips = []
     opt = _optional_layers(m)
     for name, n, iv in _strip_layers(m):
@@ -1050,13 +1125,7 @@ def make_layered(d, sub=None, sheet_path=None, gif_path=None, paint=(46, 58, 74)
             fr = [paint_roof(f, paint) for f in fr]          # teto como no jogo (sem a chave de pintura verde)
         cw, ch = fr[0].width * k, fr[0].height * k
         kind = "quadros" if "frames" in ent else "níveis" if "levels" in ent else "variantes"
-        if "variants" in ent and "frames" not in ent and "levels" not in ent:
-            info = f"{ent['game_layer']}, escolha fixa, fora do GIF"
-        else:
-            info = f"{ent['game_layer']}, {iv:g} s"
-        if name in opt:
-            info += f"; só com o switch {(m.get('digits') or {}).get('switch')}, desligado nos builds"
-        lab = f"{name}: {n} {kind} ({info})"
+        lab = f"{name}: {n} {kind} ({_strip_info(m, name, ent, opt, groups)})"
         st = Image.new("RGBA", (max(n * (cw + 4) + 4, int(font.getlength(lab)) + 12), ch + 22), (7, 9, 14, 255))
         for i, f in enumerate(fr):
             bg = Image.new("RGBA", f.size, (0, 0, 0, 255) if ent["game_layer"] == "lights_add" else (48, 52, 62, 255))
@@ -1065,16 +1134,22 @@ def make_layered(d, sub=None, sheet_path=None, gif_path=None, paint=(46, 58, 74)
         ImageDraw.Draw(st).text((4, 4), lab, font=font, fill=(255, 196, 70, 255))
         strips.append(st)
     head = title or f"{m.get('id', meta.get('id', ''))} ({m['size'][0]}x{m['size'][1]}, layered)"
-    Wd = max([sum(c.width + 8 for c in cells) + 8] + [s.width + 16 for s in strips])
-    Hd = 26 + max(c.height for c in cells) + 8 + sum(s.height + 8 for s in strips) + 8
+    row_h = [(20 if rt else 0) + max(c.height for c in cs) + 8 for rt, cs in rows]
+    Wd = max([sum(c.width + 8 for c in cs) + 8 for _rt, cs in rows] + [s.width + 16 for s in strips] +
+             [int(font.getlength(rt)) + 16 for rt, _cs in rows if rt])
+    Hd = 26 + sum(row_h) + sum(s.height + 8 for s in strips) + 8
     sheet = Image.new("RGBA", (Wd, Hd), (7, 9, 14, 255))
     dr = ImageDraw.Draw(sheet)
     dr.text((8, 6), head, font=font, fill=(255, 196, 70, 255))
-    x = 8
-    for c in cells:
-        sheet.alpha_composite(c, (x, 26))
-        x += c.width + 8
-    y = 26 + max(c.height for c in cells) + 8
+    y = 26
+    for (rt, cs), rh in zip(rows, row_h):
+        if rt:
+            dr.text((8, y + 2), rt, font=font, fill=(120, 220, 235, 255))
+        x = 8
+        for c in cs:
+            sheet.alpha_composite(c, (x, y + (20 if rt else 0)))
+            x += c.width + 8
+        y += rh
     for s_ in strips:
         sheet.alpha_composite(s_, (8, y))
         y += s_.height + 8
@@ -1097,13 +1172,28 @@ def make_layered(d, sub=None, sheet_path=None, gif_path=None, paint=(46, 58, 74)
             else:
                 i = i % n
             pick[nm] = i
-        a = _on_hull(layered_composite(d, m, pick=pick, roof=False, paint=paint, hide=hide), paint)
-        b = _on_hull(layered_composite(d, m, pick=pick, roof=True, paint=paint, hide=hide), paint)
-        fr = Image.new("RGBA", (a.width + b.width + 8, a.height), (7, 9, 14, 255))
-        fr.alpha_composite(a, (0, 0))
-        fr.alpha_composite(b, (a.width + 8, 0))
-        k = max(1, min(4, int(900 // fr.width)))          # pecas pequenas (FX 1x1) saem ampliadas
-        frames.append(fr.resize((fr.width * k, fr.height * k), Image.NEAREST))
+        lines = []
+        for g in gnames:                                     # uma linha por grupo alternativo
+            a = _on_hull(layered_composite(d, m, pick=pick, roof=False, paint=paint, hide=hide, group=g, base=base),
+                         paint)
+            b = _on_hull(layered_composite(d, m, pick=pick, roof=True, paint=paint, hide=hide, group=g), paint)
+            fr = Image.new("RGBA", (a.width + b.width + 8, a.height), (7, 9, 14, 255))
+            fr.alpha_composite(a, (0, 0))
+            fr.alpha_composite(b, (a.width + 8, 0))
+            lines.append((g, fr))
+        k = max(1, min(4, int(900 // lines[0][1].width)))    # pecas pequenas (FX 1x1) saem ampliadas
+        if not groups:
+            fr = lines[0][1]
+            frames.append(fr.resize((fr.width * k, fr.height * k), Image.NEAREST))
+            continue
+        lw, lh = lines[0][1].width * k, lines[0][1].height * k
+        out = Image.new("RGBA", (lw, len(lines) * (lh + 20)), (7, 9, 14, 255))
+        dro = ImageDraw.Draw(out)
+        for j, (g, fr) in enumerate(lines):
+            y0 = j * (lh + 20)
+            dro.text((4, y0 + 3), f"{ALT_GROUPS[g]}: interior | com teto", font=font, fill=(120, 220, 235, 255))
+            out.alpha_composite(fr.resize((lw, lh), Image.NEAREST), (0, y0 + 20))
+        frames.append(out)
     os.makedirs(os.path.dirname(os.path.abspath(gif_path)), exist_ok=True)
     _save_gif_shared(frames, [int(step * 1000)] * len(frames), gif_path)
     return sheet_path, gif_path

@@ -750,85 +750,45 @@
   "cluster": {
    "units": [
     [
-     0.57,
+     0.68,
      -1.75
     ],
     [
-     0.79,
+     1.12,
      -1.75
     ],
     [
-     1.01,
-     -1.75
-    ],
-    [
-     1.23,
-     -1.75
-    ],
-    [
-     0.57,
+     0.68,
      -0.75
     ],
     [
-     0.79,
+     1.12,
      -0.75
     ],
     [
-     1.01,
-     -0.75
-    ],
-    [
-     1.23,
-     -0.75
-    ],
-    [
-     0.57,
+     0.68,
      0.75
     ],
     [
-     0.79,
+     1.12,
      0.75
     ],
     [
-     1.01,
-     0.75
-    ],
-    [
-     1.23,
-     0.75
-    ],
-    [
-     0.57,
+     0.68,
      1.75
     ],
     [
-     0.79,
-     1.75
-    ],
-    [
-     1.01,
-     1.75
-    ],
-    [
-     1.23,
+     1.12,
      1.75
     ]
    ],
    "unit_pods": [
     0,
     0,
-    0,
-    0,
-    1,
-    1,
     1,
     1,
     2,
     2,
-    2,
-    2,
-    3,
-    3,
     3,
     3
    ],
@@ -845,9 +805,7 @@
      [
       0.57,
       -1.49
-     ]
-    ],
-    [
+     ],
      [
       0.79,
       -2.01
@@ -873,9 +831,7 @@
      [
       1.01,
       -1.49
-     ]
-    ],
-    [
+     ],
      [
       1.23,
       -2.01
@@ -901,9 +857,7 @@
      [
       0.57,
       -0.49
-     ]
-    ],
-    [
+     ],
      [
       0.79,
       -1.01
@@ -929,9 +883,7 @@
      [
       1.01,
       -0.49
-     ]
-    ],
-    [
+     ],
      [
       1.23,
       -1.01
@@ -957,9 +909,7 @@
      [
       0.57,
       1.01
-     ]
-    ],
-    [
+     ],
      [
       0.79,
       0.49
@@ -985,9 +935,7 @@
      [
       1.01,
       1.01
-     ]
-    ],
-    [
+     ],
      [
       1.23,
       0.49
@@ -1013,9 +961,7 @@
      [
       0.57,
       2.01
-     ]
-    ],
-    [
+     ],
      [
       0.79,
       1.49
@@ -1041,9 +987,7 @@
      [
       1.01,
       2.01
-     ]
-    ],
-    [
+     ],
      [
       1.23,
       1.49
@@ -1062,941 +1006,89 @@
     {
      "range": [
       0,
-      4
+      2
      ],
      "files": [
       "cells_cluster_p0_0.png",
       "cells_cluster_p0_1.png",
-      "cells_cluster_p0_2.png",
-      "cells_cluster_p0_3.png",
-      "cells_cluster_p0_4.png"
+      "cells_cluster_p0_2.png"
      ],
      "normals": [
       "cells_cluster_p0_0_normals.png",
       "cells_cluster_p0_1_normals.png",
-      "cells_cluster_p0_2_normals.png",
-      "cells_cluster_p0_3_normals.png",
-      "cells_cluster_p0_4_normals.png"
+      "cells_cluster_p0_2_normals.png"
      ],
      "rect": [
-      13,
-      65,
-      70,
-      127
+      10,
+      63,
+      73,
+      128
      ]
     },
     {
      "range": [
-      4,
-      8
+      2,
+      4
      ],
      "files": [
       "cells_cluster_p1_0.png",
       "cells_cluster_p1_1.png",
-      "cells_cluster_p1_2.png",
-      "cells_cluster_p1_3.png",
-      "cells_cluster_p1_4.png"
+      "cells_cluster_p1_2.png"
      ],
      "normals": [
       "cells_cluster_p1_0_normals.png",
       "cells_cluster_p1_1_normals.png",
-      "cells_cluster_p1_2_normals.png",
-      "cells_cluster_p1_3_normals.png",
-      "cells_cluster_p1_4_normals.png"
+      "cells_cluster_p1_2_normals.png"
      ],
      "rect": [
-      77,
-      65,
-      134,
-      127
+      74,
+      63,
+      137,
+      128
      ]
     },
     {
      "range": [
-      8,
-      12
+      4,
+      6
      ],
      "files": [
       "cells_cluster_p2_0.png",
       "cells_cluster_p2_1.png",
-      "cells_cluster_p2_2.png",
-      "cells_cluster_p2_3.png",
-      "cells_cluster_p2_4.png"
+      "cells_cluster_p2_2.png"
      ],
      "normals": [
       "cells_cluster_p2_0_normals.png",
       "cells_cluster_p2_1_normals.png",
-      "cells_cluster_p2_2_normals.png",
-      "cells_cluster_p2_3_normals.png",
-      "cells_cluster_p2_4_normals.png"
+      "cells_cluster_p2_2_normals.png"
      ],
      "rect": [
-      173,
-      65,
-      230,
-      127
+      170,
+      63,
+      233,
+      128
      ]
     },
     {
      "range": [
-      12,
-      16
+      6,
+      8
      ],
      "files": [
       "cells_cluster_p3_0.png",
       "cells_cluster_p3_1.png",
-      "cells_cluster_p3_2.png",
-      "cells_cluster_p3_3.png",
-      "cells_cluster_p3_4.png"
+      "cells_cluster_p3_2.png"
      ],
      "normals": [
       "cells_cluster_p3_0_normals.png",
       "cells_cluster_p3_1_normals.png",
-      "cells_cluster_p3_2_normals.png",
-      "cells_cluster_p3_3_normals.png",
-      "cells_cluster_p3_4_normals.png"
+      "cells_cluster_p3_2_normals.png"
      ],
      "rect": [
-      237,
-      65,
-      294,
-      127
-     ]
-    }
-   ]
-  },
-  "limpet": {
-   "units": [
-    [
-     0.57,
-     -1.75
-    ],
-    [
-     0.79,
-     -1.75
-    ],
-    [
-     1.01,
-     -1.75
-    ],
-    [
-     1.23,
-     -1.75
-    ],
-    [
-     0.57,
-     -0.75
-    ],
-    [
-     0.79,
-     -0.75
-    ],
-    [
-     1.01,
-     -0.75
-    ],
-    [
-     1.23,
-     -0.75
-    ],
-    [
-     0.57,
-     0.75
-    ],
-    [
-     0.79,
-     0.75
-    ],
-    [
-     1.01,
-     0.75
-    ],
-    [
-     1.23,
-     0.75
-    ],
-    [
-     0.57,
-     1.75
-    ],
-    [
-     0.79,
-     1.75
-    ],
-    [
-     1.01,
-     1.75
-    ],
-    [
-     1.23,
-     1.75
-    ]
-   ],
-   "unit_pods": [
-    0,
-    0,
-    0,
-    0,
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    2,
-    2,
-    3,
-    3,
-    3,
-    3
-   ],
-   "tubes": [
-    [
-     [
-      0.57,
-      -2.01
-     ],
-     [
-      0.57,
-      -1.75
-     ],
-     [
-      0.57,
-      -1.49
-     ]
-    ],
-    [
-     [
-      0.79,
-      -2.01
-     ],
-     [
-      0.79,
-      -1.75
-     ],
-     [
-      0.79,
-      -1.49
-     ]
-    ],
-    [
-     [
-      1.01,
-      -2.01
-     ],
-     [
-      1.01,
-      -1.75
-     ],
-     [
-      1.01,
-      -1.49
-     ]
-    ],
-    [
-     [
-      1.23,
-      -2.01
-     ],
-     [
-      1.23,
-      -1.75
-     ],
-     [
-      1.23,
-      -1.49
-     ]
-    ],
-    [
-     [
-      0.57,
-      -1.01
-     ],
-     [
-      0.57,
-      -0.75
-     ],
-     [
-      0.57,
-      -0.49
-     ]
-    ],
-    [
-     [
-      0.79,
-      -1.01
-     ],
-     [
-      0.79,
-      -0.75
-     ],
-     [
-      0.79,
-      -0.49
-     ]
-    ],
-    [
-     [
-      1.01,
-      -1.01
-     ],
-     [
-      1.01,
-      -0.75
-     ],
-     [
-      1.01,
-      -0.49
-     ]
-    ],
-    [
-     [
-      1.23,
-      -1.01
-     ],
-     [
-      1.23,
-      -0.75
-     ],
-     [
-      1.23,
-      -0.49
-     ]
-    ],
-    [
-     [
-      0.57,
-      0.49
-     ],
-     [
-      0.57,
-      0.75
-     ],
-     [
-      0.57,
-      1.01
-     ]
-    ],
-    [
-     [
-      0.79,
-      0.49
-     ],
-     [
-      0.79,
-      0.75
-     ],
-     [
-      0.79,
-      1.01
-     ]
-    ],
-    [
-     [
-      1.01,
-      0.49
-     ],
-     [
-      1.01,
-      0.75
-     ],
-     [
-      1.01,
-      1.01
-     ]
-    ],
-    [
-     [
-      1.23,
-      0.49
-     ],
-     [
-      1.23,
-      0.75
-     ],
-     [
-      1.23,
-      1.01
-     ]
-    ],
-    [
-     [
-      0.57,
-      1.49
-     ],
-     [
-      0.57,
-      1.75
-     ],
-     [
-      0.57,
-      2.01
-     ]
-    ],
-    [
-     [
-      0.79,
-      1.49
-     ],
-     [
-      0.79,
-      1.75
-     ],
-     [
-      0.79,
-      2.01
-     ]
-    ],
-    [
-     [
-      1.01,
-      1.49
-     ],
-     [
-      1.01,
-      1.75
-     ],
-     [
-      1.01,
-      2.01
-     ]
-    ],
-    [
-     [
-      1.23,
-      1.49
-     ],
-     [
-      1.23,
-      1.75
-     ],
-     [
-      1.23,
-      2.01
-     ]
-    ]
-   ],
-   "overlays": [
-    {
-     "range": [
-      0,
-      4
-     ],
-     "files": [
-      "cells_limpet_p0_0.png",
-      "cells_limpet_p0_1.png",
-      "cells_limpet_p0_2.png",
-      "cells_limpet_p0_3.png",
-      "cells_limpet_p0_4.png"
-     ],
-     "normals": [
-      "cells_limpet_p0_0_normals.png",
-      "cells_limpet_p0_1_normals.png",
-      "cells_limpet_p0_2_normals.png",
-      "cells_limpet_p0_3_normals.png",
-      "cells_limpet_p0_4_normals.png"
-     ],
-     "rect": [
-      13,
-      65,
-      70,
-      127
-     ]
-    },
-    {
-     "range": [
-      4,
-      8
-     ],
-     "files": [
-      "cells_limpet_p1_0.png",
-      "cells_limpet_p1_1.png",
-      "cells_limpet_p1_2.png",
-      "cells_limpet_p1_3.png",
-      "cells_limpet_p1_4.png"
-     ],
-     "normals": [
-      "cells_limpet_p1_0_normals.png",
-      "cells_limpet_p1_1_normals.png",
-      "cells_limpet_p1_2_normals.png",
-      "cells_limpet_p1_3_normals.png",
-      "cells_limpet_p1_4_normals.png"
-     ],
-     "rect": [
-      77,
-      65,
-      134,
-      127
-     ]
-    },
-    {
-     "range": [
-      8,
-      12
-     ],
-     "files": [
-      "cells_limpet_p2_0.png",
-      "cells_limpet_p2_1.png",
-      "cells_limpet_p2_2.png",
-      "cells_limpet_p2_3.png",
-      "cells_limpet_p2_4.png"
-     ],
-     "normals": [
-      "cells_limpet_p2_0_normals.png",
-      "cells_limpet_p2_1_normals.png",
-      "cells_limpet_p2_2_normals.png",
-      "cells_limpet_p2_3_normals.png",
-      "cells_limpet_p2_4_normals.png"
-     ],
-     "rect": [
-      173,
-      65,
-      230,
-      127
-     ]
-    },
-    {
-     "range": [
-      12,
-      16
-     ],
-     "files": [
-      "cells_limpet_p3_0.png",
-      "cells_limpet_p3_1.png",
-      "cells_limpet_p3_2.png",
-      "cells_limpet_p3_3.png",
-      "cells_limpet_p3_4.png"
-     ],
-     "normals": [
-      "cells_limpet_p3_0_normals.png",
-      "cells_limpet_p3_1_normals.png",
-      "cells_limpet_p3_2_normals.png",
-      "cells_limpet_p3_3_normals.png",
-      "cells_limpet_p3_4_normals.png"
-     ],
-     "rect": [
-      237,
-      65,
-      294,
-      127
-     ]
-    }
-   ]
-  },
-  "napalm": {
-   "units": [
-    [
-     0.57,
-     -1.75
-    ],
-    [
-     0.79,
-     -1.75
-    ],
-    [
-     1.01,
-     -1.75
-    ],
-    [
-     1.23,
-     -1.75
-    ],
-    [
-     0.57,
-     -0.75
-    ],
-    [
-     0.79,
-     -0.75
-    ],
-    [
-     1.01,
-     -0.75
-    ],
-    [
-     1.23,
-     -0.75
-    ],
-    [
-     0.57,
-     0.75
-    ],
-    [
-     0.79,
-     0.75
-    ],
-    [
-     1.01,
-     0.75
-    ],
-    [
-     1.23,
-     0.75
-    ],
-    [
-     0.57,
-     1.75
-    ],
-    [
-     0.79,
-     1.75
-    ],
-    [
-     1.01,
-     1.75
-    ],
-    [
-     1.23,
-     1.75
-    ]
-   ],
-   "unit_pods": [
-    0,
-    0,
-    0,
-    0,
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    2,
-    2,
-    3,
-    3,
-    3,
-    3
-   ],
-   "tubes": [
-    [
-     [
-      0.57,
-      -2.01
-     ],
-     [
-      0.57,
-      -1.75
-     ],
-     [
-      0.57,
-      -1.49
-     ]
-    ],
-    [
-     [
-      0.79,
-      -2.01
-     ],
-     [
-      0.79,
-      -1.75
-     ],
-     [
-      0.79,
-      -1.49
-     ]
-    ],
-    [
-     [
-      1.01,
-      -2.01
-     ],
-     [
-      1.01,
-      -1.75
-     ],
-     [
-      1.01,
-      -1.49
-     ]
-    ],
-    [
-     [
-      1.23,
-      -2.01
-     ],
-     [
-      1.23,
-      -1.75
-     ],
-     [
-      1.23,
-      -1.49
-     ]
-    ],
-    [
-     [
-      0.57,
-      -1.01
-     ],
-     [
-      0.57,
-      -0.75
-     ],
-     [
-      0.57,
-      -0.49
-     ]
-    ],
-    [
-     [
-      0.79,
-      -1.01
-     ],
-     [
-      0.79,
-      -0.75
-     ],
-     [
-      0.79,
-      -0.49
-     ]
-    ],
-    [
-     [
-      1.01,
-      -1.01
-     ],
-     [
-      1.01,
-      -0.75
-     ],
-     [
-      1.01,
-      -0.49
-     ]
-    ],
-    [
-     [
-      1.23,
-      -1.01
-     ],
-     [
-      1.23,
-      -0.75
-     ],
-     [
-      1.23,
-      -0.49
-     ]
-    ],
-    [
-     [
-      0.57,
-      0.49
-     ],
-     [
-      0.57,
-      0.75
-     ],
-     [
-      0.57,
-      1.01
-     ]
-    ],
-    [
-     [
-      0.79,
-      0.49
-     ],
-     [
-      0.79,
-      0.75
-     ],
-     [
-      0.79,
-      1.01
-     ]
-    ],
-    [
-     [
-      1.01,
-      0.49
-     ],
-     [
-      1.01,
-      0.75
-     ],
-     [
-      1.01,
-      1.01
-     ]
-    ],
-    [
-     [
-      1.23,
-      0.49
-     ],
-     [
-      1.23,
-      0.75
-     ],
-     [
-      1.23,
-      1.01
-     ]
-    ],
-    [
-     [
-      0.57,
-      1.49
-     ],
-     [
-      0.57,
-      1.75
-     ],
-     [
-      0.57,
-      2.01
-     ]
-    ],
-    [
-     [
-      0.79,
-      1.49
-     ],
-     [
-      0.79,
-      1.75
-     ],
-     [
-      0.79,
-      2.01
-     ]
-    ],
-    [
-     [
-      1.01,
-      1.49
-     ],
-     [
-      1.01,
-      1.75
-     ],
-     [
-      1.01,
-      2.01
-     ]
-    ],
-    [
-     [
-      1.23,
-      1.49
-     ],
-     [
-      1.23,
-      1.75
-     ],
-     [
-      1.23,
-      2.01
-     ]
-    ]
-   ],
-   "overlays": [
-    {
-     "range": [
-      0,
-      4
-     ],
-     "files": [
-      "cells_napalm_p0_0.png",
-      "cells_napalm_p0_1.png",
-      "cells_napalm_p0_2.png",
-      "cells_napalm_p0_3.png",
-      "cells_napalm_p0_4.png"
-     ],
-     "normals": [
-      "cells_napalm_p0_0_normals.png",
-      "cells_napalm_p0_1_normals.png",
-      "cells_napalm_p0_2_normals.png",
-      "cells_napalm_p0_3_normals.png",
-      "cells_napalm_p0_4_normals.png"
-     ],
-     "rect": [
-      13,
-      65,
-      70,
-      127
-     ]
-    },
-    {
-     "range": [
-      4,
-      8
-     ],
-     "files": [
-      "cells_napalm_p1_0.png",
-      "cells_napalm_p1_1.png",
-      "cells_napalm_p1_2.png",
-      "cells_napalm_p1_3.png",
-      "cells_napalm_p1_4.png"
-     ],
-     "normals": [
-      "cells_napalm_p1_0_normals.png",
-      "cells_napalm_p1_1_normals.png",
-      "cells_napalm_p1_2_normals.png",
-      "cells_napalm_p1_3_normals.png",
-      "cells_napalm_p1_4_normals.png"
-     ],
-     "rect": [
-      77,
-      65,
-      134,
-      127
-     ]
-    },
-    {
-     "range": [
-      8,
-      12
-     ],
-     "files": [
-      "cells_napalm_p2_0.png",
-      "cells_napalm_p2_1.png",
-      "cells_napalm_p2_2.png",
-      "cells_napalm_p2_3.png",
-      "cells_napalm_p2_4.png"
-     ],
-     "normals": [
-      "cells_napalm_p2_0_normals.png",
-      "cells_napalm_p2_1_normals.png",
-      "cells_napalm_p2_2_normals.png",
-      "cells_napalm_p2_3_normals.png",
-      "cells_napalm_p2_4_normals.png"
-     ],
-     "rect": [
-      173,
-      65,
-      230,
-      127
-     ]
-    },
-    {
-     "range": [
-      12,
-      16
-     ],
-     "files": [
-      "cells_napalm_p3_0.png",
-      "cells_napalm_p3_1.png",
-      "cells_napalm_p3_2.png",
-      "cells_napalm_p3_3.png",
-      "cells_napalm_p3_4.png"
-     ],
-     "normals": [
-      "cells_napalm_p3_0_normals.png",
-      "cells_napalm_p3_1_normals.png",
-      "cells_napalm_p3_2_normals.png",
-      "cells_napalm_p3_3_normals.png",
-      "cells_napalm_p3_4_normals.png"
-     ],
-     "rect": [
-      237,
-      65,
-      294,
-      127
+      234,
+      63,
+      297,
+      128
      ]
     }
    ]
@@ -2419,140 +1511,6 @@
     }
    ]
   },
-  "torpedo": {
-   "units": [
-    [
-     0.9,
-     -1.75
-    ],
-    [
-     0.9,
-     -0.75
-    ],
-    [
-     0.9,
-     0.75
-    ],
-    [
-     0.9,
-     1.75
-    ]
-   ],
-   "unit_pods": [
-    0,
-    1,
-    2,
-    3
-   ],
-   "tubes": [
-    [
-     [
-      0.9,
-      -1.75
-     ]
-    ],
-    [
-     [
-      0.9,
-      -0.75
-     ]
-    ],
-    [
-     [
-      0.9,
-      0.75
-     ]
-    ],
-    [
-     [
-      0.9,
-      1.75
-     ]
-    ]
-   ],
-   "overlays": [
-    {
-     "range": [
-      0,
-      1
-     ],
-     "files": [
-      "cells_torpedo_p0_0.png",
-      "cells_torpedo_p0_1.png"
-     ],
-     "normals": [
-      "cells_torpedo_p0_0_normals.png",
-      "cells_torpedo_p0_1_normals.png"
-     ],
-     "rect": [
-      13,
-      62,
-      70,
-      129
-     ]
-    },
-    {
-     "range": [
-      1,
-      2
-     ],
-     "files": [
-      "cells_torpedo_p1_0.png",
-      "cells_torpedo_p1_1.png"
-     ],
-     "normals": [
-      "cells_torpedo_p1_0_normals.png",
-      "cells_torpedo_p1_1_normals.png"
-     ],
-     "rect": [
-      77,
-      62,
-      134,
-      129
-     ]
-    },
-    {
-     "range": [
-      2,
-      3
-     ],
-     "files": [
-      "cells_torpedo_p2_0.png",
-      "cells_torpedo_p2_1.png"
-     ],
-     "normals": [
-      "cells_torpedo_p2_0_normals.png",
-      "cells_torpedo_p2_1_normals.png"
-     ],
-     "rect": [
-      173,
-      62,
-      230,
-      129
-     ]
-    },
-    {
-     "range": [
-      3,
-      4
-     ],
-     "files": [
-      "cells_torpedo_p3_0.png",
-      "cells_torpedo_p3_1.png"
-     ],
-     "normals": [
-      "cells_torpedo_p3_0_normals.png",
-      "cells_torpedo_p3_1_normals.png"
-     ],
-     "rect": [
-      237,
-      62,
-      294,
-      129
-     ]
-    }
-   ]
-  },
   "nuclear": {
    "units": [
     [
@@ -2724,40 +1682,24 @@
   "cells_cluster_p0_1_normals.png",
   "cells_cluster_p0_2.png",
   "cells_cluster_p0_2_normals.png",
-  "cells_cluster_p0_3.png",
-  "cells_cluster_p0_3_normals.png",
-  "cells_cluster_p0_4.png",
-  "cells_cluster_p0_4_normals.png",
   "cells_cluster_p1_0.png",
   "cells_cluster_p1_0_normals.png",
   "cells_cluster_p1_1.png",
   "cells_cluster_p1_1_normals.png",
   "cells_cluster_p1_2.png",
   "cells_cluster_p1_2_normals.png",
-  "cells_cluster_p1_3.png",
-  "cells_cluster_p1_3_normals.png",
-  "cells_cluster_p1_4.png",
-  "cells_cluster_p1_4_normals.png",
   "cells_cluster_p2_0.png",
   "cells_cluster_p2_0_normals.png",
   "cells_cluster_p2_1.png",
   "cells_cluster_p2_1_normals.png",
   "cells_cluster_p2_2.png",
   "cells_cluster_p2_2_normals.png",
-  "cells_cluster_p2_3.png",
-  "cells_cluster_p2_3_normals.png",
-  "cells_cluster_p2_4.png",
-  "cells_cluster_p2_4_normals.png",
   "cells_cluster_p3_0.png",
   "cells_cluster_p3_0_normals.png",
   "cells_cluster_p3_1.png",
   "cells_cluster_p3_1_normals.png",
   "cells_cluster_p3_2.png",
   "cells_cluster_p3_2_normals.png",
-  "cells_cluster_p3_3.png",
-  "cells_cluster_p3_3_normals.png",
-  "cells_cluster_p3_4.png",
-  "cells_cluster_p3_4_normals.png",
   "cells_emp_p0_0.png",
   "cells_emp_p0_0_normals.png",
   "cells_emp_p0_1.png",
@@ -2902,86 +1844,6 @@
   "cells_he_p3_8_normals.png",
   "cells_he_p3_9.png",
   "cells_he_p3_9_normals.png",
-  "cells_limpet_p0_0.png",
-  "cells_limpet_p0_0_normals.png",
-  "cells_limpet_p0_1.png",
-  "cells_limpet_p0_1_normals.png",
-  "cells_limpet_p0_2.png",
-  "cells_limpet_p0_2_normals.png",
-  "cells_limpet_p0_3.png",
-  "cells_limpet_p0_3_normals.png",
-  "cells_limpet_p0_4.png",
-  "cells_limpet_p0_4_normals.png",
-  "cells_limpet_p1_0.png",
-  "cells_limpet_p1_0_normals.png",
-  "cells_limpet_p1_1.png",
-  "cells_limpet_p1_1_normals.png",
-  "cells_limpet_p1_2.png",
-  "cells_limpet_p1_2_normals.png",
-  "cells_limpet_p1_3.png",
-  "cells_limpet_p1_3_normals.png",
-  "cells_limpet_p1_4.png",
-  "cells_limpet_p1_4_normals.png",
-  "cells_limpet_p2_0.png",
-  "cells_limpet_p2_0_normals.png",
-  "cells_limpet_p2_1.png",
-  "cells_limpet_p2_1_normals.png",
-  "cells_limpet_p2_2.png",
-  "cells_limpet_p2_2_normals.png",
-  "cells_limpet_p2_3.png",
-  "cells_limpet_p2_3_normals.png",
-  "cells_limpet_p2_4.png",
-  "cells_limpet_p2_4_normals.png",
-  "cells_limpet_p3_0.png",
-  "cells_limpet_p3_0_normals.png",
-  "cells_limpet_p3_1.png",
-  "cells_limpet_p3_1_normals.png",
-  "cells_limpet_p3_2.png",
-  "cells_limpet_p3_2_normals.png",
-  "cells_limpet_p3_3.png",
-  "cells_limpet_p3_3_normals.png",
-  "cells_limpet_p3_4.png",
-  "cells_limpet_p3_4_normals.png",
-  "cells_napalm_p0_0.png",
-  "cells_napalm_p0_0_normals.png",
-  "cells_napalm_p0_1.png",
-  "cells_napalm_p0_1_normals.png",
-  "cells_napalm_p0_2.png",
-  "cells_napalm_p0_2_normals.png",
-  "cells_napalm_p0_3.png",
-  "cells_napalm_p0_3_normals.png",
-  "cells_napalm_p0_4.png",
-  "cells_napalm_p0_4_normals.png",
-  "cells_napalm_p1_0.png",
-  "cells_napalm_p1_0_normals.png",
-  "cells_napalm_p1_1.png",
-  "cells_napalm_p1_1_normals.png",
-  "cells_napalm_p1_2.png",
-  "cells_napalm_p1_2_normals.png",
-  "cells_napalm_p1_3.png",
-  "cells_napalm_p1_3_normals.png",
-  "cells_napalm_p1_4.png",
-  "cells_napalm_p1_4_normals.png",
-  "cells_napalm_p2_0.png",
-  "cells_napalm_p2_0_normals.png",
-  "cells_napalm_p2_1.png",
-  "cells_napalm_p2_1_normals.png",
-  "cells_napalm_p2_2.png",
-  "cells_napalm_p2_2_normals.png",
-  "cells_napalm_p2_3.png",
-  "cells_napalm_p2_3_normals.png",
-  "cells_napalm_p2_4.png",
-  "cells_napalm_p2_4_normals.png",
-  "cells_napalm_p3_0.png",
-  "cells_napalm_p3_0_normals.png",
-  "cells_napalm_p3_1.png",
-  "cells_napalm_p3_1_normals.png",
-  "cells_napalm_p3_2.png",
-  "cells_napalm_p3_2_normals.png",
-  "cells_napalm_p3_3.png",
-  "cells_napalm_p3_3_normals.png",
-  "cells_napalm_p3_4.png",
-  "cells_napalm_p3_4_normals.png",
   "cells_nuclear_p1_0.png",
   "cells_nuclear_p1_0_normals.png",
   "cells_nuclear_p1_1.png",
@@ -2990,22 +1852,6 @@
   "cells_nuclear_p2_0_normals.png",
   "cells_nuclear_p2_1.png",
   "cells_nuclear_p2_1_normals.png",
-  "cells_torpedo_p0_0.png",
-  "cells_torpedo_p0_0_normals.png",
-  "cells_torpedo_p0_1.png",
-  "cells_torpedo_p0_1_normals.png",
-  "cells_torpedo_p1_0.png",
-  "cells_torpedo_p1_0_normals.png",
-  "cells_torpedo_p1_1.png",
-  "cells_torpedo_p1_1_normals.png",
-  "cells_torpedo_p2_0.png",
-  "cells_torpedo_p2_0_normals.png",
-  "cells_torpedo_p2_1.png",
-  "cells_torpedo_p2_1_normals.png",
-  "cells_torpedo_p3_0.png",
-  "cells_torpedo_p3_0_normals.png",
-  "cells_torpedo_p3_1.png",
-  "cells_torpedo_p3_1_normals.png",
   "floor.png",
   "lights.png",
   "roof.png",

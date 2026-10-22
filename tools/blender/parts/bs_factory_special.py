@@ -1,8 +1,8 @@
 """F2 Fabrica de Municao Especial (Special Ammunition Factory) 4x3 - carregadores AP / SAP / AC / FRAG.
 
 Spec 2.0 factories F2: o ID continua rafaeltessaro.bs_factory_mag_ap (a 1.x Prensa AP vira a F2), mas a arte nova
-fica nesta pasta (art3d/bs_factory_special); a arte 3x3 da 1.x (parts/bs_factory_mag_ap.py) fica intacta ate o
-gerador 2.0 apontar a F2 para ca (como a Boiuna AC: pasta bs_boiuna_ac, id bs_nuke_howitzer).
+fica nesta pasta (art3d/bs_factory_special; SPEC factories F2.art3d_dir, como a Boiuna AC: pasta bs_boiuna_ac, id
+bs_nuke_howitzer). A arte 3x3 da 1.x (art3d/bs_factory_mag_ap e parts/bs_factory_mag_ap.py) saiu no WP12.
 Grade (vanilla factory_mine 4x3): maquina = fileira de cima + [1,1], [2,1]; ENTRADAS enxofre [0,1] (esquerda) e
 tristeel [3,1] (direita); SAIDAS na fileira de baixo, uma por receita: AP [0,2], SAP [1,2], AC [2,2], FRAG [3,2]
 (seletor bs_ammo_type 1..4). Cada base de saida leva no piso a pastilha pintada da sua municao e o teto leva o
@@ -76,9 +76,8 @@ META_EXTRA = {
                    "game_layer": "roof_doodads"},
     "notes": ["id da peca = rafaeltessaro.bs_factory_mag_ap (ID mantido); arte 2.0 nesta pasta",
               "o maquinario e o mesmo nos 4 modos; pastilhas pintadas nas bases de saida e placa de modo no teto",
-              "LIGACAO: a pasta antiga art3d/bs_factory_mag_ap (3x3, 1.x) tem o mesmo id; o bsgen deve ler esta pasta "
-              "(meta.art3d_dir) e o art3d_owner_map do spec deve trocar F2 'bs_factory_mag_ap' por "
-              "'bs_factory_special' (ou aposentar a pasta antiga), senao duas pastas reivindicam o mesmo id"],
+              "LIGACAO: o bsgen le esta pasta pelo art3d_dir (SPEC factories F2.art3d_dir = meta.art3d_dir); "
+              "a pasta 1.x art3d/bs_factory_mag_ap (3x3, mesmo id) foi apagada no WP12: so esta pasta reivindica o id"],
 }
 
 

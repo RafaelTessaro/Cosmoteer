@@ -65,7 +65,9 @@ def lin(c):
 CHIP = {
     "he": (255, 190, 60), "ap": (215, 230, 255), "sap": (255, 140, 50), "ac": (230, 40, 80), "ac_gold": (255, 200, 80),
     "frag": (120, 210, 200), "plasma": (60, 220, 255), "pem": (60, 200, 255), "msl_he": (255, 150, 30),
-    "msl_cluster": (255, 232, 80), "msl_emp": (40, 150, 255), "nuke": (90, 255, 40), "slug": (150, 105, 255),
+    # slug = palette.rail.chip AZUL da Tupa refeita (o violeta 150,105,255 da 1a versao saiu); nenhuma maquina F1-F6
+    # pinta pastilha/LED com esta chave hoje (a F6 usa RAIL_BLUE direto), entao a troca nao pede re-render
+    "msl_cluster": (255, 232, 80), "msl_emp": (40, 150, 255), "nuke": (90, 255, 40), "slug": (64, 128, 255),
     "rail_gold": (255, 200, 90), "pem_cu": (200, 110, 50),
     # pastilhas/LEDs das SAIDAS da Fabrica de Misseis: o MESMO codigo das placas de modo (art3d/bs_placas, grupo
     # logistica) desenhadas no teto da mesma fabrica: placa_msl_he ambar (~40 graus) = palette.he.chip;
@@ -76,7 +78,6 @@ CHIP = {
     # amarelo dos LEDs genericos das entradas, ~55; com o palette.he.chip puro, 40-43 graus, ficava perto demais)
     "msl_he_pad": (255, 180, 50), "msl_cluster_pad": (255, 120, 40),
 }
-VIOLET = (0.30, 0.135, 1.0)          # violeta do Tupa 1a versao (parts/bs_rail.py VIOLET)
 RAIL_BLUE = (0.026, 0.171, 1.0)      # azul eletrico da Tupa nova (parts/bs_rail.py BLUE; USER_NOTES: referencia)
 SULFUR = (0.62, 0.46, 0.035)         # enxofre (amarelo fosco em monte facetado: nao le como LED ambar)
 IRON = (0.33, 0.30, 0.28)            # ferro bruto (lingote fosco)

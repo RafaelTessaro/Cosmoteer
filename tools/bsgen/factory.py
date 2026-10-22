@@ -13,9 +13,9 @@ Arquitetura (SPEC.multi_recipe_implementation; so padroes do jogo base 0.30.x e 
   * Entradas: uma TypedResourceGrid Entrada_<insumo> por insumo (a tripulacao entrega, prioridade Factory_Supply) e
     um divisor compartilhado Divisor_<insumo> (InlineResourceConverter FromQuantity 1 / ToQuantity N, factory_he
     l.150-165); cada receita saca draw_Quantity inteiro do divisor (SW factory_durasteel.rules:231-237 saca 2 de 1:3).
-    Reserva do teste T-F2-SPLIT: DIVISOR_POR_RECEITA (env BS_FABRICA_DIVISOR=por_receita ou a chave extra
-    'econ.factory_splitter' = 'por_receita' do bullet_strike_switches.json) -> um divisor por receita
-    (Divisor_<insumo>_<receita>), todos lendo a mesma grade.
+    Reserva do teste T-F2-SPLIT: splitter_mode() = 'por_receita' (env BS_FABRICA_DIVISOR=por_receita ou a chave
+    extra 'econ.factory_splitter' = 'por_receita' do bullet_strike_switches.json; nao e switch do spec) -> um
+    divisor por receita (Divisor_<insumo>_<receita>), todos lendo a mesma grade.
   * Por receita k: grade de saida fixa Saida_<k> (SuppliesResources true: sem Fita a tripulacao recolhe dali como
     numa fabrica vanilla - REQ3) e conversor Conversor_<k> sempre presente com OperationalToggle Ready_<k> =
     MultiToggle All [IsOperational, ModeToggle_<sel>, divisores da receita]. Nada de ToggledComponents em volta de
@@ -41,6 +41,9 @@ Arquitetura (SPEC.multi_recipe_implementation; so padroes do jogo base 0.30.x e 
   * Arte: f['art3d'] (art3d/<f['art3d_dir']>, a F2 le art3d/bs_factory_special) via make_art.factory_art; placa de
     modo '../bs_placas/placa_<modo>.png' (art3d/bs_placas publicada em parts/bs_placas) num ToggledComponents por
     modo; F3: banco PEM (overlay do meta) no modo PEM e as luzes do banco so produzindo PEM (roof_lights_fancy).
+  * Estatisticas: F1/F5/F6 com as linhas do factory_ammo (BSFactoryOutput, BSAmmo<Insumo>Usage, AmmoPowerUsage...);
+    F2/F3/F4 com uma linha por receita (BSRecipe<Chave> e, no tooltip de overclock, BSRecipe<Chave>OC), registradas
+    pelo gancho part_stats() e com os formatos no strings(DATA).
 """
 
 import os
@@ -107,6 +110,9 @@ FACTORY_SOUND = {"F1": "ammo", "F2": "ammo", "F3": "emp", "F4": "he", "F5": "nuk
 #   F6 sem molde vanilla (projeteis inertes; o proprio spec e o teto)
 COOKOFF_MOLD = {"F1": (40000, 11250, 0), "F2": (64500, 20000, 0), "F3": (64500, 20000, 250000),
                 "F4": (64500, 20000, 500000), "F5": (200000, 60000, 0), "F6": (20000, 10000, 0)}
+
+# componentes do seam da logistica (WP05) que podem ter PartCriteria (paiol acoplado na saida, T-ACOPLA)
+INTAKE_PARTCRITERIA_OK = ("EntregaAcoplada_",)
 
 WALL_DAMAGE = ["walls.png", "walls_33.png", "walls_66.png"]  # niveis de dano das paredes (make_art.factory_art)
 PLATES_DIR = "bs_placas"        # art3d/bs_placas publicada em parts/bs_placas (placas de modo e dos paiois)
@@ -371,9 +377,11 @@ def _default_recipe(f):
 
 # ----------------------------------------------------------------------------- peca
 def build_factory(f, ctx=None):
-    """(top, info) do arquivo parts/<curto>/<curto>.rules de uma fabrica de DATA.FACTORIES."""
+    """(top, info) do arquivo parts/<curto>/<curto>.rules de uma fabrica de DATA.FACTORIES. ctx = o do build_mod;
+    fora do gancho parts (ex.: check_art3d chama build_factory(f, pilhas) como na 1.x) monta um ctx minimo."""
     import bs_data as D
-    ctx = ctx or {"D": D, "transport": D.transport(), "warn": D.warn, "header": ""}
+    if not isinstance(ctx, dict) or "D" not in ctx:
+        ctx = {"D": D, "transport": D.transport(), "warn": D.warn, "header": ""}
     lay = layout(f)
     w, h = lay["w"], lay["h"]
     center = [w / 2, h / 2]
@@ -1098,6 +1106,12 @@ def _list(node, path):
     return out
 
 
+def _has_node(node, name):
+    if node.name == name:
+        return True
+    return any(_has_node(c, name) for c in node.children)
+
+
 def _cells(lst):
     return [[int(float(a)) for a in c] for c in (lst or [])]
 
@@ -1300,8 +1314,11 @@ def selfcheck(mod_dir, SPEC):
             errs.append(f"{short}: enriched_uranium")
         if re.search(r"\bNetworkResource\w*", body):
             errs.append(f"{short}: NetworkResource* numa fabrica")
-        if re.search(r"\bPartCriteria\b", body) and (_intake() is None or D.transport() == "teleporte"):
-            errs.append(f"{short}: PartCriteria numa fabrica ({D.transport()})")
+        # PartCriteria so no que o intake (WP05) acrescenta pelo seam: o paiol acoplado EntregaAcoplada_<k>
+        for ch in comp.children:
+            if ch.name and _has_node(ch, "PartCriteria") and \
+                    (_intake() is None or not ch.name.startswith(INTAKE_PARTCRITERIA_OK)):
+                errs.append(f"{short}: PartCriteria em {ch.name} ({D.transport()}): a fabrica nao escreve PartCriteria")
         # arte: meta.grid = spec e a placa de modo
         a3 = f.get("art3d") or {}
         g = a3.get("grid")
@@ -1317,9 +1334,8 @@ def selfcheck(mod_dir, SPEC):
         for m in re.finditer(r'File = "\.\./bs_placas/([^"]+)"', text):
             if not os.path.isfile(os.path.join(mod_dir, "parts", "bs_placas", m.group(1))):
                 errs.append(f"{short}: placa ../bs_placas/{m.group(1)} nao publicada")
-        if sf["code"] == "F2" and a3 and a3.get("art3d_dir", f.get("art3d_dir")) != "bs_factory_special" and \
-                f.get("art3d_dir") != "bs_factory_special":
-            errs.append("F2 tem que usar art3d/bs_factory_special")
+        if sf["code"] == "F2" and f.get("art3d_dir") != "bs_factory_special":
+            errs.append(f"F2 tem que usar art3d/bs_factory_special (art3d_dir = {f.get('art3d_dir')})")
     if f"{D.AUTHOR}.bs_factory_mag_ap" in written and not next(
             (f for f in D.FACTORIES if f["code"] == "F2"), {}).get("art3d"):
         errs.append("F2 sem art3d (bs_factory_special de outro tamanho ou ausente: arte procedural)")

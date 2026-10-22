@@ -19,7 +19,8 @@
   "gui/missile_emp.png": "missile_emp.png",
   "gui/missile_nuclear.png": "missile_nuclear.png",
   "gui/slug_rail.png": "slug_rail.png",
-  "gui/group_bullet_strike.png": "group_bullet_strike.png"
+  "gui/group_bullet_strike.png": "group_bullet_strike.png",
+  "gui/buff_fita.png": "buff_fita.png"
  },
  "drop_1x": [
   "gui/ammo_std.png",
@@ -69,6 +70,11 @@
    185,
    225,
    255
+  ],
+  "link": [
+   110,
+   230,
+   120
   ]
  }
 }

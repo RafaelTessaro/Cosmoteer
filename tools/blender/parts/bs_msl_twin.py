@@ -30,7 +30,7 @@ PART = {
     "ring_r": 1.15,
     "collider": 1.25,
     "accent": "amber",
-    "looks": ["he", "cluster", "limpet", "napalm", "emp", "torpedo"],
+    "looks": ["he", "cluster", "emp"],      # 2.0: Jararaca, Piranha (cluster8), Poraque
     "oc_glow": True,
     "lights": [
         {"at": [0.0, -1.10], "size": 1.2, "color": [255, 120, 30], "z": 0.8},
@@ -60,10 +60,11 @@ CVO = CUO / SIN
 POD_L = 0.72                        # comprimento do casulo ao longo do eixo dos tubos
 VENT_Y = -POD_L + 0.155             # centro da grelha de sopro no topo do casulo (referencial do eixo)
 
-BAND = {"he": (0.80, 0.327, 0.0), "cluster": (0.80, 0.62, 0.086), "limpet": (0.80, 0.035, 0.024),
-        "napalm": (0.80, 0.11, 0.0093), "emp": (0.062, 0.437, 0.80), "torpedo": (0.62, 0.64, 0.70)}
-BAND_GLOW = {"he": (1.0, 0.473, 0.0), "cluster": (1.0, 0.78, 0.11), "limpet": (1.0, 0.044, 0.03),
-             "napalm": (1.0, 0.186, 0.0155), "emp": (0.078, 0.546, 1.0), "torpedo": (0.9, 0.93, 1.0)}
+BAND = {"he": (0.80, 0.327, 0.0), "cluster": (0.80, 0.62, 0.086), "emp": (0.062, 0.437, 0.80)}
+BAND_GLOW = {"he": (1.0, 0.473, 0.0), "cluster": (1.0, 0.78, 0.11), "emp": (0.078, 0.546, 1.0)}
+# portador da Piranha (layout cluster8): nariz GORDO nos 4 tubos de canto de cada casulo (~1,6x o raio dos outros
+# narizes); cabe no quadro do nariz (5 x TUBE_R = 0.425 quadro) e nao encosta nas tampas do miolo (shutter)
+CARRIER_R, CARRIER_L = 0.106, 0.165
 
 
 # ============================================================================ utilidades
@@ -579,106 +580,73 @@ def _nose_paint(name, color):
 
 
 def cell(M, look, T="cell", form="tube", box=None):
-    """UM nariz carregado (origem = centro da boca no plano da face), eixo inclinado como o casulo.
-    tube: anel/tampa na cor do missil + ogiva clara; torpedo: tampa grande branca cobrindo a face do casulo."""
+    """UM nariz carregado (origem = centro da boca no plano da face), eixo inclinado como o casulo: anel/bobina na
+    cor do missil + ogiva clara (Jararaca, Poraque); a Piranha (cluster8) e o portador gordo de _carrier()."""
+    if form != "tube":
+        raise NotImplementedError(f"bs_msl_twin: forma {form} nao existe neste lancador (2.0: so 'tube')")
     tags = (T,)
     band = _band_mat(look)
     antes = _cena()
-    if form == "torpedo":
-        _torpedo(M, tags, band, box)
+    if look == "cluster":
+        _carrier(M, tags)
         _grupo(antes, "nose", (0, 0, 0), (PITCH - 90.0, 0, 0))
         return
-    if form != "tube":
-        raise NotImplementedError(f"bs_msl_twin: forma {form} nao existe neste lancador")
     nose = _nose_paint("nose", (0.64, 0.65, 0.66))
     R, L = 0.066, 0.16
     z0, zb = 0.03, 0.064
-    if look == "limpet":
-        # anel-presilha vermelho mais largo com 4 garras de aco
-        B.cyl("n_band", 0, 0, (z0 + zb) / 2, 0.076, zb - z0, band, axis="Z", verts=24, bevel=0.0, tags=tags)
-        for k in range(4):
-            a = k * math.pi / 2 + math.pi / 4
-            B.box(f"n_clamp{k}", 0.074 * math.cos(a), 0.074 * math.sin(a), 0.016, 0.016, z0, zb + 0.022, M["steel"],
-                  bevel=0.0, tags=tags)
-    elif look == "emp":
+    if look == "emp":
         # bobina: 2 aneis azuis separados por aco
         for k, (a, b_, m) in enumerate(((z0, z0 + 0.012, band), (z0 + 0.012, z0 + 0.022, M["steel"]),
                                         (z0 + 0.022, zb, band))):
             B.cyl(f"n_coil{k}", 0, 0, (a + b_) / 2, 0.074 if m is band else 0.069, b_ - a, m, axis="Z", verts=24,
                   bevel=0.0, tags=tags)
     else:
-        B.cyl("n_band", 0, 0, (z0 + zb) / 2, 0.072, zb - z0, band if look == "he" else
-              M["steel"] if look == "napalm" else M["core_mid"], axis="Z", verts=24, bevel=0.0, tags=tags)
+        B.cyl("n_band", 0, 0, (z0 + zb) / 2, 0.072, zb - z0, band, axis="Z", verts=24, bevel=0.0, tags=tags)
     prof = _ogive(R, L, zb)
     rt, zt = prof[-1]
-    if look == "cluster":
-        # tampa de petalas amarela (4 petalas com costuras escuras)
-        cap = _nose_paint("cap_cluster", BAND["cluster"])
-        og = _lathe("n_ogive", prof + [(0.0, zt + 0.002)], cap, tags)
-        _lathe("n_core", [(r * 0.75, z) for r, z in prof] + [(0.0, zt)], M["core"], tags)
-        B.cut(og, [B.box(f"n_seam{k}", 0, 0, 0.012, 0.3, zb + 0.03, 0.5, M["core"], bevel=0.0) for k in range(1)] +
-              [B.box("n_seam1", 0, 0, 0.3, 0.012, zb + 0.03, 0.5, M["core"], bevel=0.0)])
-    elif look == "napalm":
-        # tampa laranja (ogiva inteira, matiz do brilho #FF6A1A), anel de aco na base
-        cap = _nose_paint("cap_napalm", (0.87, 0.16, 0.012))
-        _lathe("n_ogive", prof + [(0.0, zt + 0.002)], cap, tags)
-    else:
-        _lathe("n_ogive", prof + [(0.0, zt + 0.002)], nose, tags)
+    _lathe("n_ogive", prof + [(0.0, zt + 0.002)], nose, tags)
     B.cyl("n_tip", 0, 0, (zt + zb + L) / 2, rt, zb + L - zt, M["core"], axis="Z", verts=12, bevel=0.0, tags=tags,
           r2=0.002)
     _grupo(antes, "nose", (0, 0, 0), (PITCH - 90.0, 0, 0))
 
 
-def _torpedo(M, tags, band, box):
-    """Torpedo Boto: cassete escuro (colar + 4 travas de aco) emoldurando uma ogiva grande e pontuda, pintada
-    no cinza claro frio da armadura (branco puro estoura e vira sino), anel branco fino na base, 2 costuras
-    escuras, 2 linhas de painel e buscador escuro na ponta com bico claro."""
-    white = _nose_paint("torp_white", (0.53, 0.555, 0.60))
-    # box = [largura, profundidade] na vista de cima; no plano da face a altura e profundidade / SIN
-    bw, bd = (box or [0.65, 0.65])
-    hw, hh = bw / 2, bd / 2 / SIN
-    B.plate("t_collar", _octo(hw, hh - 0.02, CU * 0.8, CV * 0.8), 0.0, 0.05, M["core_mid"], slope=0.015,
-            bevel=0.008, tags=tags)
-    for k, (u, v) in enumerate(((-1, -1), (1, -1), (-1, 1), (1, 1))):
-        B.box(f"t_lug{k}", u * (hw - 0.06), v * (hh - 0.10), 0.05, 0.08, 0.04, 0.075, M["steel"], bevel=0.006,
-              tags=tags)
-    # ogiva longa e fina (ponta para cima na imagem); cabe no quadro: ponta a ~0.34 na vista de cima (quadro 0.37)
-    R, L, zb = hw - 0.10, 0.37, 0.04
-    sy = 1.40
-    rho = (R * R + L * L) / (2 * R)
-    full = []
-    for k in range(25):
-        dz = L * k / 24
-        full.append((max(0.0, math.sqrt(max(0.0, rho * rho - dz * dz)) + R - rho), zb + dz))   # base -> ponta
-    cut_i = next(i for i, (r, z) in enumerate(full) if r < 0.08)
-    prof, tip = full[:cut_i], full[cut_i - 1:]
-    _lathe("t_ring", [(R + 0.025, 0.03), (R + 0.025, zb + 0.008), (0.0, zb + 0.008)], band, tags, verts=32, sy=sy)
+def _carrier(M, tags):
+    """Portador da Piranha (cluster8, so nos tubos de canto): colar de aco largo por cima da boca, tampa GORDA e
+    rombuda de 4 petalas amarelas (costuras escuras em cruz deixando ver o miolo escuro das submunicoes) e
+    buscador escuro na ponta. Mais largo e mais curto que os outros narizes: le como 'portador gordo'."""
+    R, L = CARRIER_R, CARRIER_L
+    z0, zb = 0.026, 0.066
+    B.cyl("c_collar", 0, 0, (z0 + zb) / 2, R + 0.010, zb - z0, M["core_mid"], axis="Z", verts=32, bevel=0.004,
+          tags=tags)
+    B.cyl("c_lip", 0, 0, zb - 0.004, R + 0.004, 0.008, M["steel"], axis="Z", verts=32, bevel=0.0, tags=tags)
+    prof = _ogive(R, L, zb, tip_r=0.020)
     rt, zt = prof[-1]
-    og = _lathe("t_nose", prof + [(0.0, zt)], white, tags, verts=32, sy=sy)
+    cap = _nose_paint("cap_cluster", BAND["cluster"])
+    og = _lathe("c_ogive", prof + [(0.0, zt + 0.002)], cap, tags, verts=32)
+    _lathe("c_core", [(r * 0.72, z) for r, z in prof] + [(0.0, zt)], M["core"], tags, verts=32)
+    # 4 petalas: costuras em cruz (~1,5 px) cortadas na tampa
+    B.cut(og, [B.box("c_seam0", 0, 0, 0.016, 0.4, zb + 0.022, 0.6, M["core"], bevel=0.0),
+               B.box("c_seam1", 0, 0, 0.4, 0.016, zb + 0.022, 0.6, M["core"], bevel=0.0)])
+    B.cyl("c_tip", 0, 0, (zt + zb + L) / 2, rt, zb + L - zt, M["core"], axis="Z", verts=12, bevel=0.0, tags=tags,
+          r2=0.004)
 
-    def r_at(z):
-        for (ra, za), (rb, zb_) in zip(prof, prof[1:]):
-            if za <= z <= zb_:
-                return ra + (rb - ra) * (z - za) / (zb_ - za)
-        return prof[-1][0]
-    # 2 linhas de painel curtas no lado que olha para a camera (-y local), ao longo do eixo
-    za, zc = zb + 0.04, zb + 0.13
-    cuts = []
-    for k, x in enumerate((-0.07, 0.07)):
-        y_in = -sy * math.sqrt(max(r_at(zc) ** 2 - x * x, 0.0)) + 0.014
-        cuts.append(B.box(f"t_pl{k}", x, (-1.0 + y_in) / 2, 0.016, 1.0 + y_in, za, zc, M["core"], bevel=0.0))
-    B.cut(og, cuts)
-    # 2 costuras escuras finas (~30 % e ~60 % da ogiva)
-    for k, f in enumerate((0.30, 0.60)):
-        z_s = zb + L * f
-        r_s = r_at(z_s)
-        _lathe(f"t_seam{k}", [(r_s + 0.004, z_s - 0.006), (r_s + 0.004, z_s + 0.006), (0.0, z_s + 0.006)], M["core"],
-               tags, verts=32, sy=sy)
-    # buscador: ponta de aco continuando a curva da ogiva (le como bico, nao como furo) com junta escura
-    _lathe("t_seek", [(rt + 0.005, zt - 0.010), (rt + 0.005, zt + 0.002), (0.0, zt + 0.002)], M["core"], tags,
-           verts=24, sy=sy)
-    _lathe("t_tip", [(r, z + 0.002) for r, z in tip[:-1]] + [(0.0, tip[-1][1] + 0.002)], M["steel"], tags,
-           verts=24, sy=sy)
+
+def shutter(M, T="shutter", box=None):
+    """Tampa fixa de UMA celula do miolo do casulo (layout cluster8: o portador gordo da Piranha ocupa o espaco das
+    4 celulas do meio, que ficam tampadas). Bujao rente a boca: aro escuro, tampa CLARA da armadura levemente
+    abaulada com cruz de travas escuras e rebite de aco no centro; clara para ler como 'tubo fechado' a 1x (a boca
+    vazia e preta e o nariz carregado tem a faixa na cor). box = [2 x tube_r, 2 x tube_r] (launcher_layout, kind
+    'cap')."""
+    tags = (T,)
+    antes = _cena()
+    r = (box[0] / 2 if box else TUBE_R) - 0.006
+    B.cyl("cap_rim", 0, 0, 0.012, r, 0.024, M["core_mid"], axis="Z", verts=32, bevel=0.003, tags=tags)
+    disk = B.cyl("cap_disk", 0, 0, 0.034, r - 0.014, 0.022, M["armor_mid"], axis="Z", verts=32, bevel=0.004,
+                 tags=tags, r2=r - 0.026)
+    B.cut(disk, [B.box("cap_x0", 0, 0, 2 * r, 0.013, 0.036, 0.2, M["core"], bevel=0.0),
+                 B.box("cap_x1", 0, 0, 0.013, 2 * r, 0.036, 0.2, M["core"], bevel=0.0)])
+    B.cyl("cap_rivet", 0, 0, 0.047, 0.015, 0.010, M["steel"], axis="Z", verts=12, bevel=0.002, tags=tags)
+    _grupo(antes, "cap", (0, 0, 0), (PITCH - 90.0, 0, 0))
 
 
 # ============================================================================ overclock

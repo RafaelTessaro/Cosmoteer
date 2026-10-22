@@ -2,7 +2,12 @@
 silhueta solida azul (0,183,255) com brilho suave em volta, 96 x 96, sem detalhes internos alem de vaos finos.
 
 Cada icone e desenhado em coordenadas de 0 a 96 com superamostragem e depois reduzido. Uma segunda mascara
-(destaque) recebe a cor do tipo (raio do EMP, chama do napalm, trevo nuclear, explosao do APHE).
+(destaque) recebe a cor do tipo (raio do PEM, trevo nuclear, estopim da SAP, faixa de ouro da AC, luz verde da Fita).
+
+2.0 (WP11): o build usa so ICONS_2_0 (gravados em art3d/bs_ui_icons2 por write_icons_2_0). Os icones 1.x que a 2.0
+tirou (ammo_std, ammo_aphe, ammo_emp, missile_limpet, missile_napalm, missile_torpedo; SPEC
+art_assets.assets.ui_icons.drop) foram apagados daqui; icon_ammo('ap'), icon_missile(he/cluster/emp/nuclear) e
+icon_group ficam so para a comparacao antes/depois das previas (tools/blender/parts/_bs2_itens_previews.py).
 """
 
 import math
@@ -142,30 +147,6 @@ def star(p, x, y, r0, r1, n=8, rot=0.0, layer="acc"):
     p.poly(pts, layer)
 
 
-def flame(p, x, y, s, layer="acc"):
-    """Chama de tres linguas com a base centrada em (x, y): uma gota alta no meio e duas menores inclinadas."""
-    def tongue(cx, cy, h, w, lean):
-        pts = []
-        for i in range(25):
-            t = i / 24
-            yy = cy - h * t
-            r = w * (math.sin(math.pi * min(1.0, t * 1.15)) ** 0.7) * (1 - t) ** 0.35
-            off = lean * h * t * t
-            pts.append((cx + off - r, yy))
-        right = []
-        for i in range(25):
-            t = i / 24
-            yy = cy - h * t
-            r = w * (math.sin(math.pi * min(1.0, t * 1.15)) ** 0.7) * (1 - t) ** 0.35
-            off = lean * h * t * t
-            right.append((cx + off + r, yy))
-        p.poly(pts + right[::-1], layer)
-    tongue(x, y, 30 * s, 8.5 * s, 0.10)
-    tongue(x - 6 * s, y - 1 * s, 19 * s, 5.5 * s, -0.35)
-    tongue(x + 6 * s, y - 1 * s, 21 * s, 5.5 * s, 0.38)
-    p.circle(x, y - 6 * s, 8.5 * s, layer)
-
-
 def trefoil(p, x, y, r, layer="acc"):
     """Trevo de tres pas (simbolo nuclear simplificado, sem o amarelo e preto)."""
     for k in range(3):
@@ -182,12 +163,10 @@ def trefoil(p, x, y, r, layer="acc"):
 
 # ---------------------------------------------------------------------------------------------- icones
 def icon_ammo(kind):
+    """Cartucho 1.x (so 'ap' ficou, para o antes/depois das previas; std/aphe/emp sairam na 2.0)."""
     p = Pen()
-    if kind == "std":
-        shell(p, 48, 12, 84, 24)
-        return p.render()
-    if kind in ("ap", "aphe"):
-        cx = 48 if kind == "ap" else 42
+    if kind == "ap":
+        cx = 48
         # penetrador: dardo comprido e fino saindo do estojo, com colar de sabot
         p.poly([(cx, 10), (cx + 5, 30), (cx + 5, 50), (cx - 5, 50), (cx - 5, 30)])
         p.poly([(cx - 10, 47), (cx + 10, 47), (cx + 12, 53), (cx - 12, 53)])
@@ -195,18 +174,12 @@ def icon_ammo(kind):
         p.rect(cx - 13.5, 80, cx + 13.5, 85)
         p.gap(cx - 14, 53, cx + 14, 55.2)
         p.gap(cx - 14, 77.6, cx + 14, 79.2)
-        if kind == "aphe":
-            star(p, 66, 22, 5.5, 13, n=7, rot=10)
-            return p.render(ACC["fire"])
         return p.render()
-    if kind == "emp":
-        shell(p, 38, 14, 84, 22)
-        bolt(p, 52, 16, 1.05)
-        return p.render(ACC["spark"])
     raise ValueError(kind)
 
 
 def icon_missile(kind):
+    """Missil 1.x (he/cluster/emp/nuclear, so para o antes/depois das previas; limpet/napalm/torpedo sairam na 2.0)."""
     p = Pen()
     if kind == "he":
         missile(p, 48, 8, 88, 20)
@@ -221,43 +194,10 @@ def icon_missile(kind):
             p.poly([(0, -9), (4.2, 5), (0, 2.2), (-4.2, 5)])
             p.at()
         return p.render()
-    if kind == "limpet":
-        # missil cravado em diagonal numa chapa de casco (ponta atravessando e duas garras mordendo) e o relogio
-        # da espoleta retardada: gruda e explode depois
-        p.at(46, 50, 38)
-        p.rect(-26, -40, 26, -32)
-        p.gap(-8.9, -40, -7.3, -32)
-        p.gap(7.3, -40, 8.9, -32)
-        missile(p, 0, -22, 36, 18, nose=0.10)
-        p.rect(-2.3, -44, 2.3, -20)
-        for sd in (-1, 1):
-            p.poly([(sd * 5, -17), (sd * 13, -22), (sd * 15, -31.5), (sd * 11, -31.5), (sd * 10, -26), (sd * 3, -23)])
-        p.gap(-12, -31.6, 12, -30.0)
-        p.at()
-        p.circle(72, 72, 13, "acc")
-        p.circle(72, 72, 9.6, "acc", 0)
-        p.rect(70.6, 63.5, 73.4, 73.2, "acc")
-        p.poly([(71, 70.6), (79, 74.2), (78, 76.4), (70.2, 73.2)], "acc")
-        return p.render(ACC["fire"])
-    if kind == "napalm":
-        missile(p, 40, 12, 88, 18)
-        flame(p, 66, 50, 1.25)
-        return p.render(ACC["fire"])
     if kind == "emp":
         missile(p, 40, 10, 88, 18)
         bolt(p, 54, 22, 1.05)
         return p.render(ACC["spark"])
-    if kind == "torpedo":
-        # torpedo: corpo grosso e comprido, nariz arredondado e anel de cauda (difusor)
-        w = 22
-        left, right = ogive(48, 8, 22, w, sharp=0.2)
-        p.poly(left + [(48 - w / 2, 76), (48 + w / 2, 76)] + right[::-1])
-        p.rect(48 - w / 2 - 5, 74, 48 + w / 2 + 5, 86)
-        p.gap(48 - w / 2 - 0.5, 78, 48 + w / 2 + 0.5, 82)
-        p.rect(44, 76, 52, 90)
-        for y in (34, 54):
-            p.gap(30, y, 66, y + 1.8)
-        return p.render()
     if kind == "nuclear":
         # ogiva gorda (como o missil nuclear do jogo) e o trevo verde
         w = 26
@@ -287,7 +227,7 @@ def icon_group():
 
 # ============================================================================================== 2.0 (aditivo)
 # Icones 2.0 (SPEC 2.0 art_assets.assets.ui_icons; USER_NOTES 2026-10-21 "icones de UI no mesmo estilo" futurista das
-# municoes 2.0). Tudo daqui para baixo e NOVO: nada acima muda (os icones da 1.x continuam saindo iguais, bit a bit).
+# municoes 2.0). Tudo daqui para baixo e NOVO: nada acima muda (os icones 1.x que ficaram saem iguais, bit a bit).
 # Mesmo Pen (silhueta azul 96 x 96 com brilho + UMA mascara de destaque); a linguagem 2.0 entra pela silhueta: luvas
 # partidas por frestas finas (retas ou em divisa), anel do sensor, espoleta de ponta chata, canards/aletas, capsulas
 # com janela, aneis de armadura. Saida: art3d/bs_ui_icons2/ (python3 tools/bsgen/ui_icons.py [pasta]).
@@ -299,6 +239,8 @@ ACC.update({
     # projetil da Tupa: a railgun virou AZUL (USER_NOTES: referencia do usuario); sobre a silhueta azul da interface os
     # aneis de armadura saem em azul-gelo eletrico (o violeta do spec ficou para tras com a Tupa antiga)
     "rail": (185, 225, 255),
+    # buff da Fita (BulletStrike_FitaLink): o verde do Rect do buff [110, 230, 120] (= a luz verde da fita grudada)
+    "link": (110, 230, 120),
 })
 
 
@@ -617,6 +559,35 @@ def icon_group2():
     return p.render()
 
 
+def icon_buff_fita():
+    """Buff da Fita (BulletStrike_FitaLink: Icon ../gui/buff_fita.png, Size [0.5, 0.5] sobre a maquina grudada na
+    fita). A peca Fita vista de cima (art3d/bs_fita): cubo octogonal com os 4 bracos da fita (elos partidos por
+    frestas) e, na janela do meio, o cassete selado; o cassete e as 4 luzes de ligacao na ponta dos bracos saem no
+    verde do Rect do buff (ACC 'link'). Silhueta grossa: no jogo o icone tem ~32 px (meio quadro)."""
+    p = Pen()
+    cx = cy = 48
+    # 4 bracos da fita (para cima, direita, baixo, esquerda) com 2 frestas de elo cada
+    for ang in (0, 90, 180, 270):
+        p.at(cx, cy, ang)
+        p.rect(-8.5, -45, 8.5, -18)
+        for y in (-36.5, -28.5):
+            p.gap(-10, y, 10, y + 2.4)
+        p.at()
+    # cubo octogonal (chanfro grande, como a tampa da peca)
+    h, c = 23.0, 10.0
+    p.poly([(cx - h + c, cy - h), (cx + h - c, cy - h), (cx + h, cy - h + c), (cx + h, cy + h - c),
+            (cx + h - c, cy + h), (cx - h + c, cy + h), (cx - h, cy + h - c), (cx - h, cy - h + c)])
+    # janela do meio (vao) com o cassete selado (capsula chanfrada + faixa) no verde do buff
+    p.gap(cx - 10.5, cy - 16.5, cx + 10.5, cy + 16.5)
+    capsule(p, cx, cy - 13, cy + 13, 14, layer="acc", cap=0.30)
+    p.gap(cx - 8, cy - 4.2, cx + 8, cy - 2.2)
+    # luzes de ligacao na ponta dos 4 bracos (como luz_grudada)
+    for dx, dy in ((0, -41), (41, 0), (0, 41), (-41, 0)):
+        p.gap(cx + dx - 4.4, cy + dy - 4.4, cx + dx + 4.4, cy + dy + 4.4)
+        p.circle(cx + dx, cy + dy, 3.4, "acc")
+    return p.render(ACC["link"])
+
+
 # nome do arquivo no mod (gui/<nome>) -> funcao; ordem = a do spec (art_assets.assets.ui_icons.icons)
 ICONS_2_0 = {
     "ammo_he.png": lambda: icon_ammo2("he"),
@@ -632,6 +603,8 @@ ICONS_2_0 = {
     "missile_nuclear.png": lambda: icon_missile2("nuclear"),
     "slug_rail.png": icon_slug,
     "group_bullet_strike.png": icon_group2,
+    # icone pequeno do buff da Fita (buffs/bs_fita_buffs.rules, BulletStrike_FitaLink)
+    "buff_fita.png": icon_buff_fita,
 }
 
 

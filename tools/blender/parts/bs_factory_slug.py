@@ -4,11 +4,11 @@ ID novo rafaeltessaro.bs_factory_slug. Grade (vanilla factory_emp 3x4): maquina 
 ENTRADAS tristeel [0,2] (esquerda) e coil2 [2,2] (direita); SAIDA = a fileira de baixo inteira ([0,3,3,1]).
 Coordenadas centradas na peca, +Y = frente (topo da imagem), 1 unidade = 1 quadro.
 
-Cores: o spec pedia destaque violeta (palette.rail), mas o usuario mandou depois (USER_NOTES 2026-10-21, referencia
-da Tupa) refazer a railgun em AZUL, com blindagem grafite, placas brancas grossas nas laterais, canal central azul
-aceso e detalhes/molas LARANJA, e "o slug da Tupa acompanha a cor". A forja segue essa paleta nova com as MESMAS
-cores da Tupa refeita (parts/bs_rail.py BLUE / ORANGE / ORANGE_P) e o slug novo de bs_shells2. Sem cobre (regra da
-familia rail).
+Cores: a railgun foi refeita pela referencia do usuario (USER_NOTES 2026-10-21) em AZUL, com blindagem grafite,
+placas brancas grossas nas laterais, canal central azul aceso e detalhes/molas LARANJA, e "o slug da Tupa acompanha a
+cor"; o violeta da 1a versao saiu (SPEC 2.0 art_assets.palette.rail ja e o azul eletrico). A forja usa as MESMAS
+cores da Tupa refeita (parts/bs_rail.py BLUE / ORANGE / ORANGE_P, com o ORANGE_P novo 0.60, 0.25, 0.020; o antigo
+0.42, 0.125, 0.012 saiu) e o slug novo de bs_shells2. Sem cobre (regra da familia rail).
 
 Maquinario (casca clara da familia + grafite e azul da Tupa; azul de forca baixa, so em fendas e frestas):
   * TREFILA DE HASTES (coluna esquerda, sobre a base de tristeel): janela alta com a haste de tungstenio subindo
@@ -66,7 +66,8 @@ META_EXTRA = {
     "name_ptbr": "Forja de Projéteis",
     "grid": {"blocked": [[0, 0], [1, 0], [2, 0], [0, 1], [1, 1], [2, 1], [1, 2]],
              "inputs": {"tristeel": [0, 2, 1, 1], "coil2": [2, 2, 1, 1]}, "outputs": {"slug": [0, 3, 3, 1]}},
-    "palette_note": "azul/laranja da Tupa nova (USER_NOTES: referencia da railgun) em vez do violeta do spec",
+    "palette_note": "azul/laranja da Tupa nova (USER_NOTES: referencia da railgun; SPEC 2.0 palette.rail azul), "
+                    "nunca violeta nem cobre",
     "notes": ["12 quadros x 0,25 s = 3,0 s = um projetil por volta (R07)"],
 }
 

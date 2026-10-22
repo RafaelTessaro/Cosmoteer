@@ -4,8 +4,9 @@ art_assets.assets.resources. Sem bpy.
 
     python3 tools/blender/parts/_bs2_itens_check.py --spec <SPEC_2.0.json> [id_curto ...]
 
-Sem ids: confere os 12 (ITENS). O caminho do spec tambem pode vir de BS_SPEC2; o padrao e
-tools/spec/bullet_strike_spec_2_0.json (onde a ligacao deve guardar o spec 2.0). Sai com 1 se algum falhar.
+Sem ids: confere os 12 (ITENS). O caminho do spec tambem pode vir de BS_SPEC2; o padrao e a copia do repo
+tools/spec/SPEC_2.0.json (ADDENDUM G13). Sai com 1 se algum falhar. (Com a ligacao feita, check_art3d.py --pacote WP11
+confere as mesmas pastas pelo bs_data 2.0.)
 """
 import json
 import os
@@ -23,7 +24,7 @@ ITENS = ["bs_mag_std", "bs_mag_ap", "bs_mag_sap", "bs_mag_ac", "bs_mag_frag", "b
 
 
 def main(argv):
-    spec_path = os.environ.get("BS_SPEC2") or os.path.join(ROOT, "tools", "spec", "bullet_strike_spec_2_0.json")
+    spec_path = os.environ.get("BS_SPEC2") or os.path.join(ROOT, "tools", "spec", "SPEC_2.0.json")
     if "--spec" in argv:
         i = argv.index("--spec")
         spec_path = argv[i + 1]

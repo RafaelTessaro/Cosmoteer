@@ -423,8 +423,10 @@ def shell_ladder_table():
         lt = v.get("lights") or {}
         # 'anchors' = o contrato 2.0 (None/{} = sem ancora: AC s/m/l nao guiadas); 'anchors_meta' = o que o
         # meta do BASE tinha (so registro)
+        nf = int(lt.get("frames") or 0)
         out[k] = {"canvas_px": v.get("canvas_px") or v.get("px"),
-                  "lights": lt if int(lt.get("frames") or 0) > 1 else None,
+                  # 1 quadro com fps 0 = atlas parado (AC s/m/l, WP11); 1 quadro sem fps 0 = sem atlas
+                  "lights": lt if nf > 1 or (nf == 1 and lt.get("fps") == 0) else None,
                   "mask": v.get("mask"), "anchors": v.get("anchors") or {}}
     return out
 
@@ -526,13 +528,16 @@ def check_projectiles(d, meta, errs, warns=None):
             n = int(lt.get("frames", 0))
             fw, fh = lt.get("frame_px", [0, 0])
             per = lt.get("per_row")
-            if n < 2:
+            # atlas PARADO de 1 quadro (fps 0; WP11: AC s/m/l de bs_shells2, SPEC shell_ladder.items.ac_s.lights) =
+            # sprite aditivo parado no jogo (fxkit.art_sprite_components); fora isso, 1 quadro = lights null
+            static = n == 1 and lt.get("fps") == 0
+            if n < 2 and not static:
                 errs.append(f"{tag}: lights com {n} quadro(s); com 1 quadro o atlas e omitido (lights = null)")
             if [fw, fh] != [pw, ph]:
                 errs.append(f"{tag}: lights.frame_px {lt.get('frame_px')} difere de px {it['px']}")
             if per != n:
                 errs.append(f"{tag}: lights.per_row {per} (o atlas e UMA fileira: per_row = frames = {n})")
-            if not lt.get("fps") or lt["fps"] <= 0:
+            if not static and (not lt.get("fps") or lt["fps"] <= 0):
                 errs.append(f"{tag}: lights.fps invalido ({lt.get('fps')})")
             if lt.get("wrap") not in (None, "Clamp"):
                 errs.append(f"{tag}: lights.wrap = {lt.get('wrap')} (null ou \"Clamp\")")
@@ -655,12 +660,21 @@ def _check_atlases(d, meta, errs, used):
 
 # ============================================================================ kind "layered"
 LAYERED_EMISSIVE_MAX = 0.02       # spec render_kinds.layered.check_art3d: <= 2 % nas camadas iluminadas
-FAMILY_CHIPS = ((255, 190, 60), (60, 220, 255), (255, 120, 40), (64, 128, 255), (255, 140, 40))
+# Tolerancias APROVADAS por (pasta, camada): arte ja aprovada pelo usuario e pelos revisores que passa dos 2 % neste
+# estimador. Valor = pior caso de TODOS os arquivos da camada (medido no WP10, rodada 2) com uma folga pequena. Arte
+# aprovada nunca e re-renderizada para caber; um re-render que acenda MAIS que a tolerancia volta a dar ERRO. A pasta
+# casa pelo nome da pasta ou pelo id do meta (rascunho fora de art3d/). Documentado no STYLE.md secao 12.
+LAYERED_EMISSIVE_ALLOW = {
+    ("bs_rail_loader", "projeteis"): (0.03, "dardos do pente com as faixas azuis do Tupa; projeteis6 2,90 %"),
+    ("bs_placas", "placa"): (0.065, "cor do codigo do tipo de municao na placa; placa_sap 6,03 %"),
+}
 
 
-def _glow_frac(img, denom=None):
+def _glow_frac(img, denom=None, chips=()):
     """Fracao de pixels muito claros e saturados (luz acesa) no sprite (denominador: o corpo do sprite ou
-    `denom` px). A pintura (verde) e o chip de familia (tinta) nao contam."""
+    `denom` px). A pintura (verde) nao conta; as cores de `chips` (+-40 por canal) tambem nao: so o chip de familia
+    pintado no teto do paiol (_roof_chips). Nas outras camadas nada e isento: o azul do Tupa (45, 115, 255) e o ambar
+    HE (255, 170, 60) caem a menos de 40 dos chips e sao luz de verdade."""
     import numpy as np
     a = np.asarray(img.convert("RGBA"), dtype=np.float32)
     solid = a[..., 3] > 128
@@ -670,10 +684,33 @@ def _glow_frac(img, denom=None):
     r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
     paint = (g - np.maximum(r, b) > 12) & (np.abs(r - b) < 64)
     chip = np.zeros_like(paint)
-    for c in FAMILY_CHIPS:
-        chip |= (np.abs(rgb - np.array(c, np.float32)).max(axis=2) < 40)
+    for c in chips:
+        chip |= (np.abs(rgb - np.array(c[:3], np.float32)).max(axis=2) < 40)
     hot = solid & (mx >= 235) & (sat >= 0.45) & ~paint & ~chip
     return hot.sum() / max(1, denom if denom else solid.sum())
+
+
+def _roof_chips(m, L, i):
+    """Cores isentas na conta do emissivo do arquivo i da camada L: SO no teto (game_layer roofs) de um meta que
+    declara family_chip (o paiol: o chip e tinta, sem emissao) e so o chip da familia da variante (+ a ponta,
+    family_chip_tip). Variante sem chip no meta: os chips do meta. Qualquer outra camada: nenhuma."""
+    fc = m.get("family_chip") or {}
+    if L.get("game_layer") != "roofs" or not isinstance(fc, dict) or not fc:
+        return ()
+    tip = m.get("family_chip_tip") or {}
+    vs = L.get("variants") or []
+    fam = vs[i] if i < len(vs) else None
+    cores = ([fc[fam]] + ([tip[fam]] if fam in tip else [])) if fam in fc else list(fc.values()) + list(tip.values())
+    return tuple(tuple(c) for c in cores if isinstance(c, (list, tuple)) and len(c) >= 3)
+
+
+def _emissive_limit(keys, name):
+    """(limite, motivo) do emissivo da camada `name`: a tolerancia aprovada de LAYERED_EMISSIVE_ALLOW para a
+    primeira pasta de `keys` que casar, senao (LAYERED_EMISSIVE_MAX, None)."""
+    for k in keys:
+        if (k, name) in LAYERED_EMISSIVE_ALLOW:
+            return LAYERED_EMISSIVE_ALLOW[(k, name)]
+    return LAYERED_EMISSIVE_MAX, None
 
 
 def _paint_keyed(img):
@@ -684,12 +721,15 @@ def _paint_keyed(img):
     return int(((al > 0) & (g > np.maximum(r, b)) & (np.abs(r - b) < 64)).sum())
 
 
-def check_layered_part(d, m, rep, tag=""):
+def check_layered_part(d, m, rep, tag="", keys=None):
     """Uma peca layered (meta normal ou parts.<sub> de uma pasta shared): arquivos, px = rect x 64 (+-1) ou o px
     da camada, rects dentro da peca, conjuntos completos, alfa (lights_add opaco; componente unico sem islands;
-    pisos opacos), normais com o alfa do difuso, chave de pintura fora dos tetos, emissivo <= 2 %, tranco e flags."""
+    pisos opacos), normais com o alfa do difuso, chave de pintura fora dos tetos, emissivo <= 2 % em TODO arquivo
+    (niveis, quadros e variantes; pior caso por camada; tolerancia aprovada por pasta/camada em
+    LAYERED_EMISSIVE_ALLOW, `keys` = nomes da pasta), tranco e flags."""
     import numpy as np
     W, H = m["size"]
+    keys = tuple(keys or (os.path.basename(os.path.normpath(d)),))
     for f in m.get("files", []):
         if not os.path.exists(os.path.join(d, f)):
             rep.err(f"{tag}{f}: listado no meta e nao existe")
@@ -722,6 +762,7 @@ def check_layered_part(d, m, rep, tag=""):
         if nrm and len(nrm) != len(L["files"]):
             rep.err(f"{tag}{name}: {len(nrm)} normais para {len(L['files'])} sprites")
         dirty_total = 0
+        glow = []                          # [(emissivo estimado, arquivo)] de todos os arquivos medidos da camada
         for i, f in enumerate(L["files"]):
             p = os.path.join(d, f)
             if not os.path.exists(p):
@@ -757,12 +798,9 @@ def check_layered_part(d, m, rep, tag=""):
                 nk = _paint_keyed(im)
                 if nk:
                     rep.err(f"{tag}{name}: {f} com {nk} pixels na chave de pintura (verde com |r - b| < 64)")
-            if gl != "lights_add" and i == 0:
+            if gl != "lights_add":
                 big_surface = gl in ("roofs", "floors")
-                g = _glow_frac(im, None if big_surface else W * H * PX * PX)
-                rep.note(f"{name} {f}: emissivo estimado {g:.2%}" + ("" if big_surface else " da peca"))
-                if g > LAYERED_EMISSIVE_MAX:
-                    rep.err(f"{tag}{name}: {f} com emissivo estimado {g:.1%} (> 2 %)")
+                glow.append((_glow_frac(im, None if big_surface else W * H * PX * PX, _roof_chips(m, L, i)), f))
             nf = f[:-4] + "_normals.png"
             if nrm:
                 if nf not in nrm:
@@ -777,6 +815,20 @@ def check_layered_part(d, m, rep, tag=""):
                         rep.err(f"{tag}{name}: {nf} com alfa diferente do difuso")
         if dirty_total:
             rep.note(f"{name}: {dirty_total} px de alfa 0 com RGB != 0 (franja no bilinear)")
+        if glow:
+            gw, fw = max(glow)
+            lim, why = _emissive_limit(keys, name)
+            rep.note(f"{tag}{name}: emissivo estimado pior caso {gw:.2%} em {fw} ({len(glow)} arquivo(s)"
+                     + ("" if gl in ("roofs", "floors") else ", fracao da peca") + ")")
+            if why:
+                rep.note(f"{tag}{name}: tolerancia APROVADA de emissivo {lim:.1%} (LAYERED_EMISSIVE_ALLOW, STYLE.md 12:"
+                         f" {why})" + ("; sobrando: o pior caso ja cabe nos 2 %, tire a tolerancia"
+                                       if gw <= LAYERED_EMISSIVE_MAX else ""))
+            bad = sorted(((g, f) for g, f in glow if g > lim), reverse=True)
+            if bad:
+                rep.err(f"{tag}{name}: {len(bad)} de {len(glow)} arquivo(s) com emissivo estimado acima de {lim:.1%}"
+                        f"{' (tolerancia aprovada)' if why else ''}: "
+                        + ", ".join(f"{f} {g:.1%}" for g, f in bad[:5]) + (" ..." if len(bad) > 5 else ""))
     for k in ("icon", "blueprints"):
         v = m.get(k)
         for f in (v if isinstance(v, list) else [v] if v else []):
@@ -883,16 +935,18 @@ def check_layered(d, meta, rep):
     for f in meta.get("files", []):
         if not os.path.exists(os.path.join(d, f)):
             rep.err(f"{f}: listado no meta e nao existe")
+    # nomes da pasta para as tolerancias de emissivo: a pasta e o id do meta (rascunho fora de art3d/)
+    keys = (os.path.basename(os.path.normpath(d)), str(meta.get("id") or "").split(".", 1)[-1])
     if meta.get("shared"):
         union = set()
         for sub, m in sorted((meta.get("parts") or {}).items()):
-            check_layered_part(d, m, rep, tag=f"[{sub}] ")
+            check_layered_part(d, m, rep, tag=f"[{sub}] ", keys=keys)
             union |= set(m.get("files", []))
         if union - set(meta.get("files", [])):
             rep.err(f"meta shared: 'files' sem {sorted(union - set(meta.get('files', [])))[:5]}")
         print(f"layered shared: {len(meta.get('parts') or {})} pecas, {len(meta.get('files', []))} arquivos")
     else:
-        check_layered_part(d, meta, rep)
+        check_layered_part(d, meta, rep, keys=keys)
         print(f"layered: {len(meta.get('layers') or {})} camadas, {len(meta.get('files', []))} arquivos")
 
 

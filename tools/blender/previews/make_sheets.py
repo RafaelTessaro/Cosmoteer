@@ -18,14 +18,14 @@ GROUPS = [
     ("Mapinguari 406 mm", "calibre pesado", "blindagem segmentada, nariz sensor de lente escura, anel aceso na base",
      ["he_l", "ap_l", "sap_l", "ac_l"]),
     ("Boiúna", "obuseiro", "a 406 gorda: segmentada, nariz sensor, base-bleed âmbar com respiros acesos "
-     "(sem trevo, sem verde); traçante do layout atual, proposta de traçante fino em projeteis_antes_depois.png",
+     "(sem trevo, sem verde); a única AC guiada; traçante fino da 2.0 em projeteis_antes_depois.png",
      ["he_h", "ac_h"]),
-    ("PEM", "Tuvira · Treme-Treme · Mãe-do-Ouro", "cápsula escura, bobinas de fio de cobre, luz ciano que pula entre "
+    ("PEM", "Tuvira · Treme-Treme · Corisco", "cápsula escura, bobinas de fio de cobre, luz ciano que pula entre "
      "as bobinas", ["pem_s", "pem_m", "pem_l"]),
-    ("Tupã (railgun)", "slug", "dardo fino de tungstênio claro, 6 aletas curtas, colares EM violeta, ponta quente "
-     "ouro-branca (sem cobre, sem chama)", ["slug"]),
+    ("Tupã (railgun)", "slug", "dardo fino de tungstênio claro, 6 aletas curtas, colares EM AZUIS, ponta quente "
+     "branco-azulada com o colar laranja (paleta azul da Tupã; sem cobre, sem chama)", ["slug"]),
 ]
-NAME = {"pem_s": "Tuvira 40 mm", "pem_m": "Treme-Treme 76 mm", "pem_l": "Mãe-do-Ouro 155 mm", "slug": "slug da Tupã"}
+NAME = {"pem_s": "Tuvira 40 mm", "pem_m": "Treme-Treme 76 mm", "pem_l": "Corisco 155 mm", "slug": "slug da Tupã"}
 
 
 def item_name(k):
@@ -37,7 +37,7 @@ def item_name(k):
 def zoom_name(k):
     """Rótulo curto dos ampliados (as células de 76 mm a 3x têm só ~190 px de largura)."""
     if k in NAME:
-        return {"pem_s": "Tuvira", "pem_m": "Treme-Treme", "pem_l": "Mãe-do-Ouro", "slug": "slug"}[k]
+        return {"pem_s": "Tuvira", "pem_m": "Treme-Treme", "pem_l": "Corisco", "slug": "slug"}[k]
     return k.split("_")[0].upper()
 
 
@@ -179,34 +179,38 @@ def sheet_antes_depois(d, outp):
         parts.append(pack([za, zb], MAXW, gap=24))
     # proposta para o integrador: clarao da base menor e recuado (76 e 155 mm)
     parts.append(text_block([
-        ("Proposta para a 2.0: clarão da base menor e recuado (Tambor e Trovão)", 15, (255, 205, 120), True),
+        ("Adotado na 2.0 (ADDENDUM G7 f): clarão da base menor e recuado (Tambor e Trovão)", 15, (255, 205, 120),
+         True),
         ("O clarão branco da base (cabeça do traçante, 1,6 x 'head' da 1.x) é maior que a granada de 76 mm e "
-         "lava a traseira das luvas claras. Proposta: metade do diâmetro, recuado para trás da base (encostando nela). Escala real "
+         "lava a traseira das luvas claras. Na 2.0: metade do diâmetro, recuado para trás da base (encostando nela). "
+         "Escala real "
          "e zoom 2x.", 12, (170, 176, 190), False)], MAXW))
     for key, nm in (("he_s", "Tambor"), ("he_m", "Trovão")):
-        cells = [cell_1x(d, meta, key, lanes=("espaço", "escuro"), width_t=5, title=f"{nm}: clarão atual"),
-                 cell_1x(d, meta, key, lanes=("espaço", "escuro"), width_t=5, title=f"{nm}: clarão proposto",
+        cells = [cell_1x(d, meta, key, lanes=("espaço", "escuro"), width_t=5, title=f"{nm}: clarão da Fase B"),
+                 cell_1x(d, meta, key, lanes=("espaço", "escuro"), width_t=5, title=f"{nm}: clarão da 2.0",
                          head_k=0.5, head_dx=0.15),
-                 cell_1x(d, meta, key, lanes=("escuro",), width_t=3, title="atual (2x)", P=128),
-                 cell_1x(d, meta, key, lanes=("escuro",), width_t=3, title="proposto (2x)", P=128, head_k=0.5,
+                 cell_1x(d, meta, key, lanes=("escuro",), width_t=3, title="Fase B (2x)", P=128),
+                 cell_1x(d, meta, key, lanes=("escuro",), width_t=3, title="2.0 (2x)", P=128, head_k=0.5,
                          head_dx=0.15)]
         parts.append(pack(cells, MAXW, gap=16))
     # proposta para o integrador: tracante fino da Boiuna (sem 'chama de foguete' atras da granada)
     parts.append(text_block([
-        ("Proposta para a 2.0: traçante fino na Boiúna (granada, não foguete)", 15, (255, 205, 120), True),
-        ("O layout atual do obuseiro (bs_nuke_howitzer: traçante 5 x 0,9 quadro, sem clarão na cabeça) põe o núcleo "
+        ("Adotado na 2.0 (ADDENDUM G7 d): traçante fino na Boiúna (granada, não foguete)", 15, (255, 205, 120),
+         True),
+        ("O layout da Fase B do obuseiro (bs_nuke_howitzer: traçante 5 x 0,9 quadro, sem clarão na cabeça) põe o "
+         "núcleo "
          "branco-quente colado na base e o traçante largo abre em pluma: com os respiros acesos e as aletas da AC, "
          "lê como míssil com chama.", 12, (170, 176, 190), False),
-        ("Proposta: traçante 6,5 quadros com 45% da largura, núcleo curto (1,6 quadro, metade da largura) começando "
+        ("Na 2.0: traçante 6,5 quadros com 45% da largura, núcleo curto (1,6 quadro, metade da largura) começando "
          "0,35 quadro atrás da base, rastro com metade da largura; traçante, núcleo e rastro com 75% da intensidade. "
          "Escala real e zoom 2x.", 12,
          (170, 176, 190), False)], MAXW))
     for key, nm in (("he_h", "Boiúna HE"), ("ac_h", "Boiúna AC")):
-        cells = [cell_1x(d, meta, key, lanes=("espaço", "escuro"), width_t=6, title=f"{nm}: traçante atual"),
-                 cell_1x(d, meta, key, lanes=("espaço", "escuro"), width_t=6, title=f"{nm}: traçante proposto",
+        cells = [cell_1x(d, meta, key, lanes=("espaço", "escuro"), width_t=6, title=f"{nm}: traçante da Fase B"),
+                 cell_1x(d, meta, key, lanes=("espaço", "escuro"), width_t=6, title=f"{nm}: traçante da 2.0",
                          thin=BOIUNA_THIN),
-                 cell_1x(d, meta, key, lanes=("escuro",), width_t=4, title="atual (2x)", P=128),
-                 cell_1x(d, meta, key, lanes=("escuro",), width_t=4, title="proposto (2x)", P=128,
+                 cell_1x(d, meta, key, lanes=("escuro",), width_t=4, title="Fase B (2x)", P=128),
+                 cell_1x(d, meta, key, lanes=("escuro",), width_t=4, title="2.0 (2x)", P=128,
                          thin=BOIUNA_THIN)]
         parts.append(pack(cells, MAXW, gap=16))
     im = stack(parts)
@@ -271,7 +275,9 @@ def sheet_futuristas(d, outp):
          "HE espoleta de ponta chata (no 406 e na Boiúna, nariz sensor fino e escalonado) ·", 13, (205, 210, 220),
          False),
         ("AP ogiva longa com capuz escuro de filete claro e ponta de penetrador · SAP capuz rombudo e largo · "
-         "AC guiada (aletas, canards e anel de ouro, buscador que pisca).", 13, (205, 210, 220), False),
+         "AC carmim e ouro com aletas de cauda (voa reta; só a AC da Boiúna é guiada: canards e buscador que "
+         "pisca).",
+         13, (205, 210, 220), False),
         ("Escala real = 64 px por quadro, com traçante, clarão da base, rastro e luzes como no jogo; cada tiro sobre o "
          "espaço e sobre um casco escuro. Abaixo de cada grupo, só o sprite ampliado 3x (sem traçante: ele está na "
          "escala real acima).", 12, (170, 176, 190), False),
@@ -300,7 +306,7 @@ def sheet_casco(d, outp):
         ("Nas fileiras por calibre o brilho grande fica de fora, para conferir só o desenho; no fim, o tiro como "
          "está hoje no jogo (o casco branco estoura) e a correção que entra na 2.0.", 12, (170, 176, 190), False),
         ("O contorno vem das frestas escuras entre as luvas claras, da cauda e do nariz escuros e da faixa colorida; "
-         "o slug tem os colares violeta e a PEM é uma cápsula escura.", 12, (170, 176, 190), False),
+         "o slug tem os colares azuis e a PEM é uma cápsula escura.", 12, (170, 176, 190), False),
     ], MAXW)]
     for name, tier, cue, keys in GROUPS:
         parts.append(text_block([(f"{name} — {tier}", 15, (255, 205, 120), True)], MAXW))
@@ -344,7 +350,8 @@ def sheet_casco(d, outp):
 SHORT = {"s": "Tambor 76", "m": "Trovão 155", "l": "Mapinguari 406", "h": "Boiúna"}
 ANIM = {"s": "faixa de LED pisca", "m": "anel de LED / fendas em V alternam",
         "l": "scanner do visor + anel da base", "h": "scanner do visor + base-bleed âmbar",
-        "ac": "buscador pisca", "pem_s": "faixa ciano pisca", "pem_m": "carga pula: vão 1 › vão 2 › nariz",
+        "ac": "luz parada (voa reta, sem buscador)", "pem_s": "faixa ciano pisca",
+        "pem_m": "carga pula: vão 1 › vão 2 › nariz",
         "pem_l": "onda nas frestas entre as bobinas", "slug": "onda nos colares EM + ponta quente"}
 
 
@@ -353,16 +360,17 @@ def gif_label(k):
     if k.startswith("pem_") or k == "slug":
         return NAME[k], ANIM[k]
     ammo, tier = k.split("_")
-    an = ANIM["ac"] if ammo == "ac" and tier in ("s", "m") else ANIM[tier]
-    if ammo == "ac" and tier in ("l", "h"):
-        an = "buscador + " + an.replace("scanner do visor", "scanner")
+    an = ANIM["ac"] if ammo == "ac" and tier in ("s", "m", "l") else ANIM[tier]
+    if ammo == "ac" and tier == "h":
+        # so a AC da Boiuna e guiada (as AC dos canhoes tem 1 quadro de luz parado)
+        an = "guiada: buscador + " + an.replace("scanner do visor", "scanner").replace(" âmbar", "")
     return f"{SHORT[tier]} · {ammo.upper()}", an
 
 
 def gif_palette(rgb, n=255, iters=12, wsat=3.0):
     """Paleta global do GIF por k-means ponderado sobre as cores UNICAS de TODOS os quadros compostos (luzes sobre o
     corpo, cada quadro de cada celula). Peso = raiz da contagem, x wsat nas cores saturadas (max - min > 40): os
-    tons raros e saturados (violeta do slug, carmim da AC, ambar/ciano dos LEDs) ganham entradas proprias em vez de
+    tons raros e saturados (azul do slug, carmim da AC, ambar/ciano dos LEDs) ganham entradas proprias em vez de
     cair no cinza-azulado do corpo. Semente = median-cut das cores unicas. (A r1 usava median-cut de uma amostra:
     o violeta virava azul-claro.)"""
     allpx = np.concatenate([a.reshape(-1, 3) for a in rgb])
@@ -471,8 +479,8 @@ def sheet_luzes(d, outp):
         PV.label(bimg, x, y + 16, l2, 11, (175, 182, 195), False)
     PV.label(bimg, 12, 8, "Luzes dos projéteis 2.0 — ampliado (a textura tem 128 px por quadro; no jogo a 76 mm "
              "tem 46 px)", 16, (245, 246, 250), True)
-    PV.label(bimg, 12, 32, "Cada atlas no fps do jogo: 76/155 mm 4 qps, 406 mm e Boiúna 6 qps, PEM 6/10/12 qps, "
-             "slug 12 qps. LEDs só em recessos escuros; faixa da munição já tingida.", 12, (175, 182, 195), False)
+    PV.label(bimg, 12, 32, "Cada atlas no fps do jogo: 76/155 mm 4 qps (AC dos canhões: luz parada), 406 mm e Boiúna "
+             "6 qps, PEM 6/10/12 qps, slug 12 qps. LEDs em recessos escuros.", 12, (175, 182, 195), False)
     sprites = {}
     for k in keys:
         it = meta["items"][k]

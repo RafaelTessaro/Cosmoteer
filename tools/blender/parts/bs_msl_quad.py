@@ -38,7 +38,7 @@ PART = {
     "ring_r": 2.0,
     "collider": 2.1,
     "accent": "amber",
-    "looks": ["he", "cluster", "limpet", "napalm", "emp", "torpedo", "nuclear"],
+    "looks": ["he", "cluster", "emp", "nuclear"],   # 2.0: Jararaca, Piranha (heavy8), Poraque (heavy16), Iara
     "oc_glow": True,
     "oc_occlude": True,            # o brilho do overclock fica atras das pecas da cabeca (holdout)
     "lights": [
@@ -70,12 +70,11 @@ ZT = -VT - 0.025                     # topo do corpo do casulo (referencial do e
 CH = 0.10                            # chanfro das quinas de cima do casulo
 VENT_Z = ZT + 0.004                  # fundo da grelha de sopro (acima do corpo escuro)
 
-BAND = {"he": (0.80, 0.327, 0.0), "cluster": (0.80, 0.62, 0.086), "limpet": (0.80, 0.035, 0.024),
-        "napalm": (0.80, 0.11, 0.0093), "emp": (0.062, 0.437, 0.80), "torpedo": (0.62, 0.64, 0.70),
+BAND = {"he": (0.80, 0.327, 0.0), "cluster": (0.80, 0.62, 0.086), "emp": (0.062, 0.437, 0.80),
         "nuclear": (0.16, 0.80, 0.11)}
-BAND_GLOW = {"he": (1.0, 0.473, 0.0), "cluster": (1.0, 0.78, 0.11), "limpet": (1.0, 0.044, 0.03),
-             "napalm": (1.0, 0.186, 0.0155), "emp": (0.078, 0.546, 1.0), "torpedo": (0.9, 0.93, 1.0),
+BAND_GLOW = {"he": (1.0, 0.473, 0.0), "cluster": (1.0, 0.78, 0.11), "emp": (0.078, 0.546, 1.0),
              "nuclear": (0.20, 1.0, 0.147)}
+HEAVY_BD1 = 0.2112                   # profundidade (vista de cima) do bloco heavy de 1 fileira (launcher_layout)
 EMBER = (1.0, 0.16, 0.02)
 NOSE_LIGHT = (0.64, 0.65, 0.66)      # tinta clara dos narizes (todas as formas)
 
@@ -630,9 +629,10 @@ def _ogive(R, L, z0, tip_r=0.016):
 
 
 def cell(M, look, T="cell", form="tube", box=None):
-    """UM nariz carregado (origem = centro da boca / da fileira / da face no plano da face), eixo inclinado
-    como o casulo. tube: anel na cor do missil + ogiva clara; heavy: capsula de calibre duplo deitada sobre a
-    fileira de 3 tubos; torpedo: ogiva grande tampando a face do casulo."""
+    """UM nariz carregado (origem = centro da boca / do bloco / da face no plano da face), eixo inclinado
+    como o casulo. tube: anel na cor do missil + ogiva clara (Jararaca); heavy: capsula de calibre duplo deitada
+    sobre o bloco de fileiras (Poraque heavy16 = 1 fileira de 3 tubos; Piranha heavy8 = bloco 3x2); torpedo: ogiva
+    grande tampando a face do casulo (Iara)."""
     tags = (T,)
     band = _band_mat(look)
     antes = _cena()
@@ -699,17 +699,23 @@ def _wedge_nose(name, a, b, h, ch, c, mat, tags, z0=0.0, dv=0.0, nx=10, na=12, f
 
 
 def _heavy(M, tags, band, box, look):
-    """Nariz pesado de calibre duplo (Piranha / Carrapato / Taturana / Poraque) deitado na fileira: corpo CLARO em
-    cunha (arco liso com a crista inclinada para a frente, pontas em cinzel), aro fino na cor do missil por baixo
-    (aparece atras e nas pontas), capuz escuro do buscador na crista e um detalhe por tipo: costuras escuras
-    (submunicoes), presilhas de aco (lapa), sulco na crista + valvulas (napalm), bobinas na cor (EMP)."""
-    bw, bd = (box or [0.70, 0.21])
+    """Nariz pesado de calibre duplo deitado no bloco: corpo CLARO em cunha (arco liso com a crista inclinada para a
+    frente, pontas em cinzel), aro fino na cor do missil por baixo (aparece atras e nas pontas), capuz escuro do
+    buscador na crista e um detalhe por tipo. box = [comprimento lateral, profundidade na vista de cima]
+    (launcher_layout): com 1 fileira (heavy16, Poraque) os valores sao os de sempre; com o bloco de 2 fileiras
+    (heavy8, portador da Piranha) a meia largura cresce meio passo de fileira por fileira extra e a crista sobe um
+    pouco, entao o portador cobre as 2 fileiras de bocas.
+    Piranha: 2 costuras escuras com o filete amarelo no fundo (as petalas do missil em voo) dividem o corpo em 3
+    gomos, um por coluna de tubos; sem costura entre as fileiras, para o bloco ler como UM portador gordo.
+    Poraque: bobinas na cor perto das pontas."""
+    bw, bd = (box or [0.70, HEAVY_BD1])
     K, S = M["core"], M["steel"]
+    extra = max(0.0, bd - HEAVY_BD1)    # profundidade das fileiras extras (vista de cima)
     a = bw / 2 - 0.025                  # meio comprimento (lateral)
-    b = 0.094                           # meia largura no plano da face
-    h = 0.078                           # altura da crista
+    b = 0.094 + extra / 2 / SIN         # meia largura no plano da face (1 fileira: 0.094)
+    h = 0.078 * (1.0 + 0.45 * (b / 0.094 - 1.0))   # altura da crista (1 fileira: 0.078)
     z0 = 0.014
-    dv = -0.03                          # recua no plano da face: a crista projetada fica centrada na fileira
+    dv = -0.03                          # recua no plano da face: a crista projetada fica centrada no bloco
     ch = 0.085                          # cinzel das pontas
     cf = 0.40                           # crista deslocada para a frente (fracao de b)
     yc = dv + cf * b
@@ -720,22 +726,13 @@ def _heavy(M, tags, band, box, look):
     cap = _wedge_nose("h_body", a, b, h, ch, cf, body, tags, z0=z0, dv=dv)
     zt = z0 + h
     if look == "cluster":
-        # submunicoes: 2 costuras escuras (~2 px) dividem o corpo e o aro em 3 gomos (um por tubo)
-        B.cut(cap, [B.box(f"h_seam{k}", s * PU / 2, dv, 0.032, 0.4, z0 - 0.01, 0.4, K, bevel=0.0)
+        # submunicoes: 2 costuras escuras (~2 px) dividem corpo e aro em 3 gomos (um por coluna de tubos); no fundo
+        # de cada costura o filete amarelo (as petalas da Piranha)
+        B.cut(cap, [B.box(f"h_seam{k}", s * PU / 2, dv, 0.032, 2 * b + 0.2, z0 - 0.01, 0.6, K, bevel=0.0)
                     for k, s in enumerate((-1, 1))])
         for k, s in enumerate((-1, 1)):
             B.box(f"h_seamf{k}", s * PU / 2, dv, 0.034, 2 * b + 0.08, -0.002, z0 + 0.03, K, bevel=0.0, tags=tags)
-    elif look == "limpet":
-        # presilhas de aco atravessando o corpo
-        for k, s in enumerate((-1, 0, 1)):
-            B.box(f"h_clamp{k}", s * 0.20, dv + 0.01, 0.03, 2 * b + 0.05, 0.0, z0 + h * 0.86, S, bevel=0.005,
-                  tags=tags)
-    elif look == "napalm":
-        # sulco escuro ao longo da crista e 2 valvulas de aco nas pontas dele
-        B.cut(cap, [B.box("h_groove", 0, yc, 2 * (a - 0.13), 0.04, zt - 0.028, 0.4, K, bevel=0.0)])
-        B.box("h_groovef", 0, yc, 2 * (a - 0.13), 0.04, zt - 0.04, zt - 0.024, K, bevel=0.0, tags=tags)
-        for k, s in enumerate((-1, 1)):
-            B.cyl(f"h_valve{k}", s * (a - 0.10), yc, zt - 0.014, 0.026, 0.04, S, axis="Z", verts=8, bevel=0.004,
+            B.box(f"h_seamy{k}", s * PU / 2, dv, 0.012, 2 * b - 0.02, z0 + 0.03, z0 + 0.036, band, bevel=0.0,
                   tags=tags)
     elif look == "emp":
         # bobinas: 2 aneis finos na cor do missil perto das pontas, espacador de aco ao lado
@@ -750,10 +747,9 @@ def _heavy(M, tags, band, box, look):
 
 
 def _torpedo(M, tags, band, box, look):
-    """Torpedo (Boto) / Iara: cassete escuro tampando a face, ogiva grande clara com costuras, aro fino na cor
-    (branco no Boto, verde na Iara) e buscador escuro com bico de aco."""
-    white = _nose_paint("torp_white", (0.53, 0.555, 0.60)) if look != "nuclear" else \
-        _nose_paint("torp_iara", (0.40, 0.42, 0.45))
+    """Iara (torpedo2_inner): cassete escuro tampando a face, ogiva grande com costuras, aro escuro e faixa verde
+    fina, buscador escuro com bico de aco (o Boto da 1.x saiu na 2.0)."""
+    white = _nose_paint("torp_iara", (0.40, 0.42, 0.45))
     bw, bd = (box or [0.70, 0.84])
     hw, hh = bw / 2, bd / 2 / SIN
     B.plate("t_collar", B.rpoly(0, 0, 2 * hw + 0.02, 2 * hh - 0.02, 0, chamfer=0.07), 0.0, 0.045, M["core_mid"],

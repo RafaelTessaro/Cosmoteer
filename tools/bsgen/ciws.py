@@ -31,7 +31,7 @@ from rules_dsl import Q, VOID, Inh, comment, render
 from bsgen import common as C
 from bsgen.guns import (geometry, deck_graphics, crew_positions_for, ammo_selector, mag_storage, mag_consumers,
                         intake_fields, intake_components, cookoff_effects, skip_down_for, write_art, rules_root,
-                        node_at, num_at, list_at, _eq, _k, _ctx)
+                        node_at, num_at, list_at, _eq, _k, _ctx, check_ui_rects)
 
 API = 2
 SHOT_KINDS = ("frag_fragment",)
@@ -120,7 +120,7 @@ def build_ciws(c, beam_paths, beam_oc_paths=None, ctx=None):
     if sel:
         ammo_selector(comp, c, modes)
     for i, m in enumerate(modes):
-        mag_storage(comp, c, m, i, w, h)
+        mag_storage(comp, c, m, i, w, h, len(modes))
         mag_consumers(comp, m, sel)
     if sel:
         for m in modes:
@@ -479,6 +479,7 @@ def selfcheck(mod_dir, SPEC):
                                      or node_at(base, "ResourceStorage").value != f"Splitter_{i}"):
                 errs.append(f"{short}/{m['key']}: o feixe nao puxa do Splitter_{i}")
             errs += _check_beam(mod_dir, c, m, tmodes.get(i, m), shots, D)
+        errs += check_ui_rects(short, comp, [m["index"] for m in d["ammo_modes"]])
     return errs
 
 

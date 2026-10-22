@@ -17,17 +17,18 @@ Unidades: cada item e modelado centrado na origem, frente = +Y, cabendo em ~1 x 
 pilha com unit_scale). Os nomes de material comecam com "it2_" (o cache do bs3d e por nome).
 
 NOTAS PARA A LIGACAO (WP11: desvios conscientes do SPEC 2.0; nao "corrigir" de volta)
-- Projetil de Railgun (bs_slug_rail): AZUL [45,115,255]/[110,175,255] + travas laranja, nao o violeta do
-  palette.rail/look do spec (USER_NOTES: referencia do usuario, "slug da Tupa acompanha a cor"; parts/bs_rail.py).
+- Projetil de Railgun (bs_slug_rail): AZUL [45,115,255]/[110,175,255] + travas laranja (USER_NOTES: referencia do
+  usuario, "slug da Tupa acompanha a cor"; parts/bs_rail.py). O SPEC ja foi alinhado (palette.rail azul); so o texto
+  antigo do look do slug ainda fala em violeta/ponta de ouro: vale a arte azul, sem ouro.
 - Carga de Submunicao (bs_msl_cluster): AMARELO-limao (Mo.BAND["cluster"], a Piranha 2.0 em voo; STYLE 8.3), nao o
   laranja-ouro do palette.cluster/look do spec, que a 1x se confundia com a HE.
 - Carregador SAP (bs_mag_sap): laranja AVERMELHADO (CHIP["sap"] 255,98,28, entre o tracer e o hull do palette.sap) no
   item; o tracer/faixa em voo seguem o palette do spec.
 - Cargas de missil: pilha 1..5 centrada e 2a camada recuada em y (MSL_LAYOUT), nao o stack_layout_7_10 do spec.
-- Limpeza da 1.x: bs_mag_emp (Carregador EMP) e bs_shell_nuke (Projetil Nuclear) saem com a ligacao (art3d_owner_map:
-  "sai_em WP11"); ate la ficam porque o bs_data 1.x e as fabricas ainda os leem. TODO da ligacao: apagar
-  art3d/bs_mag_emp, art3d/bs_shell_nuke, parts/bs_mag_emp.py, parts/bs_shell_nuke.py e o import de bs_mag_std em
-  parts/bs_factory_mag_emp.py (junto com essa fabrica da 1.x).
+- Limpeza da 1.x (FEITA no WP11): bs_mag_emp (Carregador EMP) e bs_shell_nuke (Projetil Nuclear) sairam
+  (art3d_owner_map: "sai_em WP11"; nada no 2.0 os le): art3d/bs_mag_emp, art3d/bs_shell_nuke, parts/bs_mag_emp.py e
+  parts/bs_shell_nuke.py apagados; a Ogiva Nuclear 2.0 e parts/bs_msl_nuke.py e a Celula PEM e parts/bs_cell_emp.py.
+  (parts/bs_factory_mag_emp.py, que importava bs_mag_std, sai no WP12 junto com essa fabrica da 1.x.)
 """
 
 import math
@@ -735,8 +736,9 @@ def warhead(M, Xm, tags, led_s=1.0):
 # ============================================================================ projetil da railgun (Tupa)
 # Unidade ao longo de +Y (~0.32 x 0.96): o dardo de tungstenio claro da Tupa num BERCO claro (2 trilhos de bisel duplo
 # sobre um leito escuro, com travas LARANJA: os detalhes laranja da referencia do usuario), 4 colares EM AZUIS (a paleta
-# nova da railgun: azul [45,115,255] / claro [110,175,255]) com a fenda acesa, ponta quente ouro-branca e 3 aletas
-# curtas de grafite na cauda (2 laterais + 1 dorsal). Nunca cobre, nunca chama.
+# nova da railgun: azul [45,115,255] / claro [110,175,255]) com a fenda acesa, ponta de aco claro com um ponto quente
+# BRANCO pequeno (sem ouro: a ponta dourada era a Tupa violeta antiga) e 3 aletas curtas de grafite na cauda
+# (2 laterais + 1 dorsal). Nunca cobre, nunca chama.
 SLUG_SCALE = 0.86
 SLUG_LAYOUT = {1: [(0, 0, 0)], 2: [(-0.16, 0, 0), (0.16, 0, 0)]}
 

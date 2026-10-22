@@ -946,7 +946,8 @@
  ],
  "notes": [
   "Pasta COMPARTILHADA (extensao da logistica ao esquema layered do spec): meta.json = {shared: true, id: rafaeltessaro.bs_paiol_comum, parts: {1x1|2x2|3x3: <meta layered normal>}, files: [uniao]}. O 'id' de cada sub-meta (rafaeltessaro.bs_paiol_<n>) e so o nome do conjunto: os ids REAIS das 12 pecas estao em parts.<n>.ids.<familia> (rafaeltessaro.bs_paiol_<familia>_<n>). Para o WP10 (check_art3d) e o bsgen/layered.py.",
-  "Spec: art3d_owner_map chama a pasta de 'bs_paiol_comum'; a arte esta em art3d/bs_paiol (art_dir do spec) e e publicada em parts/bs_paiol_comum/ (regras: '../bs_paiol_comum/<arquivo>').",
-  "PARA O WP05/WP10 (atualizar o spec ao ligar): SPEC_2.0 art_assets.palette.family_chip.projeteis ainda diz violeta (150, 105, 255), e palette.rail (violet/glow/chip) tambem. A arte segue a USER_NOTES (Tupa azul): o chip dos projeteis e AZUL (64, 128, 255) com pontas LARANJA (255, 140, 40) (meta parts.<n>.family_chip / family_chip_tip e helpers.FAMILY_CHIP / FAMILY_CHIP_TIP). Troque o spec, nao a arte."
+  "Pasta: a arte fica em art3d/bs_paiol (SPEC art_assets.art3d_owner_map, dono WP12) e e publicada em parts/bs_paiol_comum/ (regras: '../bs_paiol_comum/<arquivo>'; make_art.layered_art com art3d.published_dir).",
+  "Chip da familia = SPEC art_assets.palette.family_chip (o spec 2.0 ja segue a arte): projeteis AZUL (64, 128, 255) com pontas LARANJA (255, 140, 40), paleta azul do Tupa (meta parts.<n>.family_chip / family_chip_tip e helpers.FAMILY_CHIP / FAMILY_CHIP_TIP).",
+  "Digitos (digito0..9.png): so com o switch paiol_counter; no build 2.0 o contador esta DESLIGADO e a ligacao nao publica os digito*.png (a janela pintada no teto fica escura)."
  ]
 }

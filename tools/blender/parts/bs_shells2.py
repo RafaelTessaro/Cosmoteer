@@ -8,12 +8,13 @@ shell_ladder do spec de arte 2.0 (design/art/spec_art.json):
                                                     anel escuro do sensor na espoleta)
   nivel m  Trovao 155 mm     he_m ap_m sap_m ac_m   luvas em divisa (Mo.chevron_sleeve) + anel de LED + fendas
                                                     de trilho em V (varridas para o nariz, borda de dentro acesa) no
-                                                    ombro da ogiva (a AC fica sem: ali estao os canards)
+                                                    ombro da ogiva (a AC fica sem: o ombro curto da ogiva fina
+                                                    deixava as fendas como cacos soltos)
   nivel l  Mapinguari 406 mm he_l ap_l sap_l ac_l   blindagem segmentada com paineis de chanfro duplo + nariz
                                                     sensor (domo de lente escura) + anel aceso na base
   nivel h  Boiuna (obuseiro) he_h ac_h              o nivel l GORDO, com unidade de base-bleed ambar (sem trevo,
                                                     sem verde)
-  PEM      Tuvira / Treme-Treme / Mae-do-Ouro       pem_s pem_m pem_l: capsula escura + bobinas de fio de cobre
+  PEM      Tuvira / Treme-Treme / Corisco           pem_s pem_m pem_l: capsula escura + bobinas de fio de cobre
                                                     (espiras redondas com brilho, como as do Poraque; assinatura da
                                                     familia PEM) + luz ciano; pem_m com o brilho ciano que pula entre
                                                     as bobinas, pem_l com o nucleo segmentado
@@ -35,9 +36,11 @@ Municao pela COR e pela SILHUETA (a mesma em todos os niveis):
     na divisa capuz/corpo e a ponta do penetrador de aco exposta;
   * SAP (Semiperfurante, laranja): capuz rombudo largo (mais chato que o da HE e o da AP; no l/h ainda mais largo
     e chato) e colar da espoleta de base atras;
-  * AC (Alta Capacidade, carmim + ouro): GUIADA, corpo mais fino, 4 aletas na cauda + 4 canards de OURO maiores
-    no nariz (em +: 2 de lado e a dorsal de quina vista de cima), buscador que pisca na ponta dentro de um anel de
-    ouro largo, faixa carmim (mascara) entre dois aneis de ouro pintados no difuso.
+  * AC (Alta Capacidade, carmim + ouro): corpo mais fino, 4 aletas na cauda, faixa carmim (mascara) entre dois
+    aneis de ouro pintados no difuso. So a AC da Boiuna (ac_h) e GUIADA: + 4 canards de OURO maiores no nariz (em +:
+    2 de lado e a dorsal de quina vista de cima), visor do sensor e buscador que pisca na ponta dentro de um anel de
+    ouro largo. A AC dos canhoes (ac_s/ac_m/ac_l: Tambor, Trovao, Mapinguari) voa RETA: sem canards, sem janela do
+    sensor, espoleta de ponta de aco num assento de ouro estreito e luzes de 1 quadro parado (sem ancora 'seeker').
 Cauda e obturador do s/m em grafite escuro (a traseira das luvas claras nao some sob o clarao da base); uma
 "espinha" escura por dentro de tudo fecha as frestas entre pecas que so encostam (o alfa do corpo fica 100% opaco).
 A faixa da municao e a mascara (T, "mask"), tingida no jogo com palette[municao].band; no difuso ela e cinza claro
@@ -66,9 +69,14 @@ import bs3d as B
 import models as Mo
 
 
-def _it(L, W, frames, fps, nozzle_x=-0.97, mask=True, anchors=None):
-    return {"canvas_tiles": [L, W], "frames": frames, "fps": fps, "wrap": None, "nozzle_x": nozzle_x, "mask": mask,
-            "anchors": anchors or {}}
+def _it(L, W, frames, fps, nozzle_x=-0.97, mask=True, anchors=None, static_lights=False):
+    d = {"canvas_tiles": [L, W], "frames": frames, "fps": fps, "wrap": None, "nozzle_x": nozzle_x, "mask": mask,
+         "anchors": anchors or {}}
+    if static_lights:
+        # atlas de luzes de UM quadro parado (fps 0): render_part.py grava o atlas mesmo com frames == 1 e o jogo
+        # usa um sprite aditivo parado (bsgen/fxkit.art_sprite_components)
+        d["static_lights"] = True
+    return d
 
 
 SEEK = {"seeker": [0.9, 0.0]}
@@ -79,13 +87,16 @@ PART = {
     "accent": "amber",
     # halo do atlas de luzes (px da tela de 128 px/tile): curto, para o orcamento de 3% (o halo forte conta)
     "halo_px": 2.6,
+    # AC dos canhoes (ac_s Tambor, ac_m Trovao, ac_l Mapinguari) NAO e guiada (voa reta, SPEC shell_ladder.items.ac_s
+    # r1_note): so aletas de cauda + faixa carmim + faixas de ouro, sem canards e sem janela do sensor, luzes de 1
+    # quadro parado e sem ancora 'seeker'. So a AC da Boiuna (ac_h) e guiada
     "items": {
         "he_s": _it(2.0, 0.70, 2, 4), "ap_s": _it(2.0, 0.70, 2, 4), "sap_s": _it(2.0, 0.70, 2, 4),
-        "ac_s": _it(2.0, 0.80, 2, 4, anchors=SEEK),
+        "ac_s": _it(2.0, 0.80, 1, 0, static_lights=True),
         "he_m": _it(2.0, 0.70, 2, 4), "ap_m": _it(2.0, 0.70, 2, 4), "sap_m": _it(2.0, 0.70, 2, 4),
-        "ac_m": _it(2.0, 0.80, 2, 4, anchors=SEEK),
+        "ac_m": _it(2.0, 0.80, 1, 0, static_lights=True),
         "he_l": _it(2.0, 0.70, 4, 6), "ap_l": _it(2.0, 0.70, 4, 6), "sap_l": _it(2.0, 0.70, 4, 6),
-        "ac_l": _it(2.0, 0.80, 4, 6, anchors=SEEK),
+        "ac_l": _it(2.0, 0.80, 1, 0, static_lights=True),
         "he_h": _it(2.0, 0.78, 4, 6),
         "ac_h": _it(2.0, 0.89, 4, 6, anchors=SEEK),
         "pem_s": _it(2.0, 0.80, 2, 6, mask=False),
@@ -562,7 +573,7 @@ def _body_tier(X, M, T, LT, ammo, tier, R, xs0, xs1, k, phase, n_frames, core0=N
             sleeves.append(Mo.chevron_sleeve(f"sl{i}", a, b, R, X["comp"], tags, dv=dv, rear=i > 0, verts=8))
         # (HE/AP/SAP levam as fendas de trilho em V no ombro da ogiva, _ogive2. A AC NAO tem fendas: o ombro da
         # ogiva e dos canards e a luva da frente e curta demais, as fendas saiam como cacos soltos; a AC do nivel m
-        # le pelas luvas em divisa + anel de LED + o kit guiado)
+        # le pelas luvas em divisa + anel de LED + as aletas de cauda e a faixa carmim/ouro)
         return sleeves
     # l / h: blindagem segmentada (aneis com chanfro) com paineis de chanfro duplo no topo e nos ombros
     gap = 0.028
@@ -665,11 +676,16 @@ def _gun_shell(M, X, T, key, phase, n_frames):
         ring("sap_bcolk", xc0 + 0.03, xc0 + 0.045, R * (0.94 if tier != "h" else 0.96), X["black"], (T,))
 
 
-# ============================================================================ AC (Alta Capacidade, guiada)
+# ============================================================================ AC (Alta Capacidade)
 def _ac(M, X, T, tier, phase, n_frames):
+    """AC: corpo fino, 4 aletas na cauda, faixa carmim (mascara) entre dois aneis de ouro. Nivel h (Boiuna): GUIADA
+    (canards de ouro, visor do sensor, buscador que pisca, 4 quadros). Niveis s/m/l (Tambor/Trovao/Mapinguari): voam
+    RETAS, sem canards e sem janela do sensor; o nariz vira uma espoleta de aco com assento de ouro e as luzes sao de
+    1 quadro parado (faixa de LED do nivel acesa; no l, o anel da base no brilho medio)."""
     tags = (T,)
     LT = (T, "lights")
     k = int(round(phase * n_frames)) % n_frames
+    guided = tier == "h"
     R = AC_R[tier]
     half = PART["items"][f"ac_{tier}"]["canvas_tiles"][1] / 2
     span = half - 0.016                      # ponta das aletas (folga de 2 px)
@@ -684,7 +700,8 @@ def _ac(M, X, T, tier, phase, n_frames):
     elif tier == "l":
         xt = X0 + 0.20
         octo("tail", [(R * 0.80, X0), (R * 0.88, X0 + 0.02), (R * 0.97, xt)], X["comp_d"], tags)
-        br = (0.62, 0.85, 1.0, 0.85)[k % 4]
+        # anel aceso da base: quadro unico no brilho medio da respiracao antiga (0.62 / 0.85 / 1.0 / 0.85)
+        br = (0.62, 0.85, 1.0, 0.85)[k % 4] if guided else 0.85
         led_groove("bring", xt + 0.025, 0.045, R * 0.90, "ac", 1.0 * br, X, tags, LT, full=True)
         ring("ob_l0", xt + 0.044, xt + 0.072, R * 1.03, X["steel"], tags, ch=0.006)
         xs0 = xt + 0.085
@@ -710,7 +727,7 @@ def _ac(M, X, T, tier, phase, n_frames):
     # espinha escura de dentro (ver _gun_shell): fecha as frestas entre cauda, obturador e luvas
     ring("spine", X0 + 0.025, xo + 0.03, R * 0.74, X["core"], tags)
     og = _ogive_to(R, xsk - xo, 0.40 * R, xo, n=12)
-    if tier in ("l", "h"):
+    if guided:
         # visor do sensor com o scanner (frente dos canards), como as outras municoes do nivel
         o1, o2 = _visor("ac_vis", og, xo + 0.40 * (xsk - xo), X, tags, LT, "ac", k, hw=0.036)
         octo("ac_og1", o1, X["comp_d"], tags)
@@ -718,24 +735,31 @@ def _ac(M, X, T, tier, phase, n_frames):
     else:
         octo("ac_og", og, X["comp_d"], tags)
     rs = og[-1][0]
-    # anel de OURO largo no nariz (toque premium que le a 1x) em volta do buscador
-    ring("sk_seat", xsk - 0.022, xsk + 0.014, rs * 1.13, X["gold"], tags, ch=0.005)
-    smooth("sk_lens", _dome(xsk + 0.008, X1, rs * 0.95, p=1.9, n=10), X["lens"], tags)
-    if n_frames == 2:
-        on = 1.25 if k == 0 else 0.0
+    if not guided:
+        # AC que voa reta (s/m/l): espoleta de ponta de ACO claro (sem lente, sem pupila) sobre um assento de ouro
+        # mais estreito que o anel do buscador; sem canards
+        ring("fz_seat", xsk - 0.016, xsk + 0.012, rs * 1.08, X["gold"], tags, ch=0.004)
+        octo("fz_tip", [(rs * 0.96, xsk + 0.008), (rs * 0.86, xsk + 0.030), (rs * 0.46, X1 - 0.012),
+                        (rs * 0.16, X1)], X["steel"], tags)
     else:
-        on = (1.25, 0.0, 0.55, 0.0)[k % 4]
-    zl = rs * 0.95 * COS8
-    B.box("sk_pupil", xsk + 0.03, 0.0, 0.034, 0.032, zl - 0.02, zl + 0.004, _led("seek", on), bevel=0.0,
-          tags=_lt(LT, on))
-    # 4 canards no nariz (2 de lado + dorsal), logo a frente do inicio da ogiva
-    cx0 = xo + 0.05
-    rcn = _r_at(og, cx0 + 0.08)
-    cspan = min(span - 0.02, rcn + 0.125)
-    # canards de OURO maiores (toque premium; ~4 px a 1x no 76 mm em vez de 2-3)
-    fin("canard", [(cx0 + 0.18, rcn * 0.6), (cx0 + 0.06, cspan), (cx0, cspan), (cx0 - 0.012, rcn * 0.6)], 0.0,
-        0.026, X["gold"], tags)
-    dorsal("cdors", cx0, cx0 + 0.14, _r_at(og, cx0 + 0.07) * COS8, 0.04, X["gold"], tags, w=0.022)
+        # anel de OURO largo no nariz (toque premium que le a 1x) em volta do buscador
+        ring("sk_seat", xsk - 0.022, xsk + 0.014, rs * 1.13, X["gold"], tags, ch=0.005)
+        smooth("sk_lens", _dome(xsk + 0.008, X1, rs * 0.95, p=1.9, n=10), X["lens"], tags)
+        if n_frames == 2:
+            on = 1.25 if k == 0 else 0.0
+        else:
+            on = (1.25, 0.0, 0.55, 0.0)[k % 4]
+        zl = rs * 0.95 * COS8
+        B.box("sk_pupil", xsk + 0.03, 0.0, 0.034, 0.032, zl - 0.02, zl + 0.004, _led("seek", on), bevel=0.0,
+              tags=_lt(LT, on))
+        # 4 canards no nariz (2 de lado + dorsal), logo a frente do inicio da ogiva
+        cx0 = xo + 0.05
+        rcn = _r_at(og, cx0 + 0.08)
+        cspan = min(span - 0.02, rcn + 0.125)
+        # canards de OURO maiores (toque premium; ~4 px a 1x no 76 mm em vez de 2-3)
+        fin("canard", [(cx0 + 0.18, rcn * 0.6), (cx0 + 0.06, cspan), (cx0, cspan), (cx0 - 0.012, rcn * 0.6)], 0.0,
+            0.026, X["gold"], tags)
+        dorsal("cdors", cx0, cx0 + 0.14, _r_at(og, cx0 + 0.07) * COS8, 0.04, X["gold"], tags, w=0.022)
     # faixas carmim + ouro logo atras da ogiva; luvas do nivel no resto do corpo
     xb1 = xo - 0.012
     xb0 = xb1 - 0.15
@@ -813,7 +837,7 @@ def _pem(M, X, T, key, phase, n_frames):
             _lit_band(X, f"gap{i}", xg, 0.026, R, "pem", pat[i], tags, LT, lip=0.026)
         _lit_band(X, "led", 0.57, 0.020, R, "pem", pat[2], tags, LT, lip=0.035)
         return
-    # pem_l (Mae-do-Ouro): nucleo segmentado com aneis de cobre e frestas ciano que acendem em onda
+    # pem_l (Corisco, e o overclock Relampago): nucleo segmentado com aneis de cobre e frestas ciano que acendem em onda
     _capsule(X, T, X0, X1, R, nose=0.30, tail=0.14, mat=X["pem"])
     smooth("nose_t", _dome(X1 - 0.13, X1, R * 0.56, p=2.0, n=8), X["lens"], tags)
     ring("nose_r", X1 - 0.155, X1 - 0.12, R * 0.66, X["steel"], tags)
@@ -833,7 +857,7 @@ def _pem(M, X, T, key, phase, n_frames):
 # ============================================================================ slug da railgun (Tupa)
 def _hot(name, color, s, base):
     """Emissivo com cor de base CLARA (a ponta quente do slug: no difuso, com a emissao apagada, sai metal claro
-    dourado em vez de lente preta; no atlas brilha na cor)."""
+    azulado em vez de lente preta; no atlas brilha na cor: azul claro / branco-azulado da paleta rail)."""
     m = B.mat_glow(f"s2_{name}_{int(round(s * 100)):03d}", color, s)
     m.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (*base, 1)
     m.node_tree.nodes["Principled BSDF"].inputs["Roughness"].default_value = 0.35
@@ -860,7 +884,8 @@ def _slug(M, X, T, phase, n_frames):
     # base escura
     rod = octo_edge("rod", [(R * 0.78, xa), (R, xa + 0.03), (R, xc)], X["tung"], X["comp_d"], tags, t=0.40)
     ring("base", xa - 0.03, xa + 0.012, R * 0.82, X["graph"], tags)
-    # penetrador conico: cone de tungstenio, colar escuro fino, ponta quente ouro (atlas) e ponto branco-quente
+    # penetrador conico: cone de tungstenio, colar LARANJA fino, ponta quente AZUL clara (atlas, palette.rail glow) e
+    # o ponto branco-azulado (palette.rail core) na pontinha; nada de ouro (a ponta dourada era a Tupa violeta antiga)
     xh = xt - 0.115
     rh = R * (xt - xh) / (xt - xc)
     octo("pen", [(R, xc - 0.002), (rh * 1.02, xh + 0.004)], X["tung"], tags)

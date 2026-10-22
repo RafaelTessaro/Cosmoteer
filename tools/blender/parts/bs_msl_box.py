@@ -30,7 +30,7 @@ PART = {
     "ring_r": 0.80,
     "collider": 0.85,
     "accent": "amber",
-    "looks": ["he", "napalm"],
+    "looks": ["he"],               # 2.0: so a Muricoca (cassete)
     "turret_anim": {"frames": 8, "interval": 0.12},   # fenda IR da espinha pulsando
     "lights": [
         {"at": [0.0, -0.80], "size": 1.0, "color": [255, 120, 30], "z": 0.6},
@@ -46,9 +46,9 @@ TUBE_R = 0.09
 ROW_V = 0.22 / SIN                  # passo das fileiras no plano da face (0.22 na vista de cima)
 ROWS = (-ROW_V, 0.0, ROW_V)         # v > 0 = parte de baixo da face = frente na vista de cima
 
-# cor da faixa do nariz (tinta, linear): #FFB000 Jararaca / #FF6A1A Taturana, compensada pela luz da cena
-BAND = {"he": (0.80, 0.327, 0.0), "napalm": (0.80, 0.11, 0.0093)}
-BAND_GLOW = {"he": (1.0, 0.473, 0.0), "napalm": (1.0, 0.186, 0.0155)}
+# cor da faixa do nariz (tinta, linear): #FFB000 Muricoca, compensada pela luz da cena (a Taturana da 1.x saiu)
+BAND = {"he": (0.80, 0.327, 0.0)}
+BAND_GLOW = {"he": (1.0, 0.473, 0.0)}
 
 # divisas do abdomen e da borda de tras da carapaca (vista de cima): centro reto +-FLAT, laterais subindo CHEV
 FLAT = 0.10

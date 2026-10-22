@@ -524,7 +524,7 @@ nuclear e as armadilhas) estão na seção 11.
 - **Fendas cegas estreitas em placas chanfradas:** o `B.cut` reaplica o chanfro, que também arredonda a aresta
   côncava do fundo de uma fenda cega e cobre as bordas do leito preto (em incrustações no teto verde a fenda sai
   verde). Em fendas mais estreitas que ~0,06, corte um furo passante e ponha o leito preto na peça de baixo (função
-  auxiliar `_ledslot` em `parts/bs_factory_mag_ap.py`).
+  auxiliar `ledslot` em `parts/_bs2_fabricas_helpers.py`).
 - **Desgaste da pintura em malhas pequenas:** a máscara de desgaste de borda do `mat_paint` vaza por faces inteiras
   de malhas pequenas, chanfradas e com poucos polígonos, e faz a pintura escura sair clara. Use `wear=0.0` em itens
   pequenos e escuros (munição).
@@ -775,8 +775,25 @@ Ligação nas regras e conferência:
 - `python3 tools/check_art3d.py <pasta>`: todo arquivo listado existe; `px = rect x 64` (+-1) ou o `px` da camada;
   rects dentro da peça; conjuntos completos (todo quadro/nível/variante); um componente de alfa por sprite quando
   `islands` é falso; pisos opacos; `lights_add` opaco; normais com o alfa do difuso; nada na chave de pintura em
-  `roof_doodads`; emissivo <= 2 %; `tranco` e `layer_flags` coerentes; nomes, ids e tamanhos do spec (Fita, FX,
-  placas, paiol, Tupã).
+  `roof_doodads`; emissivo <= 2 % (abaixo); `tranco` e `layer_flags` coerentes; nomes, ids e tamanhos do spec (Fita,
+  FX, placas, paiol, Tupã).
+- **Emissivo das camadas iluminadas:** o `check_art3d` estima a fração de pixels muito claros e saturados (luz acesa)
+  em **todos** os arquivos de cada camada (todo nível, quadro e variante, não só o primeiro) e compara o **pior
+  caso** com 2 % (tetos e pisos: fração do próprio sprite; as outras camadas: fração da peça). Ficam fora as camadas
+  `lights_add` e `emission_only` e a chave de pintura verde. O chip de família só é isento **no teto (`roofs`) do
+  paiol**, e só o da família daquela variante (`family_chip` + `family_chip_tip` do meta); em qualquer outra camada
+  nenhuma cor é isenta (o azul do Tupã (45, 115, 255) e o âmbar HE (255, 170, 60) estão a menos de 40 dos chips e são
+  luz de verdade).
+- **Tolerâncias aprovadas** (`LAYERED_EMISSIVE_ALLOW` no `tools/check_art3d.py`; a pasta casa pelo nome ou pelo id
+  do meta): arte já aprovada pelo usuário e pelos revisores que passa dos 2 % neste estimador. O valor é o pior caso
+  medido em todos os arquivos (WP10, rodada 2) com uma folga pequena; o `check_art3d` mostra a tolerância como nota.
+  Arte aprovada **nunca** é re-renderizada para caber; um re-render que acenda mais que a tolerância volta a dar ERRO,
+  e uma tolerância que sobrou (pior caso já <= 2 %) aparece como nota para ser retirada.
+
+  | pasta | camada | tolerância | pior caso medido | motivo |
+  |---|---|---|---|---|
+  | `bs_rail_loader` | `projeteis` | 3 % | 2,90 % (`projeteis6.png`; `projeteis5.png` 2,41 %) | dardos do pente cheio com as faixas azuis do Tupã |
+  | `bs_placas` | `placa` | 6,5 % | 6,03 % (`placa_sap.png`; `placa_he.png` 3,93 %, `placa_msl_he.png` 2,71 %, `placa_msl_emp.png` 2,59 %, `placa_msl_nuke.png` 2,47 %, `placa_plasma.png` 2,42 %, `placa_pem.png` 2,29 %, `placa_ac.png` 2,08 %) | cor do código do tipo de munição na placa (a mesma dos LEDs da F4) |
 - Prévias: `python3 tools/blender/compose_preview.py art3d/<pasta> [--sub 2x2]` grava `preview_layered.png` (peça
   montada, interior e teto, 1x e 3x, e uma tira por camada com mais de um sprite) e `preview_layered.gif` (as camadas
   de quadros e de níveis rodando juntas); `python3 tools/make_gallery.py --out <pasta> layered` monta o Tupã com 4
@@ -803,7 +820,8 @@ Fonte: `tools/spec/bullet_strike_art2.json` (`art_assets.palette`, gerado do `SP
 
 - **Chip de família dos paióis** (`palette.family_chip`): cartuchos (255, 190, 60), células (60, 220, 255),
   mísseis (255, 120, 40), **projéteis AZUL (64, 128, 255) com pontas laranja (255, 140, 40)** (a cor do Tupã). O
-  chip é tinta (sem emissão); o `check_art3d` não o conta como luz.
+  chip é tinta (sem emissão); o `check_art3d` não o conta como luz **só no teto do paiol** (camada `roofs`, chip da
+  família da variante; seção 12). Em qualquer outra camada essas cores contam como luz.
 - Medidores (`palette.gauge`): baixo (255, 70, 30), alto (255, 200, 40), cheio (110, 230, 90).
 - **Regra `c_min` da luz de casco** (`art_assets.phase_b_leftovers.islight_white_hull`): toda luz de projétil se
   divide em dois sprites, o halo grande SÓ NO ESPAÇO (`_litReflectiveStrength 0`) e a luz pequena no casco. A cor

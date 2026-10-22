@@ -151,7 +151,7 @@
  "notes": [
   "id da peca = rafaeltessaro.bs_factory_mag_ap (ID mantido); arte 2.0 nesta pasta",
   "o maquinario e o mesmo nos 4 modos; pastilhas pintadas nas bases de saida e placa de modo no teto",
-  "LIGACAO: a pasta antiga art3d/bs_factory_mag_ap (3x3, 1.x) tem o mesmo id; o bsgen deve ler esta pasta (meta.art3d_dir) e o art3d_owner_map do spec deve trocar F2 'bs_factory_mag_ap' por 'bs_factory_special' (ou aposentar a pasta antiga), senao duas pastas reivindicam o mesmo id"
+  "LIGACAO: o bsgen le esta pasta pelo art3d_dir (SPEC factories F2.art3d_dir = meta.art3d_dir); a pasta 1.x art3d/bs_factory_mag_ap (3x3, mesmo id) foi apagada no WP12: so esta pasta reivindica o id"
  ],
  "lights_gain": 1.185,
  "roof_led_safe_px": 46
