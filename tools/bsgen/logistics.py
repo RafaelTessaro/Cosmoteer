@@ -158,7 +158,8 @@ def consumed_keys(ctx):
     if "bsgen.launchers" in names:
         for g in getattr(D, "LAUNCHERS", []) or []:
             add(g)
-    if "bsgen.railgun" in names and D.RAIL_ENABLED:
+    # rail.loader_intake acoplamento/tripulacao (WP09): o Carregador nao entra na Fita, o paiol nao empurra slug
+    if "bsgen.railgun" in names and D.RAIL_ENABLED and D.switch("rail.loader_intake") == "auto":
         add({"id": I.RAIL_LOADER, "size": [5, 5], "logistica": D.RAIL.get("logistica")})
     return keys
 

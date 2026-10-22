@@ -1,0 +1,816 @@
+{
+  "_meta": {
+    "dono": "WP14b (tools/make_docs.py gera docs/CHECKLIST_2_0.md e o CHECKLIST_2_0_CURTO.txt a partir deste arquivo)",
+    "base": "tools/spec/ADDENDUM_2_0.json, chave 'checklist' (2026-10-21), conferida contra o codigo vivo (bsgen/logistics.py, intake.py, factory.py, guns.py, ciws.py, launchers.py, missile_shots.py) e o spec 2.0",
+    "regra": "texto pt-BR para o jogador; {chave} = numero ou nome que o tools/make_docs.py gera do spec e da camada de dados (FATOS); chave desconhecida para o gerador. Nunca citar nomes removidos (SPEC.conventions.removed_names_scan).",
+    "portao": "itens que liberam a 2.0.0 final (ADDENDUM G10 / respostas_2_0.json portao.falta): marcados com estrela no checklist e sempre no curto",
+    "mudancas": [
+      "numeros e nomes que eram digitados (contagem de pecas, itens, fabricas, tamanhos, ritmos, capacidades, alcances, Tupa por N, PEM, Piranha, Poraque, limites, T3, defesas contra laser, alcance alternativo da Fita, secoes com SW) viraram {chaves} geradas do spec/dados",
+      "0.3 e 5.6: 'Se nao' vazio virou uma instrucao",
+      "2 (preparo): virou lista; as armas precisam de tripulacao para atirar (Tambor 3, Carregador do Tupa 2): corredor PROPRIO das armas (Beliche + armas, sem Baia nem fabrica) para a tripulacao so operar e nunca trazer municao; a Baia das fabricas tem tambem o insumo da F2 (triaco) e da F6; 'Reabastecer todos os recursos' so ANTES de por paiois e armas (ele enche tudo e estragaria o teste)",
+      "2.1: tirada a frase 'antes da Fita a barra estava vazia' (o paiol novo sempre comeca vazio); fica 'a barra continua vazia, ainda nao tem fabrica'",
+      "2.5: uma Prensa HE sozinha (1 a cada ~1,9 s com a vizinhanca ligada) NAO acompanha o Tambor atirando sem parar (0,83 carregador/s): o 'fica cheia atirando' virou 'a barra recebe; atirando sem parar pode baixar devagar' com os dois ritmos gerados",
+      "2.9: pelo mesmo motivo, 'os 2 Tambores ficam cheios atirando' virou 'os 2 paiois e os 2 Tambores recebem'",
+      "2.10: a ordem real do enchimento (primeiro o carregador, ate 12 capsulas; depois o paiol) e o ritmo da Forja sozinha (~4,5 s por projetil); os insumos da F6",
+      "2.11: 'Municao HE' virou o nome do item no jogo (Carregador HE); a Baia entra no corredor das armas; tempo ate a metade gerado",
+      "2.14: 'nave sem tripulacao' nao funciona (o Tambor precisa dos atiradores para atirar) e 'esvazia em ~15 s' estava errado (Tambor cheio = ~60 s atirando): virou duas metades, a do Tambor com Beliche e corredor so para os atiradores",
+      "3.1: o Marimbondo (1 quadrado, HE/AP) mostra duas barras finas lado a lado (correcao do WP02)",
+      "3.7: 'sem trevo' virou 'cara de obuseiro comum (nada nuclear)' e entrou o gasto de 1,5 carregador por disparo da Boiuna (WP02: Splitter 1->2 com 3 por disparo)",
+      "4.2: insumos com os nomes do jogo em pt-BR (triaco, hiperbobina), gerados das receitas",
+      "6.5: o escudo tirado por acerto inclui o dano direto do Poraque (10.300 / 19.150 em vez de 10.000 / 18.750)",
+      "6.6: 'sem iscas' saiu (nome removido, a varredura reprova): 'uma ogiva so'",
+      "8.8: 'UMA vez por tiro' (o relay de 0,5 s do tranco podia dar um segundo coice; USER_NOTES, pedido ao WP09)",
+      "9.4: as Piranhas sao de uma nave inimiga; e os fragmentos nao podem derrubar os nossos misseis (risco do VolumeHit, nota do WP02)",
+      "12.3, 12.4, 12.6: 'sem tripulacao' virou 'sem ninguem carregando municao' (a arma precisa do atirador; a Prensa precisa do enxofre)",
+      "13: virou instrucoes (sem caixinha sim/nao)",
+      "curto: entraram todos os itens do portao da 2.0.0 (1.2, 2.2, 2.4, 2.6, 2.8-2.14), para o checklist curto do zip bastar para liberar a versao final",
+      "revisao 2 (0.1): apagar a pasta da 1.x antes de copiar a nova (igual ao README: arquivos renomeados ficariam sobrando)",
+      "revisao 2 (2, preparo): 'Reabastecer' so ate o item 2.10; o 2.11 diz 'agora pode apertar'",
+      "revisao 2 (2.8): o Tambor estava em AP desde o 2.7; agora ele volta para HE para ver o HE que ficou no paiol",
+      "revisao 2 (2.10): frase sem verbo virou 'Monte o Carregador do Tupa + 1 Cano + Ponta e ponha ...'",
+      "revisao 2 (2.12): 'as Prensas HE ligadas' (depois do 2.9 sao varias)",
+      "revisao 2 (2.13): desligar TODAS as Prensas HE e esperar TODOS os paiois (o Empurra_he so depende da Fita, entao o paiol em AP tambem empurra o HE do 'Reabastecer' do 2.11); atalho: tirar a Fita so dos paiois",
+      "revisao 2 (7.4): as armas quase nao sentem os ions do SW, menos o Tupa (o carregador tem bateria)",
+      "revisao 2 (8.3): a dica da Ponta e fixa (StatsByCategory so com BaseValue; a Ponta tem CP fixo): ler o bonus minimo e maximo e a tabela por N na descricao, e conferir os pontos de comando da nave com 4 canos; a dica do Cano tem que abrir sem erro (o Cano do WP09 tem RailgunBuff com 6 valores e o formato do jogo base pede 30)",
+      "revisao 2 (10.1, 10.4): nomes do SW como aparecem no jogo ('Imperial Heavy Turbolaser', 'Dual 70TT Superheavy Turbolaser')",
+      "revisao 2 (12.3, 12.6): sem Fita e sem Baia o paiol so enche pelo 'Reabastecer': encher o paiol sozinho e so depois encostar a arma ou montar o Tupa vazios"
+    ]
+  },
+  "titulo": "Bullet Strike 2.0 - o que testar",
+  "required_order": [
+    "0 instalacao",
+    "1 carregamento + log de erro",
+    "2 fita/teletransporte (primeiro)",
+    "3 cada familia de armas",
+    "4 fabricas",
+    "5 paiois",
+    "6 misseis",
+    "7 PEM",
+    "8 Tupa com tranco",
+    "9 defesas contra lasers do SW",
+    "10 balanco contra o SW",
+    "11 desempenho",
+    "12 reserva sem Fita",
+    "13 como mandar"
+  ],
+  "maps_tests": {
+    "TesteFita": "A1->1.1/1.3, A2->2.1/2.2, A3/A3b->2.3/2.4, A4->2.5, A6->2.6, A7->2.7, B1->2.11, B2->2.12, B3->2.13, C1->2.14, C2->11.1, C3->1.7/2.15",
+    "build": "T-FITA-1->2.7-2.9, T-F2-SPLIT->4.6, T-FRAG->9.4, T11->3.10/5.5, T3->10.1/10.2, R-1..R-4->8.1/8.3/8.11-8.13, T-MSL-*->6.4-6.7/11.2, T-ART-5->3.2, T-ART-6->11.4, T-TR-1..6->8.2/8.6-8.10/8.15, B-1->3.7, T-ACOPLA->12.3/12.4"
+  },
+  "portao": ["1.1", "1.2", "1.3", "1.7", "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7", "2.8", "2.9", "2.10",
+             "2.11", "2.12", "2.13", "2.14", "2.15", "11.1"],
+  "sections": [
+    {
+      "n": 0,
+      "titulo": "Antes de começar (instalação)",
+      "itens": [
+        {
+          "id": "0.1",
+          "faca": "Guarde uma cópia da sua pasta Mods/BulletStrike da 1.x e da sua carreira da 1.x. Depois apague a pasta {pasta_mod} da 1.x de Mods e copie a nova do zip (arquivos que mudaram de nome ficariam sobrando).",
+          "olhe": "Abrir um save da 1.x com a 2.0 pode fechar o jogo; naves da 1.x precisam ser refeitas.",
+          "se_nao": "Se apagou algo sem querer, me avise antes de testar.",
+          "curto": true
+        },
+        {
+          "id": "0.2",
+          "faca": "Copie também a pasta {pasta_reserva} (do outro zip) para Mods, mas deixe DESATIVADA. Nunca ative as duas juntas: as peças são as mesmas.",
+          "olhe": "Na lista de mods aparecem '{nome_mod}' e '{nome_reserva}'.",
+          "se_nao": "Me diga o que aparece na lista.",
+          "curto": true
+        },
+        {
+          "id": "0.3",
+          "faca": "Jogo {versao_jogo}: Novo jogo > Criativo, com 'Modo Construção Livre' MARCADO. Itens marcados '(com SW)': Star Wars: A Cosmos Divided ativo JUNTO com o Bullet Strike. Todos os outros: SÓ o Bullet Strike ativo. Dica: faça primeiro todos os itens sem a marca, seção por seção; depois ative o SW e faça todos os '(com SW)' de uma vez (estão nas seções {secoes_com_sw}).",
+          "olhe": "Você sabe onde fica a pasta Logs do Cosmoteer (a mesma de onde já tirou logs antes; normalmente em Jogos Salvos/Saved Games > Cosmoteer).",
+          "se_nao": "Me avise que eu explico onde achar o log."
+        }
+      ]
+    },
+    {
+      "n": 1,
+      "titulo": "Carregamento e log de erro",
+      "itens": [
+        {
+          "id": "1.1",
+          "faca": "Abra o jogo com o '{nome_mod}' ativo.",
+          "olhe": "Chega ao menu sem tela de erro e sem fechar.",
+          "se_nao": "Mande o log mais recente da pasta Logs e passe para a seção 12 (reserva sem Fita).",
+          "curto": true
+        },
+        {
+          "id": "1.2",
+          "faca": "Veja a descrição do mod na lista de mods.",
+          "olhe": "Versão {versao} e a 1ª linha começando com '{desc_prefixo}'.",
+          "se_nao": "Me diga a versão e a descrição que aparecem."
+        },
+        {
+          "id": "1.3",
+          "faca": "Novo jogo Criativo > construir nave > aba do Bullet Strike.",
+          "olhe": "{n_pecas} peças, todas com ícone (nenhum quadrado branco ou rosa): {lista_pecas}.",
+          "se_nao": "Diga quais faltam ou estão sem ícone.",
+          "curto": true
+        },
+        {
+          "id": "1.4",
+          "faca": "Ponha uma de cada peça na nave (pode ser numa nave grande de Estrutura).",
+          "olhe": "Nada trava; nenhuma textura xadrez ou roxa (isso seria arquivo faltando).",
+          "se_nao": "Print da peça + log."
+        },
+        {
+          "id": "1.5",
+          "faca": "Em 'Gerenciar recursos' (ou numa Baia de armazenamento), procure os itens novos.",
+          "olhe": "{n_itens} itens com visual futurista: {lista_itens}.",
+          "se_nao": "Diga quais estão com visual antigo ou sem ícone."
+        },
+        {
+          "id": "1.6",
+          "faca": "Salve a nave e o jogo, saia e carregue de novo.",
+          "olhe": "Tudo volta igual, sem erro.",
+          "se_nao": "Mande o log."
+        },
+        {
+          "id": "1.7",
+          "faca": "(com SW) Feche o jogo, ative o SW:ACD junto com o Bullet Strike e abra (Criativo).",
+          "olhe": "Carrega; as peças do SW e as do Bullet Strike aparecem.",
+          "se_nao": "Mande o log (isto trava a liberação da 2.0.0).",
+          "com_sw": true,
+          "curto": true
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "titulo": "Fita de Alimentação e teletransporte (faça PRIMEIRO)",
+      "preparo": [
+        "Monte como no TesteFita: Criativo, Construção Livre, uma linha reta de Estrutura com uns 50 quadrados.",
+        "Cada máquina fica encostada na Estrutura e longe das outras (5 quadrados ou mais).",
+        "Cada Fita encosta de lado (não na quina) só na sua máquina e também na Estrutura.",
+        "Fábricas: as de verdade precisam de energia e de matéria-prima. Ponha um reator e, ligados SÓ às fábricas por corredor e porta, um Beliche e uma Baia de armazenamento com {insumos_secao2} (em 'Gerenciar recursos').",
+        "Aperte 'Reabastecer todos os recursos' só antes de pôr paióis e armas (até o item 2.10): ele enche tudo, e um paiol ou uma arma já cheios estragam o teste.",
+        "Armas: elas precisam de tripulação para atirar. Ponha um Beliche só para elas, ligado por corredor SÓ às armas (nada de Baia nem de fábrica nesse corredor). Assim a tripulação opera a arma, mas não tem de onde trazer munição: só a Fita abastece (até o item 2.11).",
+        "Paióis: sem corredor nenhum (nesta versão eles são selados).",
+        "Para as armas atirarem, crie uma nave inimiga no menu do Criativo.",
+        "Luz verde da Fita e grade de saída das fábricas: veja com o interior ligado. Cartuchos andando: veja com o interior desligado."
+      ],
+      "itens": [
+        {
+          "id": "2.1",
+          "faca": "Ponha um '{paiol_cart_1x1}' (em HE) e grude uma Fita nele.",
+          "olhe": "A luz verde da Fita acende (interior ligado: 4 LEDs no piso; interior desligado: 4 lentes no teto). A barra do paiol continua vazia (ainda não tem fábrica).",
+          "se_nao": "A Fita não está ligando: mande print e log.",
+          "curto": true,
+          "decide": "art.fita_luz"
+        },
+        {
+          "id": "2.2",
+          "faca": "No modo construção, passe o mouse sobre o paiol.",
+          "olhe": "O paiol mostra o ícone da Fita (buff).",
+          "se_nao": "Anote (é só um aviso visual)."
+        },
+        {
+          "id": "2.3",
+          "faca": "No meio da linha, ponha uma '{f1_nome}' (F1) com Fita, ligada ao reator e à Baia (preparo acima).",
+          "olhe": "Em ~20 s a barra do paiol começa a subir (sozinha, a {f1_nome} faz 1 carregador a cada ~{f1_sozinha_s} s); aparecem cartuchos saindo da {f1_nome} e entrando no paiol; a pilha na grade de saída da {f1_nome} sobe e desce (não fica parada cheia).",
+          "se_nao": "O teletransporte fábrica -> paiol não funciona: me mande o resultado e teste a reserva (seção 12).",
+          "curto": true,
+          "decide": "logistics.transport / fita_fabrica"
+        },
+        {
+          "id": "2.4",
+          "faca": "Tire a Fita da {f1_nome}.",
+          "olhe": "A grade de saída da {f1_nome} enche e para; com a Fita de volta ela volta a mandar.",
+          "se_nao": "Anote."
+        },
+        {
+          "id": "2.5",
+          "faca": "Na outra ponta, um '{tambor}' ({tambor_nome}) com Fita, em HE, só com o corredor dos atiradores (preparo), atirando na nave inimiga.",
+          "olhe": "Aparecem cartuchos entrando no {tambor} e a barra de HE dele sobe sem ninguém levar munição. Atirando sem parar ela pode baixar devagar: uma {f1_nome} sozinha faz ~{f1_sozinha_min} carregadores por minuto e o {tambor} gasta ~{tambor_he_min} carregadores por minuto. O que vale aqui é a barra receber.",
+          "se_nao": "O paiol não está empurrando para a arma: me mande o resultado.",
+          "curto": true,
+          "decide": "logistics.fita_arma"
+        },
+        {
+          "id": "2.6",
+          "faca": "Tire a Fita do {tambor} (ele continua atirando).",
+          "olhe": "A barra para de receber e vai esvaziando.",
+          "se_nao": "Anote."
+        },
+        {
+          "id": "2.7",
+          "faca": "Com o {tambor} sem Fita e a barra de HE vazia, mude o {tambor} para AP e SÓ DEPOIS grude a Fita de volta.",
+          "olhe": "A barra de AP continua vazia (o paiol só tem HE: um tipo nunca vira outro). Depois ponha uma '{f2_nome}' (F2) em AP e outro '{paiol_cart_1x1}' trocado para AP, os dois com Fita: a barra de AP do {tambor} sobe e o paiol de HE nunca recebe AP.",
+          "se_nao": "Mistura de tipos: me avise (isso trava a Fita).",
+          "curto": true,
+          "decide": "logistics.transport (A7)"
+        },
+        {
+          "id": "2.8",
+          "faca": "Troque o paiol de HE (cheio) para AP no botão do paiol. Depois volte o {tambor} para HE.",
+          "olhe": "A {f1_nome} para de mandar para ele. O {tambor}, de volta em HE, recebe o HE que ficou no paiol.",
+          "se_nao": "Anote."
+        },
+        {
+          "id": "2.9",
+          "faca": "Um para muitos: 2 {f1_nome_plural} + 2 paióis de cartuchos em HE + 2 {tambor_plural} em HE, todos com Fita e longe uns dos outros.",
+          "olhe": "Os 2 paióis e os 2 {tambor_plural} recebem munição (cartuchos entrando em todos); nenhum fica de fora.",
+          "se_nao": "Anote qual não recebeu."
+        },
+        {
+          "id": "2.10",
+          "faca": "Monte o {rail_carregador} + 1 Cano + Ponta e ponha um '{paiol_proj_1x1}' e uma '{f6_nome}' (F6), cada máquina com Fita (no carregador, de lado). A F6 precisa de {insumos_f6} na Baia.",
+          "olhe": "Primeiro as cápsulas azuis aparecem na janela do carregador (até {rail_capsulas}); depois o paiol de projéteis enche (até {cap_proj_1x1}). Sozinha, a {f6_nome} faz 1 projétil a cada ~{f6_sozinha_s} s: leva alguns minutos.",
+          "se_nao": "Anote (a reserva pela tripulação continua valendo)."
+        },
+        {
+          "id": "2.11",
+          "faca": "Reserva da tripulação: ligue ao corredor das armas uma Baia de armazenamento com {he_itens} (em 'Gerenciar recursos'; agora pode apertar 'Reabastecer todos os recursos'). Tire TODAS as Fitas e deixe o {tambor} atirando 1 minuto.",
+          "olhe": "Quando a barra do {tambor} passa da metade para baixo (~{tambor_meia_s} s atirando), um tripulante traz {he_itens}.",
+          "se_nao": "A reserva por tripulação quebrou: me avise.",
+          "decide": "logistics.reserva_tripulacao (B1)"
+        },
+        {
+          "id": "2.12",
+          "faca": "Ponha as Fitas de volta (com as {f1_nome_plural} ligadas).",
+          "olhe": "O {tambor} recebe pela Fita e a tripulação quase nunca leva munição a ele (só se ele cair abaixo da metade).",
+          "se_nao": "Anote o que a tripulação fez (B2)."
+        },
+        {
+          "id": "2.13",
+          "faca": "Com as Fitas no lugar, desligue TODAS as {f1_nome_plural} (ou tire a Fita delas) e espere os paióis esvaziarem: todos têm HE desde o 'Reabastecer' do 2.11, até os que estão em AP. Para ir mais rápido, tire a Fita só dos paióis (a do {tambor} fica).",
+          "olhe": "Quando o {tambor} passa da metade, a tripulação volta a abastecer.",
+          "se_nao": "Anote (B3: com a Fita a arma dependeria só do paiol)."
+        },
+        {
+          "id": "2.14",
+          "faca": "Monte uma nave em duas metades ligadas por uma fileira de Estrutura. Numa metade, o paiol de cartuchos com Fita e cheio de HE. Na outra, o {tambor} com Fita, um Beliche e o corredor só até os postos dele (sem Baia). Com o {tambor} atirando, selecione as Estruturas do meio e use Autodestruição.",
+          "olhe": "Depois de separar, o {tambor} não recebe mais nada: a barra só desce até esvaziar (~{tambor_vazio_s} s atirando com ela cheia). A Fita não atravessa para outra nave.",
+          "se_nao": "Anote (C1)."
+        },
+        {
+          "id": "2.15",
+          "faca": "(com SW) Monte um 'Heavy Reinforced Reactor' ou 'WIP! Light Hypermatter Reactor' do SW com Overclock perto das peças com Fita.",
+          "olhe": "As peças do SW continuam com energia e as barras das peças com Fita não mudam.",
+          "se_nao": "Isto trava a liberação: mande o resultado e o log.",
+          "com_sw": true,
+          "curto": true,
+          "decide": "portao (C3)"
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "titulo": "Famílias de armas",
+      "itens": [
+        {
+          "id": "3.1",
+          "faca": "Metralhadoras e canhões leves ({leves_nomes}): troque o tipo no botão de munição.",
+          "olhe": "Só aparecem os tipos de cada arma ({leves_tipos}); trocar o tipo troca a barra que enche. No {marimbondo} (1 quadrado) aparecem duas barras finas lado a lado (HE à esquerda, AP à direita), cada uma com o seu botão de consumo.",
+          "se_nao": "Diga qual arma ou tipo falhou."
+        },
+        {
+          "id": "3.2",
+          "faca": "Atire com elas perto de um casco branco e no espaço.",
+          "olhe": "Traçantes com a cor da munição (HE âmbar, AP branco-azulado, SAP laranja); o brilho grande aparece só no espaço, sem mancha branca no casco.",
+          "se_nao": "Print do casco lavado."
+        },
+        {
+          "id": "3.3",
+          "faca": "Canhões navais ({navais}) em HE, AP, SAP e AC.",
+          "olhe": "4 tipos no botão; granadas futuristas: HE âmbar, AP branco-azulado, SAP laranja, AC carmim com faixa dourada e SEM aletas de guiagem (voa reta).",
+          "se_nao": "Diga qual granada está errada.",
+          "curto": true
+        },
+        {
+          "id": "3.4",
+          "faca": "Olhe a traseira das granadas do {tambor} e do {trovao} em voo.",
+          "olhe": "O clarão branco da base é pequeno e fica atrás da granada (não cobre a granada).",
+          "se_nao": "Print."
+        },
+        {
+          "id": "3.5",
+          "faca": "AP contra uma pilha de blindagem (várias peças).",
+          "olhe": "Em cada peça atravessada só faísca; a explosão cheia só onde a granada para.",
+          "se_nao": "Anote se cada peça faz a explosão inteira."
+        },
+        {
+          "id": "3.6",
+          "faca": "AC contra o casco.",
+          "olhe": "Explosão dourada grande com anel de pressão (nunca verde).",
+          "se_nao": "Print."
+        },
+        {
+          "id": "3.7",
+          "faca": "{boiuna} (obuseiro {boiuna_tam}) em HE e em AC.",
+          "olhe": "Torre âmbar, com cara de obuseiro comum (nada nuclear); traçante FINO (parece granada, não foguete); atira nos dois tipos, gastando {boiuna_carreg_tiro} carregador por disparo; a AC faz curva atrás de um alvo que anda, a ~{boiuna_alcance} m.",
+          "se_nao": "Diga o que falhou.",
+          "decide": "boiuna.ac_guided (B-1)"
+        },
+        {
+          "id": "3.8",
+          "faca": "Ponha 3 armas entre {flagship_nomes} na mesma nave.",
+          "olhe": "A 3ª é recusada (no máximo {flagship_max} somadas).",
+          "se_nao": "Anote."
+        },
+        {
+          "id": "3.9",
+          "faca": "{plasma_nomes} (plasma) com {plasma_item} (F3 em Plasma + paiol de células, com Fita).",
+          "olhe": "Recebem as células e atiram com os efeitos de plasma de sempre.",
+          "se_nao": "Anote."
+        },
+        {
+          "id": "3.10",
+          "faca": "Destrua um {tambor} cheio de HE e outro vazio.",
+          "olhe": "O cheio explode como na 1.x; o vazio quase não explode.",
+          "se_nao": "Anote (T11)."
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "titulo": "Fábricas",
+      "itens": [
+        {
+          "id": "4.1",
+          "faca": "Ponha as {n_fabricas} fábricas.",
+          "olhe": "Arte nova: {fabricas_lista}; a animação só roda produzindo.",
+          "se_nao": "Diga qual está errada.",
+          "curto": true
+        },
+        {
+          "id": "4.2",
+          "faca": "Abasteça as entradas (com tripulação; sem Construção Livre, se precisar).",
+          "olhe": "{fabricas_entradas}. A tripulação alcança todas as grades.",
+          "se_nao": "Diga qual grade não recebe."
+        },
+        {
+          "id": "4.3",
+          "faca": "Troque o modo: {fabricas_modos}.",
+          "olhe": "A placa do teto troca e a saída certa produz; a F3 em PEM mostra o banco PEM aceso só produzindo.",
+          "se_nao": "Anote."
+        },
+        {
+          "id": "4.4",
+          "faca": "Vizinhança: uma {f1_nome} sozinha e outra encostada em 2 fábricas (do Bullet Strike ou do jogo base).",
+          "olhe": "A estatística mostra o bônus de fábrica (+{viz_pct} % por vizinha); sozinha ela faz 1 carregador a cada ~{f1_sozinha_s} s; com 2 vizinhas, a cada ~{f1_2viz_s} s.",
+          "se_nao": "Anote os tempos.",
+          "curto": true,
+          "decide": "econ.factory_adjacency"
+        },
+        {
+          "id": "4.5",
+          "faca": "Overclock nas fábricas.",
+          "olhe": "Produz ~{fab_oc_x}x mais rápido e esquenta.",
+          "se_nao": "Anote."
+        },
+        {
+          "id": "4.6",
+          "faca": "F2 em AC por 2 minutos seguidos.",
+          "olhe": "Não trava (a saída de AC continua andando).",
+          "se_nao": "Anote (T-F2-SPLIT)."
+        },
+        {
+          "id": "4.7",
+          "faca": "Destrua uma fábrica com estoque na grade de saída.",
+          "olhe": "Explosão moderada (por saída), não maior que a da fábrica equivalente do jogo base.",
+          "se_nao": "Anote."
+        },
+        {
+          "id": "4.8",
+          "faca": "Sem Fita: a tripulação recolhe da grade de saída.",
+          "olhe": "Igual a uma fábrica do jogo base.",
+          "se_nao": "Anote."
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "titulo": "Paióis",
+      "itens": [
+        {
+          "id": "5.1",
+          "faca": "Ponha os {n_paiois} paióis ({paiol_familias}; 1x1, 2x2 e 3x3).",
+          "olhe": "Teto com a cor da família, placa do tipo, medidor lateral; selados (sem porta) nesta versão com Fita.",
+          "se_nao": "Diga qual está errado."
+        },
+        {
+          "id": "5.2",
+          "faca": "Troque o tipo no botão do paiol.",
+          "olhe": "A placa troca e ele passa a aceitar só o tipo escolhido.",
+          "se_nao": "Anote."
+        },
+        {
+          "id": "5.3",
+          "faca": "Encha um paiol pela Fita.",
+          "olhe": "A barra sob a vida e o medidor do teto sobem juntos ({paiol_niveis} níveis). Não há contador de números (desligado nesta versão).",
+          "se_nao": "Anote."
+        },
+        {
+          "id": "5.4",
+          "faca": "Encha até parar.",
+          "olhe": "Capacidade em cartuchos HE: {cap_he}; em projéteis: {cap_proj}.",
+          "se_nao": "Anote o número."
+        },
+        {
+          "id": "5.5",
+          "faca": "Destrua um paiol 1x1 de HE cheio e outro vazio.",
+          "olhe": "O cheio explode bem mais que o vazio.",
+          "se_nao": "Anote (itens 14-16 do kit antigo)."
+        },
+        {
+          "id": "5.6",
+          "faca": "Abra o painel de recursos da nave.",
+          "olhe": "Ele conta o estoque dos paióis.",
+          "se_nao": "Anote se conta ou não (só para eu saber)."
+        }
+      ]
+    },
+    {
+      "n": 6,
+      "titulo": "Mísseis",
+      "itens": [
+        {
+          "id": "6.1",
+          "faca": "{lancadores_nomes}: botão de tipo.",
+          "olhe": "{lancadores_tipos}.",
+          "se_nao": "Anote."
+        },
+        {
+          "id": "6.2",
+          "faca": "Alimente pela Fita (F4 + paiol de mísseis) e, sem Fita, pela tripulação abaixo da metade.",
+          "olhe": "O lançador enche (células e depósito) nos dois casos.",
+          "se_nao": "Anote."
+        },
+        {
+          "id": "6.3",
+          "faca": "Atire cada tipo.",
+          "olhe": "Mísseis com visual novo; a Iara inconfundível (verde, com o trevo de radiação).",
+          "se_nao": "Print."
+        },
+        {
+          "id": "6.4",
+          "faca": "Submunição (Piranha) contra uma nave.",
+          "olhe": "O portador abre a ~{piranha_abre_caipora} m (Caipora) / ~{piranha_abre_mula} m (Mula) do alvo e solta {piranha_minis_caipora} / {piranha_minis_mula} minimísseis que acertam peças DIFERENTES; as pétalas do nariz caem e somem; nunca acertam o próprio convés.",
+          "se_nao": "Anote.",
+          "curto": true,
+          "decide": "missiles.cluster_randomize_target (T-MSL-CLUSTER)"
+        },
+        {
+          "id": "6.5",
+          "faca": "(com SW) Poraquê contra uma bolha do SW, com e sem overclock do escudo.",
+          "olhe": "Tira ~{poraque_caipora} (Caipora) / ~{poraque_mula} (Mula) de escudo por acerto, igual com e sem overclock.",
+          "se_nao": "Anote os números (T-MSL-EMP).",
+          "com_sw": true
+        },
+        {
+          "id": "6.6",
+          "faca": "Iara (Mula em Nuclear).",
+          "olhe": "2 estágios (o corpo solta a ogiva ~{iara_estagio_s} s depois do lançamento), uma ogiva só, explosão nuclear grande; a {mula_limite_mais_1}ª Mula é recusada; o overclock não acelera a recarga da nuclear.",
+          "se_nao": "Anote (T-MSL-NUKE)."
+        },
+        {
+          "id": "6.7",
+          "faca": "Destrua uma Mula cheia de HE e de Submunição.",
+          "olhe": "Explosão grande, mas não maior que na 1.x.",
+          "se_nao": "Anote (T-MSL-COOK)."
+        }
+      ]
+    },
+    {
+      "n": 7,
+      "titulo": "Linha PEM",
+      "itens": [
+        {
+          "id": "7.1",
+          "faca": "{tuvira} ({tuvira_tam}) com {pem_item} (F3 em PEM + paiol de células em PEM, com Fita).",
+          "olhe": "É uma TORRE que gira {tuvira_arco}° (não só para a frente), com {tuvira_canos} canos; atira ~{tuvira_tiros_s} tiro/s.",
+          "se_nao": "Anote.",
+          "curto": true
+        },
+        {
+          "id": "7.2",
+          "faca": "{treme} e a PEM pesada.",
+          "olhe": "A pesada se chama '{pem_pesada}' e o overclock dela '{pem_pesada_oc}'; arcos e brilho azul antes do tiro.",
+          "se_nao": "Anote o nome que aparece."
+        },
+        {
+          "id": "7.3",
+          "faca": "(com SW) Contra uma bolha média do SW ({bolha_media} de escudo).",
+          "olhe": "Ela quebra em ~{ttb_tuvira} s ({tuvira}), ~{ttb_treme} s ({treme}), ~{ttb_pesada} s ({pem_pesada}); igual com overclock do escudo.",
+          "se_nao": "Anote os tempos (T1).",
+          "com_sw": true
+        },
+        {
+          "id": "7.4",
+          "faca": "(com SW) Acertos no casco e nas torres do SW.",
+          "olhe": "Quase não fazem dano; peças do SW drenadas apagam. Já as armas do Bullet Strike quase não sentem os íons do SW{ions_excecao}.",
+          "se_nao": "Anote (T5).",
+          "com_sw": true
+        },
+        {
+          "id": "7.5",
+          "faca": "{pem_pesada} com overclock ({pem_pesada_oc}).",
+          "olhe": "O tiro atravessa peças e drena por ~{relampago_s} s.",
+          "se_nao": "Anote."
+        }
+      ]
+    },
+    {
+      "n": 8,
+      "titulo": "Tupã com tranco",
+      "itens": [
+        {
+          "id": "8.1",
+          "faca": "Monte o {rail_carregador} ({rail_carregador_tam}) + 1 Cano + Ponta em linha (os canos encaixam no MEIO da borda de cima do carregador).",
+          "olhe": "A Ponta fica operacional; com 0 canos (Ponta direto no carregador) ou {rail_canos_demais} canos ela mostra peça faltando e não atira.",
+          "se_nao": "Print do montado.",
+          "curto": true,
+          "decide": "rail.enabled (R-1)"
+        },
+        {
+          "id": "8.2",
+          "faca": "Desloque o carregador 1 quadrado para o lado.",
+          "olhe": "Nada conecta (ícone de peça faltando).",
+          "se_nao": "Anote (T-TR-5)."
+        },
+        {
+          "id": "8.3",
+          "faca": "Leia a dica (tooltip) da Ponta do {tupa} e passe o mouse também sobre um Cano. Depois monte o {tupa} com 4 Canos (Carregador + 4 Canos + Ponta) e veja quanto sobem os pontos de comando usados pela nave.",
+          "olhe": "A dica da Ponta mostra bônus de +{rail_bonus_1} a +{rail_bonus_6} % e uma linha por número de canos (1 a {rail_max_canos}); a dica do Cano abre sem erro. O {tupa} com 4 canos gasta {rail_cp_4} pontos de comando ao todo.",
+          "se_nao": "Anote."
+        },
+        {
+          "id": "8.4",
+          "faca": "Energia: olhe a bateria do carregador a cada tiro.",
+          "olhe": "Cai ~{rail_energia_1} (1 cano), ~{rail_energia_4} (4), ~{rail_energia_6} (6); com 6 canos a bateria cheia ({rail_bateria}) dá {rail_tiros_bateria_6} tiros; a tripulação traz bateria ao carregador.",
+          "se_nao": "Anote os números."
+        },
+        {
+          "id": "8.5",
+          "faca": "Antes do tiro, olhe os canos.",
+          "olhe": "A carga azul acende do carregador para a ponta; o dardo azul desliza pelo canal; nada reacende depois do tiro.",
+          "se_nao": "Anote."
+        },
+        {
+          "id": "8.6",
+          "faca": "TRANCO: nave pequena parada, Tupã no centro, 1 tiro.",
+          "olhe": "A nave dá um tranco PARA TRÁS; com 6 canos empurra mais que com 1.",
+          "se_nao": "Se for para a frente ou não mexer, anote.",
+          "curto": true,
+          "decide": "rail.tranco_impulso (T-TR-1)"
+        },
+        {
+          "id": "8.7",
+          "faca": "Tupã fora do centro da nave.",
+          "olhe": "A nave gira um pouco (normal, como o canhão eletromagnético do jogo base).",
+          "se_nao": "Anote se gira demais (T-TR-2).",
+          "decide": "rail.recoil_com"
+        },
+        {
+          "id": "8.8",
+          "faca": "Olhe de perto vários tiros, com o teto e com o interior ligado.",
+          "olhe": "A cada tiro, UMA vez só (nunca um segundo coice meio segundo depois): a frente da ponta (com as bochechas brancas), os tambores de CADA cano e, logo depois, o bloco da culatra com as molas recuam e voltam. Parados, tudo em repouso (nada faltando nem desenhado em dobro); com o interior ligado o bloco da culatra não cobre os tripulantes.",
+          "se_nao": "Diga qual peça não mexe, se mexe duas vezes ou o que cobre o interior (T-TR-3, T-TR-A2).",
+          "curto": true,
+          "decide": "rail.tranco_gatilho / camada do tranco"
+        },
+        {
+          "id": "8.9",
+          "faca": "Tremor e anel.",
+          "olhe": "A tela treme a cada tiro (some com 'Tremor de tela' desligado nas opções); um anel azul na boca fica no lugar enquanto a nave recua.",
+          "se_nao": "Anote (T-TR-4)."
+        },
+        {
+          "id": "8.10",
+          "faca": "Ponha peças da própria nave na frente do Tupã e mande atirar num inimigo.",
+          "olhe": "A IA atira e o dardo passa POR CIMA da própria nave, sem dano.",
+          "se_nao": "Anote o dano na própria nave.",
+          "curto": true
+        },
+        {
+          "id": "8.11",
+          "faca": "(com SW) Números: 1, 4 e 6 canos contra bolhas de escudo do SW (média e grande).",
+          "olhe": "Alcance ~{rail_alcance_1} / {rail_alcance_4} / {rail_alcance_6} m; com 1 cano o dardo fura a bolha média do SW e continua; com 4 a bolha grande cai em {rail_tiros_bolha_grande_4} tiros.",
+          "se_nao": "Anote (R-1/R-3).",
+          "com_sw": true
+        },
+        {
+          "id": "8.12",
+          "faca": "(com SW) 4 canos contra 3 fileiras de durasteel do SW + interior.",
+          "olhe": "Tira {rail_r2_min} de HP ou mais; fogo e calor onde o dardo para; peças com energia atravessadas chiam ~{rail_chiado_s} s.",
+          "se_nao": "Anote (R-2).",
+          "com_sw": true
+        },
+        {
+          "id": "8.13",
+          "faca": "Limite.",
+          "olhe": "A {rail_limite_mais_1}ª Ponta é recusada; {flagship_max} Mapinguari + {rail_limite} Tupã são aceitos.",
+          "se_nao": "Anote (R-4)."
+        },
+        {
+          "id": "8.14",
+          "faca": "Cores.",
+          "olhe": "Tudo AZUL (carregador, canos, ponta, dardo, rastro, faíscas, raios e clarões do impacto, escudo atingido): nada violeta e nada dourado na energia. Só as brasas laranja que ficam queimando no alvo depois do impacto são quentes (de propósito).",
+          "se_nao": "Print (e diga se prefere as brasas azuis também)."
+        },
+        {
+          "id": "8.15",
+          "faca": "(opcional) Multijogador ou replay com muitos tiros.",
+          "olhe": "Sem dessincronizar.",
+          "se_nao": "Anote (T-TR-6)."
+        }
+      ]
+    },
+    {
+      "n": 9,
+      "titulo": "Defesas contra os lasers do SW",
+      "itens": [
+        {
+          "id": "9.1",
+          "faca": "{defesas_nomes}: botão HE / FRAG, alimentados pela Fita (cartuchos HE e FRAG).",
+          "olhe": "Recebem e atiram nos dois modos.",
+          "se_nao": "Anote."
+        },
+        {
+          "id": "9.2",
+          "faca": "(com SW) Contra mísseis do SW.",
+          "olhe": "Derrubam vários de uma vez.",
+          "se_nao": "Anote.",
+          "com_sw": true
+        },
+        {
+          "id": "9.3",
+          "faca": "(com SW) Contra tiros de laser e de íon do SW.",
+          "olhe": "Derrubam parte dos tiros: úteis, mas mais fracas que a defesa do SW contra lasers (como na Fase B: {antilaser_faixa}x).",
+          "se_nao": "Se achar fraco demais, diga: dá para subir para {antilaser_banda}x.",
+          "com_sw": true,
+          "curto": true,
+          "decide": "guns.defesa_antilaser"
+        },
+        {
+          "id": "9.4",
+          "faca": "{tamandua} em FRAG contra uma salva de Piranhas de uma nave inimiga (Caipora em Submunição) e contra um casco a 30 m.",
+          "olhe": "Os fragmentos destroem os minimísseis inimigos e não derrubam os nossos mísseis que passam por perto; no casco só faísca, sem dano e sem travar.",
+          "se_nao": "Anote (T-FRAG).",
+          "decide": "guns.frag_fragment"
+        },
+        {
+          "id": "9.5",
+          "faca": "(com SW) Defesas do SW contra as nossas balas pequenas (até {bala_pequena_mm} mm).",
+          "olhe": "Não derrubam as balas pequenas (como o canhão de repetição do jogo base).",
+          "se_nao": "Anote.",
+          "com_sw": true
+        }
+      ]
+    },
+    {
+      "n": 10,
+      "titulo": "Balanço contra o SW",
+      "itens": [
+        {
+          "id": "10.1",
+          "faca": "(com SW) T3 etapa 1: {trovao} HE e {mapinguari} HE contra o '{sw_imperial}' do SW, num bloco interior 2x2 sem blindagem (10 tiros cada).",
+          "olhe": "O que entra depois do primeiro contato fica no máximo ~{t3_he_lim}x o do turbolaser.",
+          "se_nao": "Anote o HP tirado por cada um.",
+          "com_sw": true,
+          "decide": "guns.he_further_factor"
+        },
+        {
+          "id": "10.2",
+          "faca": "(com SW) T3 etapa 2: 10 tiros AP e 10 HE de {furacao}, {trovao} e {mapinguari} (e SAP x HE de {trovao} e {mapinguari}) contra 1 durasteel do SW + interior 2x2 + corredores.",
+          "olhe": "O AP tira no máximo {t3_ap_lim}x o HP que o HE tira; o SAP, no máximo {t3_sap_lim}x.",
+          "se_nao": "Anote os HPs.",
+          "com_sw": true,
+          "decide": "guns.ap_further_factor"
+        },
+        {
+          "id": "10.3",
+          "faca": "(com SW) Combate geral.",
+          "olhe": "Por nível, as armas do Bullet Strike ficam ~{alvo_pct} % acima das do SW ({marimbondo} x laser de teto, {tambor} x turbolaser médio, {trovao} x turbolaser de facção; Boitatá e PEM x íons).",
+          "se_nao": "Diga quais parecem fortes ou fracas demais.",
+          "com_sw": true
+        },
+        {
+          "id": "10.4",
+          "faca": "(com SW) {tupa} contra o '{sw_siege}' do SW.",
+          "olhe": "O Tupã bate mais por tiro ({rail_vs_siege_4}x com 4 canos), mas rende menos por espaço (o carregador {rail_carregador_tam} é o preço).",
+          "se_nao": "Diga se ficou forte ou fraco demais (se fraco: dá para atirar a cada {rail_intervalo_alt} s em vez de {rail_intervalo} s).",
+          "com_sw": true
+        },
+        {
+          "id": "10.5",
+          "faca": "Logística.",
+          "olhe": "Com fábricas encostadas umas nas outras, o custo em fábricas parece razoável para manter as armas atirando.",
+          "se_nao": "Diga se as fábricas parecem lentas demais."
+        }
+      ]
+    },
+    {
+      "n": 11,
+      "titulo": "Desempenho",
+      "itens": [
+        {
+          "id": "11.1",
+          "faca": "10 paióis, 20 armas e 5 fábricas, todos com Fita.",
+          "olhe": "O jogo não fica lento; ao selecionar um paiol aparece só uma cruzinha verde, nenhum retângulo do tamanho da nave.",
+          "se_nao": "Descreva (se ficar lento, eu troco a Fita para um alcance de ~{fita_alcance_alt} quadrados).",
+          "curto": true,
+          "decide": "logistics.fita_alcance (C2)"
+        },
+        {
+          "id": "11.2",
+          "faca": "2 Mulas + 2 Caiporas em Submunição, juntas, contra um alvo de ~150 peças.",
+          "olhe": "Fica jogável.",
+          "se_nao": "Anote o FPS (T-MSL-PERF)."
+        },
+        {
+          "id": "11.3",
+          "faca": "(com SW) 2 Tupã de 6 canos atirando 30 s contra uma nave do SW de ~40 peças.",
+          "olhe": "Fica jogável.",
+          "se_nao": "Anote (P-1).",
+          "com_sw": true
+        },
+        {
+          "id": "11.4",
+          "faca": "{mapinguari} em AP numa pilha de 13 blindagens.",
+          "olhe": "Sem engasgo a cada tiro.",
+          "se_nao": "Anote (T-ART-6)."
+        },
+        {
+          "id": "11.5",
+          "faca": "(com SW) Uma batalha grande de 10 minutos.",
+          "olhe": "O jogo não fecha.",
+          "se_nao": "Mande o log se fechar.",
+          "com_sw": true
+        }
+      ]
+    },
+    {
+      "n": 12,
+      "titulo": "Reserva sem Fita (só se a seção 1 ou 2 falhar, ou para comparar)",
+      "itens": [
+        {
+          "id": "12.1",
+          "faca": "Desative '{nome_mod}', ative '{nome_reserva}' (nunca os dois) e abra o jogo.",
+          "olhe": "Carrega; a Fita não existe; o resto é igual.",
+          "se_nao": "Mande o log.",
+          "curto": true
+        },
+        {
+          "id": "12.2",
+          "faca": "Ponha paióis.",
+          "olhe": "Eles têm portas e a tripulação entra (sala de munição caminhável).",
+          "se_nao": "Anote."
+        },
+        {
+          "id": "12.3",
+          "faca": "Ponha um paiol de cartuchos 1x1 sozinho e aperte 'Reabastecer todos os recursos' (ele enche o paiol). Só depois encoste um {marimbondo} novo (vazio) com o paiol logo atrás dele, com o atirador no posto e sem Baia de munição.",
+          "olhe": "A arma enche e atira sem ninguém levar munição (paiol acoplado).",
+          "se_nao": "Anote (T-ACOPLA arma).",
+          "decide": "logistics.acoplamento"
+        },
+        {
+          "id": "12.4",
+          "faca": "{f1_nome} com um paiol 1x1 encostado embaixo da saída.",
+          "olhe": "O paiol enche sozinho (a tripulação só leva o enxofre para a {f1_nome}).",
+          "se_nao": "Anote (T-ACOPLA fábrica)."
+        },
+        {
+          "id": "12.5",
+          "faca": "Tripulação e corredor ligando paióis e armas (sem Fita nesta versão).",
+          "olhe": "A tripulação leva munição dos paióis para as armas abaixo da metade.",
+          "se_nao": "Anote."
+        },
+        {
+          "id": "12.6",
+          "faca": "Ponha um paiol de projéteis 1x1 sozinho e aperte 'Reabastecer todos os recursos'. Só depois monte o {tupa} (Carregador + 1 Cano + Ponta) com o paiol encostado atrás do canto de trás esquerdo do carregador (um 2x2 ou 3x3 também serve, crescendo para a esquerda, para não tampar a porta de trás).",
+          "olhe": "Ele alimenta o carregador sem ninguém carregando projéteis; a tripulação ainda entra pelas portas de trás.",
+          "se_nao": "Anote."
+        }
+      ]
+    },
+    {
+      "n": 13,
+      "titulo": "Como me mandar as respostas",
+      "instrucoes": true,
+      "itens": [
+        {
+          "id": "13.1",
+          "faca": "Mande uma linha por item: número + sim/não + o que viu (ex.: '2.3 sim', '8.6 não: andou para a frente').",
+          "olhe": "Pode pular o que não deu para testar (diga 'não testei').",
+          "curto": true
+        },
+        {
+          "id": "13.2",
+          "faca": "Se travou: mande o log mais recente da pasta Logs e, se puder, um print.",
+          "olhe": "",
+          "curto": true
+        },
+        {
+          "id": "13.3",
+          "faca": "Se você já tinha respostas do TesteFita (A1-A7, A3b, B1-B3, C1-C3), mande também.",
+          "olhe": "Não é mais obrigatório: a seção 2 refaz o kit com as peças de verdade."
+        }
+      ]
+    }
+  ]
+}

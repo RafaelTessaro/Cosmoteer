@@ -641,7 +641,8 @@ def machines():
         out[p["id"]] = p
     for lch in getattr(D, "LAUNCHERS", []) or []:
         out[lch["id"]] = lch
-    if D.RAIL_ENABLED:
+    # rail.loader_intake acoplamento/tripulacao (WP09): o bsgen.railgun liga o Carregador sozinho, fora da Fita
+    if D.RAIL_ENABLED and D.switch("rail.loader_intake") == "auto":
         car = dict(((D.RAIL.get("parts") or {}).get("carregador") or {}))
         if car.get("id"):
             car["logistica"] = D.RAIL.get("logistica")
