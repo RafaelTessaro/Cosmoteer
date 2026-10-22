@@ -1094,6 +1094,10 @@ def build_muzzle(meta, ctx, walls, shot_path):
     comp["ProjetilTerminou"] = {"Type": "TriggerProxy", "ComponentID": "Projectile"}
 
     comp[comment("---- 3) tiro: 1 dardo + energia do carregador pelos proxies ----")] = None
+    # modo B: o emissor so exige POWER_BASE; os POWER_PER_CANO x N saem depois pelo DrenoB (ResourceChange, para no
+    # zero). Com 4 canos a bateria cheia (15000) da 4 tiros, nao 3 (vazamento pequeno, aceito no WP14b): ResourcesUsed
+    # com buff no ResourceUsage do BulletEmitter nao tem precedente vanilla/SW (so o BeamEmitter da Estrela da Morte do
+    # SW) e o PowerPerShot da dica le esse campo. O tools/make_docs.py (rail_tiros_bateria) conta os tiros igual.
     emitter = {"Type": "BulletEmitter", "ChainedTo": "Weapon", "FireTrigger": "ProjetilTerminou",
                "GetTargetFrom": "Weapon", "OperationalToggle": "IsOperational", "DynamicDelayPredictor": "Projectile",
                "Bullet": f"&<{shot_path}>",
@@ -1712,7 +1716,8 @@ def selfcheck(mod_dir, SPEC=None):
         probs.append(f"charge_wave {cw}: onda de carga {'ausente' if not has_wave else 'presente'} no cano")
     # logistica do carregador (rail.loader_intake)
     li = loader_intake()
-    fe = "FitaEntra_slug" in cl
+    # Fita: FitaEntra_slug (fita_arma = empurra) ou Alimentador_<i> que puxa dos paiois (fita_arma = puxa)
+    fe = "FitaEntra_slug" in cl or any(nm.startswith("Alimentador_") for nm in cl)
     pa = cl.get("PaiolAcoplado_0")
     if li == "tripulacao" and (fe or pa is not None):
         probs.append("loader_intake tripulacao com Fita/acoplamento no carregador")
@@ -1720,7 +1725,8 @@ def selfcheck(mod_dir, SPEC=None):
         if pa is None or [float(x.value) for x in _items(pa, "PartLocation")] != [float(v) for v in ACOPLA_CELL] or fe:
             probs.append(f"loader_intake acoplamento: PaiolAcoplado_0 em {ACOPLA_CELL} e sem Fita")
     if li == "auto" and D.transport() == "teleporte" and not fe:
-        probs.append("loader_intake auto + teleporte sem FitaEntra_slug -> SlugMagazine")
+        probs.append("loader_intake auto + teleporte sem Fita no carregador (FitaEntra_slug ou Alimentador_ -> "
+                     "SlugMagazine)")
     # tiro
     sroot, stext = _parse(shot_p)
     if sroot is None:

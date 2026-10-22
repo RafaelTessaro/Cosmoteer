@@ -81,6 +81,7 @@ def rail_streak(frames=8, fw=256, fh=96, per_row=2):
     head = 1.0 - (GUTTER + 6) / fw
     d = np.clip((head - u) / head, 0, 1)        # 0 na cabeca, 1 na cauda
     on = (u <= head + 0.004).astype(float) * PT._smooth(0.0, 0.06, u)
+    on *= np.clip((1 - np.abs(v)) / 0.08, 0, 1)      # bojos dos aneis somem antes da borda de cima/baixo do quadro
     for f in range(frames):
         w_core = 0.06 * (1 - 0.7 * d) + 0.012
         core_l = np.exp(-(v / w_core) ** 2) * (1 - d) ** 1.4

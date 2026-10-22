@@ -1,8 +1,9 @@
 """Efeitos da railgun Tupa 2.0 (dono: WP09): tudo AZUL (palette.rail), so as brasas do ALVO quentes.
 
 Modulo FX do registro do tools/build_mod.py (API = 2; BS_FX_EXT=0 desliga: o bsgen.railgun cai nos efeitos vanilla
-do railgun, que ja sao ciano). Ganchos: write(out, header) (shots/bs_rail_fx/) e selfcheck(mod_dir, spec). Quem usa:
-bsgen.railgun pelas listas media(<grupo>, frm) (MediaEffects prontos, '&<...>') e files(<grupo>).
+do railgun, que ja sao ciano). Ganchos: write(out, header) (shots/bs_rail_fx/; nada com rail.enabled = false) e
+selfcheck(mod_dir, spec). Quem usa: bsgen.railgun pelas listas media(<grupo>, frm) (MediaEffects prontos, '&<...>')
+e files(<grupo>).
 
 Cores (SPEC.art_assets.effects.railgun.palette_map_addendum, tools/spec/bullet_strike_art2.json):
   claroes (boca, perfuracao, impacto, escudo)       nucleo core [205,228,255] -> borda glow [100,175,255]
@@ -38,6 +39,7 @@ So importa rules_dsl e bsgen.fxkit / bsgen.fx_tex no nivel do modulo (nunca bs_d
 import math
 import os
 import re
+import sys
 
 from rules_dsl import Q, VOID
 from bsgen import fxkit as FXK
@@ -353,7 +355,16 @@ def media(group, frm="shot"):
 
 
 # ----------------------------------------------------------------------------- ganchos
+def rail_on():
+    """rail.enabled do build (bs_data ja carregado pelo build_mod / spec2_check; sem ele, ligado). Nao importa o
+    bs_data: le o modulo que ja esta em sys.modules."""
+    D = sys.modules.get("bs_data")
+    return bool(getattr(D, "RAIL_ENABLED", True)) if D is not None else True
+
+
 def write(out, header):
+    if not rail_on():
+        return      # rail.enabled = false: nenhum arquivo do rail (o bsgen.railgun tambem nao escreve nada)
     for name, (text, note) in sorted(specs().items()):
         head = "\n".join(f"// {ln}" for ln in (header + f"\nEfeito da Tupa (bsgen/rail_fx.py): {note}").split("\n"))
         out.text(f"{DIR}/{name}.rules", head + "\n\n" + text)
@@ -401,8 +412,13 @@ def _count(text):
 
 def selfcheck(mod_dir, spec=None):
     """Arquivos escritos, cores AZUIS (so rail_embers quente), luzes dentro da regra do casco branco e orcamento de
-    particulas por grupo."""
+    particulas por grupo; com rail.enabled = false, nenhum arquivo em shots/bs_rail_fx/."""
     probs = []
+    if not rail_on():
+        d = os.path.join(mod_dir, DIR)
+        if os.path.isdir(d) and os.listdir(d):
+            probs.append(f"rail.enabled = false e {DIR}/ foi escrito ({len(os.listdir(d))} arquivos)")
+        return probs
     sp = specs()
     texts = {}
     for name in sp:
