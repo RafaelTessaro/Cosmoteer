@@ -1,0 +1,56 @@
+{
+  "_meta": {
+    "gravado_por": "WP14a (ADDENDUM 2.0, 2026-10-21)",
+    "fonte": "ADDENDUM_2_0.json wp14a_writes['tools/spec/respostas_2_0.json']",
+    "leitor": "orquestrador (libera ou pula o WP15; portao da 2.0.0); nenhum script do build le este arquivo"
+  },
+  "data": "2026-10-21",
+  "TesteFita": null,
+  "TesteFita_nota": "sem resposta; substituido pelo CHECKLIST_2_0 secao 2 com as pecas reais",
+  "Teste2": null,
+  "perguntas": {
+    "1": {
+      "pem.heavy_name": "Corisco",
+      "overclock": "Relâmpago",
+      "pem.tuvira_mount": "torre",
+      "pem.tuvira_cp": "sem pedido -> 2"
+    },
+    "2": {
+      "econ.factory_adjacency": "vanilla"
+    },
+    "3": {
+      "balance.perfil_extra": false
+    }
+  },
+  "outras_escolhas": {
+    "guns.small_rounds_targetable": false,
+    "logistics.fita_embutida": "off",
+    "guns.defesa_antilaser": "fase_b",
+    "missiles.iara_hp": 12000,
+    "guns.ac_cost": "4x",
+    "nota": "usuario: 'outras escolhas sem pedido de mudanca' -> safe"
+  },
+  "pedido": "quando terminar tudo monte o MoD e me forneca um checklist do que eu devo testar",
+  "esteira": "nao (usuario nao quer esteira fisica)",
+  "transport": "teleporte",
+  "transport_motivo": "decisao de build antes do TesteFita (pedido 'monte o MoD'); build reserva em tripulacao (testes/BulletStrike_SemFita)",
+  "wp15": "pular",
+  "portao": {
+    "estado": "pendente",
+    "caminho": "teleporte",
+    "falta": [
+      "CHECKLIST 1.1-1.3 e 2.1-2.10 (substituem A1-A7/A3b)",
+      "2.11-2.13 (B1-B3)",
+      "2.14 (C1)",
+      "11.1 (C2)",
+      "1.7 e 2.15 (C3, com SW)"
+    ],
+    "regra": "a 2.0.0 so e liberada com as respostas; ate la so builds de teste",
+    "com_sw": "1.7 e 2.15 sao feitos com o Star Wars: A Cosmos Divided ativo junto (os outros itens do portao: so o Bullet Strike)"
+  },
+  "builds": {
+    "fita": "BulletStrike/ (rafaeltessaro.bullet_strike)",
+    "semfita": "testes/BulletStrike_SemFita/ (rafaeltessaro.bullet_strike_semfita)"
+  },
+  "nota_wp14b": "testes do build 2.0 (T3, T-FITA-1, T-F2-SPLIT, T-FRAG, T11, R-*, T-MSL-*, T-ART-*, T-TR-*) sem resposta -> safe; o checklist coleta"
+}
