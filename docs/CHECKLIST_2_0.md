@@ -48,7 +48,7 @@ Os itens com ★ liberam a versão final 2.0.0; se tiver pouco tempo, faça pelo
 **1.3** ★
 
 - **O que fazer:** Novo jogo Criativo > construir nave > aba do Bullet Strike.
-- **O que olhar:** 43 peças, todas com ícone (nenhum quadrado branco ou rosa): 12 canhões, 3 defesas, 3 PEM (Tuvira, Treme-Treme e Corisco), 3 lança-mísseis, 3 peças do Tupã, 6 fábricas, 12 paióis e a Fita.
+- **O que olhar:** 41 botões na aba, todos com ícone (nenhum quadrado branco ou rosa): 12 canhões, 3 defesas, 3 PEM (Tuvira, Treme-Treme e Corisco), 3 lança-mísseis, o Tupã, 6 fábricas, 12 paióis e a Fita. O Tupã é um botão só, 'Railgun Tupã' (a Ponta): selecione-o e aparecem 'Carregador Tupã' e 'Cano Tupã'.
 - **Deu certo?** [ ] sim  [ ] não
 - **Se não:** Diga quais faltam ou estão sem ícone.
 
@@ -88,8 +88,9 @@ Os itens com ★ liberam a versão final 2.0.0; se tiver pouco tempo, faça pelo
 - Cada máquina fica encostada na Estrutura e longe das outras (5 quadrados ou mais).
 - Cada Fita encosta de lado (não na quina) só na sua máquina e também na Estrutura.
 - Fábricas: as de verdade precisam de energia e de matéria-prima. Ponha um reator e, ligados SÓ às fábricas por corredor e porta, um Beliche e uma Baia de armazenamento com Enxofre, Triaço e Hiperbobina (em 'Gerenciar recursos').
-- Aperte 'Reabastecer todos os recursos' só antes de pôr paióis e armas (até o item 2.10): ele enche tudo, e um paiol ou uma arma já cheios estragam o teste.
-- Armas: elas precisam de tripulação para atirar. Ponha um Beliche só para elas, ligado por corredor SÓ às armas (nada de Baia nem de fábrica nesse corredor). Assim a tripulação opera a arma, mas não tem de onde trazer munição: só a Fita abastece (até o item 2.11).
+- Aperte 'Reabastecer todos os recursos' uma vez só, antes de pôr paióis e armas, e não aperte de novo até o item 2.11: ele enche tudo, e um paiol ou uma arma já cheios estragam o teste.
+- Comando: as armas só atiram se a nave tiver uma sala de comando (Cabine, Sala de controle ou Ponte) funcionando. Se ainda não tiver, ponha uma Cabine no corredor das fábricas, com mais 1 Beliche.
+- Armas: elas precisam de tripulação para atirar. Ponha camas só para elas: cada Tambor usa 3 tripulantes (no 2.9 são 2 Tambores) e a reserva do 2.11 precisa de 1 tripulante livre; por exemplo, 1 'Alojamentos da tripulação' (6 camas) + 1 Beliche. Ligue essas camas por corredor SÓ às armas (nada de Baia nem de fábrica nesse corredor). Assim a tripulação opera a arma, mas não tem de onde trazer munição: só a Fita abastece (até o item 2.11).
 - Paióis: sem corredor nenhum (nesta versão eles são selados).
 - Para as armas atirarem, crie uma nave inimiga no menu do Criativo.
 - Luz verde da Fita e grade de saída das fábricas: veja com o interior ligado. Cartuchos andando: veja com o interior desligado.
@@ -130,7 +131,7 @@ Os itens com ★ liberam a versão final 2.0.0; se tiver pouco tempo, faça pelo
 - **O que olhar:** Aparecem cartuchos entrando no Tambor e a barra de HE dele sobe sem ninguém levar munição. Atirando sem parar ela pode baixar devagar: uma Prensa HE sozinha faz ~32 carregadores por minuto e o Tambor gasta ~50 carregadores por minuto. O que vale aqui é a barra receber.
 - **Deu certo?** [ ] sim  [ ] não
 - **Se não:** O paiol não está empurrando para a arma: me mande o resultado.
-- _(decide: logistics.fita_arma)_
+- _(decide: logistics.transport / fita_arma)_
 
 **2.6** ★
 
@@ -192,7 +193,7 @@ Os itens com ★ liberam a versão final 2.0.0; se tiver pouco tempo, faça pelo
 
 **2.14** ★
 
-- **O que fazer:** Monte uma nave em duas metades ligadas por uma fileira de Estrutura. Numa metade, o paiol de cartuchos com Fita e cheio de HE. Na outra, o Tambor com Fita, um Beliche e o corredor só até os postos dele (sem Baia). Com o Tambor atirando, selecione as Estruturas do meio e use Autodestruição.
+- **O que fazer:** Monte uma nave em duas metades ligadas por uma fileira de Estrutura. Numa metade, o paiol de cartuchos com Fita e cheio de HE. Na outra, o Tambor com Fita, uma Cabine (sem sala de comando a metade dele não atira) e camas para 4 tripulantes (2 Beliches: 3 para o Tambor e 1 para a Cabine), com o corredor só até os postos (sem Baia). Com o Tambor atirando, selecione as Estruturas do meio e use Autodestruição.
 - **O que olhar:** Depois de separar, o Tambor não recebe mais nada: a barra só desce até esvaziar (~60 s atirando com ela cheia). A Fita não atravessa para outra nave.
 - **Deu certo?** [ ] sim  [ ] não
 - **Se não:** Anote (C1).
@@ -359,6 +360,7 @@ Os itens com ★ liberam a versão final 2.0.0; se tiver pouco tempo, faça pelo
 - **O que olhar:** A barra sob a vida e o medidor do teto sobem juntos (5 / 8 / 10 níveis). Não há contador de números (desligado nesta versão).
 - **Deu certo?** [ ] sim  [ ] não
 - **Se não:** Anote.
+- _(decide: logistics.paiol_contador)_
 
 **5.4**
 
@@ -441,6 +443,7 @@ Os itens com ★ liberam a versão final 2.0.0; se tiver pouco tempo, faça pelo
 - **O que olhar:** É uma TORRE que gira 270° (não só para a frente), com 2 canos; atira ~1,4 tiro/s.
 - **Deu certo?** [ ] sim  [ ] não
 - **Se não:** Anote.
+- _(decide: pem.tuvira_mount)_
 
 **7.2**
 
@@ -448,6 +451,7 @@ Os itens com ★ liberam a versão final 2.0.0; se tiver pouco tempo, faça pelo
 - **O que olhar:** A pesada se chama 'Corisco' e o overclock dela 'Relâmpago'; arcos e brilho azul antes do tiro.
 - **Deu certo?** [ ] sim  [ ] não
 - **Se não:** Anote o nome que aparece.
+- _(decide: pem.heavy_name)_
 
 **7.3**
 
@@ -496,10 +500,10 @@ Os itens com ★ liberam a versão final 2.0.0; se tiver pouco tempo, faça pelo
 
 **8.4**
 
-- **O que fazer:** Energia: olhe a bateria do carregador a cada tiro.
-- **O que olhar:** Cai ~2.500 (1 cano), ~4.000 (4), ~5.000 (6); com 6 canos a bateria cheia (15.000) dá 3 tiros; a tripulação traz bateria ao carregador.
+- **O que fazer:** Energia: monte o Tupã com camas para os 2 tripulantes do carregador no corredor dele e sem nenhum reator ligado a esse corredor. Aperte 'Reabastecer todos os recursos' (enche a bateria do carregador) e deixe o Tupã atirar na nave inimiga até parar; conte os tiros. Faça com 1, 4 e 6 Canos.
+- **O que olhar:** Sem recarga ele para depois de 6 tiros com 1 Cano, 4 com 4 e 3 com 6. A dica do Carregador do Tupã mostra a bateria cheia (15 de energia) e a dica da Ponta, o gasto por tiro (2,5 com 1 Cano, 4 com 4, 5 com 6). Depois ligue um reator ao corredor: a tripulação traz bateria ao carregador e ele volta a atirar.
 - **Deu certo?** [ ] sim  [ ] não
-- **Se não:** Anote os números.
+- **Se não:** Anote quantos tiros saíram com cada número de Canos.
 
 **8.5**
 

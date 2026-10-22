@@ -26,7 +26,6 @@ ambiente sao ignoradas. Sem o switches.json (WP14a ainda nao gravou) usa SPEC.bu
 
 import argparse
 import json
-import math
 import os
 import re
 import sys
@@ -212,7 +211,8 @@ for _k, _p in RAIL["parts"].items():
 NAME_BY_ID[D.FITA_PART["id"]] = D.FITA_PART["name_ptbr"]
 
 MOD_PEM = C.content_module("bsgen.pem") is not None
-MOD_RAIL = C.content_module("bsgen.railgun") is not None
+RG = C.content_module("bsgen.railgun")
+MOD_RAIL = RG is not None
 TELEPORTE = D.transport() == "teleporte"
 ADJ_ON = D.switch("econ.factory_adjacency") == "vanilla"
 SCALING = RAIL["scaling_table"]
@@ -221,9 +221,23 @@ MAX_CANOS = max(NROW)
 # banda do alvo do balanco ('band 1.10-1.25' em conventions.balance_target)
 BANDA = tuple(float(x) for x in _parse(r"band ([\d.]+-[\d.]+)", D.SPEC["conventions"]["balance_target"],
                                        "conventions.balance_target").split("-"))
-# nomes de pecas do SW:ACD como o jogo mostra (o spec usa nomes internos): SW strings/pt-br.rules
-# SiegeTurbolaser12x12 (o 'Siege Turbolaser 12x12 [WarRoom]' do spec) e Imperialturbolaserswitchable
-SW_NOMES = {"siege": "Dual 70TT Superheavy Turbolaser", "imperial": "Imperial Heavy Turbolaser"}
+# nomes de pecas do SW:ACD como o jogo mostra (o spec usa apelidos internos): SW strings/pt-br.rules, linha e chave
+SW_NOMES = {
+    "siege": "Dual 70TT Superheavy Turbolaser",              # 1020 SiegeTurbolaser12x12 ('Siege Turbolaser 12x12')
+    "imperial": "Imperial Heavy Turbolaser",                 # 1059 Imperialturbolaserswitchable
+    "cis": "CIS ZS Heavy Turbolaser",                        # 1054 CISturbolaserswitchable
+    "roof": "Compact Roof-Mounted Laser Cannon",             # 1125 SmallLaserCannonSwitchable
+    "tiny_a": "Compact Turbolaser - Burst",                  # 1113 TurbolaserTiny01 (swturret_A.rules)
+    "light": "Light Turbolaser",                             # 1095 LightTurbolaserswitchable
+    "medium": "Medium Turbolaser",                           # 1087 Medturbolaserswitchable
+    "triple": "Triple Turbolaser",                           # 1079 TripleTurbolaser (small_triple_turbolaser)
+    "pd4": "Sentinel-Class Light Point Defense Turbolaser",  # 1109 TurbolaserLightPD4
+    "flak": "Heavy Flak Deck Cannon",                        # 1130 TurbolaserFlakCannon01
+    "ion_ce": "Dual Mounted Ion Cannon, Compact Edition",    # 1169 dualfixedioncannon
+}
+# camas e tripulantes de pecas do jogo base (ships/terran/*/*.rules: Crew de crew_quarters_small/med e o PartCrew da
+# control_room_small; nomes de strings/pt-br.rules 2788/2791/2776)
+CAMAS_ALOJAMENTOS, CAMAS_BELICHE, TRIP_CABINE = 6, 2, 1
 
 
 def nota_pem():
@@ -238,6 +252,61 @@ def nota_rail():
     if MOD_RAIL:
         return []
     return [pendente("o Tupã (bsgen.railgun, WP09) ainda não está no gerador; números do spec 2.0"), ""]
+
+
+def rail_energia(n):
+    """Energia por tiro com n canos: a do modulo do Tupa (a mesma da dica da Ponta); sem ele, a tabela do spec."""
+    pps = NROW[n]["power_per_shot"]
+    if RG is not None:
+        mod = RG.power_per_shot(n)
+        if mod != pps:
+            aviso(f"Tupã com {n} canos: energia por tiro {mod} no railgun.py e {pps} no spec (vale o railgun.py)")
+        pps = mod
+    return pps
+
+
+def energia_jogo(x):
+    """Energia como o jogo mostra (Stats PowerCapacity/PowerPerShot = bateria / 1000): 2500 -> '2,5'."""
+    return num(x / 1000, 1)
+
+
+def rail_tiros_bateria(n):
+    """Tiros com a bateria cheia do carregador, sem recarga. Espelha railgun.build_muzzle: o emissor da Ponta so
+    confere a parte fixa (ResourceUsage = POWER_BASE no modo B, POWER_FIXO no fixo); no modo B o resto
+    (POWER_PER_CANO por cano, DrenoB) sai depois do tiro e para no zero. Sem o modulo: bateria // energia por tiro."""
+    bat = RAIL["parts"]["carregador"]["storages"]["LoaderBattery"]["MaxResources"]
+    pps = rail_energia(n)
+    if RG is None:
+        return int(bat // pps)
+    gate = RG.POWER_BASE if RG.power_mode() == "B" else RG.POWER_FIXO
+    tiros, b = 0, bat
+    while b >= gate and tiros < 1000:
+        b, tiros = max(0, b - pps), tiros + 1
+    return tiros
+
+
+def rail_botoes():
+    """Rotulos dos botoes do Tupa no editor (IconNameKey de railgun.strings): {'ponta': 'Railgun Tupã', ...}."""
+    if RG is None or not RAIL["enabled"]:
+        return {}
+    _en, pt = RG.strings() or ({}, {"Parts": {}})
+    keys = {"carregador": "BSRailLoaderIcon", "cano": "BSRailBarrelIcon", "ponta": "BSRailMuzzleIcon"}
+    out = {k: pt["Parts"].get(v) for k, v in keys.items()}
+    if not all(out.values()):
+        raise SystemExit(f"make_docs: railgun.strings() sem os rotulos dos botoes {sorted(keys.values())}")
+    return out
+
+
+def camas(n):
+    """Exemplo de camas do jogo base para n tripulantes: 7 -> "1 'Alojamentos da tripulação' (6 camas) + 1 Beliche"."""
+    aloj = n // CAMAS_ALOJAMENTOS
+    bel = -(-(n - aloj * CAMAS_ALOJAMENTOS) // CAMAS_BELICHE)
+    partes = []
+    if aloj:
+        partes.append(f"{num(aloj)} 'Alojamentos da tripulação' ({num(aloj * CAMAS_ALOJAMENTOS)} camas)")
+    if bel:
+        partes.append(f"{num(bel)} Beliche{'s' if bel > 1 else ''}")
+    return " + ".join(partes)
 
 
 def gun_modes(g):
@@ -346,16 +415,28 @@ def fatos():
     n_rail = len(D.RAIL_PARTS) if RAIL["enabled"] else 0
     n_fita = 1 if TELEPORTE else 0
     pem_nomes = [PEM[s]["codename"] for s in ("bs_pem_light", "bs_pem_medium", "bs_pem_heavy")]
-    F["n_pecas"] = num(len(D.GUNS) + len(D.DEFENSES) + len(D.PEM) + len(D.LAUNCHERS) + n_rail + len(D.FACTORIES)
-                       + len(D.PAIOL_PARTS) + n_fita)
+    n_pecas = (len(D.GUNS) + len(D.DEFENSES) + len(D.PEM) + len(D.LAUNCHERS) + n_rail + len(D.FACTORIES)
+               + len(D.PAIOL_PARTS) + n_fita)
+    F["n_pecas"] = num(n_pecas)
+    # botoes na aba: o Carregador e o Cano do Tupa so tem EditorParentParts = [Ponta] (como o railgun_loader e o
+    # railgun_accelerator do jogo base), entao so aparecem depois de escolher a Ponta
+    F["n_botoes"] = num(n_pecas - (n_rail - 1 if n_rail else 0))
     partes = [f"{len(D.GUNS)} canhões", f"{len(D.DEFENSES)} defesas", f"{len(D.PEM)} PEM ({lista(pem_nomes)})",
               f"{len(D.LAUNCHERS)} lança-mísseis"]
+    bot = rail_botoes()
     if n_rail:
-        partes.append(f"{n_rail} peças do Tupã")
+        partes.append(f"o {RAIL['name'].split(' (')[0].strip()}")
     partes += [f"{len(D.FACTORIES)} fábricas", f"{len(D.PAIOL_PARTS)} paióis"]
     if n_fita:
         partes.append("a Fita")
     F["lista_pecas"] = lista(partes)
+    if n_rail and bot:
+        F["tupa_botao"] = (f" O {RAIL['name'].split(' (')[0].strip()} é um botão só, '{bot['ponta']}' (a Ponta): "
+                           f"selecione-o e aparecem '{bot['carregador']}' e '{bot['cano']}'.")
+    elif n_rail:
+        F["tupa_botao"] = " " + pendente("rótulos dos botões do Tupã (bsgen.railgun ausente)")
+    else:
+        F["tupa_botao"] = ""
     F["n_itens"] = num(len(D.RESOURCES))
     F["lista_itens"] = agrupa_itens([r["name_pt"] for r in D.RESOURCES])
     # fabricas e paiois
@@ -432,6 +513,12 @@ def fatos():
     F["tambor_he_min"] = num(ups * 60)
     F["tambor_meia_s"] = num((m0["storage"] - m0["resupply_threshold"]) / ups)
     F["tambor_vazio_s"] = num(m0["storage"] / ups)
+    # tripulacao da secao 2: o PartCrew faz parte do IsOperational (sem os atiradores a arma nao atira)
+    trip = int(tb["crew"])
+    F["tambor_tripulacao"] = num(trip)
+    F["camas_armas"] = camas(2 * trip + 1)          # 2 Tambores no 2.9 + 1 livre para a reserva do 2.11
+    F["camas_2_14_n"] = num(trip + TRIP_CABINE)     # o Tambor + a Cabine da metade dele
+    F["camas_2_14"] = camas(trip + TRIP_CABINE)
     F["he_item"] = RES["he"]["name_pt"]
     F["he_itens"] = item_plural(RES["he"]["name_pt"])
     F["trovao"], F["mapinguari"] = GUN["bs_naval_155"]["codename"], GUN["bs_naval_406"]["codename"]
@@ -489,6 +576,7 @@ def fatos():
     # Tupa
     car = RAIL["parts"]["carregador"]
     F["rail_carregador"], F["rail_carregador_tam"] = car["name_ptbr"], tam(car["size"])
+    F["rail_tripulacao"] = num(car["crew"])
     F["rail_capsulas"] = num(car["storages"]["SlugMagazine"]["MaxResources"])
     F["rail_canos_demais"] = num(MAX_CANOS + 1)
     F["rail_max_canos"] = num(MAX_CANOS)
@@ -496,11 +584,10 @@ def fatos():
         r = NROW[n]
         F[f"rail_bonus_{n}"] = num(r["bonus_pct"])
         F[f"rail_cp_{n}"] = num(r["cp"])
-        F[f"rail_energia_{n}"] = num(r["power_per_shot"])
+        F[f"rail_energia_{n}"] = energia_jogo(rail_energia(n))   # unidade do jogo (a da dica da Ponta)
         F[f"rail_alcance_{n}"] = num(r["range_m"])
-    bat = car["storages"]["LoaderBattery"]["MaxResources"]
-    F["rail_bateria"] = num(bat)
-    F["rail_tiros_bateria_6"] = num(math.floor(bat / NROW[6]["power_per_shot"]))
+        F[f"rail_tiros_{n}"] = num(rail_tiros_bateria(n))
+    F["rail_bateria"] = energia_jogo(car["storages"]["LoaderBattery"]["MaxResources"])
     F["rail_tiros_bolha_grande_4"] = num(NROW[4]["sw_large_bubble_shots_no_refill"])
     F["rail_r2_min"] = num(int(_parse(r">=\s*(\d+)", RAIL["r2_fallback"]["acceptance"], "railgun.r2_fallback")))
     pen_op = RAIL["shot"]["Hit"]["PenetratingOperational"]["HitEffects"]
@@ -745,8 +832,7 @@ def armas_md():
     keys = list(ttb[tv["codename"]].keys())
     rows = [[p["codename"]] + [num(ttb[p["codename"]][k], 1) + " s" for k in keys] for p in (tv, tt, co)]
     L += ["Tempo para derrubar uma bolha de escudo cheia, sem recarga:", ""]
-    L += tabela(["Arma"] + [k.replace("small", "pequena").replace("medium", "média").replace("large", "grande")
-                            .replace("vanilla", "jogo base") for k in keys], rows) + [""]
+    L += tabela(["Arma"] + [bolha(k) for k in keys], rows) + [""]
     L += ["Contra os íons do SW:", ""]
     rows = []
     for p in (tv, tt, co):
@@ -807,9 +893,10 @@ def rail_section():
           f"- **Mais canos = mais dano, alcance, penetração, velocidade e energia por tiro:** "
           f"{numeros_pt(RAIL['scaling_formula'])}.",
           f"- **Comando:** {cp_fixo} + {cano['command_points']} por cano. Tripulação: {car['crew']} no carregador.",
-          f"- **Energia:** sai da bateria do carregador ({num(st['LoaderBattery']['MaxResources'])}): "
-          f"{num(NROW[1]['power_per_shot'])} por tiro com 1 cano até {num(NROW[MAX_CANOS]['power_per_shot'])} com "
-          f"{MAX_CANOS}. A tripulação leva bateria ao carregador.",
+          f"- **Energia:** sai da bateria do carregador ({energia_jogo(st['LoaderBattery']['MaxResources'])} de "
+          f"energia): {energia_jogo(rail_energia(1))} por tiro com 1 cano até "
+          f"{energia_jogo(rail_energia(MAX_CANOS))} com {MAX_CANOS} (os mesmos números das dicas do jogo). A "
+          "tripulação leva bateria ao carregador.",
           f"- **Ritmo:** 1 tiro a cada {num(ponta['weapon']['FireInterval'], 1)} s. Estoque: "
           f"{num(st['SlugMagazine']['MaxResources'])} projéteis no carregador + 1 na câmara = "
           f"{num(RAIL['internal_stock']['slugs'])} tiros ({num(RAIL['internal_stock']['seconds'])} s).",
@@ -823,16 +910,15 @@ def rail_section():
           "- **Visual:** tudo azul elétrico (carregador, canos, dardo, rastro, impacto); só as brasas que ficam "
           "queimando no alvo são laranja.", ""]
     rows = []
-    bat = st["LoaderBattery"]["MaxResources"]
     for n in sorted(NROW):
         r = NROW[n]
         rows.append([n, r["tiles"], r["cp"], num(r["build_cost_credits"]), num(r["pool_per_shot"]), num(r["dps"]),
                      num(r["dps_per_tile"]), num(r["penetration"], 1), f"{num(r['range_m'])} m",
-                     f"{num(r['speed_mps'])} m/s", num(r["power_per_shot"]), num(math.floor(bat / r["power_per_shot"])),
+                     f"{num(r['speed_mps'])} m/s", energia_jogo(rail_energia(n)), num(rail_tiros_bateria(n)),
                      num(r["impulse_per_shot"]), razao(r["f6_tiles_per_1000_dps_at_3_0s"])])
     L += tabela(["Canos", "Tiles", "Comando", "Custo", "Dano por tiro", "DPS", "DPS por tile", "Penetração", "Alcance",
-                 "Velocidade", "Energia por tiro", "Tiros com a bateria cheia", "Impulso do tranco",
-                 "F6 por 1000 DPS"], rows) + [""]
+                 "Velocidade", "Energia por tiro", "Tiros com a bateria cheia, sem recarga",
+                 "Impulso do tranco", "F6 por 1000 DPS"], rows) + [""]
     band = next(r["band"] for r in D.SPEC["logistics_table"] if r["tier"] == "late")
     bmax = _f(band.split("-")[1])
     acima = [n for n in sorted(NROW) if NROW[n]["f6_tiles_per_1000_dps_at_3_0s"] > bmax]
@@ -1125,11 +1211,59 @@ def _tupa_tipo(mode):
     return f"Projétil, {m.group(1)} cano{'s' if m.group(1) != '1' else ''}" if m else mode
 
 
+def _milhar(m, depois=""):
+    return f"({num(int(m.group(1)))}{depois})"
+
+
+# apelidos do spec -> nomes do jogo (SW_NOMES) e notas em ingles -> pt-BR; aplicadas em ordem
+_ANCORA = [
+    (r"\bSW ", ""),
+    (r"\bSiege Turbolaser(?: 12x12)?", SW_NOMES["siege"]),
+    (r"\bCompact Roof Laser\b", SW_NOMES["roof"]),
+    (r"\bTiny Turbolaser A\b", SW_NOMES["tiny_a"]),
+    (r"\bDual Mounted Ion Cannon CE\b", SW_NOMES["ion_ce"]),
+    (r"\bCIS (\d+) / Imperial (\d+) turbolaser\b",
+     lambda m: f"{SW_NOMES['cis']} {m.group(1)} / {SW_NOMES['imperial']} {m.group(2)}"),
+    (r"\bfaction TL anchor\b", "média dos turbolasers pesados de facção"),
+    (r"\bSmall Triple TL\b", SW_NOMES["triple"]),
+    (r"\bLight TL\b", SW_NOMES["light"]),
+    (r"\bMedium TL\b", SW_NOMES["medium"]),
+    (r"\bPD4\b", SW_NOMES["pd4"]),
+    (r"\bflak\b", SW_NOMES["flak"]),
+    (r"(\d+)/tile\b", lambda m: _milhar(m, " por tile")),
+    (r" per tile\b", " por tile"),
+    (r"(\d+) anti-shot/s", lambda m: _milhar(m, " anti-tiro/s")),
+    (r" x (\d+(?:/\d+)?) tiles\b", r" x \1"),
+    (r"(?<=[A-Za-z]) (\d{4,})\b(?![/\d])", lambda m: " " + _milhar(m)),
+    (r" & ", " e "),
+    (r"^avg (.*?) / (.*)$", r"média de \1 e \2"),
+    (r"^avg ", "média de "),
+]
+_ANCORA_RESTO = r"\b(avg|per|tiles|anchor|anti-shot|peer|faction|TL|SW|Siege)\b"
+
+
 def ancora(txt):
-    """Ancora do SW sem os detalhes internos entre parenteses/colchetes."""
+    """Ancora do SW com os nomes do jogo e em pt-BR: sem os detalhes internos entre parenteses/colchetes,
+    'avg SW Light TL 1053 / Medium TL 1818' -> 'média de Light Turbolaser (1.053) e Medium Turbolaser (1.818)'.
+    Sobrou palavra do spec em ingles (apelido novo?) -> sai com erro."""
     t = re.sub(r"\s*\([^)]*\)", "", str(txt or "-"))
-    t = re.sub(r"\s*\[[^\]]*\]", "", t)
-    return t.strip() or "-"
+    t = re.sub(r"\s*\[[^\]]*\]", "", t).strip()
+    for pat, rep in _ANCORA:
+        t = re.sub(pat, rep, t)
+    t = t.strip()
+    if re.search(_ANCORA_RESTO, t):
+        raise SystemExit(f"make_docs: âncora do SW sem tradução: {txt!r} -> {t!r} (ajuste _ANCORA/SW_NOMES)")
+    return t or "-"
+
+
+def bolha(k):
+    """'SW small 5000' -> 'bolha pequena do SW (5.000)'; 'vanilla large 45000' -> 'bolha grande do jogo base
+    (45.000)' (chaves de pem_weapons.time_to_break_s_no_refill)."""
+    m = re.match(r"(SW|vanilla) (small|medium|large|giga) (\d+)$", k)
+    if not m:
+        raise SystemExit(f"make_docs: bolha de escudo desconhecida em time_to_break_s_no_refill: {k!r}")
+    tam_pt = {"small": "pequena", "medium": "média", "large": "grande", "giga": "gigante"}[m.group(2)]
+    return f"bolha {tam_pt} {'do SW' if m.group(1) == 'SW' else 'do jogo base'} ({num(int(m.group(3)))})"
 
 
 def visual_section():
@@ -1643,8 +1777,28 @@ def _casa_teste(tok, chave):
     return False
 
 
+def _junta_itens(partes):
+    """['2.7-2.9', '2.3', '2.7'] -> '2.3/2.7-2.9': sem repetir, sem item ja dentro de uma faixa, na ordem."""
+    lst = []
+    for p in partes:
+        for x in str(p).split("/"):
+            x = x.strip()
+            if x and x not in lst:
+                lst.append(x)
+
+    def faixa(x):
+        a, _, b = x.partition("-")
+        return _ordem(a), _ordem(b or a)
+    fora = {x for x in lst for y in lst
+            if x != y and "-" in y and faixa(y)[0] <= faixa(x)[0] and faixa(x)[1] <= faixa(y)[1]}
+    return "/".join(sorted((x for x in lst if x not in fora), key=faixa))
+
+
 def _itens_por_switch():
-    out = {}
+    """{switch: itens do checklist}: TODOS os itens cujo 'decide' cita a chave ('logistics.transport / fita_fabrica'
+    cita logistics.transport e logistics.fita_fabrica); sem nenhum, os itens do teste do decided_by (maps_tests,
+    faixa mais larga)."""
+    por_teste, acha = {}, {}
     mapa = _mapa_testes()
     for key, e in D.SWITCH_DEFS.items():
         d = e.get("decided_by")
@@ -1654,19 +1808,17 @@ def _itens_por_switch():
         for tok in re.findall(r"\b(T-[A-Z]+(?:-[A-Z0-9]+)?|[RB]-\d|[ABC]\d+b?)\b", d):
             hit = next((v for k, v in mapa.items() if _casa_teste(tok, k)), None)
             if hit:
-                out[key] = hit
+                por_teste[key] = hit
                 break
     for s in CHK["sections"]:
         for i in _itens(s):
             d = i.get("decide") or ""
-            for key in re.findall(r"([a-z]+\.[a-z_0-9]+)", d):
-                if key in D.SWITCH_DEFS:
-                    out[key] = i["id"]
+            keys = [k for k in re.findall(r"([a-z]+\.[a-z_0-9]+)", d) if k in D.SWITCH_DEFS]
             for frag in re.findall(r"/\s*([a-z_0-9]+)", d):
-                for key in D.SWITCH_DEFS:
-                    if key.endswith("." + frag):
-                        out[key] = i["id"]
-    return out
+                keys += [k for k in D.SWITCH_DEFS if k.endswith("." + frag)]
+            for k in dict.fromkeys(keys):
+                acha.setdefault(k, []).append(i["id"])
+    return {k: _junta_itens(acha.get(k) or [por_teste[k]]) for k in set(acha) | set(por_teste)}
 
 
 # ============================================================================= README.md

@@ -18,8 +18,9 @@ Arquivos gerados (shots/bs_rail_fx/), com orcamento de particulas (SPEC.art_asse
   rail_shock_ring                                             TRANCO: anel de choque no espaco (shockwave.png vanilla)
   rail_trail_core / rail_trail_rings                          rastro que FICA no espaco (receita ion_trail do plasma)
   rail_puncture_flash / _sparks / _sizzle                     cada peca perfurada (5 + 1 vanilla = 6)
-  rail_impact_light / _flash / _sparks / rail_embers          fim do caminho (com os raios e a fumaca: <= 45)
-  rail_lightning                                              copia AZUL do missile_emp_lightning vanilla (4-6 raios)
+  rail_impact_light / _flash / _sparks / rail_embers          fim do caminho (com a fumaca: <= 39 = 45 - os raios)
+  rail_lightning                                              copia AZUL do missile_emp_lightning vanilla (4-6 raios),
+                                                              SO no MediaEffectsOnDrain do EmpBurst (grupo emp_burst)
   rail_emp_sizzle                                             copia AZUL do missile_emp_hit_sizzle vanilla (dreno final)
   rail_drain_sizzle                                           chiado azul do dreno por peca perfurada (1 particula)
   rail_shield_flash / rail_shield_ring                        acerto no escudo (+ missile_emp_hit_shockwave vanilla)
@@ -143,7 +144,8 @@ VENDORED = {
     # nome gerado: (arquivo em tools/vanilla_fx/rail, pasta vanilla de origem, contagem (Min, Max) | None,
     #               EmitPerSecond | None, nota)
     "rail_lightning": ("missile_emp_lightning.rules", "shots/missile_emp/particles", (4, 6), None,
-                       "raios AZUIS do impacto e do dreno final (copia do missile_emp_lightning vanilla)"),
+                       "raios AZUIS do dreno final, so no MediaEffectsOnDrain do EmpBurst (copia do "
+                       "missile_emp_lightning vanilla)"),
     "rail_emp_sizzle": ("missile_emp_hit_sizzle.rules", "shots/missile_emp/particles", None, None,
                         "chiado AZUL do dreno final (copia do missile_emp_hit_sizzle vanilla)"),
     "rail_charge_arcs": ("disruptor_shoot_lightning.rules", "ships/terran/disruptor/particles", (0, 0), 8,
@@ -327,14 +329,18 @@ GROUPS = {
     "trail": ["rail_trail_core", "rail_trail_rings"],
     "puncture": ["rail_puncture_flash", "rail_puncture_sparks", "rail_puncture_sizzle"],
     "drain_part": ["rail_drain_sizzle"],
-    "impact": ["rail_impact_light", "rail_impact_flash", "rail_lightning", "rail_impact_sparks", "rail_embers"],
+    # rail_lightning (copia do missile_emp_lightning: LocationFromSource + WorldLocationFromPartRect) so no
+    # MediaEffectsOnDrain do IMPACT.EmpBurst, o unico contexto vanilla dele (missile_emp.rules:163-167), nunca no
+    # MediaEffects do HitOperational
+    "impact": ["rail_impact_light", "rail_impact_flash", "rail_impact_sparks", "rail_embers"],
     "emp_burst": ["rail_emp_sizzle", "rail_lightning"],
     "shield_hit": ["rail_shield_flash", "rail_shield_ring"],
     "intercepted": ["rail_intercepted_flash", "rail_intercepted_sparks"],
     "charge_arcs": ["rail_charge_arcs"],
 }
-# orcamento de particulas por grupo (SPEC.art_assets.effects.railgun.*.budget_particles; o vanilla somado conta)
-BUDGET = {"muzzle": 5, "puncture": 6, "impact": 45, "shield_hit": 4, "intercepted": 5}
+# orcamento de particulas por grupo (SPEC.art_assets.effects.railgun.*.budget_particles; o vanilla somado conta).
+# impact: 45 do spec menos os 6 raios (rail_lightning Max 6), que sairam do grupo e tocam pelo dreno do EmpBurst
+BUDGET = {"muzzle": 5, "puncture": 6, "impact": 45 - 6, "shield_hit": 4, "intercepted": 5}
 
 
 def files(group):

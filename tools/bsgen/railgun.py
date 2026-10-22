@@ -975,9 +975,9 @@ def build_barrel(meta, ctx, walls):
         stats["ShotPowerUsage"] = ["&../PowerPerShot", "&../PowerPerSecond"]
     if stats:
         part["Stats"] = stats
-    # tabela do bonus por numero de canos (como o acelerador vanilla, StatCategories/RailgunBuff)
-    part["StatsByCategory"] = [{"NameKey": Q("StatCategories/RailgunBuff"), "Stats": {
-        "RailgunBuff": [round(100 * (m_of(k) - 1), 2) for k in range(1, MAX_CANOS + 1)]}}]
+    # SEM StatsByCategory RailgunBuff: o Stats/RailgunBuffFmt vanilla formata {0}..{29} (30 valores; com menos o
+    # String.Format estoura no tooltip) e de 7 a 30 canos a Ponta fica desligada (CanosOk 1..6), entao uma tabela
+    # de 30 linhas mentiria. O bonus por N vai no texto do Cano (strings) e a tabela completa no tooltip da Ponta.
     return {"Part : <./Data/ships/terran/base_large_part_terran.rules>/Part": part}
 
 
@@ -1036,7 +1036,7 @@ def build_muzzle(meta, ctx, walls, shot_path):
     comp["BatteryProxy"] = {"Type": "ResourceStorageProxy", "ResourceType": "battery", "PartLocation": [0, 4],
                             "PartCriteria": dict(CRIT_PONTA_TRAS), "ComponentID": "LoaderBattery"}
 
-    comp[comment("---- arma fixa: passa por cima da propria nave (SW fixedlaser.rules:671-672) ----")] = None
+    comp[comment("---- arma fixa: passa por cima da propria nave (IgnoreFriendlyShip*LOSChecks) ----")] = None
     wsp = sp["weapon"]
     comp["Weapon"] = {
         "Type": "FixedWeapon", "Location": list(wsp["Location"]), "Rotation": wsp["Rotation"],
@@ -1044,7 +1044,9 @@ def build_muzzle(meta, ctx, walls, shot_path):
         "TargetingArc": "90d",
         "AIFirepowerRating": {"BaseValue": 8000, "BuffType": B_SHOT, "BuffMode": "Multiply"},
         "Emitter": "BulletEmitter", "FirePermissionToggle": "FirePermission",
-        "IgnoreSourceShipLOSChecks": True, "IgnoreSourceShipLowLOSChecks": True,
+        # nomes do WeaponRules do 0.30.4c (vanilla cannon_deck.rules:618 e manipulator_beam_emitter.rules:447-448;
+        # o IgnoreSourceShip* do SW nao existe no jogo e seria ignorado)
+        "IgnoreFriendlyShipLowLOSChecks": True, "IgnoreFriendlyShipHighLOSChecks": True,
         "AutoTarget": {"TargetType": "ShipParts", "Toggle": "AutoTargetToggle"},
         # linha de cobertura da arma fixa (vanilla 0.30.3 railgun_launcher.rules:255-276 e SW 0.30.4 spinal
         # turbolasers; o 0.30.5 tirou o campo e ignora o que sobrar)
@@ -1110,6 +1112,8 @@ def build_muzzle(meta, ctx, walls, shot_path):
     comp[comment("---- TRANCO: anel de choque que fica no espaco + empurrao fisico (UM por tiro) ----")] = None
     ring = (list(rfx.media("shock", "part")) if rfx is not None else []) + \
         [f"&<{VAN_RAIL_SHOOT}>", f"&<{VAN_RAIL_DIST}>"]
+    # tamanho FIXO em todo N (desvio do ADDENDUM 'x MediaEffectsScale RailShot'): nenhum componente de peca vanilla
+    # ou SW usa MediaEffectsScale; o tremor da boca (BASE_SHAKE acima) tambem e fixo
     comp["TrancoAnel"] = {"Type": "TriggeredEffects", "Trigger": "BulletEmitter", "Location": [1.5, 0],
                           "Rotation": "-90d", "AnchorMediaEffects": False, "MediaEffects": ring}
     if tranco_impulso() == "impulso":
@@ -1294,6 +1298,18 @@ def _fmt(v, lang, dec=0):
     return s
 
 
+def _pw(v, lang):
+    """Energia na unidade da interface do jogo (interna / 1000: 500 -> 0,5; 15000 -> 15), como os Stats."""
+    t = f"{v / 1000:g}"
+    return t.replace(".", ",") if lang == "pt" else t
+
+
+def _bonus_list(lang):
+    """'1: +25 %, 2: +45 %, ...' (bonus m(N) - 1 por numero de canos, o que o acelerador vanilla mostra)."""
+    pct = " %" if lang == "pt" else "%"
+    return ", ".join(f"{k}: +{int(round(100 * (m_of(k) - 1)))}{pct}" for k in range(1, MAX_CANOS + 1))
+
+
 def _table(lang):
     """Linhas por N da tabela do spec (dano por tiro, alcance, penetracao, velocidade, energia, impulso)."""
     rows = []
@@ -1350,22 +1366,22 @@ def strings(DATA=None):
     # Carregador
     car = rs["carregador"]
     st = car["storages"]
-    bat = _fmt(st["LoaderBattery"]["MaxResources"], "pt")
+    bat_pt, bat_en = _pw(st["LoaderBattery"]["MaxResources"], "pt"), _pw(st["LoaderBattery"]["MaxResources"], "en")
     en["Parts"][KEY[LOADER]] = car["name_en"]
     pt["Parts"][KEY[LOADER]] = car["name_ptbr"]
     en["Parts"][KEY[LOADER] + "Icon"] = "Tupã Loader"
     pt["Parts"][KEY[LOADER] + "Icon"] = "Carregador Tupã"
-    pw_pt = (f"Cobra {POWER_PER_CANO} de energia por cano a cada tiro (mais os {POWER_BASE} da ponta)."
-             if pw == "B" else f"Cada tiro gasta {POWER_FIXO} de energia.")
-    pw_en = (f"Charges {POWER_PER_CANO} power per barrel each shot (plus the muzzle's {POWER_BASE})."
-             if pw == "B" else f"Each shot uses {POWER_FIXO} power.")
+    pw_pt = (f"Cobra {_pw(POWER_PER_CANO, 'pt')} de energia por cano a cada tiro (mais {_pw(POWER_BASE, 'pt')} da "
+             f"Ponta)." if pw == "B" else f"Cada tiro gasta {_pw(POWER_FIXO, 'pt')} de energia.")
+    pw_en = (f"Charges {_pw(POWER_PER_CANO, 'en')} power per barrel each shot (plus {_pw(POWER_BASE, 'en')} from the "
+             f"Muzzle)." if pw == "B" else f"Each shot uses {_pw(POWER_FIXO, 'en')} power.")
     pt["Parts"][KEY[LOADER] + "Desc"] = (
-        f"Carregador 5x5 da railgun Tupã: 2 tripulantes, bateria de {bat} e paiol interno de "
+        f"Carregador 5x5 da railgun Tupã: 2 tripulantes, bateria de {bat_pt} e paiol interno de "
         f"{st['SlugMagazine']['MaxResources']} projéteis (+1 na câmara). Toda a energia e todos os projéteis da arma "
         f"entram por aqui. {pw_pt} {_intake_text('pt')}\n\nMonte: Carregador atrás, de 1 a 6 Canos no meio e a "
         f"Ponta na frente, alinhados pelo centro." + tag)
     en["Parts"][KEY[LOADER] + "Desc"] = (
-        f"5x5 loader of the Tupã railgun: 2 crew, a {_fmt(st['LoaderBattery']['MaxResources'], 'en')} battery and an "
+        f"5x5 loader of the Tupã railgun: 2 crew, a battery of {bat_en} and an "
         f"internal magazine of {st['SlugMagazine']['MaxResources']} slugs (+1 in the chamber). All power and slugs "
         f"of the gun enter here. {pw_en} {_intake_text('en')}\n\nBuild: Loader at the back, 1 to 6 Barrels in the "
         f"middle and the Muzzle at the front, centered." + tag)
@@ -1375,16 +1391,18 @@ def strings(DATA=None):
     pt["Parts"][KEY[BARREL]] = cano["name_ptbr"]
     en["Parts"][KEY[BARREL] + "Icon"] = "Tupã Barrel"
     pt["Parts"][KEY[BARREL] + "Icon"] = "Cano Tupã"
-    extra_pt = f" e +{POWER_PER_CANO} de energia por tiro" if pw == "B" else ""
-    extra_en = f" and +{POWER_PER_CANO} power per shot" if pw == "B" else ""
+    extra_pt = f" e +{_pw(POWER_PER_CANO, 'pt')} de energia por tiro" if pw == "B" else ""
+    extra_en = f" and +{_pw(POWER_PER_CANO, 'en')} power per shot" if pw == "B" else ""
     pt["Parts"][KEY[BARREL] + "Desc"] = (
         f"Cano blindado e selado da railgun Tupã (sem porta). Encadeie de 1 a 6 entre o Carregador e a Ponta. Cada "
         f"cano aumenta o dano, o alcance, a penetração e a velocidade do tiro (bônus +{bonus_lo} a +{bonus_hi} %)"
-        f"{extra_pt}. Comando {cano['command_points']}." + tag)
+        f"{extra_pt}. Pontos de comando: {cano['command_points']}.\n\nBônus por número de canos: {_bonus_list('pt')}. "
+        f"Com mais de {MAX_CANOS} canos a Ponta não dispara." + tag)
     en["Parts"][KEY[BARREL] + "Desc"] = (
         f"Armored, sealed barrel of the Tupã railgun (no doors). Chain 1 to 6 between the Loader and the Muzzle. Each "
         f"barrel raises shot damage, range, penetration and speed (bonus +{bonus_lo} to +{bonus_hi}%){extra_en}. "
-        f"Command {cano['command_points']}." + tag)
+        f"Command points: {cano['command_points']}.\n\nBonus by number of barrels: {_bonus_list('en')}. "
+        f"With more than {MAX_CANOS} barrels the Muzzle does not fire." + tag)
     # Ponta
     pon = rs["ponta"]
     en["Parts"][KEY[MUZZLE]] = pon["name_en"]
@@ -1399,14 +1417,16 @@ def strings(DATA=None):
         "\"Tupã\" - railgun fixa e modular de fim de jogo: Carregador 5x5 + 1 a 6 Canos + Ponta. Carrega 1,0 s + "
         "0,25 s por cano antes de disparar; o dardo atravessa várias peças, drena a energia de cada peça perfurada, "
         f"pode incendiá-las e passa por cima da própria nave sem dano. Tremor na tela a cada tiro{kick_pt}.\n\n"
-        f"Canos: N (1-6) | Bônus +{bonus_lo}..+{bonus_hi} % | CP total = 6 + 2N. Mais canos = mais dano, alcance, "
-        f"penetração, velocidade e energia por tiro. Máximo {lim} por nave.\n\n" + "\n".join(_table("pt")) + tag)
+        f"Canos: N (1-6) | Bônus +{bonus_lo}..+{bonus_hi} % | Pontos de comando no total: 6 + 2N. Mais canos = mais "
+        f"dano, alcance, penetração, velocidade e energia por tiro. Máximo {lim} por nave.\n\n"
+        + "\n".join(_table("pt")) + tag)
     en["Parts"][KEY[MUZZLE] + "Desc"] = (
         "\"Tupã\" - fixed modular late-game railgun: 5x5 Loader + 1 to 6 Barrels + Muzzle. Charges 1.0 s + 0.25 s per "
         "barrel before firing; the slug pierces several parts, drains the power of every part it pierces, can set "
         f"them on fire and passes over its own ship harmlessly. Screen shake on every shot{kick_en}.\n\n"
-        f"Barrels: N (1-6) | Bonus +{bonus_lo}..+{bonus_hi}% | Total CP = 6 + 2N. More barrels = more damage, range, "
-        f"penetration, speed and power per shot. Max {lim} per ship.\n\n" + "\n".join(_table("en")) + tag)
+        f"Barrels: N (1-6) | Bonus +{bonus_lo}..+{bonus_hi}% | Total command points: 6 + 2N. More barrels = more "
+        f"damage, range, penetration, speed and power per shot. Max {lim} per ship.\n\n"
+        + "\n".join(_table("en")) + tag)
     return en, pt
 
 
@@ -1603,6 +1623,11 @@ def selfcheck(mod_dir, SPEC=None):
         cc = comps.get("CommandConsumer")
         if _num(cc, "CommandPoints") != cps[pid]:
             probs.append(f"{SHORT[pid]}: CommandPoints {_num(cc, 'CommandPoints')} (spec {cps[pid]})")
+        # Stats/RailgunBuffFmt vanilla formata {0}..{29}: com outro numero de valores o tooltip estoura
+        for m in re.finditer(r"\bRailgunBuff\s*=\s*\[([^\]]*)\]", text):
+            nv = len([x for x in m.group(1).split(",") if x.strip()])
+            if nv != 30:
+                probs.append(f"{SHORT[pid]}: stat RailgunBuff com {nv} valores (o formato vanilla pede 30)")
     # cano: criterio para tras com as 2 entradas (cano de tras OU carregador 5x5)
     back = ["LoadedSlug", "LoaderBattery", "ReverseBuffOperationProvider"] + (["ContagemProvider"] if pw == "B" else [])
     for nm in back:
@@ -1633,8 +1658,10 @@ def selfcheck(mod_dir, SPEC=None):
         probs.append("DrenoB sem Scale -500")
     # ponta: arma, tranco fisico e passagem sobre a propria nave
     wpn = cm.get("Weapon")
-    if _val(wpn, "IgnoreSourceShipLOSChecks") != "true" or _val(wpn, "IgnoreSourceShipLowLOSChecks") != "true":
-        probs.append("ponta: Weapon sem IgnoreSourceShipLOSChecks/IgnoreSourceShipLowLOSChecks = true")
+    if _val(wpn, "IgnoreFriendlyShipLowLOSChecks") != "true" or _val(wpn, "IgnoreFriendlyShipHighLOSChecks") != "true":
+        probs.append("ponta: Weapon sem IgnoreFriendlyShipLowLOSChecks/IgnoreFriendlyShipHighLOSChecks = true")
+    if _val(wpn, "IgnoreSourceShipLOSChecks") is not None or _val(wpn, "IgnoreSourceShipLowLOSChecks") is not None:
+        probs.append("ponta: Weapon com IgnoreSourceShip*LOSChecks (nome do SW, nao existe no 0.30.4c)")
     if _num(wpn, "FireInterval") != FIRE_INTERVAL:
         probs.append(f"ponta: FireInterval {_num(wpn, 'FireInterval')}")
     ok_ = cm.get("CanosOk")

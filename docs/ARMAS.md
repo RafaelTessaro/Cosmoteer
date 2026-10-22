@@ -133,7 +133,7 @@ Canhões que disparam granadas PEM e drenam a bateria do escudo atingido, com po
 
 Tempo para derrubar uma bolha de escudo cheia, sem recarga:
 
-| Arma | SW pequena 5000 | SW média 20000 | SW grande 80000 | SW giga 320000 | jogo base pequena 15000 | jogo base grande 45000 |
+| Arma | bolha pequena do SW (5.000) | bolha média do SW (20.000) | bolha grande do SW (80.000) | bolha gigante do SW (320.000) | bolha pequena do jogo base (15.000) | bolha grande do jogo base (45.000) |
 |---|---|---|---|---|---|---|
 | Tuvira | 1,2 s | 4,6 s | 18,5 s | 74,1 s | 3,5 s | 10,4 s |
 | Treme-Treme | 0,8 s | 3,2 s | 12,8 s | 51,2 s | 2,4 s | 7,2 s |
@@ -143,9 +143,9 @@ Contra os íons do SW:
 
 | Arma | Âncora do SW | Escudo/s | Por comando | Na banda 1,10-1,25 |
 |---|---|---|---|---|
-| Tuvira | SW Dual Mounted Ion Cannon CE | 0,67x | 0,67x | não (escolha) |
-| Treme-Treme | SW Medium Ion Cannon | 1,19x | 1,43x | sim |
-| Corisco | SW Heavy Ion Cannon | 1,17x | 1,40x | sim |
+| Tuvira | Dual Mounted Ion Cannon, Compact Edition | 0,67x | 0,67x | não (escolha) |
+| Treme-Treme | Medium Ion Cannon | 1,19x | 1,43x | sim |
+| Corisco | Heavy Ion Cannon | 1,17x | 1,40x | sim |
 
 A Tuvira virou torre de 270° a pedido: o arco paga a cadência, e ela fica abaixo da âncora fixa do SW por arma.
 
@@ -155,21 +155,21 @@ Fixa e modular, como o canhão eletromagnético (railgun) do jogo base: **Carreg
 
 - **Mais canos = mais dano, alcance, penetração, velocidade e energia por tiro:** m(N) = 1 + 0,25 x N^0,85; N = canos 1..6.
 - **Comando:** 6 + 2 por cano. Tripulação: 2 no carregador.
-- **Energia:** sai da bateria do carregador (15.000): 2.500 por tiro com 1 cano até 5.000 com 6. A tripulação leva bateria ao carregador.
+- **Energia:** sai da bateria do carregador (15 de energia): 2,5 por tiro com 1 cano até 5 com 6 (os mesmos números das dicas do jogo). A tripulação leva bateria ao carregador.
 - **Ritmo:** 1 tiro a cada 6 s. Estoque: 12 projéteis no carregador + 1 na câmara = 13 tiros (78 s).
 - **Tranco:** um impulso por tiro na ponta (3.000 com 1 cano até 5.152 com 6), tremor de tela 0,2 por 0,7 s, anel de choque azul e recuo animado da ponta, dos canos e da culatra. Fora do centro da nave ela gira um pouco, como o canhão eletromagnético do jogo base.
 - **Passa por cima da própria nave:** o dardo não acerta peças nossas.
 - **Limite:** 2 por nave (a Ponta conta), à parte do limite do Mapinguari e da Boiúna.
 - **Visual:** tudo azul elétrico (carregador, canos, dardo, rastro, impacto); só as brasas que ficam queimando no alvo são laranja.
 
-| Canos | Tiles | Comando | Custo | Dano por tiro | DPS | DPS por tile | Penetração | Alcance | Velocidade | Energia por tiro | Tiros com a bateria cheia | Impulso do tranco | F6 por 1000 DPS |
+| Canos | Tiles | Comando | Custo | Dano por tiro | DPS | DPS por tile | Penetração | Alcance | Velocidade | Energia por tiro | Tiros com a bateria cheia, sem recarga | Impulso do tranco | F6 por 1000 DPS |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | 46 | 8 | 54.750 | 50.000 | 8.333 | 181 | 32,5 | 500 m | 550 m/s | 2.500 | 6 | 3.000 | 0,72 |
-| 2 | 55 | 10 | 66.250 | 58.025 | 9.671 | 176 | 37,7 | 580 m | 638 m/s | 3.000 | 5 | 3.482 | 0,62 |
-| 3 | 64 | 12 | 77.750 | 65.442 | 10.907 | 170 | 42,5 | 654 m | 720 m/s | 3.500 | 4 | 3.927 | 0,55 |
-| 4 | 73 | 14 | 89.250 | 72.490 | 12.082 | 166 | 47,1 | 700 m | 797 m/s | 4.000 | 3 | 4.349 | 0,50 |
-| 5 | 82 | 16 | 100.750 | 79.276 | 13.213 | 161 | 51,5 | 700 m | 872 m/s | 4.500 | 3 | 4.757 | 0,45 |
-| 6 | 91 | 18 | 112.250 | 85.859 | 14.310 | 157 | 55,8 | 700 m | 944 m/s | 5.000 | 3 | 5.152 | 0,42 |
+| 1 | 46 | 8 | 54.750 | 50.000 | 8.333 | 181 | 32,5 | 500 m | 550 m/s | 2,5 | 6 | 3.000 | 0,72 |
+| 2 | 55 | 10 | 66.250 | 58.025 | 9.671 | 176 | 37,7 | 580 m | 638 m/s | 3 | 5 | 3.482 | 0,62 |
+| 3 | 64 | 12 | 77.750 | 65.442 | 10.907 | 170 | 42,5 | 654 m | 720 m/s | 3,5 | 4 | 3.927 | 0,55 |
+| 4 | 73 | 14 | 89.250 | 72.490 | 12.082 | 166 | 47,1 | 700 m | 797 m/s | 4 | 4 | 4.349 | 0,50 |
+| 5 | 82 | 16 | 100.750 | 79.276 | 13.213 | 161 | 51,5 | 700 m | 872 m/s | 4,5 | 3 | 4.757 | 0,45 |
+| 6 | 91 | 18 | 112.250 | 85.859 | 14.310 | 157 | 55,8 | 700 m | 944 m/s | 5 | 3 | 5.152 | 0,42 |
 
 Com 1 ou 2 canos a logística (0,72 / 0,62 tile de F6 por 1000 DPS) fica acima da banda do fim (0,4 a 0,6); de 3 canos em diante fica dentro.
 
@@ -314,24 +314,24 @@ Alvo: cada arma do Bullet Strike bate ~15 % mais que a equivalente do SW no mesm
 
 | Grupo | Arma | Bullet Strike | Âncora do SW | Razão |
 |---|---|---|---|---|
-| canhão | Marimbondo | 720 casco/s | SW Compact Roof Laser | 1,15x |
-| canhão | Mangangá | 1.440 casco/s | SW Tiny Turbolaser A | 1,15x |
-| canhão | Carcará | 1.650 casco/s | avg SW Light TL 1053 / Medium TL 1818 | 1,15x |
-| canhão | Saci | 2.100 casco/s | SW Medium Turbolaser | 1,16x |
-| canhão | Cigarra | 3.288 casco/s | SW Medium TL per tile x 6 tiles | 1,20x |
-| canhão | Tambor | 5.400 casco/s | avg SW Medium TL 455/tile & Small Triple TL 333/tile x 12 tiles | 1,14x |
-| canhão | Furacão | 6.804 casco/s | avg SW CIS 6087 / Imperial 5220 turbolaser | 1,20x |
-| canhão | Trovão | 8.800 casco/s | SW faction TL anchor 5650 x 20/16 tiles | 1,25x |
-| canhão | Mapinguari | 12.000 casco/s | SW Siege Turbolaser 12x12 4800 | 2,50x; por tile 0,81x |
-| canhão | Boiúna | 7.200 casco/s | SW Siege Turbolaser 12x12 4800 | 1,50x |
-| plasma | Boitatá | 2.800 casco / 5.750 escudo | SW Medium TL per tile x 6 / SW Medium Ion Cannon | 1,03x / 1,09x; por tile 0,73x |
-| plasma | Curupira | 7.485 casco / 15.405 escudo | SW faction TL anchor x 20/16 tiles / SW Heavy Ion Cannon | 1,06x / 1,03x; por tile 0,82x |
-| defesa | Tatu | 9.600 anti-tiro/s | SW PD4 8333 anti-shot/s | 1,15x (lasers 0,72x) |
-| defesa | Tamanduá | 22.000 anti-tiro/s | SW PD4 per tile x 9 tiles | 1,17x (lasers 0,80x) |
-| defesa | Pororoca | 50.700 anti-tiro/s | SW flak 2750/tile x 16 tiles | 1,15x (lasers 0,55x) |
-| PEM | Tuvira | 4.320 escudo/s | SW Dual Mounted Ion Cannon CE | 0,67x |
-| PEM | Treme-Treme | 6.250 escudo/s | SW Medium Ion Cannon | 1,19x |
-| PEM | Corisco | 17.476 escudo/s | SW Heavy Ion Cannon | 1,17x |
+| canhão | Marimbondo | 720 casco/s | Compact Roof-Mounted Laser Cannon | 1,15x |
+| canhão | Mangangá | 1.440 casco/s | Compact Turbolaser - Burst | 1,15x |
+| canhão | Carcará | 1.650 casco/s | média de Light Turbolaser (1.053) e Medium Turbolaser (1.818) | 1,15x |
+| canhão | Saci | 2.100 casco/s | Medium Turbolaser | 1,16x |
+| canhão | Cigarra | 3.288 casco/s | Medium Turbolaser por tile x 6 | 1,20x |
+| canhão | Tambor | 5.400 casco/s | média de Medium Turbolaser (455 por tile) e Triple Turbolaser (333 por tile) x 12 | 1,14x |
+| canhão | Furacão | 6.804 casco/s | média de CIS ZS Heavy Turbolaser (6.087) e Imperial Heavy Turbolaser (5.220) | 1,20x |
+| canhão | Trovão | 8.800 casco/s | média dos turbolasers pesados de facção (5.650) x 20/16 | 1,25x |
+| canhão | Mapinguari | 12.000 casco/s | Dual 70TT Superheavy Turbolaser (4.800) | 2,50x; por tile 0,81x |
+| canhão | Boiúna | 7.200 casco/s | Dual 70TT Superheavy Turbolaser (4.800) | 1,50x |
+| plasma | Boitatá | 2.800 casco / 5.750 escudo | Medium Turbolaser por tile x 6 / Medium Ion Cannon | 1,03x / 1,09x; por tile 0,73x |
+| plasma | Curupira | 7.485 casco / 15.405 escudo | média dos turbolasers pesados de facção x 20/16 / Heavy Ion Cannon | 1,06x / 1,03x; por tile 0,82x |
+| defesa | Tatu | 9.600 anti-tiro/s | Sentinel-Class Light Point Defense Turbolaser (8.333 anti-tiro/s) | 1,15x (lasers 0,72x) |
+| defesa | Tamanduá | 22.000 anti-tiro/s | Sentinel-Class Light Point Defense Turbolaser por tile x 9 | 1,17x (lasers 0,80x) |
+| defesa | Pororoca | 50.700 anti-tiro/s | Heavy Flak Deck Cannon (2.750 por tile) x 16 | 1,15x (lasers 0,55x) |
+| PEM | Tuvira | 4.320 escudo/s | Dual Mounted Ion Cannon, Compact Edition | 0,67x |
+| PEM | Treme-Treme | 6.250 escudo/s | Medium Ion Cannon | 1,19x |
+| PEM | Corisco | 17.476 escudo/s | Heavy Ion Cannon | 1,17x |
 | míssil | Caipora Poraquê | 14.207 escudo/s | íons do SW por tile | 1,20x |
 | míssil | Mula-sem-Cabeça Poraquê | 32.876 escudo/s | íons do SW por tile | 1,17x |
 | railgun | Tupã, 1 cano | 50.000 por tiro | Dual 70TT Superheavy Turbolaser (30.000 por tiro) | 1,67x por tiro; 0,51x por tile |

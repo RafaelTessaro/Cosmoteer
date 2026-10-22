@@ -33,7 +33,12 @@
       "revisao 2 (7.4): as armas quase nao sentem os ions do SW, menos o Tupa (o carregador tem bateria)",
       "revisao 2 (8.3): a dica da Ponta e fixa (StatsByCategory so com BaseValue; a Ponta tem CP fixo): ler o bonus minimo e maximo e a tabela por N na descricao, e conferir os pontos de comando da nave com 4 canos; a dica do Cano tem que abrir sem erro (o Cano do WP09 tem RailgunBuff com 6 valores e o formato do jogo base pede 30)",
       "revisao 2 (10.1, 10.4): nomes do SW como aparecem no jogo ('Imperial Heavy Turbolaser', 'Dual 70TT Superheavy Turbolaser')",
-      "revisao 2 (12.3, 12.6): sem Fita e sem Baia o paiol so enche pelo 'Reabastecer': encher o paiol sozinho e so depois encostar a arma ou montar o Tupa vazios"
+      "revisao 2 (12.3, 12.6): sem Fita e sem Baia o paiol so enche pelo 'Reabastecer': encher o paiol sozinho e so depois encostar a arma ou montar o Tupa vazios",
+      "revisao 3 (1.3): a aba mostra n_botoes (41), nao n_pecas (43): o Carregador e o Cano do Tupa so tem EditorParentParts = [Ponta] (como o railgun do jogo base) e aparecem depois de escolher a Ponta ('Railgun Tupa', rotulo lido do railgun.strings)",
+      "revisao 3 (2, preparo): um Beliche do jogo base tem 2 camas e o Tambor usa 3 tripulantes (PartCrew faz parte do IsOperational): camas geradas = 2 Tambores do 2.9 + 1 livre para a reserva do 2.11 (ex.: Alojamentos 6 + 1 Beliche); linha nova de comando (sem sala de comando as armas nao atiram); 'Reabastecer' uma vez so e nao de novo ate o 2.11",
+      "revisao 3 (2.14): a metade do Tambor com uma Cabine (depois de separar ela vira outra nave e precisa de comando) e camas para Tambor + Cabine (2 Beliches)",
+      "revisao 3 (8.4): a bateria do carregador nao tem barra (so o desenho dos capacitores, 3 niveis) e o jogo mostra energia / 1000: virou 'com camas para os 2 tripulantes do carregador, sem reator no corredor, Reabastecer e contar os tiros ate parar' (1, 4 e 6 canos), com a bateria e o gasto por tiro nas unidades das dicas (15; 2,5 / 4 / 5); a contagem segue o railgun.py (o emissor so confere os 2000 da Ponta: com 4 canos sai um 4o tiro)",
+      "revisao 3 (2.5, 5.3, 7.1, 7.2): 'decide' novo (logistics.transport, logistics.paiol_contador, pem.tuvira_mount, pem.heavy_name) para a tabela da secao 4 do COMO_TESTAR"
     ]
   },
   "titulo": "Bullet Strike 2.0 - o que testar",
@@ -106,7 +111,7 @@
         {
           "id": "1.3",
           "faca": "Novo jogo Criativo > construir nave > aba do Bullet Strike.",
-          "olhe": "{n_pecas} peças, todas com ícone (nenhum quadrado branco ou rosa): {lista_pecas}.",
+          "olhe": "{n_botoes} botões na aba, todos com ícone (nenhum quadrado branco ou rosa): {lista_pecas}.{tupa_botao}",
           "se_nao": "Diga quais faltam ou estão sem ícone.",
           "curto": true
         },
@@ -146,8 +151,9 @@
         "Cada máquina fica encostada na Estrutura e longe das outras (5 quadrados ou mais).",
         "Cada Fita encosta de lado (não na quina) só na sua máquina e também na Estrutura.",
         "Fábricas: as de verdade precisam de energia e de matéria-prima. Ponha um reator e, ligados SÓ às fábricas por corredor e porta, um Beliche e uma Baia de armazenamento com {insumos_secao2} (em 'Gerenciar recursos').",
-        "Aperte 'Reabastecer todos os recursos' só antes de pôr paióis e armas (até o item 2.10): ele enche tudo, e um paiol ou uma arma já cheios estragam o teste.",
-        "Armas: elas precisam de tripulação para atirar. Ponha um Beliche só para elas, ligado por corredor SÓ às armas (nada de Baia nem de fábrica nesse corredor). Assim a tripulação opera a arma, mas não tem de onde trazer munição: só a Fita abastece (até o item 2.11).",
+        "Aperte 'Reabastecer todos os recursos' uma vez só, antes de pôr paióis e armas, e não aperte de novo até o item 2.11: ele enche tudo, e um paiol ou uma arma já cheios estragam o teste.",
+        "Comando: as armas só atiram se a nave tiver uma sala de comando (Cabine, Sala de controle ou Ponte) funcionando. Se ainda não tiver, ponha uma Cabine no corredor das fábricas, com mais 1 Beliche.",
+        "Armas: elas precisam de tripulação para atirar. Ponha camas só para elas: cada {tambor} usa {tambor_tripulacao} tripulantes (no 2.9 são 2 {tambor_plural}) e a reserva do 2.11 precisa de 1 tripulante livre; por exemplo, {camas_armas}. Ligue essas camas por corredor SÓ às armas (nada de Baia nem de fábrica nesse corredor). Assim a tripulação opera a arma, mas não tem de onde trazer munição: só a Fita abastece (até o item 2.11).",
         "Paióis: sem corredor nenhum (nesta versão eles são selados).",
         "Para as armas atirarem, crie uma nave inimiga no menu do Criativo.",
         "Luz verde da Fita e grade de saída das fábricas: veja com o interior ligado. Cartuchos andando: veja com o interior desligado."
@@ -187,7 +193,7 @@
           "olhe": "Aparecem cartuchos entrando no {tambor} e a barra de HE dele sobe sem ninguém levar munição. Atirando sem parar ela pode baixar devagar: uma {f1_nome} sozinha faz ~{f1_sozinha_min} carregadores por minuto e o {tambor} gasta ~{tambor_he_min} carregadores por minuto. O que vale aqui é a barra receber.",
           "se_nao": "O paiol não está empurrando para a arma: me mande o resultado.",
           "curto": true,
-          "decide": "logistics.fita_arma"
+          "decide": "logistics.transport / fita_arma"
         },
         {
           "id": "2.6",
@@ -242,7 +248,7 @@
         },
         {
           "id": "2.14",
-          "faca": "Monte uma nave em duas metades ligadas por uma fileira de Estrutura. Numa metade, o paiol de cartuchos com Fita e cheio de HE. Na outra, o {tambor} com Fita, um Beliche e o corredor só até os postos dele (sem Baia). Com o {tambor} atirando, selecione as Estruturas do meio e use Autodestruição.",
+          "faca": "Monte uma nave em duas metades ligadas por uma fileira de Estrutura. Numa metade, o paiol de cartuchos com Fita e cheio de HE. Na outra, o {tambor} com Fita, uma Cabine (sem sala de comando a metade dele não atira) e camas para {camas_2_14_n} tripulantes ({camas_2_14}: {tambor_tripulacao} para o {tambor} e 1 para a Cabine), com o corredor só até os postos (sem Baia). Com o {tambor} atirando, selecione as Estruturas do meio e use Autodestruição.",
           "olhe": "Depois de separar, o {tambor} não recebe mais nada: a barra só desce até esvaziar (~{tambor_vazio_s} s atirando com ela cheia). A Fita não atravessa para outra nave.",
           "se_nao": "Anote (C1)."
         },
@@ -402,7 +408,8 @@
           "id": "5.3",
           "faca": "Encha um paiol pela Fita.",
           "olhe": "A barra sob a vida e o medidor do teto sobem juntos ({paiol_niveis} níveis). Não há contador de números (desligado nesta versão).",
-          "se_nao": "Anote."
+          "se_nao": "Anote.",
+          "decide": "logistics.paiol_contador"
         },
         {
           "id": "5.4",
@@ -484,13 +491,15 @@
           "faca": "{tuvira} ({tuvira_tam}) com {pem_item} (F3 em PEM + paiol de células em PEM, com Fita).",
           "olhe": "É uma TORRE que gira {tuvira_arco}° (não só para a frente), com {tuvira_canos} canos; atira ~{tuvira_tiros_s} tiro/s.",
           "se_nao": "Anote.",
-          "curto": true
+          "curto": true,
+          "decide": "pem.tuvira_mount"
         },
         {
           "id": "7.2",
           "faca": "{treme} e a PEM pesada.",
           "olhe": "A pesada se chama '{pem_pesada}' e o overclock dela '{pem_pesada_oc}'; arcos e brilho azul antes do tiro.",
-          "se_nao": "Anote o nome que aparece."
+          "se_nao": "Anote o nome que aparece.",
+          "decide": "pem.heavy_name"
         },
         {
           "id": "7.3",
@@ -540,9 +549,9 @@
         },
         {
           "id": "8.4",
-          "faca": "Energia: olhe a bateria do carregador a cada tiro.",
-          "olhe": "Cai ~{rail_energia_1} (1 cano), ~{rail_energia_4} (4), ~{rail_energia_6} (6); com 6 canos a bateria cheia ({rail_bateria}) dá {rail_tiros_bateria_6} tiros; a tripulação traz bateria ao carregador.",
-          "se_nao": "Anote os números."
+          "faca": "Energia: monte o {tupa} com camas para os {rail_tripulacao} tripulantes do carregador no corredor dele e sem nenhum reator ligado a esse corredor. Aperte 'Reabastecer todos os recursos' (enche a bateria do carregador) e deixe o {tupa} atirar na nave inimiga até parar; conte os tiros. Faça com 1, 4 e {rail_max_canos} Canos.",
+          "olhe": "Sem recarga ele para depois de {rail_tiros_1} tiros com 1 Cano, {rail_tiros_4} com 4 e {rail_tiros_6} com {rail_max_canos}. A dica do {rail_carregador} mostra a bateria cheia ({rail_bateria} de energia) e a dica da Ponta, o gasto por tiro ({rail_energia_1} com 1 Cano, {rail_energia_4} com 4, {rail_energia_6} com {rail_max_canos}). Depois ligue um reator ao corredor: a tripulação traz bateria ao carregador e ele volta a atirar.",
+          "se_nao": "Anote quantos tiros saíram com cada número de Canos."
         },
         {
           "id": "8.5",

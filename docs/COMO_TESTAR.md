@@ -53,20 +53,20 @@ Cada escolha que depende de um teste usa o valor seguro ("safe") até a resposta
 | `logistics.fita_arma` | `empurra` | safe (sem resposta) | 2.5 |
 | `logistics.fita_embutida` | `off` | safe (sem resposta) | - |
 | `logistics.fita_fabrica` | `B` | decisão (sua resposta / do build) | 2.3 |
-| `logistics.paiol_contador` | `false` | decisão (sua resposta / do build) | - |
+| `logistics.paiol_contador` | `false` | decisão (sua resposta / do build) | 5.3 |
 | `logistics.paiol_seletor` | `botao` | safe (sem resposta) | - |
 | `logistics.recurso_cookoff` | `off` | safe (sem resposta) | - |
 | `logistics.reserva_tripulacao` | `metade` | safe (sem resposta) | 2.11 |
-| `logistics.transport` | `teleporte` | decisão do build de teste | 2.7 |
+| `logistics.transport` | `teleporte` | decisão do build de teste | 2.3/2.5/2.7 |
 | `missiles.cluster_lite` | `false` | safe (sem resposta) | 6.4-6.7/11.2 |
 | `missiles.cluster_petals` | `bullets` | safe (sem resposta) | - |
 | `missiles.cluster_randomize_target` | `on` | safe (sem resposta) | 6.4 |
 | `missiles.iara_hp` | `12000` | safe (sem resposta) | - |
 | `missiles.poraque_overload` | `false` | safe (sem resposta) | - |
-| `pem.heavy_name` | `Corisco` | sua resposta / pedido | - |
+| `pem.heavy_name` | `Corisco` | sua resposta / pedido | 7.2 |
 | `pem.overload_rider` | `false` | safe (sem resposta) | - |
 | `pem.tuvira_cp` | `2` | safe (sem resposta) | - |
-| `pem.tuvira_mount` | `torre` | sua resposta / pedido | - |
+| `pem.tuvira_mount` | `torre` | sua resposta / pedido | 7.1 |
 | `rail.buffed_riders` | `false` | safe (sem resposta) | 8.1/8.3/8.11-8.13 |
 | `rail.charge_wave` | `atraso` | safe (sem resposta) | - |
 | `rail.enabled` | `true` | sua resposta / pedido | 8.1 |
