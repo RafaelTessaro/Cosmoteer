@@ -1,38 +1,38 @@
-"""Efeitos dos misseis do Bullet Strike: arte propria por tipo, escapamento na cor do tipo, impacto do tamanho da
-fase, clarao de lancamento por tipo, separacao do torpedo, contagem do Carrapato e a Iara que se reconhece de longe.
+"""Efeitos dos misseis 2.0 do Bullet Strike (dono: WP07): arte de voo propria por tipo (art3d/bs_missiles2), luz em
+duas sprites (fxkit.light_pair: halo so no espaco + luz de casco na cor do tipo), escapamento na cor do tipo, impacto
+do tamanho da fase, abertura da Piranha (BURST v2 com petalas e faiscas), separacao e trevo da Iara e o clarao de
+lancamento por tipo nos lancadores.
 
-Modulo opcional (CONTRATOS secao 1 e 2.3): entra pelos seams de bs_data.py (D1 annotate), bsgen/shots.py (S2
-visual_components, S4 decorate) e build_mod.py (B2 write, B3 copy_art). Ausente ou BS_FX_EXT=0 = misseis de hoje.
-So importa rules_dsl e bsgen.fxkit no nivel do modulo (bsgen.shots so dentro de funcao: shots importa este).
+Modulo FX do registro do tools/build_mod.py (API = 2; BS_FX_EXT=0 desliga). Ganchos: annotate(DATA) (chave de arte,
+item do meta, escala do impacto em cada missil e filho; clarao/sopro/tremor por tipo nos lancadores), write(out,
+header) (shots/bs_missile_fx/), copy_art(out) (shots/bs_missile_art/ + as petalas recortadas), selfcheck(mod_dir,
+spec). Seams chamados pelo bsgen.missile_shots: visual_components(s, glow, plume), petal_sprite(p), decorate(s, top).
+So importa rules_dsl e bsgen.fxkit no nivel do modulo (nunca bs_data nem bsgen.missile_shots: ciclo de import).
 
-Tabela: tools/spec/bullet_strike_missile_fx.json (copia da tabela de arte do design + configuracao por tipo + os sons
-de hoje em SOUNDS, so como lugar marcado para os sons proprios de depois). Arte: art3d/bs_missiles/meta.json
-(CONTRATOS secao 3; outra pasta com env BS_MISSILE_ART_DIR, para testar com folhas provisorias). Sem a arte, cada
-missil usa o corpo vanilla de hoje (missile_he.png) com o escapamento novo.
+Tabela: tools/spec/bullet_strike_missile_fx.json (items = escapamento por chave de arte de bs_missiles2; types =
+cores, clarao, halo, extras de impacto/abertura/separacao por tipo; hit_media_scale da fase; SOUNDS = slots de som
+por tipo, com 'open' (Piranha) e 'drain' (Poraque)). Arte: fxkit.missile_art_dir() / missile_art_meta() (env
+BS_MISSILE_ART_DIR para folhas de teste). Item que faltar no meta: o missil usa o corpo vanilla (missile_he.png) com
+aviso; sem o atlas das petalas, as petalas usam o debris.png vanilla (com aviso).
 
 So visual (CONTRATOS R4): nunca muda HitEffects, dano, raio, fisica, vida, alcance, velocidade nem gatilhos; so
-MediaEffects, MediaEffectsScale, componentes de sprite/luz/midia e arquivos novos em shots/bs_missile_fx/. As
-entradas de som que ja existem ficam como estao (R5).
+MediaEffects, MediaEffectsScale, componentes de sprite/luz/midia e arquivos novos em shots/bs_missile_fx/.
 
 Arquivos gerados (shots/bs_missile_fx/):
   plume_<chave>        feixe do propulsor: COPIA INTEGRAL do missile_he_thruster_plume.rules vanilla (Beam), Bucket
-                       BulletUpper2 (acima dos tetos, abaixo do corpo BulletUpper3), cores e tamanho da tabela;
-  plume_light_<tipo>   luz do propulsor no casco: copia integral do missile_he_thruster_plume_light.rules, recolorida;
-                       nas linhas com fx_size < 1 (fases s e m, iscas) plume_light_<tipo>_s60 / _s80, Size x fx_size;
-  smoke_<estilo>_<n>   fumaca: copia integral do missile_he_thruster_smoke.rules (nuke: missile_nuke_thruster_smoke),
-                       Bucket BulletUpper1, n particulas/s, vida / valor / alfa / tamanho do estilo;
-  fire_<estilo>_<n>    fogo do propulsor: copia integral do missile_thermal_thruster_fire.rules (nuke:
-                       missile_nuke_thruster_fire), Bucket BulletUpper2, n/s, tamanho; o da Iara tingido de verde;
-  backblast_heavy      sopro de lancamento do torpedo e da Iara: copia integral do cannon_smoke_deck.rules x1,4;
-  launch_flash_<tipo>, burst_cluster, droplets_napalm, clank_limpet, separation_<tipo>, leak_iara, ring_torpedo,
-  flash_torpedo        efeitos novos montados com os tijolos de bsgen/fxkit.py.
-Copias integrais e nao heranca parcial (CONTRATOS R8): trails.py lembra que sobrescrever so um pedaco de uma Def
-aninhada pode travar o jogo. O anel e o brilho residual nucleares sao os de shots/bs_nuke_fx (fxkit, os mesmos da
-Boiuna).
-Baldes: particulas em BulletUpper1 / BulletUpper2 tem precedente no SW:ACD (57 arquivos; ex.
-sw_effects/glow/red_laser_shot_glow_med.rules l.139); feixe (Beam) em BulletUpper2 nao tem (o vanilla usa
-BulletLower3, que fica sob o nosso teto): o nome do balde e valido (common_effects/effect_buckets.rules), so a ordem
-de desenho sobre o casco fica para o teste no jogo T-M1.
+                       BulletUpper2, cores e tamanho da tabela (plume_cluster_mini = o feixe do minimissil, sem
+                       particulas e sem luz);
+  plume_light_<tipo>   luz do propulsor no casco: copia integral do missile_he_thruster_plume_light.rules, recolorida
+                       (fases s e m: plume_light_<tipo>_s60 / _s80, Size x fx_size);
+  smoke_<estilo>_<n>   fumaca: copia integral do missile_he_thruster_smoke.rules (nuke: missile_nuke_thruster_smoke);
+  fire_nuclear_<n>     fogo do propulsor da Iara: copia integral do missile_nuke_thruster_fire.rules, tingido de verde;
+  backblast_heavy      sopro de lancamento da Iara: copia integral do cannon_smoke_deck.rules x1,4;
+  petals_<m|l> + petals_def_<m|l>  petalas do nariz da Piranha (missiles.cluster_petals = particles): copias
+                       integrais de big_part_explode_debris.rules + debris_def.rules (tools/vanilla_fx/missiles2/) com o
+                       atlas bs_petals_<m|l>, 4 petalas, vida 0,5-0,8 s, 25-40 m/s, giro 360-720 graus/s;
+  launch_flash_<tipo>, burst_cluster, sparks_cluster, separation_nuclear, leak_iara: tijolos do bsgen/fxkit.py.
+Copias integrais e nao heranca parcial (CONTRATOS R8). O anel e o brilho residual nucleares sao os de
+shots/bs_nuke_fx (fxkit.NUKE, Fase B; so a Iara os usa).
 """
 
 import json
@@ -44,56 +44,65 @@ import shutil
 from rules_dsl import Q, fmt_num
 from bsgen import fxkit as FX
 
+API = 2
+
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SPEC_PATH = os.path.join(ROOT, "tools", "spec", "bullet_strike_missile_fx.json")
+VENDOR_DIR = os.path.join(ROOT, "tools", "vanilla_fx", "missiles2")
 DIR = "shots/bs_missile_fx"
 ART_OUT = "shots/bs_missile_art"
-ART_PREFIX = "../bs_missile_art/"         # PNGs copiados, vistos de shots/<id>/<id>.rules
-ART_ENV = "BS_MISSILE_ART_DIR"
-VANILLA_BODY = "./Data/shots/missile_he"  # corpo de hoje (fallback sem arte): shots._missile_visuals
+ART_PREFIX = "../bs_missile_art/"         # PNGs copiados, vistos de shots/<id>/<id>.rules e de shots/bs_missile_fx/
+VANILLA_BODY = "./Data/shots/missile_he"  # corpo de reserva (item de arte faltando)
+VANILLA_DEBRIS = "./Data/common_effects/particles/debris.png"
 
 with open(SPEC_PATH, encoding="utf-8") as _fh:
     SPEC = json.load(_fh)
 ITEMS = SPEC["items"]
 TYPES = SPEC["types"]
-SOUNDS = SPEC["SOUNDS"]     # sons de hoje por tipo [launch|impact|deploy|charge_beep] (lugar dos sons de depois)
+SOUNDS = SPEC["SOUNDS"]     # slots de som por tipo (launch, impact, deploy, open, drain): lidos pelo missile_shots
 TIER = SPEC["tier_letter"]
+PETALS = SPEC["petals"]
+REMOVED = ("napalm", "limpet", "torpedo", "decoy")   # tipos e pecas que sairam na 2.0 (nenhum arquivo, nenhuma chave)
 
 _UNSET = object()
 META = _UNSET               # meta.json da arte (dict | None), lido no annotate (ou no copy_art)
+_WARNED = set()
 
 HIT_BLOCKS = ("HitOperational", "HitStructural", "HitShield", "HitFriendly")
-
-# Cor do GlowSprite do bocal (IsLight, fancy_light, _litReflectiveStrength 24) por tipo, no lugar da glow_color do
-# bs_data: com [124, 255, 107] (Iara) ou [79, 195, 255] (P.E.M.) os tres canais saturam no casco e a luz sai BRANCA
-# em casco branco, cinza e escuro (modelo de luz do WP2; a mesma falha que a granada da Boiuna ja corrigiu). Um canal
-# so fica colorido: verde puro na Iara (fxkit.NUKE_GREEN_HULL, a mesma cor do trevo grande e da luz do propulsor) e
-# azul quase puro no P.E.M. (no casco claro fica ciano, nunca branco). Os outros tipos ficam com a cor de hoje.
-HULL_GLOW = {"nuclear": FX.NUKE_GREEN_HULL, "emp": [0, 90, 255]}
-
-# Tremor do impacto da ogiva da Iara = o da granada da Boiuna (weapons.bs_nuke_howitzer.impact.shake na tabela de
-# calibres): a Iara (r9) nao pode tremer menos que a Boiuna (r8). Lido do json, sem importar caliber_fx.
-CAL_SPEC_PATH = os.path.join(ROOT, "tools", "spec", "bullet_strike_vfx.json")
 SHAKE_BASE = "/BASE_SHAKE"
+# chave da paleta 2.0 (SPEC.art_assets.palette) da luz de casco por tipo (ADDENDUM WP07: cor de casco palette[tipo])
+PAL_KEY = {"he": "msl_he", "cluster": "cluster", "emp": "msl_emp", "nuclear": "nuclear"}
+TURRET_R = 1.5              # raio tipico da torre dos lancadores (fxkit.start_time)
+
+
+def _warn(msg):
+    if msg not in _WARNED:
+        _WARNED.add(msg)
+        FX._warn(msg)
+
+
+def _placeholder(note):
+    """Arte que ainda falta: entra em bs_data.PLACEHOLDERS (o build lista; o WP14b exige a lista vazia)."""
+    import sys
+    D = sys.modules.get("bs_data")
+    lst = getattr(D, "PLACEHOLDERS", None) if D is not None else None
+    if isinstance(lst, list) and note not in lst:
+        lst.append(note)
 
 
 # ----------------------------------------------------------------------------- arte (meta.json)
 def art_dir():
-    """Pasta da arte dos misseis: env BS_MISSILE_ART_DIR (folhas de teste) ou art3d/bs_missiles."""
-    return os.environ.get(ART_ENV) or os.path.join(ROOT, "art3d", "bs_missiles")
+    """Pasta da arte dos misseis (fxkit.missile_art_dir: art3d/bs_missiles2 ou env BS_MISSILE_ART_DIR)."""
+    return FX.missile_art_dir()
 
 
 def load_meta():
-    """meta.json da arte (kind "missiles", CONTRATOS secao 3) ou None quando a pasta / o meta nao existe. Arquivo
-    citado e faltando aborta o build (como art3d.load_meta)."""
-    d = art_dir()
-    p = os.path.join(d, "meta.json")
-    if not os.path.exists(p):
+    """meta.json da arte (kind "missiles") ou None quando a pasta / o meta nao existe. Arquivo citado e faltando
+    aborta o build (como art3d.load_meta)."""
+    meta = FX.missile_art_meta()
+    if not meta:
         return None
-    with open(p, encoding="utf-8") as fh:
-        meta = json.load(fh)
-    if meta.get("kind") != "missiles":
-        raise ValueError(f"{p}: meta.json nao e de misseis (kind {meta.get('kind')!r})")
+    d = meta["_dir"]
     missing = [n for n in meta.get("files", []) if not os.path.exists(os.path.join(d, n))]
     if missing:
         raise FileNotFoundError(f"{d}: meta.json cita arquivos que nao existem: {missing[:5]}")
@@ -107,25 +116,47 @@ def _meta():
     return META
 
 
+def _atlas(tier_letter):
+    """Atlas das petalas da fase (meta 'atlases' petals_m / petals_l) ou None."""
+    return ((_meta() or {}).get("atlases") or {}).get(f"petals_{tier_letter}")
+
+
+def petal_files(t, tag):
+    """(difuso, normais) da petala recortada `tag` da fase t (gravadas pelo copy_art)."""
+    return f"bs_petal_{t}_{tag}.png", f"bs_petal_{t}_{tag}_normals.png"
+
+
+def _crop_petals(src_dir, dst_dir):
+    """Recorta as celulas das petalas-tiro (PETALS.bullets.cells: [fileira, coluna] de 64 px) dos atlases
+    bs_petals_<m|l> em PNGs proprios (Sprite simples + Spin no jogo: Spin so e provado em Sprite)."""
+    from PIL import Image
+    for t in ("m", "l"):
+        at = _atlas(t)
+        if not at:
+            continue
+        sp = int(at["sprite_px"])
+        for tag, (row, col) in PETALS["bullets"]["cells"].items():
+            box = (col * sp, row * sp, (col + 1) * sp, (row + 1) * sp)
+            for src, dst in zip((at["file"], at["normals"]), petal_files(t, tag)):
+                with Image.open(os.path.join(src_dir, src)) as im:
+                    im.convert("RGBA").crop(box).save(os.path.join(dst_dir, dst), optimize=True)
+
+
 def copy_art(out):
-    """Seam B3: copia os PNGs da arte para shots/bs_missile_art/ (com e sem --no-art, como as outras copias de
-    art3d). Sem meta.json: nada (os misseis ficam no corpo vanilla)."""
+    """Gancho copy_art: copia os PNGs da arte para shots/bs_missile_art/ (com e sem --no-art, como as outras copias
+    de art3d) e recorta as petalas-tiro. Sem meta.json: nada (os misseis ficam no corpo vanilla)."""
     meta = _meta()
     if not meta:
         return
-    src = art_dir()
+    src = meta["_dir"]
     dst = os.path.join(out.root, ART_OUT)
     os.makedirs(dst, exist_ok=True)
     for name in meta["files"]:
         shutil.copyfile(os.path.join(src, name), os.path.join(dst, name))
+    _crop_petals(src, dst)
 
 
-# ----------------------------------------------------------------------------- annotate (seam D1)
-def _art_key(role, typ, t):
-    fmt = SPEC["art_key"][role]
-    return fmt.format(type=typ, t=t)
-
-
+# ----------------------------------------------------------------------------- annotate
 def _hit_scale(role, typ, t):
     k = SPEC["hit_scale_key"][role]
     if isinstance(k, dict):
@@ -134,34 +165,32 @@ def _hit_scale(role, typ, t):
 
 
 def _annotate_unit(u, role):
-    if u.get("plasma_fx"):
-        return
     typ = u["payload"]
     t = TIER[u["tier"]]
-    key = _art_key(role, typ, t)
+    key = u.get("art_key") or SPEC["art_key"][role].format(type=typ, t=t)
     if key not in ITEMS:
         raise KeyError(f"missile_fx: {u['file']}: chave de arte {key!r} fora da tabela {os.path.basename(SPEC_PATH)}")
     meta = _meta()
-    u["art_key"] = key
+    art = (meta or {}).get("items", {}).get(key)
+    if art is None:
+        _warn(f"missile_fx: arte de voo {key} ausente em {art_dir()}: {u['file']} usa o corpo vanilla")
+        _placeholder(f"arte de voo {key} ausente (missile_fx: corpo vanilla missile_he.png)")
     u["fx_key"] = key
-    u["art"] = (meta or {}).get("items", {}).get(key)
-    u["size_mul"] = SPEC["size_mul"].get(key, {}).get(t, 1.0)
+    u["art"] = art
+    u["size_mul"] = u.get("art_scale") or SPEC["size_mul"].get(key, {}).get(t, 1.0)
     u["hit_scale"] = _hit_scale(role, typ, t)
 
 
 def annotate(data):
-    """Seam D1: chave de arte / item do meta / multiplicador de tamanho / escala do impacto / chave do escapamento
-    em todo missil, filho e extra; clarao, sopro e tremor por tipo nos lancadores (caminhos vistos de
-    parts/<id>/)."""
+    """Gancho annotate: chave de arte / item do meta / multiplicador / escala do impacto em todo missil e filho;
+    clarao, sopro e tremor por tipo nos lancadores (caminhos vistos de parts/<id>/)."""
     global META
     META = load_meta()
-    for s in data.MISSILES:
+    for s in getattr(data, "MISSILES", None) or []:
         _annotate_unit(s, "main")
         for c in s.get("children", []):
             _annotate_unit(c, c["role"])
-        for x in s.get("extras", []):
-            _annotate_unit(x, "main")
-    for lch in data.LAUNCHERS:
+    for lch in getattr(data, "LAUNCHERS", None) or []:
         fx = lch["fx"]
         kinds = [m["type"] for m in lch["modes"]]
         # o clarao vanilla do lancador fica; o do tipo entra junto (cor do missil carregado)
@@ -203,15 +232,12 @@ def fire_name(typ, ex):
     return f"fire_{typ}_{_int(ex['fire_eps'])}" + _size_tag(ex.get("fx_size", 1.0))
 
 
-# filhotes da Piranha: shots.build_missile_part chama visual_components com plume=False (desempenho), entao nunca
-# levam luz do propulsor; nao gerar o arquivo deles (ficaria sem uso)
-NO_PLUME_LIGHT = {"cluster_child"}
+# minimissil: so o feixe (sem luz do propulsor, sem fumaca: orcamento de 160 por salva)
+NO_PLUME_LIGHT = {"cluster_mini"}
 
 
 def plume_light_name(typ, ex):
-    """Luz do propulsor no casco por tipo e por tamanho da fase (fx_size: s 0,6 / m 0,8 / l 1), como o feixe e a
-    fumaca: o mesmo 6x3 no micromissil da Tocandira (1 x 0,375) e no da Mula deixava a luz do micro do tamanho da do
-    missil grande. fx_size 1 = o nome de antes (plume_light_<tipo>)."""
+    """Luz do propulsor no casco por tipo e por tamanho da fase (fx_size: s 0,6 / m 0,8 / l 1)."""
     return f"plume_light_{typ}" + _size_tag(ex.get("fx_size", 1.0))
 
 
@@ -225,13 +251,17 @@ def _int(v):
     return int(v)
 
 
-# ----------------------------------------------------------------------------- visual em voo (seam S2)
+# ----------------------------------------------------------------------------- visual em voo (seam)
 def _vanilla_body(s):
-    """Corpo de hoje (fallback sem arte): o mesmo Sprite de shots._missile_visuals."""
+    """Corpo de reserva (item de arte faltando): o mesmo Sprite do missile_shots sem o missile_fx (minimissil sem
+    normais, como a arte dele)."""
     w, h = s["sprite_wh"]
-    return {"Type": "Sprite", "RenderBucket": "BulletUpper3", "IsLit": True,
-            "Sprite": {"Texture": {"File": Q(f"{VANILLA_BODY}/missile_he.png"), "MipLevels": "max"}, "Size": [w, h]},
-            "NormalsTexture": {"File": Q(f"{VANILLA_BODY}/missile_he_normals.png"), "MipLevels": "max"}}
+    spr = {"Type": "Sprite", "RenderBucket": "BulletUpper3",
+           "Sprite": {"Texture": {"File": Q(f"{VANILLA_BODY}/missile_he.png"), "MipLevels": "max"}, "Size": [w, h]}}
+    if s.get("role", "main") != "child":
+        spr = {"Type": "Sprite", "RenderBucket": "BulletUpper3", "IsLit": True, "Sprite": spr["Sprite"],
+               "NormalsTexture": {"File": Q(f"{VANILLA_BODY}/missile_he_normals.png"), "MipLevels": "max"}}
+    return spr
 
 
 def _anchor(s, name, fallback):
@@ -245,71 +275,91 @@ def _anchor(s, name, fallback):
 
 
 def visual_components(s, glow=True, plume=True):
-    """Seam S2: componentes de voo do missil (substituem os de shots._missile_visuals).
+    """Seam do missile_shots: componentes de voo do missil (no lugar do corpo/halo de reserva).
       corpo: arte propria (fxkit.art_sprite_components: Sprite iluminado + normais, atlas de luzes aditivo) ou o
-        corpo vanilla de hoje no tamanho de hoje;
-      brilho: o GlowSprite de hoje (shots._glow_sprite), no bocal da arte quando ha arte; Iara e P.E.M. com a cor de
-        um canal so (HULL_GLOW), para nao virar luz branca no casco;
-      escapamento: MediaEffects no bocal, Rotation 180d (missile_he.rules l.96-108): fogo + fumaca + feixe + luz.
-        plume=False (submunicao da Piranha, por desempenho): so o feixe pequeno, e nem ele com performance_strip;
-      P.E.M.: o crepitar vanilla num segundo MediaEffects (MediaEffects3 do missile_emp.rules l.121-128);
-      Iara (estagio 1 e ogiva, nao a isca): trevo de radiacao verde girando (fxkit.radiation_components).
+        corpo vanilla; minimissil (role 'child'): so o Sprite do difuso, sem normais e sem atlas (orcamento);
+      luz: fxkit.light_pair no bocal = halo grande SO NO ESPACO (cor 'halo' do tipo / 4, refl 0) + luz de casco
+        [1,2 L, 1,2 W] na cor palette[tipo].hull (refl 6, regra c_min); minimissil: nenhuma luz IsLight;
+      escapamento: MediaEffects no bocal, Rotation 180d (missile_he.rules l.96-108): fogo + fumaca + feixe + luz do
+        propulsor; minimissil: so o feixe plume_cluster_mini;
+      Poraque: o crepitar vanilla (MediaEffects3 do missile_emp.rules l.121-128);
+      Iara (estagio e ogiva): trevo de radiacao verde girando (fxkit.radiation_components).
     None so quando o missil nao tem fx_key (sem annotate)."""
     key = s.get("fx_key")
-    if not key or s.get("plasma_fx"):
+    if not key:
         return None
-    from bsgen import shots as SH       # import tardio: shots importa este modulo
     typ = s["payload"]
+    role = s.get("role", "main")
     ex = ITEMS[key].get("exhaust") or {}
     art = s.get("art")
     mul = s.get("size_mul", 1.0)
     comps = {}
     if art:
-        comps.update(FX.art_sprite_components(ART_PREFIX, art, mul))
+        item = art if role != "child" else {k: v for k, v in art.items() if k not in ("normals", "lights", "mask")}
+        comps.update(FX.art_sprite_components(ART_PREFIX, item, mul))
         nozzle = FX.r(art["nozzle"][0] * mul)
-        length = FX.art_size(art, mul)[0]
+        L, W = FX.art_size(art, mul)
     else:
         comps["Sprite"] = _vanilla_body(s)
         nozzle = s["plume_offset"]
-        length = s["sprite_wh"][0]
-    if glow:
-        g = SH._glow_sprite(s["sprite_wh"][0], HULL_GLOW.get(typ, s["glow_color"]), s["glow_size"])
-        if art:
-            g["Offset"] = [nozzle, 0]
-        comps["GlowSprite"] = g
+        L, W = s["sprite_wh"]
+    if glow and role != "child":
+        pk = PAL_KEY[typ]
+        comps.update(FX.light_pair(s["glow_size"], TYPES[typ]["halo"], [FX.r(1.2 * L), FX.r(1.2 * W)],
+                                   FX.pal(pk)["hull"], FX.start_time(TURRET_R, s.get("speed") or 0),
+                                   FX.UNLIT_SHELL, x_halo=nozzle, x_hull=nozzle, key=pk))
     media = []
-    if plume:
-        for name in (fire_name(typ, ex), smoke_name(ex)):
-            if name:
-                media.append(_media(name))
-    if ex.get("beam_size") and (plume or glow):
-        media.append(_media(f"plume_{key}"))
-    if plume and ex.get("beam_size"):
-        media.append(_media(plume_light_name(typ, ex)))
+    if role == "child":
+        if ex.get("beam_size"):
+            media.append(_media(f"plume_{key}"))
+    else:
+        if plume:
+            for name in (fire_name(typ, ex), smoke_name(ex)):
+                if name:
+                    media.append(_media(name))
+        if ex.get("beam_size") and (plume or glow):
+            media.append(_media(f"plume_{key}"))
+        if plume and ex.get("beam_size"):
+            media.append(_media(plume_light_name(typ, ex)))
     if media:
         comps["MediaEffects"] = {"Type": "MediaEffects", "Offset": [nozzle, 0], "Rotation": "180d",
                                  "MediaEffects": media}
     T = TYPES[typ]
-    if T.get("crackle"):
+    if T.get("crackle") and role == "main":
         comps["Crackle"] = {"Type": "MediaEffects", "MediaEffects": [_media(T["crackle"])]}
     rad = T.get("radiation")
-    if rad and s.get("role", "main") in ("main", "warhead"):
-        anchor = _anchor(s, "radiation", [FX.r(0.25 * length), 0])
+    if rad and role in ("main", "warhead"):
+        anchor = _anchor(s, "radiation", [FX.r(0.25 * L), 0])
         comps.update(FX.radiation_components(rad["big_size"], rad["big_spin"], rad["small_size"], rad["small_spin"],
                                              anchor, FX.NUKE_GREEN_HULL, big_offset=anchor,
                                              small_color=FX.NUKE_GREEN_LIGHT))
     return comps
 
 
-# ----------------------------------------------------------------------------- impactos (seam S4)
+def petal_sprite(p):
+    """Seam do missile_shots (petala-tiro): Sprite iluminado da celula recortada do atlas bs_petals_<m|l> (64 px =
+    1 tile) com Spin; None sem o atlas (o missile_shots usa o debris.png vanilla)."""
+    t = TIER[p["tier"]]
+    if not _atlas(t):
+        _warn(f"missile_fx: atlas das petalas petals_{t} ausente em {art_dir()}: petalas-tiro com o debris.png vanilla")
+        _placeholder(f"atlas das petalas petals_{t} ausente (petalas com o debris.png vanilla)")
+        return None
+    diff, nrm = petal_files(t, p["petal"])
+    size = PETALS["bullets"]["size"][t]
+    return {"Sprite": {"Type": "Sprite", "RenderBucket": "BulletUpper3", "IsLit": True, "Spin": p["spin"],
+                       "Sprite": {"Texture": {"File": Q(f"{ART_PREFIX}{diff}"), "MipLevels": "max"},
+                                  "Size": [size, size]},
+                       "NormalsTexture": {"File": Q(f"{ART_PREFIX}{nrm}"), "MipLevels": "max"}}}
+
+
+# ----------------------------------------------------------------------------- impactos (seam decorate)
 def _base(k):
     return k.split(" : ")[0].strip() if isinstance(k, str) else k
 
 
 def _set_scale(block, scale):
     """MediaEffectsScale = numero no bloco de impacto, logo antes do MediaEffects (SW:ACD proton_rocket.rules l.129
-    e l.187, no HitShield/HitOperational de um SimpleHit; vanilla resonance_beam.rules l.111 com valor buffavel).
-    Escala 1 = nada escrito."""
+    e l.187). Escala 1 = nada escrito."""
     if abs(scale - 1.0) < 1e-9:
         return block
     out = {}
@@ -322,7 +372,7 @@ def _set_scale(block, scale):
 
 def _add_media(block, names):
     """Poe os efeitos novos depois das particulas que ja existem e antes dos sons/tremor (entradas Inh), sem mexer
-    nas entradas de som (R5). MediaEffects por referencia ("&../HitOperational/MediaEffects") fica como esta."""
+    nas entradas de som. MediaEffects por referencia ("&../HitOperational/MediaEffects") fica como esta."""
     lst = block.get("MediaEffects")
     if not isinstance(lst, list) or not names:
         return
@@ -351,16 +401,10 @@ def _decorate_hit(hit, op_scale, shield_scale, friendly_scale, impact, shot_down
             hit[k] = _set_scale(v, op_scale)
 
 
-def _cal_nuke_shake():
-    """(ShakeAmount, Duration) do impacto da Boiuna na tabela de calibres."""
-    with open(CAL_SPEC_PATH, encoding="utf-8") as fh:
-        amt, dur = json.load(fh)["weapons"]["bs_nuke_howitzer"]["impact"]["shake"][:2]
-    return amt, dur
-
-
 def _nuke_shake(hit):
-    """Troca o /BASE_SHAKE do HitOperational da ogiva da Iara (0,35 / 0,5 s de shots._missile_media) pelo tremor da
-    Boiuna. O HitShield usa &../HitOperational/MediaEffects e o HitStructural = &HitOperational: herdam a troca."""
+    """Troca o /BASE_SHAKE do HitOperational da ogiva da Iara pelo tremor proprio (types.nuclear.impact_shake =
+    0,5 / 1,5 s, SPEC.missiles.iara.look). O HitShield usa &../HitOperational/MediaEffects e o HitStructural =
+    &HitOperational: herdam a troca."""
     op = next((v for k, v in hit.items() if _base(k) == "HitOperational" and isinstance(v, dict)), None)
     lst = op.get("MediaEffects") if op else None
     if not isinstance(lst, list):
@@ -368,66 +412,47 @@ def _nuke_shake(hit):
     idx = [i for i, e in enumerate(lst) if getattr(e, "base", None) == SHAKE_BASE]
     if len(idx) != 1:
         raise ValueError(f"missile_fx: ogiva da Iara com {len(idx)} tremor(es) {SHAKE_BASE} no HitOperational")
-    amt, dur = _cal_nuke_shake()
+    amt, dur = TYPES["nuclear"]["impact_shake"]
     lst[idx[0]] = type(lst[idx[0]])(SHAKE_BASE, {"ShakeAmount": amt, "Duration": dur})
 
 
-def _insert_after(d, after, items):
-    """Copia de d com os pares de items logo depois da chave after (ordem do arquivo)."""
-    out = {}
-    for k, v in d.items():
-        out[k] = v
-        if k == after:
-            out.update(items)
-    for k, v in items.items():
-        out.setdefault(k, v)
-    return out
+def burst_extras(s):
+    """Extras da abertura da Piranha: clarao amarelo + faiscas douradas (+ as 4 petalas em particulas com
+    missiles.cluster_petals = particles)."""
+    names = list(TYPES["cluster"].get("burst", []))
+    if (s.get("variants") or {}).get("cluster_petals") == "particles":
+        names.append(f"petals_{TIER[s['tier']]}")
+    return names
 
 
 def decorate(s, top):
-    """Seam S4 (no lugar): MediaEffectsScale da fase nos impactos, extras por tipo, midia da separacao do torpedo
-    (Deploy.OnDeath, que ja leva HitEffects; DeathByLifetime.OnDeath com MediaEffects: mine_deployed.rules l.85-93),
-    corpo e contagem da carga do Carrapato, vazamento verde da Iara abatida. Nao toca HitEffects nem numeros de jogo.
-    MediaEffectsScale tambem no HitShield e no HitFriendly: o mesmo tipo de bloco do HitOperational (missile_he.rules
-    l.125 "HitShield = &HitOperational", l.117 "OnDeath = &../Hit/HitFriendly"; SW:ACD proton_rocket.rules l.129 no
-    HitShield de um PenetratingHit)."""
+    """Seam do missile_shots (no lugar): MediaEffectsScale da fase nos impactos, extras por tipo, abertura da Piranha
+    (BURST na raiz), separacao da Iara (Deploy.OnDeath, que ja leva o SpawnBullets da ogiva), vazamento verde da Iara
+    abatida e o tremor nuclear. Nao toca HitEffects nem numeros de jogo."""
     key = s.get("fx_key")
-    if not key or s.get("plasma_fx"):
+    if not key:
         return
     typ = s["payload"]
     role = s.get("role", "main")
     T = TYPES[typ]
     comps = top.get("Components") or {}
     scale = s.get("hit_scale", 1.0)
-    impact, shot_down, shield = [], [], scale
-    if role == "main" and typ in ("he", "napalm", "limpet", "emp", "cluster"):
+    impact, shot_down = [], []
+    if role == "main" and typ in ("he", "emp"):
         impact = list(T.get("impact", []))
-        shield = SPEC["shield_pop_scale"].get(typ, scale)
     elif role == "warhead":
         impact = list(T.get("impact", []))
         shot_down = list(T.get("shot_down", []))
     hit = comps.get("Hit")
     if isinstance(hit, dict):
-        _decorate_hit(hit, scale, shield, min(1.0, scale), impact, shot_down)
+        _decorate_hit(hit, scale, scale, min(1.0, scale), impact, shot_down)
         if typ == "nuclear" and role == "warhead":
             _nuke_shake(hit)
     # Piranha: abertura do cardume (BURST na raiz, usado pelos tres gatilhos)
     if role == "main" and isinstance(top.get("BURST"), dict):
-        _add_media(top["BURST"], T.get("burst", []))
+        _add_media(top["BURST"], burst_extras(s))
         top["BURST"] = _set_scale(top["BURST"], scale)
-    # Carrapato: explosao da carga (BLAST na raiz) + corpo e contagem no casco
-    if role == "charge":
-        if isinstance(top.get("BLAST"), dict):
-            _add_media(top["BLAST"], T.get("blast", []))
-            top["BLAST"] = _set_scale(top["BLAST"], scale)
-        art = s.get("art")
-        if art and "Sprite" in comps:
-            # corpo iluminado + anel de 8 LEDs, 10 quadros a 4 qps = a espoleta de 2,5 s, WrapMode Clamp (para no
-            # ultimo quadro: ArmingSprite do mine_deployed.rules l.96-123). Sem arte: o pisca vanilla de hoje.
-            new = FX.art_sprite_components(ART_PREFIX, art, s.get("size_mul", 1.0))
-            comps["Sprite"] = new.pop("Sprite")
-            top["Components"] = _insert_after(comps, "Sprite", new)
-    # Boto / Iara: separacao do estagio de lancamento (o OnDeath do Deploy ja tem os SpawnBullets)
+    # Iara: separacao do estagio de lancamento (o OnDeath do Deploy ja tem o SpawnBullets)
     dep = comps.get("Deploy")
     if role == "main" and isinstance(dep, dict) and isinstance(dep.get("OnDeath"), dict) and T.get("deploy"):
         od = dep["OnDeath"]
@@ -524,8 +549,7 @@ def plume_text(key):
 
 
 def plume_light_text(typ, size=1.0):
-    """size = fx_size da fase: so o Size [6, 3] escala; _lightLength fica 1.25, como no jogo base (a luz do
-    propulsor da tripulacao, Size [9/10, 6/10], e a do propulsor pequeno, [9, 6], usam os dois 1.25)."""
+    """size = fx_size da fase: so o Size [6, 3] escala; _lightLength fica 1.25, como no jogo base."""
     hot, cold = TYPES[typ]["plume_light"]
 
     def edits(t, rel):
@@ -560,7 +584,7 @@ def smoke_text(style, eps, size):
             t = _range_sub(t, "AlphaRange", *st["alpha"], rel, field="Min", field2="Max", old=("0.05", "0.08"))
         warm = st.get("warm", 1.0)
         if abs(warm - 1.0) > 1e-9:
-            # clarao quente aditivo do nascimento da fumaca (ColorRamp color_add): mais frio no rastro do torpedo
+            # clarao quente aditivo do nascimento da fumaca (ColorRamp color_add): mais frio no rastro
             a = t.index("ColorOut = color_add")
             b = t.index("\t\t\t]", a)
             seg = re.sub(r"(\t(?:Rf|Gf|Bf) = )([0-9.]+)", lambda m: m.group(1) + _num(float(m.group(2)) * warm),
@@ -598,8 +622,77 @@ def backblast_text(k=1.4):
         t = _sub(t, "\t\t\t\t\tX = -0.6\n", f"\t\t\t\t\tX = {_num(-0.6 * k)}\n", rel)
         t = _sub(t, "\t\t\t\tRadius = 0.5\n", f"\t\t\t\tRadius = {_num(0.5 * k)}\n", rel)
         return _range_sub(t, "Speed", 4 * k, 8 * k, rel, field="Min", field2="Max", old=("4", "8"))
-    return _vendored("roof_smoke", f"Sopro de lancamento do torpedo e da Iara: o leque do canhao de conves "
-                                   f"(RoofCannonSmoke) x{_num(k)} (tamanho, espalhamento e velocidade).", edits)
+    return _vendored("roof_smoke", f"Sopro de lancamento da Iara: o leque do canhao de conves (RoofCannonSmoke) "
+                                   f"x{_num(k)} (tamanho, espalhamento e velocidade).", edits)
+
+
+# ----------------------------------------------------------------------------- petalas da Piranha (particulas)
+def _vendor_file(name):
+    """(caminho vanilla, texto integral) de tools/vanilla_fx/missiles2/<name>.rules sem o cabecalho '//'."""
+    p = os.path.join(VENDOR_DIR, f"{name}.rules")
+    with open(p, encoding="utf-8") as fh:
+        lines = fh.read().split("\n")
+    i = 0
+    while i < len(lines) and lines[i].startswith("//"):
+        i += 1
+    m = re.search(r"copia LITERAL \(vendor\) de Data/(\S+?\.rules)", "\n".join(lines[:i]))
+    if not m:
+        raise ValueError(f"missile_fx: {p}: cabecalho sem o caminho vanilla")
+    return m.group(1), "\n".join(lines[i:])
+
+
+def petals_text(t):
+    """Petalas do nariz da Piranha (fase t): copia INTEGRAL de big_part_explode_debris.rules com a Def apontando
+    para petals_def_<t>.rules; 4 petalas num anel do raio do nariz, 25-40 m/s, giro 360-720 graus/s."""
+    cfg = PETALS["particles"]
+    rel, txt = _vendor_file("big_part_explode_debris")
+    txt = _sub(txt, "Def = &<../debris_def.rules>", f"Def = &<petals_def_{t}.rules>", rel)
+    n = _int(cfg["count"])
+    txt = _sub(txt, "\tEmitPerOneShot\n\t{\n\t\tMin = 8\n\t\tMax = 12\n\t}",
+               f"\tEmitPerOneShot\n\t{{\n\t\tMin = {n}\n\t\tMax = {n}\n\t}}", rel)
+    txt = _sub(txt, "\t\t\t\tRadius = 1.5\n", f"\t\t\t\tRadius = {_num(cfg['ring_radius'][t])}\n", rel)
+    lo, hi = cfg["speed"]
+    txt = _range_sub(txt, "DataOut = rand_vel", lo / hi, 1, rel, old=("0.1", "1"))
+    txt = _sub(txt, "\t\t\t\tMin = 7\n\t\t\t\tMax = 7\n", f"\t\t\t\tMin = {_num(hi)}\n\t\t\t\tMax = {_num(hi)}\n", rel)
+    slo, shi = cfg["spin_deg"]
+    txt = _rot_sub(txt, slo, shi, lo / hi, rel)
+    head = (f"// Copia integral de ./Data/{rel} (vanilla; igual no 0.30.2 e no 0.30.5; tools/vanilla_fx/missiles2/).\n"
+            f"// Petalas do nariz da Piranha ({t}): {n} petalas, anel de {_num(cfg['ring_radius'][t])} tile, "
+            f"{_num(lo)}-{_num(hi)} m/s, giro {_num(slo)}-{_num(shi)} graus/s, Def = petals_def_{t}.rules.\n")
+    return head + txt.rstrip("\n") + "\n"
+
+
+def _rot_sub(txt, slo, shi, kmin, rel):
+    """rot_vel inicial em [slo/kmin, shi] graus/s x rand_vel [kmin, 1] = [slo, shi] (um sentido de giro)."""
+    a = shi if slo / kmin > shi else slo / kmin
+    old = "\t\t\tFromValue = -999.99994d\n\t\t\tToValue = 999.99994d\n"
+    return _sub(txt, old, f"\t\t\tFromValue = {_num(a)}d\n\t\t\tToValue = {_num(shi)}d\n", rel)
+
+
+def petals_def_text(t):
+    """Def das petalas: copia INTEGRAL de debris_def.rules com o atlas bs_petals_<t> (mesmo formato: 256 px, 4 x 4
+    de 64 px, UvSprites), vida 0,5-0,8 s e os shaders em ./Data (o arquivo sai de shots/bs_missile_fx/). Sem o atlas
+    na arte: o debris.png vanilla (aviso)."""
+    cfg = PETALS["particles"]
+    rel, txt = _vendor_file("debris_def")
+    at = _atlas(t)
+    if at:
+        tex, nrm = f"{ART_PREFIX}{at['file']}", f"{ART_PREFIX}{at['normals']}"
+    else:
+        _warn(f"missile_fx: atlas das petalas petals_{t} ausente: petalas em particulas com o debris.png vanilla")
+        _placeholder(f"atlas das petalas petals_{t} ausente (petalas com o debris.png vanilla)")
+        tex, nrm = VANILLA_DEBRIS, VANILLA_DEBRIS.replace(".png", "_normals.png")
+    txt = _sub(txt, "\t\tFile = debris.png\n", f"\t\tFile = \"{tex}\"\n", rel)
+    txt = _sub(txt, "\t\tFile = debris_normals.png\n", f"\t\tFile = \"{nrm}\"\n", rel)
+    txt = _sub(txt, '\tShader = "particle_lit.shader"\n',
+               '\tShader = "./Data/common_effects/particles/particle_lit.shader"\n', rel)
+    txt = _sub(txt, '\tNormalsShader = "particle_normals.shader"\n',
+               '\tNormalsShader = "./Data/common_effects/particles/particle_normals.shader"\n', rel)
+    lo, hi = cfg["life"]
+    txt = _range_sub(txt, "DataOut = randLife", lo, hi, rel, old=("1", "4"))
+    head = (f"// Copia integral de ./Data/{rel} (vanilla; igual no 0.30.2 e no 0.30.5; tools/vanilla_fx/missiles2/).\n"
+            f"// Def das petalas da Piranha ({t}): textura {os.path.basename(tex)}, vida {_num(lo)}-{_num(hi)} s.\n")
+    return head + txt.rstrip("\n") + "\n"
 
 
 # ----------------------------------------------------------------------------- efeitos novos (tijolos do fxkit)
@@ -613,36 +706,12 @@ def launch_flash_text(typ):
                    f["size"], f["life"], 0, tuple(f["color"]) + (1,), HOT, scale=(0.7, 1.25), bucket="Upper1")
 
 
-def droplets_text():
-    """Gotas de napalm: 8-14 bolhas de gel em brasa saindo em leque para a frente do impacto (o alvo), que perdem
-    velocidade e apagam em 0,8-1,4 s: le "continua queimando". Mesmos tijolos de fxkit.streaks (provados no jogo
-    pelo plasma), com blob.png aditivo no lugar da faisca."""
-    pre = [FX.el("SetRandom", DataOut="location", ValueType="Vector2", FromValue=FX.V(-0.3, -0.6),
-                 ToValue=FX.V(0.3, 0.6)),
-           FX.el("SetRandomVelocityFromPoint", LocationIn="location", VelocityOut="base_velocity",
-                 Speed=FX.R(2.5, 6), AwayFromPoint=FX.V(-0.6, 0)),
-           FX.el("SetRandom", DataOut="base_color", ValueType="Color", FromValue=FX.C(1, 0.42, 0.06, 1),
-                 ToValue=FX.C(1, 0.68, 0.2, 1)),
-           FX.el("SetRandom", DataOut="base_scale", ValueType="Float", FromValue=0.35, ToValue=0.7),
-           FX.el("SetRandom", DataOut="lifetime", ValueType="Float", FromValue=0.8, ToValue=1.4)]
-    init = [FX.el("LocationToWorldSpace", LocationIn="location", LocationOut="location"),
-            FX.el("VelocityToWorldSpace", VelocityIn="base_velocity", VelocityOut="base_velocity"),
-            FX.el("AddFrameOfReference", VelocityInOut="inherited_velocity"),
-            FX.el("ScaleToWorldSpace", ScaleIn="base_scale", ScaleOut="base_scale")]
-    upd = [FX.el("VariableLifetime", LifeInOut="life", LifetimeIn="lifetime"),
-           FX.el("Lerp", True, LerpIn="life", DataOut="velocity", Invert=False, ValueType="Vector2",
-                 FromValue=FX.V(1, 1), ToValue=FX.V(0.1, 0.1)),
-           FX.mul("Vector2", "velocity", "base_velocity", "velocity", upd=False),
-           FX.addt("location", "velocity"),
-           FX.addt("location", "inherited_velocity"),
-           FX.ramp("color", [(1.6, 1.6, 1.6, 1), (1.2, 1.2, 1.2, 0.9), (1, 1, 1, 0.6), (0.7, 0.7, 0.7, 0)]),
-           FX.mul("Color", "color", "base_color", "color"),
-           FX.el("Lerp", True, LerpIn="life", DataOut="scale", Invert=False, ValueType="Float", FromValue=1,
-                 ToValue=0.55),
-           FX.mul("Float", "scale", "base_scale", "scale")]
-    mat = {"Texture": FX.tex(FX.BLOB), "TargetBlendMode": dict(FX.ADD)}
-    return FX.particles("Gotas de napalm em brasa no impacto da Taturana (8-14, 0,8-1,4 s)", init, upd,
-                        FX.renderer(), mat, FX.emitter(pre, (8, 14)), "Upper1", True, "30", inflate=3)
+def sparks_text():
+    """Faiscas douradas da abertura da Piranha: 12-20 riscos (fxkit.streaks) num cone para a frente."""
+    sp = TYPES["cluster"]["sparks"]
+    return FX.streaks("Abertura da Piranha: faiscas douradas em cone para a frente (12-20)", tuple(sp["n"]),
+                      tuple(sp["speed"]), tuple(sp["life"]), tuple(sp["scale"]), 0, sp["spread"], sp["away_x"],
+                      sp["white"], [tuple(c) for c in sp["colors"]], "Upper2")
 
 
 def misc_texts():
@@ -650,22 +719,11 @@ def misc_texts():
     return {
         "burst_cluster": FX.blob("Abertura do cardume da Piranha: clarao amarelo", 4.5, 0.3, 0, (1, 0.85, 0.3, 1), HOT,
                                  scale=(0.6, 1.3), bucket="Upper2"),
-        "droplets_napalm": droplets_text(),
-        "clank_limpet": FX.blob("Carrapato: estalo vermelho (gruda no casco; tambem na explosao da carga)", 2.2, 0.22,
-                                0, (1, 0.18, 0.1, 1), HOT, scale=(0.6, 1.2), bucket="Upper2"),
-        "separation_torpedo": FX.blob("Boto: baforada branca da separacao do estagio de lancamento", 3, 0.6, 0,
-                                      (0.9, 0.95, 1, 0.6), PUFF, scale=(0.5, 1.4), bucket="Upper2"),
+        "sparks_cluster": sparks_text(),
         "separation_nuclear": FX.blob("Iara: baforada verde-clara da separacao do estagio de lancamento", 3.5, 0.7, 0,
                                       (0.7, 1, 0.65, 0.6), PUFF, scale=(0.5, 1.4), bucket="Upper2"),
         "leak_iara": FX.blob("Iara abatida: vazamento verde (sem explosao nuclear)", 5, 1.4, 0, (0.35, 1, 0.25, 0.55),
                              PUFF, scale=(0.4, 1.5), bucket="Upper2", fancy=True, zoom="30"),
-        # anel branco: shockwave.png como o anel nuclear do fxkit; 7,3 tiles x MediaEffectsScale 1,3 / 1,6 = borda
-        # em ~4 / ~5 tiles (borda clara a ~0,85 do raio do quadro), o raio da ogiva do Boto
-        "ring_torpedo": FX.blob("Boto: anel branco da explosao da ogiva", 7.3, 0.6, 0, (0.85, 0.92, 1, 1),
-                                [(1.3, 1.3, 1.3, 1), (1.05, 1.05, 1.05, 0.85), (1, 1, 1, 0.4), (1, 1, 1, 0)],
-                                scale=(0.15, 1), tex=FX.SHOCKWAVE, bucket="Upper2"),
-        "flash_torpedo": FX.blob("Boto: clarao branco-azulado no casco (luz)", 8, 0.5, 0, (0.6, 0.8, 1, 0.22),
-                                 [(1, 1, 1, 1), (1, 1, 1, 0.5), (1, 1, 1, 0)], light=True, bucket="Upper5"),
     }
 
 
@@ -696,19 +754,67 @@ def all_files():
         files[name] = fire_text(typ, eps, size)
     files["backblast_heavy"] = backblast_text()
     files.update(misc_texts())
+    for t in ("m", "l"):
+        files[f"petals_{t}"] = petals_text(t)
+        files[f"petals_def_{t}"] = petals_def_text(t)
+    bad = [n for n in files if any(r in n for r in REMOVED)]
+    if bad:
+        raise ValueError(f"missile_fx: arquivos de tipos que sairam na 2.0: {bad}")
     return files
 
 
 def write(out, header):
-    """Seam B2: grava shots/bs_missile_fx/ (sempre, inclusive com --no-art: so texto)."""
+    """Gancho write: grava shots/bs_missile_fx/ (sempre, inclusive com --no-art: so texto)."""
     head = "\n".join(f"// {ln}" for ln in header.split("\n")) + "\n"
     for name, txt in all_files().items():
         out.text(f"{DIR}/{name}.rules", head + txt)
 
 
+# ----------------------------------------------------------------------------- conferencia
+def selfcheck(mod_dir, spec):
+    """Arquivos de shots/bs_missile_fx escritos; nenhum arquivo/chave dos tipos que sairam (napalm, limpet, torpedo,
+    iscas); arte copiada (e as petalas recortadas); nenhuma pasta de arte 1.x fora do bloco LEGACY do fxkit (R4);
+    tabela: escala nuclear 1,45, minimissil sem luz do propulsor."""
+    probs = []
+    for name in all_files():
+        if not os.path.isfile(os.path.join(mod_dir, DIR, f"{name}.rules")):
+            probs.append(f"{DIR}/{name}.rules nao foi escrito")
+    d = os.path.join(mod_dir, DIR)
+    if os.path.isdir(d):
+        for f in os.listdir(d):
+            if any(r in f for r in REMOVED):
+                probs.append(f"{DIR}/{f}: arquivo de tipo que saiu na 2.0")
+    for grp in ("items", "types", "SOUNDS", "hit_media_scale", "size_mul"):
+        for k in SPEC.get(grp, {}):
+            if any(r in k for r in REMOVED):
+                probs.append(f"{os.path.basename(SPEC_PATH)}: {grp}.{k} de tipo que saiu na 2.0")
+    for typ, slots in SOUNDS.items():
+        for slot in ("launch", "impact"):
+            if not slots.get(slot):
+                probs.append(f"SOUNDS.{typ}.{slot} vazio")
+    if not SOUNDS.get("cluster", {}).get("open") or not SOUNDS.get("emp", {}).get("drain"):
+        probs.append("SOUNDS sem os slots novos cluster.open / emp.drain")
+    if abs(SPEC["hit_media_scale"]["nuclear"]["l"] - 1.45) > 1e-9:
+        probs.append(f"escala do impacto nuclear {SPEC['hit_media_scale']['nuclear']['l']} (o plano pede 1,45)")
+    meta = _meta()
+    if meta:
+        for f in meta["files"]:
+            if not os.path.isfile(os.path.join(mod_dir, ART_OUT, f)):
+                probs.append(f"{ART_OUT}/{f} nao foi copiado")
+                break
+        for t in ("m", "l"):
+            if _atlas(t):
+                for tag in PETALS["bullets"]["cells"]:
+                    for f in petal_files(t, tag):
+                        if not os.path.isfile(os.path.join(mod_dir, ART_OUT, f)):
+                            probs.append(f"{ART_OUT}/{f} (petala recortada) nao foi escrita")
+    probs += FX.legacy_scan(os.path.abspath(__file__))
+    return probs
+
+
 # ============================================================================= texto vanilla copiado
-# Gerado por SCR/vfx_impl/WP4/make_vendor.py a partir dos arquivos vanilla (git show do clone 0.30.5; os sete
-# sao identicos no 0.30.3 e nas copias do SW:ACD, que mira o 0.30.4). Texto integral, com os caminhos relativos
+# Gerado por SCR/vfx_impl/WP4/make_vendor.py a partir dos arquivos vanilla (git show do clone 0.30.5; os seis que
+# ficaram na 2.0 sao identicos no 0.30.3 e nas copias do SW:ACD, que mira o 0.30.4). Texto integral, com os caminhos relativos
 # originais (o gerador os troca por ./Data/... em _abs_paths). As duas curvas de 1024 pontos (ValueCurve
 # Points) se repetem em quatro arquivos: ficam uma vez so em _CURVES, em RLE ("valor*n" = n vezes), e entram de
 # volta no lugar da linha @@Cn@@ (_vendor).
@@ -2202,549 +2308,6 @@ DontEmitWhenOffScreenSizeInflate = 3
 UseCustomShapeForOffScreenCheck = false
 MaxEmissionZoom = 30
 ScaleEmissionWithIntensity = false
-ScaleEmissionWithBeamLength = false
-ScaleEmissionWithWorldVelocity = false
-ScaleEmissionWithPartSize = false
-ScaleEmissionWithPartPhysicalSize = false
-CaptureBackBuffer = false
-Filter
-{
-	Ships = true
-	OperationalHealth = true
-	StructuralHealth = true
-	OnlyPartCategories
-	ExcludePartCategories
-	Shields = true
-	Bullets = true
-	OnlyBulletCategories
-	ExcludeBulletCategories
-	Crew = true
-	Nuggets = true
-	IgnoreInvulnerability = true
-	Self
-	TargetedSelf
-	Friendlies = true
-	TargetedFriendlies
-	Enemies = true
-	TargetedEnemies
-	Junk = true
-	TargetedJunk
-}
-Delay = 0
-IgnoreIntensity = false""")
-
-# shots/missile_thermal/particles/missile_thermal_thruster_fire.rules
-_VENDOR["fire_he"] = ("shots/missile_thermal/particles/missile_thermal_thruster_fire.rules", """\
-Type = Particles
-Def
-{
-	EmitPerSecond = 0
-	EmitPerOneShot = 0
-	Initializers
-	[
-		{
-			Type = InheritVelocity
-			VelocityInOut = frame_velocity
-			Name = ""
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = LocationToWorldSpace
-			LocationIn = location
-			LocationOut = location
-			Name = "Convert location to world space."
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = FpsCompensator
-			LocationInOut = location
-			VelocityIn = frame_velocity
-			Mode = Uniform
-			Name = ""
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = VelocityToWorldSpace
-			VelocityIn = base_velocity
-			VelocityOut = base_velocity
-			Name = "Convert velocity to world space"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = AlignToVelocity
-			VelocityIn = base_velocity
-			RotationInOut = rot
-			Name = ""
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = ScaleToWorldSpace
-			ScaleIn = base_scale
-			ScaleOut = base_scale
-			Name = "Base scale to world space"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = SetRandom
-			DataOut = sprite_index
-			ValueType = Int
-			FromValue = 0
-			ToValue = 7
-			Name = "Sprite Index"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = UvSprites
-			SpriteIndexIn = sprite_index
-			UvRectOut = uv_rect
-			TextureSize
-			{
-				X = 256
-				Y = 512
-			}
-			SpriteSize
-			{
-				X = 128
-				Y = 128
-			}
-			SpriteCount = 8
-			SpritesPerRow = 2
-			PixelOffset
-			{
-				X = 0
-				Y = 0
-			}
-			Looping = false
-			Name = "Sprite UV Rect"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = SetRandom
-			DataOut = lifetime
-			ValueType = Float
-			FromValue = 0.2
-			ToValue = 0.3
-			Name = "Random Lifetime"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = SetRandomHsvColor
-			ColorOut = hue
-			HueRange
-			{
-				Min = 90
-				Max = 90
-			}
-			SaturationRange
-			{
-				Min = 1
-				Max = 1
-			}
-			ValueRange
-			{
-				Min = 1
-				Max = 1
-			}
-			AlphaRange
-			{
-				Min = 1
-				Max = 1
-			}
-			Name = ""
-			Enabled = true
-			UpdateAfterInit = false
-		}
-	]
-	Updaters
-	[
-		{
-			Type = VariableLifetime
-			LifeInOut = life
-			LifetimeIn = lifetime
-			Name = "Variable Lifetime"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = ValueCurve
-			MinValue = 1
-			MaxValue = 0.2
-			LerpIn = life
-			CurveOut = curve
-			Invert = false
-			Points
-			[
-				@@C0@@
-			]
-			Name = "Velocity curve"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = ColorRamp
-			LerpIn = curve
-			ColorOut = color
-			Invert = false
-			Colors
-			[
-				{
-					Rf = 1
-					Gf = 1
-					Bf = 1
-					Af = 0
-				}
-				{
-					Rf = 1
-					Gf = 1
-					Bf = 1
-					Af = 0.15686275
-				}
-				{
-					Rf = 1
-					Gf = 1
-					Bf = 1
-					Af = 0.47058824
-				}
-				{
-					Rf = 1
-					Gf = 1
-					Bf = 1
-					Af = 0.15686275
-				}
-			]
-			Name = "Color ramp"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = ScalarOperator
-			AIn = curve
-			DataType = Vector2
-			BIn = base_velocity
-			ResultOut = base_vel2
-			Operator = Multiply
-			Name = "apply velocity curve to base velocity"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = Operator
-			DataType = Vector2
-			AIn = frame_velocity
-			BIn = base_vel2
-			ResultOut = velocity
-			Operator = Add
-			Name = "add frame and base velocity to velocity"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = Operator
-			DataType = Vector2
-			AIn = location
-			BIn = velocity
-			ResultOut = location
-			Operator = AddDt
-			Name = "Apply velocity."
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = Lerp
-			LerpIn = life
-			DataOut = life_scale
-			Invert = false
-			ValueType = Float
-			FromValue = 1
-			ToValue = 0
-			Name = "Scale over lifetime"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = ValueCurve
-			MinValue = 2
-			MaxValue = 0
-			LerpIn = life
-			CurveOut = x_curve
-			Invert = false
-			Points
-			[
-				@@C1@@
-			]
-			Name = "scale X curve"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = ConstructVector2
-			DataXIn = x_curve
-			DataYIn = life_scale
-			DataOut = xy_scale
-			Name = "construct scale2"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = ScalarOperator
-			AIn = base_scale
-			DataType = Vector2
-			BIn = xy_scale
-			ResultOut = scale2
-			Operator = Multiply
-			Name = ""
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = Operator
-			DataType = Angle
-			AIn = rot
-			BIn = rot_vel
-			ResultOut = rot
-			Operator = AddDt
-			Name = "Apply rot vel"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = OperatorConst
-			AIn = scale2
-			ResultOut = scale2
-			Operator = Min
-			ValueType = Vector2
-			Value
-			{
-				X = 2
-				Y = 1
-			}
-			Name = ""
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = Operator
-			DataType = Color
-			AIn = hue
-			BIn = color
-			ResultOut = color
-			Operator = Multiply
-			Name = "combine color and alpha"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-	]
-	Renderer
-	{
-		Type = StandardQuadRenderer
-		LocationIn = location
-		ScaleIn
-		Scale2In = scale2
-		RotationIn = rot
-		ColorIn = color
-		UvRectIn = uv_rect
-		BaseSize
-		{
-			X = 1
-			Y = 1
-		}
-		Offset
-		{
-			X = 0
-			Y = 0
-		}
-		Name = ""
-	}
-	Material
-	{
-		Texture
-		{
-			File = ../../../common_effects/particles/fire.png
-			SampleMode = Linear
-		}
-		TargetBlendMode
-		{
-			SourceRgbFactor = SourceAlpha
-			DestRgbFactor = One
-			RgbOperator = Add
-			SourceAlphaFactor = InverseDestAlpha
-			DestAlphaFactor = One
-			AlphaOperator = Add
-		}
-	}
-	DeleteMode = Fast
-	EnableMultithreading = false
-	InitCapacity = 256
-}
-EmitterDef
-{
-	EmitPerSecond = 800
-	EmitPerOneShot
-	{
-		Min = 0
-		Max = 0
-	}
-	PreInitializers
-	[
-		{
-			Type = SetRandomCircle
-			LocationOut = location
-			Circle
-			{
-				Center
-				{
-					X = 0
-					Y = 0
-				}
-				Radius = 0.005
-			}
-			Perimeter = false
-			Name = "Random location in circle"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = SetRandomVelocityFromPoint
-			LocationIn = location
-			VelocityOut = point_vel
-			Speed
-			{
-				Min = 1
-				Max = 1
-			}
-			AwayFromPoint
-			{
-				X = -0.015
-				Y = 0
-			}
-			ConvertPointToWorldSpace = false
-			Name = ""
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = ScaleFromIntensity
-			ScaleOut = initial_velocity
-			ScaleFactor = 70
-			IntensityExponent = 1
-			Name = "initial velocity from intensity"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = ScalarOperator
-			AIn = initial_velocity
-			DataType = Vector2
-			BIn = point_vel
-			ResultOut = base_velocity
-			Operator = Multiply
-			Name = "create base velocity"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = ScaleFromIntensity
-			ScaleOut = loc_intensity
-			ScaleFactor = 1
-			IntensityExponent = 2
-			Name = "get location intensity"
-			Enabled = false
-			UpdateAfterInit = false
-		}
-		{
-			Type = ScaleFromIntensity
-			ScaleOut = intensity
-			ScaleFactor = 1
-			IntensityExponent = 1
-			Name = "get scale intensity"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = VelocityFromIntensity
-			VelocityOut = loc_offset
-			VelocityFactor
-			{
-				X = 0.35
-				Y = 0
-			}
-			IntensityExponent = 2
-			Name = "location offset from Intensity"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = OperatorConst
-			AIn = loc_offset
-			ResultOut = loc_offset
-			Operator = Min
-			ValueType = Vector2
-			Value
-			{
-				X = 0.35
-				Y = 0
-			}
-			Name = "clamp location offset"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = Operator
-			DataType = Vector2
-			AIn = loc_offset
-			BIn = location
-			ResultOut = location
-			Operator = Add
-			Name = "apply location offset"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = SetRandom
-			DataOut = rand_scale
-			ValueType = Float
-			FromValue = 0.7
-			ToValue = 0.9
-			Name = "random scale"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-		{
-			Type = Operator
-			DataType = Float
-			AIn = intensity
-			BIn = rand_scale
-			ResultOut = base_scale
-			Operator = Multiply
-			Name = "apply random scale"
-			Enabled = true
-			UpdateAfterInit = false
-		}
-	]
-	PostInitializers[]
-}
-Bucket = Lower2
-UseRealTime = false
-PenetratingBucket
-MinIntensity = 0
-IsFancy = true
-IsFancyLight = false
-IsSimple = false
-Sharing = Global
-UnsharedRenderInWorldSpace = false
-DontEmitWhenOffScreen = true
-DontEmitWhenOffScreenSizeInflate = 3
-UseCustomShapeForOffScreenCheck = false
-ScaleEmissionWithIntensity = true
 ScaleEmissionWithBeamLength = false
 ScaleEmissionWithWorldVelocity = false
 ScaleEmissionWithPartSize = false

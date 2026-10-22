@@ -273,11 +273,11 @@
    "life": 0.2,
    "color": [
     1,
-    0.72,
-    0.3,
+    0.6,
+    0.07,
     0.25
    ],
-   "what": "clarao dourado no casco (particle_light; alfa baixo: o casco fica dourado, nao branco)"
+   "what": "clarao dourado no casco (particle_light, refl 24 x alfa 0,25 = 6): R e G saturam e o azul fica abaixo do limite c_min (24 x 0,07 x (0,85 + 0,25) x 0,25 = 0,46 <= 0,5), entao o casco branco nao vira mancha branca. Desvio do spec, que pedia (1; 0,75; 0,35): com 0,35 de azul os tres canais estouram e o miolo do AC_BLAST lava de branco nos primeiros ~0,1 s"
   },
   "ac/ac_ring": {
    "kind": "ring",

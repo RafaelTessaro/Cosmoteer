@@ -686,6 +686,17 @@ def _launcher_texts(lch):
                     "; com o carregador vazio, as células já carregadas disparam mesmo assim")}.get(dry, ("", ""))
     oc_en = " Can be overclocked." if lch.get("oc") else ""
     oc_pt = " Aceita overclock." if lch.get("oc") else ""
+    if len(lch["modes"]) == 1:
+        # um tipo so (Tocandira): sem troca de tipo nem "um carregador por tipo" (WP07, achado do WP06)
+        mag_en = f"in one internal magazine (4 salvos: {stock_en})."
+        mag_pt = f"num carregador interno (4 salvas: {stock_en})."
+        sw_en = f" {dry_en[2:3].upper()}{dry_en[3:]}." if dry_en else ""
+        sw_pt = f" {dry_pt[2:3].upper()}{dry_pt[3:]}." if dry_pt else ""
+    else:
+        mag_en = f"in one internal magazine per missile type (4 salvos each: {stock_en})."
+        mag_pt = f"num carregador interno por tipo de míssil (4 salvas cada: {stock_en})."
+        sw_en = f" Switching the missile type costs one full reload{dry_en}."
+        sw_pt = f" Trocar o tipo de míssil custa uma recarga completa{dry_pt}."
     lim_en = lim_pt = ""
     if "bs_limit_nuke" in lch["extra_categories"]:
         mx = next((lim[1] for lim in D.LIMITS if lim[0] == "bs_limit_nuke"), 2)
@@ -695,15 +706,13 @@ def _launcher_texts(lch):
           f"{n} missiles in {_n_en(salvo)} s, then a crewed autoloader refills it one {unit_en} at a time "
           f"({_n_en(m0['reload'])} s each; reloading stops while nobody mans it): one salvo every {_n_en(cycle, 1)} s. "
           f"Range {lch['range']} m. Missiles: {mis_en}.{var_en}\n\nNeeds no power: {crew_en} and missile charges "
-          f"in one internal magazine per missile type (4 salvos each: {stock_en}). Switching the missile type costs "
-          f"one full reload{dry_en}. The missiles fly over your own deck and can be shot down by point defense. A "
+          f"{mag_en}{sw_en} The missiles fly over your own deck and can be shot down by point defense. A "
           f"loaded launcher cooks off when it burns or is destroyed.{oc_en}{lim_en}<string id='BSModTag'/>")
     pt = (f"{fl_pt} \"{lch['codename']}\"\n\n{S.TIER_PT[lch['tier']]} - lança-mísseis de convés. Com todas as "
           f"células carregadas, dispara {n} mísseis em sequência em {_n_pt(salvo)} s; depois um autocarregador "
           f"tripulado recarrega {unit_pt} por vez ({_n_pt(m0['reload'])} s cada; sem tripulação no posto a recarga "
           f"para): uma salva a cada {_n_pt(cycle, 1)} s. Alcance {lch['range']} m. Mísseis: {mis_pt}.{var_pt}\n\n"
-          f"Não usa energia: {crew_pt} e cargas de míssil num carregador interno por tipo de míssil (4 salvas cada: "
-          f"{stock_en}). Trocar o tipo de míssil custa uma recarga completa{dry_pt}. Os mísseis passam por cima do "
+          f"Não usa energia: {crew_pt} e cargas de míssil {mag_pt}{sw_pt} Os mísseis passam por cima do "
           f"próprio convés e podem ser abatidos pelos pontos de defesa. Carregado, o lançador explode quando pega "
           f"fogo ou é destruído.{oc_pt}{lim_pt}<string id='BSModTag'/>")
     return en, pt

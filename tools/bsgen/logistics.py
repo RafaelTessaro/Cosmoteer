@@ -18,7 +18,9 @@ logistics.transport (SPEC.fita_teleporte; ADDENDUM_2_0 G1):
   * tripulacao (build testes/BulletStrike_SemFita): sala de municao blindada caminhavel (SPEC.paiol.components_crew_mode;
     vanilla power_storage.rules:86-162): Estoque_<k> SuppliesResources + pickup de uma pilha + IsIntermediateStorage,
     Consumidor_<k> Storage_Supply com limiar floor(Max/2); seletor = SuppliesResourcesToggle/OperationalToggle EhTipo_<k>
-    (com paiol_seletor = nenhum esses dois campos sao OMITIDOS, J2R2-MED);
+    + AllowNonOperationalMinPriorityDelivery false no consumidor (sem ele a tripulacao ociosa enche o tipo fora do
+    botao, que nunca mais sai; SW chaingun_magazine.rules:123) (com paiol_seletor = nenhum esses campos sao OMITIDOS,
+    J2R2-MED);
   * rede / gemea (WP15, esteira fisica): so com o bsgen.belt_net (paiol_net); sem ele o bs_data ja devolveu
     'tripulacao' (J2R3-19) e aqui fica so a conferencia.
 Comum: seletor UIToggle da familia (paiol_seletor = botao) ou uma peca por tipo (nenhum: SPEC.paiol.
@@ -337,7 +339,11 @@ def build_paiol(p, kinds, pid, short, key, ctx=None):
             cons = {"Type": "ResourceConsumer", "ResourceType": k["resource"], "Storage": f"Estoque_{kk}",
                     "DefaultPriority": "&/PRIORITIES/Storage_Supply", "ResupplyThreshold": C.half(k["MaxResources"])}
             if sel:
+                # tipo fora do botao: sem entrega nenhuma. So o OperationalToggle desligado ainda deixa a tripulacao
+                # ociosa entregar na prioridade minima (common.toggled_consumers; SW chaingun_magazine.rules:123),
+                # e o que entrasse ficaria preso (SuppliesResourcesToggle = EhTipo_<k> desligado), ate 5x o estoque
                 cons["OperationalToggle"] = f"EhTipo_{kk}"
+                cons["AllowNonOperationalMinPriorityDelivery"] = False
             comp[f"Consumidor_{kk}"] = cons
     # ------------------------------------------------------------------ Fita (teleporte)
     if tele:
@@ -718,6 +724,63 @@ def name_of(p, kinds):
     return p["name_ptbr"], p["name_en"]
 
 
+ALCANCE_NAVE = 1000   # logistics.fita_alcance: 1000 = o navio inteiro (SPEC.switches.logistics.fita_alcance)
+
+
+def _perto():
+    """Alcance da Fita em blocos quando ele NAO cobre o navio inteiro (fita_alcance = 12, C2); None com 1000."""
+    a = I.alcance()
+    return a if a < ALCANCE_NAVE else None
+
+
+def celula_acoplada(key, w, h):
+    """Celula do paiol acoplado que os textos prometem (= spec acoplamento.cell de toda maquina): lancador (msl_*) no
+    meio da borda da FRENTE [(w-1)//2, -1] (a torre aponta para cima: launchers.py TurretWeapon Rotation -90d);
+    Carregador do Tupa (slug) no canto de tras-esquerdo [0, h]; as outras armas no meio da traseira [(w-1)//2, h]
+    (largura par: logo a esquerda do meio)."""
+    if key.startswith("msl_"):
+        return [(w - 1) // 2, -1]
+    if key == "slug":
+        return [0, h]
+    return [(w - 1) // 2, h]
+
+
+def _onde_acoplar(fam, pt):
+    """Onde encostar o paiol acoplado, por familia (celula_acoplada); a saida da fabrica e a celula do spec."""
+    if fam == "misseis":
+        return ("Encostado no meio da borda da frente (de cima) de um lançador (largura par: logo à esquerda do meio), "
+                "ou na saída de uma fábrica" if pt else
+                "Placed against the middle of a launcher's front (top) edge (even width: just left of the middle), "
+                "or at a factory output")
+    if fam == "projeteis":
+        return ("Encostado atrás do Carregador do Tupã, no canto esquerdo da traseira, ou na saída de uma fábrica"
+                if pt else
+                "Placed behind the Tupã Railgun Loader, at the left corner of its back edge, or at a factory output")
+    return ("Encostado no meio da traseira de uma arma (largura par: logo à esquerda do meio), ou na saída de uma "
+            "fábrica" if pt else
+            "Placed against the middle of a gun's back edge (even width: just left of the middle), or at a factory "
+            "output")
+
+
+def _fita_desc(fp, pt):
+    """Texto da Fita (spec) acertado as variantes: fita_alcance < 1000 troca 'de um canto ao outro da nave' pelo
+    alcance em blocos; art.fita_luz = sempre tira a frase da luz verde (a luz fica sempre acesa e nao avisa nada)."""
+    txt = fp["description_ptbr" if pt else "description_en"]
+    trocas = []
+    a = _perto()
+    if a is not None:
+        trocas.append(("de um canto ao outro da nave", f"a até {a} blocos de distância") if pt else
+                      ("anywhere on the ship", f"within {a} tiles"))
+    if not I.luz_ack():
+        trocas.append((" A luz verde acende quando está grudada.", "") if pt else
+                      (" The green light shows it is attached.", ""))
+    for old, new in trocas:
+        if old not in txt:
+            raise ValueError(f"logistics: a descricao da Fita no spec mudou (sem '{old}'): acerte _fita_desc")
+        txt = txt.replace(old, new)
+    return txt
+
+
 def _desc(p, kinds, lang):
     D = _D()
     t = D.transport()
@@ -728,11 +791,17 @@ def _desc(p, kinds, lang):
     caps = " · ".join(f"{KIND_LABEL[k['key']][0 if pt else 1]} {int(k['MaxResources'])}" for k in kinds)
     acop = I.acoplamento_on()
     if t == "teleporte":
+        a = _perto()
+        if a is None:
+            onde = ", de qualquer lugar da nave." if pt else ", anywhere on the ship."
+        else:
+            onde = (f", desde que estejam a até {a} blocos de distância." if pt else
+                    f", as long as they are within {a} tiles.")
         head = ("Paiol blindado e selado: a tripulação não entra. Grude uma Fita de Alimentação do lado: a munição chega "
-                "sozinha das fábricas com Fita e vai sozinha para as armas com Fita, de qualquer lugar da nave."
+                "sozinha das fábricas com Fita e vai sozinha para as armas com Fita" + onde
                 if pt else
                 "Armored, sealed magazine: crew cannot enter. Stick an Ammo Feed Link next to it: ammo arrives by itself "
-                "from factories with a Link and goes by itself to guns with a Link, anywhere on the ship.")
+                "from factories with a Link and goes by itself to guns with a Link" + onde)
         if sel:
             how = ("No botão do paiol escolha o tipo que ele ACEITA (a placa no teto mostra qual). O que já está guardado, "
                    "de qualquer tipo, continua indo para as armas que usam aquele tipo."
@@ -743,10 +812,10 @@ def _desc(p, kinds, lang):
             lbl = KIND_DESC[kinds[0]["key"]][0 if pt else 1]
             how = (f"Só guarda {lbl}." if pt else f"Stores {lbl} only.")
         if acop:
-            how += (" Encostado atrás de uma arma, ou na saída de uma fábrica, do mesmo tipo, também troca munição com "
-                    "ela sem a Fita (paiol acoplado)." if pt else
-                    " Placed right behind a gun, or at a factory output, of the same type, it also trades ammo with it "
-                    "without a Link (docked magazine).")
+            how += (f" {_onde_acoplar(fam, pt)}, do mesmo tipo, também troca munição com ela sem a Fita (paiol "
+                    "acoplado)." if pt else
+                    f" {_onde_acoplar(fam, pt)}, of the same type, it also trades ammo with it without a Link (docked "
+                    "magazine).")
     else:
         head = ("Sala de munição blindada: a tripulação guarda aqui a munição e leva dela para as armas que ficam abaixo "
                 "da metade." if pt else
@@ -758,10 +827,9 @@ def _desc(p, kinds, lang):
             lbl = KIND_DESC[kinds[0]["key"]][0 if pt else 1]
             how = (f"Só guarda {lbl}." if pt else f"Stores {lbl} only.")
         if acop:
-            how += (" Encostado atrás de uma arma, ou na saída de uma fábrica, do mesmo tipo, abastece sozinho, sem "
-                    "tripulação (paiol acoplado)." if pt else
-                    " Placed right behind a gun, or at a factory output, of the same type, it feeds by itself, with no "
-                    "crew (docked magazine).")
+            how += (f" {_onde_acoplar(fam, pt)}, do mesmo tipo, abastece sozinho, sem tripulação (paiol acoplado)."
+                    if pt else
+                    f" {_onde_acoplar(fam, pt)}, of the same type, it feeds by itself, with no crew (docked magazine).")
     if len(kinds) == 1:
         cap = (f"Capacidade: {int(kinds[0]['MaxResources'])} {unit}." if pt else
                f"Capacity: {int(kinds[0]['MaxResources'])} {unit}.")
@@ -789,8 +857,8 @@ def strings(DATA=None):
         en["Parts"][key] = fp["name_en"]
         pt["Parts"][key + "Icon"] = "Fita"
         en["Parts"][key + "Icon"] = "Feed Link"
-        pt["Parts"][key + "Desc"] = fp["description_ptbr"] + "<string id='BSModTag'/>"
-        en["Parts"][key + "Desc"] = fp["description_en"] + "<string id='BSModTag'/>"
+        pt["Parts"][key + "Desc"] = _fita_desc(fp, True) + "<string id='BSModTag'/>"
+        en["Parts"][key + "Desc"] = _fita_desc(fp, False) + "<string id='BSModTag'/>"
     for p, kinds, pid, short, key in paiol_entries():
         n = f"{p['size'][0]}x{p['size'][1]}"
         nm_pt, nm_en = name_of(p, kinds)
@@ -904,6 +972,9 @@ def selfcheck(mod_dir, SPEC=None):
                 if has_tog != sel:
                     probs.append(f"{who}: SuppliesResourcesToggle/OperationalToggle {'ausente' if sel else 'presente'} "
                                  f"(seletor {'botao' if sel else 'nenhum'})")
+                if sel and cons is not None and I.val(cons, "AllowNonOperationalMinPriorityDelivery") != "false":
+                    probs.append(f"{who}: Consumidor_{kk} sem AllowNonOperationalMinPriorityDelivery = false (a "
+                                 f"tripulacao encheria o tipo fora do botao, que nunca mais sai)")
                 if I.val(st, "IsIntermediateStorage") != "true":
                     probs.append(f"{who}: Estoque_{kk} sem IsIntermediateStorage")
         if tele:
@@ -935,4 +1006,31 @@ def selfcheck(mod_dir, SPEC=None):
     for pid in parts:
         if "_paiol_" in pid and pid not in want_ids:
             probs.append(f"{pid.split('.', 1)[1]}: paiol escrito fora do conjunto deste build")
+    # o texto do paiol diz onde encostar (celula_acoplada): toda maquina escrita tem que bater com ele
+    maq = I.machines()
+    for pid in parts:
+        if pid not in maq:
+            continue
+        path, comps, part, cats = parts[pid]
+        size = I.lst(part, "Size") or []
+        for nm, c in comps.items():
+            if not nm.startswith("PaiolAcoplado_") or len(size) != 2:
+                continue
+            res, loc = I.val(c, "ResourceType"), I.lst(c, "PartLocation") or []
+            try:
+                want_cell = celula_acoplada(I.res_key(res), int(size[0]), int(size[1]))
+                ok = [int(float(x)) for x in loc] == want_cell
+            except (KeyError, ValueError, TypeError):
+                want_cell, ok = "?", False
+            if not ok:
+                probs.append(f"{pid.split('.', 1)[1]}: {nm} PartLocation {loc}, o texto do paiol promete {want_cell}")
+    # textos x variantes: alcance da Fita (fita_alcance < 1000) e luz (art.fita_luz = sempre)
+    en_s, pt_s = strings()
+    for tab in (en_s, pt_s):
+        for k, v in tab["Parts"].items():
+            low = v.lower()
+            if _perto() is not None and any(x in low for x in ("qualquer lugar", "canto ao outro", "anywhere")):
+                probs.append(f"texto {k}: diz 'a nave toda' com logistics.fita_alcance = {I.alcance()}")
+            if not I.luz_ack() and any(x in low for x in ("luz verde", "green light")):
+                probs.append(f"texto {k}: fala da luz verde com art.fita_luz = sempre")
     return probs

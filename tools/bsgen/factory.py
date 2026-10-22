@@ -15,7 +15,9 @@ Arquitetura (SPEC.multi_recipe_implementation; so padroes do jogo base 0.30.x e 
     l.150-165); cada receita saca draw_Quantity inteiro do divisor (SW factory_durasteel.rules:231-237 saca 2 de 1:3).
     Reserva do teste T-F2-SPLIT: splitter_mode() = 'por_receita' (env BS_FABRICA_DIVISOR=por_receita ou a chave
     extra 'econ.factory_splitter' = 'por_receita' do bullet_strike_switches.json; nao e switch do spec) -> um
-    divisor por receita (Divisor_<insumo>_<receita>), todos lendo a mesma grade.
+    divisor por receita (Divisor_<insumo>_<receita>), todos lendo a mesma grade; o indicador 'sem insumo' passa
+    por uma porta por receita Tem_<insumo>_<receita> = All [ModeToggle_<sel>, divisor] (a sobra no divisor de um
+    modo nao escolhido nao esconde o indicador).
   * Por receita k: grade de saida fixa Saida_<k> (SuppliesResources true: sem Fita a tripulacao recolhe dali como
     numa fabrica vanilla - REQ3) e conversor Conversor_<k> sempre presente com OperationalToggle Ready_<k> =
     MultiToggle All [IsOperational, ModeToggle_<sel>, divisores da receita]. Nada de ToggledComponents em volta de
@@ -54,11 +56,8 @@ from bsgen import common as C
 
 API = 2
 
-RES_STACK = {  # MaxStackSize dos recursos vanilla (resources/*.rules)
-    "bullet": 20, "sulfur": 5, "steel": 40, "coil": 40, "coil2": 40, "tristeel": 40, "diamond": 5,
-    "uranium": 5, "carbon": 5, "copper": 5, "gold": 5, "iron": 5, "tritanium": 5,
-    "hyperium": 20, "processor": 5,
-}
+# Pilhas (MaxStackSize): o codigo 2.0 le as dos recursos do mod em D.RESOURCES (own_stack em build_factory) e as
+# vanilla por &<...>/MaxStackSize nas regras; nao ha tabela de pilhas aqui.
 
 # Categoria vanilla de cada insumo (factory_mine uses_iron/uses_ammo, factory_ammo uses_sulfur, factory_processor
 # uses_coils, factory_emp uses_copper, factory_nuke uses_uranium). Triaco e hiperbobina nao tem categoria no jogo
@@ -501,7 +500,27 @@ def build_factory(f, ctx=None):
                 comp[nm] = {"Type": "InlineResourceConverter", "ResourceType": res, "FromStorage": f"Entrada_{res}",
                             "FromQuantity": 1, "ToQuantity": to_q}
                 spl.append(nm)
-        if all_use or not sel:
+        if smode == "por_receita" and sel:
+            # reserva T-F2-SPLIT: cada divisor guarda a sobra do ultimo saque (o AP saca 5 de 1:20 e deixa 15 em
+            # Divisor_<insumo>_ap); um Any direto sobre os divisores ficaria ligado com a sobra de um modo que nao
+            # esta escolhido e esconderia o 'sem insumo' do modo escolhido. Uma porta por receita:
+            # Tem_<insumo>_<k> = All [ModeToggle_<sel>, Divisor_<insumo>_<k>] e o indicador e o Any das portas.
+            gates = []
+            for r in users[res]:
+                nm = splitter_name(res, _rkey(r), smode)
+                mt = _mode_toggle(f, r)
+                if mt is None:
+                    gates.append(nm)
+                    continue
+                gate = f"Tem_{res}_{_rkey(r)}"
+                comp[gate] = {"Type": "MultiToggle", "Mode": "All", "Toggles": [mt, nm]}
+                gates.append(gate)
+            if not all_use:
+                # modo escolhido sem este insumo: indicador apagado
+                gates.append(f"{{ Toggle=Usa_{res}; Invert=true }}")
+            comp[f"TemInsumo_{res}"] = {"Type": "MultiToggle", "Mode": "Any", "Toggles": gates}
+            in_toggle[res] = f"TemInsumo_{res}"
+        elif all_use or not sel:
             in_toggle[res] = spl[0] if len(spl) == 1 else None
             if in_toggle[res] is None:
                 comp[f"TemInsumo_{res}"] = {"Type": "MultiToggle", "Mode": "Any", "Toggles": spl}
@@ -935,8 +954,9 @@ def factory_texts(f):
     if adj:
         tail_en.append("Gains +25% production speed for each adjacent factory of any type, as in the base game.")
         tail_pt.append("Ganha +25% de velocidade para cada fábrica vizinha de qualquer tipo, como no jogo base.")
-    tail_en.append("The crew bring the inputs and collect the output grid, as in a base-game factory.")
-    tail_pt.append("A tripulação traz os insumos e recolhe a grade de saída, como numa fábrica do jogo base.")
+    tail_en.append("The crew bring the inputs and collect from the output grid, as in a base-game factory.")
+    tail_pt.append("A tripulação traz os insumos e recolhe a produção da grade de saída, como numa fábrica do jogo "
+                   "base.")
     if D.transport() == "teleporte" and _intake() is not None:
         tail_en.append("With an Ammo Feed Link stuck to it, production goes straight to the magazines of the same type.")
         tail_pt.append("Com a Fita de Alimentação grudada, a produção vai sozinha para os paióis do mesmo tipo.")
@@ -1207,6 +1227,21 @@ def selfcheck(mod_dir, SPEC):
                 errs.append(f"{short}: AvailableChoices {ac} != {sel['available']}")
             if not _eq(_numv(comp, f"{tcomp}/Default"), sel["Default"]):
                 errs.append(f"{short}: Default {_numv(comp, f'{tcomp}/Default')} != {sel['Default']}")
+            if smode == "por_receita":
+                # reserva T-F2-SPLIT: o indicador 'sem insumo' passa por uma porta com o ModeToggle por receita
+                # (a sobra no divisor de um modo nao escolhido nao pode esconder o indicador)
+                for res in (sf.get("input_grids") or {}):
+                    tl = _list(comp, f"TemInsumo_{res}/Toggles") or []
+                    if not tl or any(str(t).startswith("Divisor_") for t in tl):
+                        errs.append(f"{short}: TemInsumo_{res} {tl} sem as portas por modo (por_receita)")
+                    for sr in sf["recipes"]:
+                        if res not in (sr.get("inputs_per_cycle") or {}):
+                            continue
+                        gate = f"Tem_{res}_{sr['recipe']}"
+                        want = [f"ModeToggle_{sr['selector_mode']}", f"Divisor_{res}_{sr['recipe']}"]
+                        if gate not in tl or _val(comp, f"{gate}/Mode") != "All" or \
+                                _list(comp, f"{gate}/Toggles") != want:
+                            errs.append(f"{short}: porta {gate} != All {want} em TemInsumo_{res} (por_receita)")
         # receitas
         tot = [0, 0, 0]
         for sr in sf["recipes"]:

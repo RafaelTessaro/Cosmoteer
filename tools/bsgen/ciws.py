@@ -31,7 +31,8 @@ from rules_dsl import Q, VOID, Inh, comment, render
 from bsgen import common as C
 from bsgen.guns import (geometry, deck_graphics, crew_positions_for, ammo_selector, mag_storage, mag_consumers,
                         intake_fields, intake_components, cookoff_effects, skip_down_for, write_art, rules_root,
-                        node_at, num_at, list_at, _eq, _k, _ctx, check_ui_rects)
+                        node_at, num_at, list_at, _eq, _k, _ctx, check_ui_rects, shots_per_mag_stat,
+                        check_shots_per_mag)
 
 API = 2
 SHOT_KINDS = ("frag_fragment",)
@@ -335,8 +336,10 @@ def build_ciws(c, beam_paths, beam_oc_paths=None, ctx=None):
 
     m0 = modes[0]
     part["Stats"] = {"CrewRequired": "&~/Part/Components/PartCrew/Crew",
-                     "AmmoCapacity": f"&~/Part/Components/MagStorage_{_k(m0)}/MaxResources",
-                     "BSShotsPerMag": f"&~/Part/Components/Splitter_{_k(m0)}/ToQuantity"}
+                     "AmmoCapacity": f"&~/Part/Components/MagStorage_{_k(m0)}/MaxResources"}
+    if shots_per_mag_stat(m0):
+        # 'Disparos por carga' so com 1 carga por disparo (guns.shots_per_mag_stat; hoje as 3 defesas usam 1)
+        part["Stats"]["BSShotsPerMag"] = f"&~/Part/Components/Splitter_{_k(m0)}/ToQuantity"
 
     def em_path(k, s):
         if not oc_beam and not sel:
@@ -438,7 +441,7 @@ def selfcheck(mod_dir, SPEC):
     """Confere as defesas escritas: MagStorage_0/_4 (internal_stock), Splitter_i, ResourcesUsed, AvailableChoices,
     Crew/CommandPoints, FIRE_INTERVAL e, por feixe, carga contra tiros e contra laser (guns.defesa_antilaser),
     raios, alcance, SpawnBullets dos fragmentos (Count/Arc/Spread/InheritVelocity) e o fragmento (dano, sem
-    Targetable, variante de guns.frag_fragment)."""
+    Targetable, variante de guns.frag_fragment) e a linha BSShotsPerMag (so com 1 carga por disparo)."""
     import bs_data as D
     errs = []
     defs = {d["id"]: d for d in SPEC["defenses"]}
@@ -480,6 +483,9 @@ def selfcheck(mod_dir, SPEC):
                 errs.append(f"{short}/{m['key']}: o feixe nao puxa do Splitter_{i}")
             errs += _check_beam(mod_dir, c, m, tmodes.get(i, m), shots, D)
         errs += check_ui_rects(short, comp, [m["index"] for m in d["ammo_modes"]])
+        k0 = _k(c["modes"][0])
+        errs += check_shots_per_mag(short, node_at(root, "Part"),
+                                    next((m for m in d["ammo_modes"] if m["index"] == k0), d["ammo_modes"][0]))
     return errs
 
 

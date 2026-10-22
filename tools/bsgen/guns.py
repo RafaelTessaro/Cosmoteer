@@ -29,6 +29,7 @@ Arquitetura (so padroes ja usados pelo jogo base 0.30.x):
 """
 
 import os
+import re
 
 from rules_dsl import Q, VOID, comment, render
 from bsgen import common as C
@@ -134,6 +135,14 @@ def _direct(m):
     if m.get("direct_from_storage"):
         return True
     return "splitter_to_quantity" not in m and m.get("units_per_shot", 1) > 1
+
+
+def shots_per_mag_stat(m):
+    """True = a linha 'Disparos por carga' (BSShotsPerMag = Splitter_i/ToQuantity) vale para o modo: so com 1 carga
+    do Splitter por disparo. Com ResourcesUsed > 1 (Boiuna: Splitter 2, ResourcesUsed 3 = 2/3 de disparo por
+    carregador) o ToQuantity nao e o numero de disparos e o formato '{0:0}' arredondaria 0,67 para 1; a linha
+    ShotAmmoUsage de cada modo ja mostra o consumo certo (1,5 por disparo)."""
+    return not _direct(m) and int(m.get("units_per_shot", m.get("resources_used_per_shot", 1))) == 1
 
 
 def _ammo_src(m):
@@ -757,7 +766,7 @@ def build_gun(g, shot_paths, ctx=None):
         "CrewRequired": "&~/Part/Components/PartCrew/Crew",
         "AmmoCapacity": f"&~/Part/Components/MagStorage_{_k(m0)}/MaxResources",
     }
-    if not _direct(m0):
+    if shots_per_mag_stat(m0):
         part["Stats"]["BSShotsPerMag"] = f"&~/Part/Components/Splitter_{_k(m0)}/ToQuantity"
     if g.get("stun"):
         part["Stats"]["CrewStunDuration"] = [0, "&~/Part/Components/StunEffect/HitEffects/0/Duration/BaseValue"]
@@ -962,11 +971,27 @@ def check_ui_rects(short, comp, idxs):
     return errs
 
 
+def check_shots_per_mag(short, part, m0):
+    """Linha 'Disparos por carga' (Stats/BSShotsPerMag) so quando o 1o modo escrito gasta 1 carga do Splitter por
+    disparo (shots_per_mag_stat); com ResourcesUsed > 1 (Boiuna) ela mostraria o ToQuantity (2) como disparos."""
+    st = node_at(part, "Stats/BSShotsPerMag")
+    want = int(m0.get("resources_used_per_shot", m0.get("units_per_shot", 1))) == 1
+    ref = f"&~/Part/Components/Splitter_{_k(m0)}/ToQuantity"
+    if want and (st is None or (st.value or "").strip().strip('"') != ref):
+        return [f"{short}: Stats/BSShotsPerMag {st.value if st is not None else None} != {ref}"]
+    if not want and st is not None:
+        return [f"{short}: Stats/BSShotsPerMag presente com ResourcesUsed {m0.get('resources_used_per_shot')} por "
+                f"disparo (mostraria o ToQuantity como disparos por carga)"]
+    return []
+
+
 def selfcheck(mod_dir, SPEC):
     """Confere os canhoes escritos contra o spec (numeros brutos de SPEC.weapons) e o bs_data (os transformados pelos
     switches: dano das pecas seguintes, alvejavel): MagStorage_i (e barras UITileRect sem sobreposicao), Splitter_i,
-    ResourcesUsed, AvailableChoices, Crew/CommandPoints, FIRE_INTERVAL e, por tiro (sem overclock), dano direto,
-    PenetratingOperational, explosao/raio, HitShield, Penetration, blindagem, Targetable e nenhum campo 0.30.5."""
+    ResourcesUsed, AvailableChoices, Crew/CommandPoints, FIRE_INTERVAL, a linha BSShotsPerMag (so com 1 carga por
+    disparo) e, por tiro (sem overclock), dano direto, PenetratingOperational, explosao/raio, HitShield, Penetration,
+    blindagem, Targetable, nenhum campo 0.30.5 e, na granada de contato da Boiuna, as duas cargas (explosao com fogo +
+    so estrutural) no contato e no fim do alcance (Death/OnDeath)."""
     import bs_data as D
     errs = []
     weapons = {w["id"]: w for w in SPEC["weapons"]}
@@ -1015,6 +1040,30 @@ def selfcheck(mod_dir, SPEC):
                 errs.append(f"{short}/{m['key']}: o emissor nao puxa do Splitter_{i}")
             errs += _check_gun_shot(mod_dir, w, m, (trans.get(g["id"]) or w)["ammo_modes"], shots, D)
         errs += check_ui_rects(short, comp, [m["index"] for m in w["ammo_modes"]])
+        k0 = _k(g["modes"][0])
+        errs += check_shots_per_mag(short, part, next((m for m in w["ammo_modes"] if m["index"] == k0),
+                                                      w["ammo_modes"][0]))
+    return errs
+
+
+def _check_blasts(where, exps, want, fire_pct=None):
+    """Compara as ExplosiveDamage (na ordem) com want = [(nome, TotalDamage, Radius, so_estrutural)]: dano, raio, o
+    filtro so estrutural (OperationalHealth false / StructuralHealth true) e a chance de fogo da explosao principal."""
+    errs = []
+    if len(exps) != len(want):
+        errs.append(f"{where}: {len(exps)} ExplosiveDamage, esperado {len(want)}")
+    for (name, total, radius, struct), e in zip(want, exps):
+        if not _eq(num_at(e, "TotalDamage"), total) or not _eq(num_at(e, "Radius"), radius):
+            errs.append(f"{where}: {name} {num_at(e, 'TotalDamage')} r{num_at(e, 'Radius')} != {total} r{radius}")
+        op = (getattr(node_at(e, "Filter/OperationalHealth"), "value", None) or "").strip().lower()
+        sh = (getattr(node_at(e, "Filter/StructuralHealth"), "value", None) or "").strip().lower()
+        if struct and (op != "false" or sh != "true"):
+            errs.append(f"{where}: {name} sem o filtro so estrutural (OperationalHealth {op or '-'}, "
+                        f"StructuralHealth {sh or '-'})")
+        if not struct and op == "false":
+            errs.append(f"{where}: {name} com OperationalHealth false")
+        if not struct and fire_pct is not None and not _eq(num_at(e, "StatusChancePerNDamage"), fire_pct):
+            errs.append(f"{where}: {name} chance de fogo {num_at(e, 'StatusChancePerNDamage')} != {fire_pct}%")
     return errs
 
 
@@ -1049,19 +1098,32 @@ def _check_gun_shot(mod_dir, w, m, tmodes, shots, D):
         fx = node_at(hit, "HitOperational/HitEffects")
         vals = [(node_at(c, "Type").value if node_at(c, "Type") else None, c) for c in (fx.children if fx else [])]
         dmg = next((num_at(c, "Damage") for t, c in vals if t == "Damage"), None)
-        exp = next((c for t, c in vals if t == "ExplosiveDamage"), None)
         if not _eq(dmg, m["direct"]):
             errs.append(f"{sid}: dano direto {dmg} != {m['direct']}")
-        if exp is None or not _eq(num_at(exp, "TotalDamage"), m["explosive"]) or not _eq(num_at(exp, "Radius"),
-                                                                                       m["explosive_radius_m"]):
-            errs.append(f"{sid}: explosao != {m['explosive']} r{m['explosive_radius_m']}")
+        # cargas esperadas, na ordem do build_explosive: explosao (com fogo) + explosao so estrutural
+        want = [("explosao", m["explosive"], m["explosive_radius_m"], False)]
+        if m.get("structural_explosive"):
+            want.append(("explosao estrutural", m["structural_explosive"], m["structural_radius_m"], True))
+        fire = re.search(r"StatusChancePerNDamage\s+(\d+(?:\.\d+)?)%", str(m.get("explosion_fire") or ""))
+        errs += _check_blasts(f"{sid} (contato)", [c for t, c in vals if t == "ExplosiveDamage"], want,
+                              float(fire.group(1)) if fire else None)
         if shield is not None and not _eq(num_at(hit, "HitShield/HitEffects/0/Damage"), shield):
             errs.append(f"{sid}: HitShield {num_at(hit, 'HitShield/HitEffects/0/Damage')} != {shield}")
         guided = isinstance(m.get("guided"), dict) and D.switch("boiuna.ac_guided")
         if guided != (node_at(root, "Components/Homing") is not None):
             errs.append(f"{sid}: Homing {'ausente' if guided else 'presente'}")
-        if node_at(root, "Components/Death/OnDeath") is None:
+        od = node_at(root, "Components/Death/OnDeath")
+        if od is None:
             errs.append(f"{sid}: sem detonacao no fim do alcance (Death/OnDeath)")
+        else:
+            # fim do alcance: as mesmas cargas do contato (sem o dano direto nem o impulso)
+            ofx = node_at(od, "HitEffects")
+            items = ofx.children if ofx is not None and ofx.kind == "list" else []
+            if len(items) != len(want):
+                errs.append(f"{sid}: Death/OnDeath com {len(items)} efeito(s), esperado {len(want)}")
+            errs += _check_blasts(f"{sid} (fim do alcance)",
+                                  [c for c in items if node_at(c, "Type") and node_at(c, "Type").value == "ExplosiveDamage"],
+                                  want, float(fire.group(1)) if fire else None)
         return errs
     if not _eq(num_at(hit, "HitOperational/HitEffects/0/Damage"), m["direct"]):
         errs.append(f"{sid}: dano direto {num_at(hit, 'HitOperational/HitEffects/0/Damage')} != {m['direct']}")

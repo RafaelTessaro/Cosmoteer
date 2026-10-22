@@ -19,7 +19,8 @@ Ganchos e seams (o build_mod chama annotate depois do shots(DATA) de TODOS os mo
                                       fim da AP com o preset cheio uma vez, abatido = POP, rajada HE/FRAG das defesas,
                                       faisca do fragmento;
   pen_effect(art_tier) / pop_effect(art_tier)   seam do WP02 (SPEC.art_assets.seam_tier_map): lista de MediaEffects
-                                      ('&<...>') ou None (tier fora da tabela / plasma: o chamador mantem o efeito antigo);
+                                      ('&<...>') ou None (tier fora da tabela / plasma: o chamador mantem o efeito
+                                      antigo);
   art_key(ammo, tier, s) / art_item(key) / art_body(key) / art_components(...) / art_anchor(key, nome)
                                       arte de voo de art3d/bs_shells2 para quem escreve o proprio tiro (WP08, WP09).
 Switches: art.light_split (fxkit.light_pair), art.pen_media (light | full = Fase B), art.frag_cone (cone | radial).
@@ -1298,8 +1299,9 @@ def _full_refs():
 
 def selfcheck(mod_dir, spec):
     """WP03: R4 da limpeza 1.x nos fontes; as 18 chaves da escada com arte; orcamentos (PEN <= 6, AC 17/17/37/49,
-    FRAG 8/12); arquivos escritos; nos tiros do mod: halo (GlowSprite IsLight) com refl 0 e add 0, toda luz de casco
-    (GlowSprite2) com o canal mais fraco <= c_min_limit(refl) e AC/slug a refl 4; nenhuma peca atravessada
+    FRAG 8/12); arquivos escritos; a luz propria particle_light (ac_flash_light) com o canal mais fraco <= 0,5 no
+    casco branco (fxkit.particle_light_white); nos tiros do mod: halo (GlowSprite IsLight) com refl 0 e add 0, toda
+    luz de casco (GlowSprite2) com o canal mais fraco <= c_min_limit(refl) e AC/slug a refl 4; nenhuma peca atravessada
     (PenetratingOperational) com o preset cheio ou com a midia do HitOperational; Boiuna sem visual nuclear."""
     probs = []
     for p in (os.path.abspath(__file__), os.path.join(os.path.dirname(os.path.abspath(__file__)), "fxkit.py")):
@@ -1323,6 +1325,11 @@ def selfcheck(mod_dir, spec):
         sub, name = key.split("/", 1)
         if not os.path.isfile(os.path.join(mod_dir, FX_DIRS[sub], f"{name}.rules")):
             probs.append(f"{FX_DIRS[sub]}/{name}.rules nao foi escrito")
+        # luz propria particle_light (ac_flash_light): a regra c_min vale tambem aqui (refl 24 x alfa)
+        if OWN_FX[key]["kind"] == "light":
+            w = FXK.particle_light_white(OWN_FX[key].get("color") or (1, 1, 1, 1), LIGHT_RAMP)
+            if w > 0.5 + 1e-9:
+                probs.append(f"own_fx {key}: canal mais fraco da luz no casco branco {w:.2f} > 0,5 (lava de branco)")
     if meta:
         for f in meta["files"]:
             if not os.path.isfile(os.path.join(mod_dir, ART_OUT, f)):

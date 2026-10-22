@@ -10,7 +10,7 @@ bsgen.shots, bsgen.trails ou bsgen.plasma_fx): nao entra em ciclo de import com 
    editado; juntar os dois e tarefa futura. Nomes publicos sem o "_" (el, tex, renderer, tail, particles, emitter,
    ramp, addt, mul, local_init, hot, r); os nomes com "_" continuam valendo. O TAIL_TEXT (rabo dos arquivos de
    particula, ja carregado no 0.30.4c) e copia de bsgen/trails.TAIL_TEXT, conferida pelo mesmo teste.
-2. Visual nuclear comum da Boiuna (granada) e da Iara (missil), em shots/bs_nuke_fx/ (NUKE_DIR): anel verde que
+2. Visual nuclear da Iara (missil; a Boiuna nao e nuclear no 2.0, G8), em shots/bs_nuke_fx/ (NUKE_DIR): anel verde que
    cresce (bs_nuke_ring; bs_nuke_ring_small quando o projetil e abatido no ar) e brilho residual verde no casco
    (bs_nuke_afterglow). Referencias com nuke_ref(nome, "shot" | "part") / nuke_media(...).
 3. radiation_components(): o trevo de radiacao girando do missil nuclear vanilla
@@ -388,10 +388,11 @@ def ref_media(dir_rel, name, frm):
 
 
 # ----------------------------------------------------------------------------- visual nuclear comum
-# Boiuna (granada nuclear, caliber_fx) e Iara (missil nuclear, missile_fx) usam OS MESMOS arquivos.
+# So a Iara (missil nuclear, missile_fx) usa estes arquivos: no 2.0 a Boiuna nao e nuclear (G8; caliber_fx.selfcheck
+# proibe bs_nuke_fx nos tiros *howitzer*).
 NUKE_DIR = "shots/bs_nuke_fx"
 NUKE_GREEN_LIGHT = [90, 255, 60]     # VertexColor da luz de radiacao IsLight da Iara (missiles_design 2, Iara)
-NUKE_GREEN_TINT = [120, 255, 60]     # VertexColor dos trevos aditivos da Boiuna (caliber_design item 13)
+NUKE_GREEN_TINT = [120, 255, 60]     # VertexColor do trevo aditivo verde (era o da Boiuna 1.x, caliber_design item 13)
 # Verde de UM canal so para a luz IsLight grande do trevo (RadiationLight), o mesmo idioma do vermelho puro
 # [255, 0, 0] do vanilla (missile_nuke_stage1.rules l.99). A luz de casco multiplica a cor pela forca do shader
 # (fancy_light: _litReflectiveStrength 10) e pelo difuso do casco (base.shader multiplyAdditiveLightValue): com
@@ -406,11 +407,11 @@ FANCY_LIGHT = f"{D}/common_effects/fancy_light.shader"
 
 # Anel: shockwave.png vanilla (o mesmo do explosive_charge_shockwave.rules, que cresce 3 -> 8 com Lerp linear).
 # A borda clara da textura fica a ~0,85 do raio do quadro (miolo quase transparente, alfa sobe ate a borda e cai a
-# zero em ~0,92): quadro de 18 tiles = borda a ~7,7 tiles, o raio da explosao (Boiuna 8, Iara 9). Crescimento
+# zero em ~0,92): quadro de 18 tiles = borda a ~7,7 tiles, perto do raio da explosao da Iara (9). Crescimento
 # LINEAR (Lerp na vida, como o vanilla) de 2 a 18 tiles em 0,8 s = acompanha a frente de dano da Iara
 # (ExplosiveDamage ExpandStartRadius 2 / ExpandDuration 0,8, tambem linear). O tamanho passa por
-# ScaleToWorldSpace: o MediaEffectsScale do bloco de impacto multiplica o anel (Boiuna 1,15 = borda a ~8,8 tiles;
-# Iara 1,3 = ~10 tiles, a mesma folga sobre o raio 9).
+# ScaleToWorldSpace: o MediaEffectsScale do bloco de impacto multiplica o anel (Iara 1,3 = borda a ~10 tiles, uma
+# folga sobre o raio 9).
 # Brilho residual: luz particle_light (LightQuadRenderer) de 14 tiles que acende em ~0,6 s e apaga em 3 s: o casco
 # em volta do impacto fica verde depois que o clarao vanilla (missile_nuke_flash_light, 0,5 s) some.
 # Intensidade (licao do plasma, X3: luz forte sobre casco branco vira nevoa clara): particle_light.shader devolve
@@ -422,17 +423,17 @@ FANCY_LIGHT = f"{D}/common_effects/fancy_light.shader"
 NUKE = {
     "bs_nuke_ring": {"size": 18, "start": 2, "life": 0.8, "bucket": "Upper2",
                      "ramp": [(1.4, 1.4, 1.4, 1), (1.1, 1.1, 1.1, 0.95), (1, 1, 1, 0.7), (1, 1, 1, 0)],
-                     "note": "Anel verde da explosao nuclear (Boiuna e Iara): shockwave.png vanilla, 2 -> 18 tiles "
+                     "note": "Anel verde da explosao nuclear (Iara): shockwave.png vanilla, 2 -> 18 tiles "
                              "em 0,8 s"},
     "bs_nuke_ring_small": {"size": 6, "start": 2, "life": 0.5, "bucket": "Upper2",
                            "ramp": [(1.3, 1.3, 1.3, 1), (1, 1, 1, 0.8), (1, 1, 1, 0.45), (1, 1, 1, 0)],
-                           "note": "Anel verde pequeno do nuclear abatido no ar (Boiuna e Iara): 2 -> 6 tiles em "
+                           "note": "Anel verde pequeno do nuclear abatido no ar (Iara): 2 -> 6 tiles em "
                                    "0,5 s"},
     "bs_nuke_afterglow": {"size": 14, "life": 3, "bucket": "Upper5", "color": (0.12, 1, 0.08, 0.1),
                           "ramp": [(1, 1, 1, 0.35), (1, 1, 1, 1), (1, 1, 1, 0.65), (1, 1, 1, 0.38),
                                    (1, 1, 1, 0.16), (1, 1, 1, 0)],
                           "scale": (0.85, 1.1),
-                          "note": "Brilho residual verde no casco depois da explosao nuclear (Boiuna e Iara; "
+                          "note": "Brilho residual verde no casco depois da explosao nuclear (Iara; "
                                   "particle_light, 14 tiles, 3 s)"},
 }
 NUKE_FILES = tuple(NUKE)
@@ -541,7 +542,7 @@ def radiation_components(big_size, big_spin_deg, small_size, small_spin_deg, sma
         / "warhead" do meta da arte); color: VertexColor dos dois (small_color troca so o do trevo pequeno);
       big_z: Z da luz (vanilla .25); light: troca parametros do shader (padrao RADIATION_LIGHT, os do vanilla).
     Iara: radiation_components(7, 120, 0.7, <giro>, <ancora>, NUKE_GREEN_LIGHT, ...);
-    Boiuna: radiation_components(8, 180, 0.75, 360, <ancora>, NUKE_GREEN_TINT).
+    (A Boiuna 1.x usava radiation_components(8, 180, 0.75, 360, <ancora>, NUKE_GREEN_TINT); no 2.0 ela nao e nuclear.)
     Para a luz grande ler VERDE sobre casco (e nao branca) passe color=NUKE_GREEN_HULL e a cor de desenho no trevo
     pequeno: radiation_components(..., NUKE_GREEN_HULL, small_color=NUKE_GREEN_LIGHT | NUKE_GREEN_TINT)."""
     big = {"Type": "Sprite", "RenderBucket": big_bucket, "Spin": _deg(big_spin_deg), "Z": _r(big_z),
@@ -754,6 +755,20 @@ def c_min_limit(refl):
     return int(math.floor(0.5 * 255 / (WHITE_HULL_DIFFUSE * float(refl)) + 1e-9))
 
 
+PARTICLE_LIGHT_REFL = 24     # _litReflectiveStrength do blob(light=True) (particle_light.shader)
+PARTICLE_LIGHT_AMBIENT = 0.25
+
+
+def particle_light_white(color, ramp, refl=PARTICLE_LIGHT_REFL):
+    """Pico do canal mais fraco de uma luz particle_light (blob light=True) sobre o casco branco: o shader devolve
+    refl x cor x (difuso + 0,25) x alfa (cor = base_color x chave da rampa). A mesma regra c_min da luz de casco
+    pede <= 0,5 (um canal nunca satura): com alfa 0,25 o canal mais fraco fica <= 0,075."""
+    col = [float(v) for v in color]
+    a0 = col[3] if len(col) > 3 else 1.0
+    k = float(refl) * (WHITE_HULL_DIFFUSE + PARTICLE_LIGHT_AMBIENT)
+    return max(k * min(col[i] * float(key[i]) for i in range(3)) * a0 * float(key[3]) for key in ramp)
+
+
 def hull_refl(key):
     """_litReflectiveStrength da luz de casco da municao key (palette.<k>.hull_refl ou 6)."""
     v = pal(key).get("hull_refl") or HULL_REFL_DEFAULT
@@ -925,11 +940,16 @@ def selfcheck(mod_dir, spec):
     for name in NUKE:
         if not os.path.isfile(os.path.join(mod_dir, NUKE_DIR, f"{name}.rules")):
             probs.append(f"{NUKE_DIR}/{name}.rules nao foi escrito")
+        c = NUKE[name]
+        if "color" in c and particle_light_white(c["color"], c["ramp"]) > 0.5 + 1e-9:
+            probs.append(f"{NUKE_DIR}/{name}: luz particle_light lava o casco branco (canal mais fraco "
+                         f"{particle_light_white(c['color'], c['ramp']):.2f} > 0,5)")
     probs += legacy_scan(os.path.abspath(__file__))
     return probs
 
 
-_LEGACY_PAT = r"bs_shells([^2]|$)|bs_missiles([^2]|$)"
+# (o [s] entre colchetes faz o padrao nao casar com a propria linha no grep R4 do WP14b)
+_LEGACY_PAT = r"bs_shell[s]([^2]|$)|bs_missile[s]([^2]|$)"
 
 
 def legacy_scan(path):
@@ -950,7 +970,7 @@ def legacy_scan(path):
         if s == "# LEGACY_1X_FALLBACK fim":
             inside = False
             continue
-        if not inside and re.search(_LEGACY_PAT, ln) and "_LEGACY_PAT" not in ln:
+        if not inside and re.search(_LEGACY_PAT, ln):
             probs.append(f"{os.path.basename(path)}:{i}: pasta de arte 1.x fora do bloco LEGACY_1X_FALLBACK")
     if inside:
         probs.append(f"{os.path.basename(path)}: bloco LEGACY_1X_FALLBACK sem fim")
